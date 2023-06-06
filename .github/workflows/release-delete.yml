@@ -1,0 +1,152 @@
+name: RELEASE-DELETE
+
+on:
+  workflow_call:
+    inputs:
+      VERSION:
+        description: "The version of release (e.g. v0.4.0)"
+        type: string
+        required: true
+        default: ''
+      APECD_REF:
+        description: "The ref of apecd"
+        type: string
+        required: false
+        default: 'main'
+
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  GITLAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+  ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
+  GITLAB_KBCLI_PROJECT_ID: 85948
+  GITLAB_HELM_CHARTS_PROJECT_ID: 85949
+
+jobs:
+  delete-release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Apecd Code
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/apecd
+          path: apecd
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: delete kubeblocks release
+        run: |
+          for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
+              bash ${{ github.workspace }}/apecd/.github/utils/utils.sh \
+                  --type 8 \
+                  --github-repo apecloud/kubeblocks \
+                  --tag-name $release \
+                  --github-token ${{ env.GITHUB_TOKEN }}
+          done
+
+      - name: delete github kbcli release
+        run: |
+          for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
+              bash ${{ github.workspace }}/apecd/.github/utils/utils.sh \
+                  --type 8 \
+                  --github-repo apecloud/kbcli \
+                  --tag-name $release \
+                  --github-token ${{ env.GITHUB_TOKEN }}
+          done
+
+      - name: delete gitlab kbcli release
+        run: |
+          for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
+              bash ${{ github.workspace }}/apecd/.github/utils/release_gitlab.sh \
+                  --type 5 \
+                  --tag-name $release \
+                  --project-id ${{ env.GITLAB_KBCLI_PROJECT_ID }} \
+                  --access-token ${{ env.GITLAB_ACCESS_TOKEN }}
+          done
+
+  delete-chart:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Checkout Apecd Code
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/apecd
+          path: apecd
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: delete github helm chart release
+        run: |
+          for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
+              bash ${{ github.workspace }}/apecd/.github/utils/utils.sh \
+                  --type 9 \
+                  --github-repo apecloud/helm-charts \
+                  --tag-name $release \
+                  --github-token ${{ env.GITHUB_TOKEN }}
+          done
+
+      - name: delete gitlab helm chart release
+        run: |
+          for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
+              bash ${{ github.workspace }}/apecd/.github/utils/release_gitlab.sh \
+                  --type 6 \
+                  --tag-name $release \
+                  --project-id ${{ env.GITLAB_HELM_CHARTS_PROJECT_ID }} \
+                  --access-token ${{ env.GITLAB_ACCESS_TOKEN }}
+          done
+
+  delete-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Apecd Code
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/apecd
+          path: apecd
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: delete dockerhub image
+        run: |
+          for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
+              script -e -c "bash ${{ github.workspace }}/apecd/.github/utils/utils.sh \
+                  --type 10 \
+                  --tag-name $release \
+                  --user ${{ env.DOCKER_USER }} \
+                  --password \"${{ env.DOCKER_PASSWORD }}\""
+          done
+
+  delete-aliyun-image:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Apecd Code
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/apecd
+          path: apecd
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: install skopeo
+        run: |
+          brew install skopeo
+
+      - name: delete aliyun registry image
+        run: |
+          for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
+              bash ${{ github.workspace }}/apecd/.github/utils/utils.sh \
+                  --type 11 \
+                  --tag-name $release \
+                  --user ${{ env.ALIYUN_USER }} \
+                  --password "${{ env.ALIYUN_PASSWORD }}"
+          done

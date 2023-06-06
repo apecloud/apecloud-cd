@@ -1,0 +1,58 @@
+name: TRIGGER-WORKFLOW
+
+on:
+  workflow_call:
+    inputs:
+      GITHUB_REPO:
+        description: "The github repo that triggers the workflow"
+        type: string
+        required: true
+        default: ''
+      BRANCH_NAME:
+        description: "The branch name that triggers the workflow"
+        type: string
+        required: false
+        default: 'main'
+      WORKFLOW_ID:
+        description: "The workflow id that triggers the workflow"
+        type: string
+        required: true
+        default: ''
+      APECD_REF:
+        description: "The branch name of apecd"
+        type: string
+        required: false
+        default: 'main'
+      VERSION:
+        description: "The release version"
+        type: string
+        required: false
+        default: ''
+
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  trigger-workflow:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Apecd Code
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/apecd
+          path: apecd
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: trigger-workflow
+        run: |
+          bash ${{ github.workspace }}/apecd/.github/utils/utils.sh \
+              --type 7 \
+              --github-token ${{ env.GITHUB_TOKEN }} \
+              --github-repo ${{ inputs.GITHUB_REPO }} \
+              --branch-name ${{ inputs.BRANCH_NAME }} \
+              --workflow-id ${{ inputs.WORKFLOW_ID }} \
+              --version ${{ inputs.VERSION }}

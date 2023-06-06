@@ -1,0 +1,42 @@
+name: Publish to scoop bucket
+
+on:
+  workflow_dispatch:
+    inputs:
+      VERSION:
+        description: "The release version of kbcli"
+        type: string
+        required: true
+        default: ''
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: apecloud/scoop-bucket
+          path: scoop
+          token: ${{ env.GITHUB_TOKEN }}
+      - name: run autoupdate
+        uses: foosel/scoop-checkver-action@main
+        with:
+          bucket: scoop/bucket
+      - name: auto update scoop-bucket
+        run: | 
+          cd scoop
+          git config --local user.name "$GITHUB_ACTOR"
+          git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          while read file; do
+            if [[ $file == bucket/* ]] && [[ $file == *.json ]]; then
+              version=$(cat $file | jq -r .version)
+              manifest=$(basename $file .json)
+              message="$manifest: Update to version $version"
+              git add "$file"
+              git commit -m "$message"
+            fi
+          done < <(git diff --name-only)
+          git push
