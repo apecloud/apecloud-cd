@@ -17,7 +17,7 @@ Usage: $(basename "$0") <options>
     -du, --dest-username      The dest registry username
     -dp, --dest-password      The dest registry password
     -dr, --dest-registry      The dest registry name (default: $DEFAULT_DEST_REGISTRY)
-    -si, --src-image         The src image name (e.g. apecloud/apecd)
+    -si, --src-image         The src image name (e.g. apecloud/apecloud-cd)
     -sr, --src-registry       The src registry name (default: $DEFAULT_SRC_REGISTRY)
     -st, --src-tag            The src tag name
 EOF

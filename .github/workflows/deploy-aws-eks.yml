@@ -39,7 +39,7 @@ on:
         required: false
         default: false
       APECD_REF:
-        description: "The branch name of apecd (default: main)"
+        description: "The branch name of apecloud-cd (default: main)"
         type: string
         required: false
         default: 'main'

@@ -19,7 +19,7 @@ on:
         required: true
         default: ''
       APECD_REF:
-        description: "The branch name of apecd"
+        description: "The branch name of apecloud-cd"
         type: string
         required: false
         default: 'main'
@@ -42,14 +42,14 @@ jobs:
       - name: Checkout Apecd Code
         uses: actions/checkout@v3
         with:
-          repository: apecloud/apecd
-          path: apecd
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
           token: ${{ env.GITHUB_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
 
       - name: trigger-workflow
         run: |
-          bash ${{ github.workspace }}/apecd/.github/utils/utils.sh \
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
               --type 7 \
               --github-token ${{ env.GITHUB_TOKEN }} \
               --github-repo ${{ inputs.GITHUB_REPO }} \

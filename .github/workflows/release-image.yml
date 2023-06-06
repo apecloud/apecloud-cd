@@ -59,7 +59,7 @@ on:
         required: false
         default: false
       APECD_REF:
-        description: "The branch name of apecd"
+        description: "The branch name of apecloud-cd"
         type: string
         required: false
         default: 'main'
@@ -222,8 +222,8 @@ jobs:
       - name: Checkout Apecd Code
         uses: actions/checkout@v3
         with:
-          repository: apecloud/apecd
-          path: apecd
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
           token: ${{ env.GITHUB_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
 
@@ -232,7 +232,7 @@ jobs:
         run: |
           brew install skopeo
           
-          bash ${{ github.workspace }}/apecd/.github/utils/copy_image.sh \
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/copy_image.sh \
               --type 1 \
               --dest-username "${{ env.ALIYUN_USER }}" \
               --dest-password '${{ env.ALIYUN_PASSWORD }}' \

@@ -9,7 +9,7 @@ on:
         required: true
         default: ''
       APECD_REF:
-        description: "The ref of apecd"
+        description: "The ref of apecloud-cd"
         type: string
         required: false
         default: 'main'
@@ -34,15 +34,15 @@ jobs:
       - name: Checkout Apecd Code
         uses: actions/checkout@v3
         with:
-          repository: apecloud/apecd
-          path: apecd
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
           token: ${{ env.GITHUB_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
 
       - name: delete kubeblocks release
         run: |
           for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
-              bash ${{ github.workspace }}/apecd/.github/utils/utils.sh \
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
                   --type 8 \
                   --github-repo apecloud/kubeblocks \
                   --tag-name $release \
@@ -52,7 +52,7 @@ jobs:
       - name: delete github kbcli release
         run: |
           for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
-              bash ${{ github.workspace }}/apecd/.github/utils/utils.sh \
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
                   --type 8 \
                   --github-repo apecloud/kbcli \
                   --tag-name $release \
@@ -62,7 +62,7 @@ jobs:
       - name: delete gitlab kbcli release
         run: |
           for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
-              bash ${{ github.workspace }}/apecd/.github/utils/release_gitlab.sh \
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
                   --type 5 \
                   --tag-name $release \
                   --project-id ${{ env.GITLAB_KBCLI_PROJECT_ID }} \
@@ -80,15 +80,15 @@ jobs:
       - name: Checkout Apecd Code
         uses: actions/checkout@v3
         with:
-          repository: apecloud/apecd
-          path: apecd
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
           token: ${{ env.GITHUB_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
 
       - name: delete github helm chart release
         run: |
           for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
-              bash ${{ github.workspace }}/apecd/.github/utils/utils.sh \
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
                   --type 9 \
                   --github-repo apecloud/helm-charts \
                   --tag-name $release \
@@ -98,7 +98,7 @@ jobs:
       - name: delete gitlab helm chart release
         run: |
           for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
-              bash ${{ github.workspace }}/apecd/.github/utils/release_gitlab.sh \
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
                   --type 6 \
                   --tag-name $release \
                   --project-id ${{ env.GITLAB_HELM_CHARTS_PROJECT_ID }} \
@@ -111,15 +111,15 @@ jobs:
       - name: Checkout Apecd Code
         uses: actions/checkout@v3
         with:
-          repository: apecloud/apecd
-          path: apecd
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
           token: ${{ env.GITHUB_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
 
       - name: delete dockerhub image
         run: |
           for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
-              script -e -c "bash ${{ github.workspace }}/apecd/.github/utils/utils.sh \
+              script -e -c "bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
                   --type 10 \
                   --tag-name $release \
                   --user ${{ env.DOCKER_USER }} \
@@ -132,8 +132,8 @@ jobs:
       - name: Checkout Apecd Code
         uses: actions/checkout@v3
         with:
-          repository: apecloud/apecd
-          path: apecd
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
           token: ${{ env.GITHUB_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
 
@@ -144,7 +144,7 @@ jobs:
       - name: delete aliyun registry image
         run: |
           for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
-              bash ${{ github.workspace }}/apecd/.github/utils/utils.sh \
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
                   --type 11 \
                   --tag-name $release \
                   --user ${{ env.ALIYUN_USER }} \

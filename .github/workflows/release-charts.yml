@@ -44,7 +44,7 @@ on:
         required: false
         default: true
       APECD_REF:
-        description: "The branch name of apecd"
+        description: "The branch name of apecloud-cd"
         type: string
         required: false
         default: 'main'
@@ -108,8 +108,8 @@ jobs:
       - name: Checkout Apecd Code
         uses: actions/checkout@v3
         with:
-          repository: apecloud/apecd
-          path: apecd
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
           token: ${{ env.CR_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
 
@@ -124,7 +124,7 @@ jobs:
             --charts-dir "$CHARS_DIR" \
             --release-version ${{ steps.get_version.outputs.VERSION }})
           
-          "${{ github.workspace }}/apecd/.github/utils/helm_package.sh" "${args[@]}"
+          "${{ github.workspace }}/apecloud-cd/.github/utils/helm_package.sh" "${args[@]}"
 
       - name: setup k3s ${{ env.K3S_VERSION }}
         uses: nolar/setup-k3d-k3s@v1
@@ -147,7 +147,7 @@ jobs:
       - name: check images
         if: inputs.CHECK_ENABLE
         run: |   
-          bash ${{ github.workspace }}/apecd/.github/utils/helm_image_check.sh \
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/helm_image_check.sh \
               .cr-release-packages "${{ inputs.CHART_NAME }}"
 
       - name: copy dependency chart
@@ -160,7 +160,7 @@ jobs:
         run: |
           ls .cr-release-packages
           cd .cr-release-packages
-          bash ${{ github.workspace }}/apecd/.github/utils/release_gitlab.sh \
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
             --type 3 \
             --project-id ${{ env.GITLAB_HELM_CHARTS_PROJECT_ID }} \
             --asset-path ./ \
@@ -190,4 +190,4 @@ jobs:
           cd helm-charts
           args=(--owner "apecloud" --repo "helm-charts")
           
-          "${{ github.workspace }}/apecd/.github/utils/helm_release.sh" "${args[@]}"
+          "${{ github.workspace }}/apecloud-cd/.github/utils/helm_release.sh" "${args[@]}"
