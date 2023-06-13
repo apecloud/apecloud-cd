@@ -14,12 +14,20 @@ env:
 
 jobs:
   publish:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+      - name: remove prefix v
+        run: |
+          publish_version=`bash ${{ github.workspace }}/.github/utils/utils.sh \
+          --type 1 \
+          ----tag-name ${{ inputs.VERSION }}`
+          echo "publish_version=${publish_version}" >> $GITHUB_ENV
+      
       - uses: vedantmgoyal2009/winget-releaser@v2
         with:
           identifier: ApeCloud.kbcli
-          version: ${{ inputs.VERSION }}
+          version: ${{ env.publish_version }}
           installers-regex: '\.exe$' # Only .exe files
           max-versions-to-keep: 5
           release-tag: ${{ inputs.VERSION }}
