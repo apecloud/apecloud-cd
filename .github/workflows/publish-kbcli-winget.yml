@@ -21,7 +21,7 @@ jobs:
         run: |
           publish_version=`bash ${{ github.workspace }}/.github/utils/utils.sh \
           --type 1 \
-          ----tag-name ${{ inputs.VERSION }}`
+          --tag-name ${{ inputs.VERSION }}`
           echo "publish_version=${publish_version}" >> $GITHUB_ENV
       
       - uses: vedantmgoyal2009/winget-releaser@v2
