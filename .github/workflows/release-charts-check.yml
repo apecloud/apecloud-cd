@@ -1,0 +1,147 @@
+name: RELEASE-CHART-CHECK
+
+on:
+  workflow_call:
+    inputs:
+      MAKE_OPS:
+        description: "The ops name of makefile (e.g. bump-chart-ver)"
+        type: string
+        required: false
+        default: ''
+      VERSION:
+        description: "The version of helm chart (e.g. v0.4.0)"
+        type: string
+        required: false
+        default: ''
+      CHART_NAME:
+        description: "The package(repo) name of helm chart (e.g. kubeblocks)"
+        type: string
+        required: false
+        default: ''
+      CHART_DIR:
+        description: "The dir of Chart.yaml (default: deploy/helm)"
+        type: string
+        required: false
+        default: 'deploy/helm'
+      HELM_SET:
+        description: "The install args of helm chart (e.g. prometheus.enabled=true)"
+        type: string
+        required: false
+        default: ''
+      DEP_REPO:
+        description: "The dependency of helm chart (e.g. helm repo add grafana https://grafana.github.io/helm-charts)"
+        type: string
+        required: false
+        default: ''
+      DEP_CHART_DIR:
+        description: "The dir of helm chart dependency package"
+        type: string
+        required: false
+        default: ''
+      PUSH_ENABLE:
+        description: "Enable push helm chart"
+        type: boolean
+        required: false
+        default: true
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      CHECK_ENABLE:
+        description: "Enable check docker images"
+        type: boolean
+        required: false
+        default: true
+
+
+env:
+  CR_TOKEN: ${{ github.token }}
+  HELM_VERSION: v3.10.0
+  K3S_VERSION: v1.24
+
+jobs:
+  release-chart:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Fetch History And Configure Git
+        run: |
+          git fetch --prune --unshallow
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Update Dependency
+        run: |
+          if [ ! -z "${{ inputs.DEP_REPO }}" ]; then
+             echo "${{ inputs.DEP_REPO }}"
+             eval "${{ inputs.DEP_REPO }}"
+          fi
+          helm dep update ${{ inputs.CHART_DIR }}
+
+      - name: remove v prefix
+        id: get_version
+        shell: bash
+        run: |
+          version="${{ inputs.VERSION }}"
+          version="${version/v/}"
+          echo VERSION=$version >> $GITHUB_OUTPUT
+
+      - name: Bump helm chart version
+        if: inputs.MAKE_OPS
+        run: |
+          make ${{ inputs.MAKE_OPS }} \
+            VERSION="${{ steps.get_version.outputs.VERSION }}"
+
+      - name: Checkout Apecd Code
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: Package Helm Chart
+        shell: bash
+        run: |
+          CHARS_DIR="${{ inputs.CHART_DIR }}"
+          CHARS_DIR="${CHARS_DIR%/*}"
+          
+          args=(--owner "apecloud" \
+            --repo "${{ inputs.CHART_NAME }}" \
+            --charts-dir "$CHARS_DIR" \
+            --release-version ${{ steps.get_version.outputs.VERSION }})
+          
+          "${{ github.workspace }}/apecloud-cd/.github/utils/helm_package.sh" "${args[@]}"
+
+      - name: setup k3s ${{ env.K3S_VERSION }}
+        uses: nolar/setup-k3d-k3s@v1
+        with:
+          version: ${{ env.K3S_VERSION }}
+          github-token: ${{ env.CR_TOKEN }}
+
+      - name: helm validate
+        run: |
+          cp .cr-release-packages/${{ inputs.CHART_NAME }}-${{ steps.get_version.outputs.VERSION }}.tgz ./
+          
+          tar -zxvf ${{ inputs.CHART_NAME }}-${{ steps.get_version.outputs.VERSION }}.tgz
+          
+          helm install ${{ inputs.CHART_NAME }} \
+            ${{ inputs.CHART_NAME }} \
+            --set="${{ inputs.HELM_SET }}"
+          
+          helm template ${{ inputs.CHART_NAME }} ${{ inputs.CHART_NAME }} --validate
+
+      - name: check images
+        if: inputs.CHECK_ENABLE
+        run: |   
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/helm_image_check.sh \
+              .cr-release-packages "${{ inputs.CHART_NAME }}"
