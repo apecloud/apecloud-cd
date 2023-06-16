@@ -1,0 +1,107 @@
+name: RELEASE-IMAGE-CHECK
+
+on:
+  workflow_call:
+    inputs:
+      MAKE_OPS:
+        description: "The ops name of makefile (default: push-image)"
+        type: string
+        required: false
+        default: 'push-image'
+      MAKE_OPS_PRE:
+        description: "The pre ops name of makefile (e.g. generate)"
+        type: string
+        required: false
+        default: ''
+      IMG:
+        description: "The URL to use building/pushing image targets (e.g. apecloud/kubeblocks)"
+        type: string
+        required: false
+        default: ''
+      VERSION:
+        description: "The tag name of image (default: latest)"
+        type: string
+        required: false
+        default: ''
+      BUILDX_PLATFORMS:
+        description: "buildx platforms (default: linux/amd64,linux/arm64)"
+        type: string
+        required: false
+        default: 'linux/amd64,linux/arm64'
+      BUILDX_ENABLED:
+        description: "buildx enable (default: true)"
+        type: string
+        required: false
+        default: 'true'
+      BUILDX_ARGS:
+        description: "buildx args (default: --sbom=false --provenance=false)"
+        type: string
+        required: false
+        default: '--sbom=false --provenance=false'
+      GO_VERSION:
+        description: "Install the specify version of GO"
+        type: string
+        required: false
+        default: ''
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+
+
+env:
+  DOCKER_REGISTRY_URL: docker.io
+
+jobs:
+  release-image:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-latest
+    outputs:
+      tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - uses: docker/setup-qemu-action@v2
+      - uses: docker/setup-buildx-action@v2
+        with:
+          driver-opts: image=moby/buildkit:master
+
+      - name: Setup Go
+        if: inputs.GO_VERSION
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ inputs.GO_VERSION }}
+
+      - name: make pre
+        if: inputs.MAKE_OPS_PRE
+        run: |
+          make ${{ inputs.MAKE_OPS_PRE }}
+
+      - name: remove v prefix
+        id: get_tag_name
+        shell: bash
+        run: |
+          tag_name="${{ inputs.VERSION }}"
+          tag_name="${tag_name/v/}"
+          echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
+
+      - name: Build Docker
+        run: |
+          cmd="make ${{ inputs.MAKE_OPS }} "
+          cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
+          cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
+          cmd=$cmd"BUILDX_ARGS=\"${{ inputs.BUILDX_ARGS }}\" "
+          
+          if [[ ! -z "${{ inputs.VERSION }}" ]]; then
+            cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
+          fi
+          
+          if [[ ! -z "${{ inputs.IMG }}" ]]; then
+            cmd=$cmd"IMG=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }} "
+          fi
+          
+          eval "$cmd"
