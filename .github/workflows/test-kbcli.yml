@@ -93,7 +93,7 @@ jobs:
               --region "${{ inputs.region }}" \
               --cluster-name ${{ inputs.eks-cluster-name }} | tee -a ${file_log}
           
-          test_ret="$( grep "【FAILED】" ${FILE_LOG} )"
+          test_ret="$( grep "【FAILED】" ${file_log}|| true )"
           if [[ -n "$test_ret" ]]; then
               exit 1
           fi
