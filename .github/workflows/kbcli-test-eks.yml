@@ -1,0 +1,127 @@
+name: KBCLI Test on EKS
+
+on:
+  workflow_call:
+    inputs:
+      CLUSTER_VERSION:
+        description: 'eks cluster version (e.g. 1.25)'
+        type: string
+        required: false
+        default: '1.25'
+      INSTANCE_TYPE:
+        description: 'node instance types (e.g. amd64/arm64)'
+        type: string
+        required: false
+        default: 'amd64'
+      KB_VERSION:
+        description: 'kubeblocks release version'
+        type: string
+        required: false
+        default: 'latest'
+      BRANCH_NAME:
+        description: 'testinfra branch name'
+        type: string
+        required: false
+        default: 'main'
+  workflow_dispatch:
+    inputs:
+      CLUSTER_VERSION:
+        description: 'eks cluster version (e.g. 1.25)'
+        required: false
+        default: '1.25'
+      INSTANCE_TYPE:
+        description: 'node instance types (e.g. amd64/arm64)'
+        required: false
+        default: 'amd64'
+      KB_VERSION:
+        description: 'kubeblocks release version'
+        required: false
+        default: 'latest'
+      BRANCH_NAME:
+        description: 'testinfra branch name'
+        required: false
+        default: 'main'
+
+run-name: kbcli:${{ inputs.KB_VERSION }} k8s:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }}
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  init-aws-eks:
+    uses: ./.github/workflows/terraform-init.yml
+    with:
+      cluster-version: ${{ inputs.CLUSTER_VERSION }}
+      instance-type: ${{ inputs.INSTANCE_TYPE }}
+      artifact-name: aws-eks-${{ github.sha }}
+      deploy-path: ./aws/eks-default-vpc
+    secrets: inherit
+
+  install-kubeblocks:
+    if: ${{ needs.init-aws-eks.result == 'success' }}
+    needs: init-aws-eks
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "0"
+      test-args: "--config-s3 true --upgrade true "
+      eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+    secrets: inherit
+
+  test-mysql:
+    if: ${{ needs.install-kubeblocks.result == 'success' }}
+    needs: [ init-aws-eks, install-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "1"
+      eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+    secrets: inherit
+
+  test-postgresql:
+    if: ${{ needs.install-kubeblocks.result == 'success' }}
+    needs: [ init-aws-eks, install-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "2"
+      eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+    secrets: inherit
+
+  test-redis:
+    if: ${{ needs.install-kubeblocks.result == 'success' }}
+    needs: [ init-aws-eks, install-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "5"
+      eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+    secrets: inherit
+
+  test-mongodb:
+    if: ${{ needs.install-kubeblocks.result == 'success' }}
+    needs: [ init-aws-eks, install-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "6"
+      eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+    secrets: inherit
+
+  destroy-aws-eks:
+    if: ${{ always() }}
+    needs: [ init-aws-eks, test-mysql, test-postgresql, test-redis, test-mongodb ]
+    uses: ./.github/workflows/terraform-destroy.yml
+    with:
+      artifact-name: aws-eks-${{ github.sha }}
+      deploy-path: ./aws/eks-default-vpc
+    secrets: inherit

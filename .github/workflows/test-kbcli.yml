@@ -1,0 +1,118 @@
+name: TEST-KBCLI
+
+on:
+  workflow_call:
+    inputs:
+      release-version:
+        description: 'kubeblocks release version'
+        type: string
+        required: false
+        default: 'latest'
+      branch-name:
+        description: 'testinfra branch name'
+        type: string
+        required: false
+        default: 'main'
+      test-type:
+        description: 'test type (1:mysql 2:postgresql 5:redis 6:mongodb)'
+        type: string
+        required: false
+        default: '1'
+      test-args:
+        description: 'test args'
+        type: string
+        required: false
+        default: ''
+      region:
+        description: 'eks region name'
+        type: string
+        required: false
+        default: 'cn-northwest-1'
+      eks-cluster-name:
+        description: 'eks cluster name'
+        type: string
+        required: false
+        default: ''
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  kbcli-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: azure/setup-kubectl@v3
+        with:
+          version: "latest"
+
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "${{ inputs.region }}"
+
+      - name: checkout testinfra
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/testinfra
+          ref: ${{ inputs.branch-name }}
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: run kbcli test
+        run: |
+          file_log="$(date +%Y-%m-%d-%T)".log
+          touch ${file_log}
+          echo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> ${file_log}
+          echo 'FILE_LOG='${file_log} >> $GITHUB_ENV
+          
+          KB_VERSION=$( bash .github/utils/get_kb_latest_version.sh \
+              ${{ inputs.release-version }} )
+          
+          S3_PATH=$( bash ${{ github.workspace }}/.github/utils/utils.sh \
+              --type 2 --test-type ${{ inputs.test-type }} \
+              --kubeblocks-version ${KB_VERSION} )
+          mkdir -p ${S3_PATH}
+          echo 'S3_PATH='${S3_PATH} >> $GITHUB_ENV
+          
+          echo "eks-cluster-name:${{ inputs.eks-cluster-name }}"
+          bash .github/utils/kbcli-test.sh \
+              --type ${{ inputs.test-type }} \
+              --kubeblocks-version ${KB_VERSION} \
+              --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
+              --region "${{ inputs.region }}" \
+              --cluster-name ${{ inputs.eks-cluster-name }} | tee -a ${file_log}
+          
+          test_ret="$( grep "【FAILED】" ${FILE_LOG} )"
+          if [[ -n "$test_ret" ]]; then
+              exit 1
+          fi
+
+      - name: copy log file
+        if: ${{ always() }}
+        run: |
+          sed -i 's/${{ env.AWS_ACCESS_KEY_ID }}/***/g' ${FILE_LOG}
+          sed -i 's/${{ env.AWS_SECRET_ACCESS_KEY }}/***/g' ${FILE_LOG}
+          echo "cp ${FILE_LOG} ${S3_PATH}"
+          cp ${FILE_LOG} ${S3_PATH}
+
+      - uses: shallwefootball/s3-upload-action@master
+        if: ${{ always() }}
+        name: upload logs to S3
+        with:
+          aws_key_id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws_bucket: ${{ vars.AWS_S3_BUCKET }}
+          source_dir: ${{ env.S3_PATH }}
+          destination_dir: ${{ env.S3_PATH }}
+          endpoint: ${{ vars.AWS_S3_ENDPOINT }}
