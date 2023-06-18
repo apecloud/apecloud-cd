@@ -1,0 +1,88 @@
+name: Terrafrom Init
+
+on:
+  workflow_call:
+    inputs:
+      cluster-version:
+        description: 'eks cluster version (e.g. 1.25)'
+        type: string
+        required: false
+        default: ''
+      instance-type:
+        description: 'node instance types (e.g. amd64/arm64)'
+        type: string
+        required: false
+        default: 'amd64'
+      deploy-path:
+        description: 'terraform deploy path'
+        type: string
+        required: false
+        default: ''
+      artifact-name:
+        description: 'terraform artifact name'
+        type: string
+        required: false
+        default: ''
+      region:
+        description: 'terraform artifact name'
+        type: string
+        required: false
+        default: 'cn-northwest-1'
+    outputs:
+      eks-cluster-name:
+        description: "eks cluster name"
+        value: ${{ jobs.terraform-init.outputs.eks-cluster-name }}
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform-init:
+    runs-on: ubuntu-latest
+    outputs:
+      eks-cluster-name: ${{ steps.terraform_init.outputs.eks-cluster-name }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.4.6
+
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "${{ inputs.region }}"
+
+      - name: checkout cloud-provider
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/cloud-provider
+          ref: "apecd-deploy"
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: terraform init aws eks
+        id: terraform_init
+        run: |
+          cd ${{ inputs.deploy-path }}
+          bash run.sh --type 1 \
+              --cluster-version ${{ inputs.cluster-version }} \
+              --instance-type ${{ inputs.instance-type }}
+
+          EKS_CLUSTER_NAME=$(cat terraform.tfstate | grep "\"EKS\":" | awk 'NR==1{print $2}' | sed 's/,//g;s/\"//g')
+          echo "eks-cluster-name:${EKS_CLUSTER_NAME}"
+          echo eks-cluster-name=${EKS_CLUSTER_NAME} >> $GITHUB_OUTPUT
+      
+      - name: upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          if-no-files-found: error
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.deploy-path }}
+          retention-days: 1
