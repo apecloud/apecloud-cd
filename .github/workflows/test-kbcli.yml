@@ -14,10 +14,15 @@ on:
         required: false
         default: 'main'
       test-type:
-        description: 'test type (1:mysql 2:postgresql 5:redis 6:mongodb)'
+        description: 'test type (0:install 1:mysql 2:postgresql 5:redis 6:mongodb)'
         type: string
         required: false
-        default: '1'
+        default: '0'
+      test-type-name:
+        description: 'test type name (0:install 1:mysql 2:postgresql 5:redis 6:mongodb)'
+        type: string
+        required: false
+        default: 'install'
       test-args:
         description: 'test args'
         type: string
@@ -45,6 +50,7 @@ permissions:
 
 jobs:
   kbcli-test:
+    name: test ${{ inputs.test-type-name }}
     runs-on: ubuntu-latest
     steps:
       - uses: azure/setup-kubectl@v3
@@ -55,7 +61,7 @@ jobs:
         with:
           use-installer: true
 
-      - uses: aws-actions/configure-aws-credentials@v1
+      - uses: aws-actions/configure-aws-credentials@v2.2.0
         with:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
