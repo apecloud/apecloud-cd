@@ -100,7 +100,7 @@ jobs:
           tag_name="${tag_name/v/}"
           echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
 
-      - uses: aws-actions/configure-aws-credentials@v1
+      - uses: aws-actions/configure-aws-credentials@v2.2.0
         if: ${{ env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && inputs.REGION != '' }}
         with:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
