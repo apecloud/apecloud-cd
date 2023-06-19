@@ -38,6 +38,10 @@ on:
         type: string
         required: false
         default: ''
+    outputs:
+      test-result:
+        description: "test result"
+        value: ${{ jobs.kbcli-test.outputs.test-result }}
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -52,6 +56,8 @@ jobs:
   kbcli-test:
     name: test ${{ inputs.test-type-name }}
     runs-on: ubuntu-latest
+    outputs:
+      test-result: ${{ steps.kbcli_test.outputs.test-result }}
     steps:
       - uses: azure/setup-kubectl@v3
         with:
@@ -76,6 +82,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: run kbcli test
+        id: kbcli_test
         run: |
           file_log="$(date +%Y-%m-%d-%T)".log
           touch ${file_log}
@@ -101,7 +108,10 @@ jobs:
           
           test_ret="$( grep "【FAILED】" ${file_log}|| true )"
           if [[ -n "$test_ret" ]]; then
+              echo test-result=[FAILED] >> $GITHUB_OUTPUT
               exit 1
+          else
+              echo test-result=[PASSED] >> $GITHUB_OUTPUT
           fi
 
       - name: copy log file

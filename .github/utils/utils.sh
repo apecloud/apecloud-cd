@@ -23,6 +23,7 @@ Usage: $(basename "$0") <options>
                                 9) delete release charts
                                 10) delete docker images
                                 11) delete aliyun images
+                                12) get test result
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -32,6 +33,8 @@ Usage: $(basename "$0") <options>
     -u, --user                The docker registry user
     -p, --password            The docker registry password
     -df, --delete-force       Force to delete stable release (default: DEFAULT_DELETE_FORCE)
+    -ri, --run-id             The  run id
+    -tr, --test-result        The test result
 EOF
 }
 
@@ -39,10 +42,10 @@ GITHUB_API="https://api.github.com"
 LATEST_REPO=apecloud/kubeblocks
 
 main() {
-    local TYPE
+    local TYPE=""
     local TAG_NAME=""
-    local GITHUB_REPO
-    local GITHUB_TOKEN
+    local GITHUB_REPO=""
+    local GITHUB_TOKEN=""
     local TRIGGER_MODE=""
     local BRANCH_NAME="main"
     local WORKFLOW_ID=""
@@ -51,6 +54,9 @@ main() {
     local PASSWORD=""
     local STABLE_RET
     local DELETE_FORCE=$DEFAULT_DELETE_FORCE
+    local RUN_ID=""
+    local TEST_RESULT=""
+    local TEST_RET=""
 
     parse_command_line "$@"
 
@@ -99,9 +105,8 @@ main() {
         11)
             delete_aliyun_images
         ;;
-        *)
-            show_help
-            break
+        12)
+            get_test_result
         ;;
     esac
 }
@@ -173,6 +178,18 @@ parse_command_line() {
                     shift
                 fi
                 ;;
+            -ri|--run-id)
+                if [[ -n "${2:-}" ]]; then
+                    RUN_ID="$2"
+                    shift
+                fi
+                ;;
+            -tr|--test-result)
+                if [[ -n "${2:-}" ]]; then
+                    TEST_RESULT="$2"
+                    shift
+                fi
+                ;;
             *)
                 break
                 ;;
@@ -183,9 +200,14 @@ parse_command_line() {
 }
 
 gh_curl() {
-    curl -H "Authorization: token $GITHUB_TOKEN" \
-      -H "Accept: application/vnd.github.v3.raw" \
-      $@
+    if [[ -z "$GITHUB_TOKEN" ]]; then
+        curl -H "Accept: application/vnd.github.v3.raw" \
+            $@
+    else
+        curl -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3.raw" \
+            $@
+    fi
 }
 
 get_upload_url() {
@@ -317,6 +339,41 @@ delete_aliyun_images() {
     echo "delete kubeblocks-tools image $TAG_NAME_TMP"
     skopeo delete docker://registry.cn-hangzhou.aliyuncs.com/apecloud/kubeblocks-tools:$TAG_NAME_TMP \
         --creds "$USER:$PASSWORD"
+}
+
+set_runs_jobs() {
+    jobs_name=$1
+    jobs_url=$2
+    for test_ret in `echo "$TEST_RESULT" | sed 's/##/ /g'`; do
+        test_type=${test_ret%|*}
+        case $test_type in
+            install)
+                if [[ "$jobs_name" == *"$test_type"* ]]; then
+                    TEST_RET="$test_ret|$jobs_url"
+                fi
+            ;;
+            *)
+                if [[ "$jobs_name" == *"$test_type"* ]]; then
+                    TEST_RET=$TEST_RET"##$test_ret|$jobs_url"
+                fi
+            ;;
+        esac
+    done
+}
+
+get_test_result() {
+    jobs_url=$GITHUB_API/repos/$LATEST_REPO/actions/runs/$RUN_ID/jobs
+    jobs_list=$( gh_curl -s $jobs_url )
+    total_count=$( echo "$jobs_list" | jq '.total_count' )
+    for i in $(seq 0 $total_count); do
+        if [[ "$i" == "$total_count" ]]; then
+            break
+        fi
+        jobs_name=$( echo "$jobs_list" | jq ".jobs[$i].name" --raw-output )
+        jobs_url=$( echo "$jobs_list" | jq ".jobs[$i].html_url" --raw-output )
+        set_runs_jobs "$jobs_name" "$jobs_url"
+    done
+    echo "$TEST_RET"
 }
 
 main "$@"
