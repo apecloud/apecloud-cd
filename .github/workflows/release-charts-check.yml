@@ -80,14 +80,6 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-      - name: Update Dependency
-        run: |
-          if [ ! -z "${{ inputs.DEP_REPO }}" ]; then
-             echo "${{ inputs.DEP_REPO }}"
-             eval "${{ inputs.DEP_REPO }}"
-          fi
-          helm dep update ${{ inputs.CHART_DIR }}
-
       - name: remove v prefix
         id: get_version
         shell: bash
@@ -108,6 +100,14 @@ jobs:
           repository: apecloud/apecloud-cd
           path: apecloud-cd
           ref: ${{ inputs.APECD_REF }}
+
+      - name: Update Dependency
+        run: |
+          if [ ! -z "${{ inputs.DEP_REPO }}" ]; then
+              bash apecloud-cd/.github/utils/utils.sh --type 13 \
+                  --chart-path "${{ inputs.DEP_REPO }}"
+          fi
+          helm dep update ${{ inputs.CHART_DIR }}
 
       - name: Package Helm Chart
         shell: bash
