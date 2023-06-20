@@ -83,20 +83,6 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-      - name: remove v prefix
-        id: get_version
-        shell: bash
-        run: |
-          version="${{ inputs.VERSION }}"
-          version="${version/v/}"
-          echo VERSION=$version >> $GITHUB_OUTPUT
-
-      - name: Bump helm chart version
-        if: inputs.MAKE_OPS
-        run: |
-          make ${{ inputs.MAKE_OPS }} \
-            VERSION="${{ steps.get_version.outputs.VERSION }}"
-
       - name: Checkout Apecd Code
         uses: actions/checkout@v3
         with:
@@ -112,6 +98,20 @@ jobs:
                   --chart-path "${{ inputs.DEP_REPO }}"
           fi
           helm dep update ${{ inputs.CHART_DIR }}
+
+      - name: remove v prefix
+        id: get_version
+        shell: bash
+        run: |
+          version="${{ inputs.VERSION }}"
+          version="${version/v/}"
+          echo VERSION=$version >> $GITHUB_OUTPUT
+
+      - name: Bump helm chart version
+        if: inputs.MAKE_OPS
+        run: |
+          make ${{ inputs.MAKE_OPS }} \
+            VERSION="${{ steps.get_version.outputs.VERSION }}"
 
       - name: Package Helm Chart
         shell: bash
