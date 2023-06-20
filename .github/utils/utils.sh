@@ -24,6 +24,7 @@ Usage: $(basename "$0") <options>
                                 10) delete docker images
                                 11) delete aliyun images
                                 12) get test result
+                                13) helm dep update
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -35,6 +36,7 @@ Usage: $(basename "$0") <options>
     -df, --delete-force       Force to delete stable release (default: DEFAULT_DELETE_FORCE)
     -ri, --run-id             The  run id
     -tr, --test-result        The test result
+    -cp, --chart-path         The chart path
 EOF
 }
 
@@ -57,6 +59,7 @@ main() {
     local RUN_ID=""
     local TEST_RESULT=""
     local TEST_RET=""
+    local CHART_PATH=""
 
     parse_command_line "$@"
 
@@ -107,6 +110,9 @@ main() {
         ;;
         12)
             get_test_result
+        ;;
+        13)
+            helm_dep_update
         ;;
     esac
 }
@@ -188,6 +194,11 @@ parse_command_line() {
                 if [[ -n "${2:-}" ]]; then
                     TEST_RESULT="$2"
                     shift
+                fi
+                ;;
+            -cp|--chart-path)
+                if [[ -n "${2:-}" ]]; then
+                    CHART_PATH="$2"
                 fi
                 ;;
             *)
@@ -374,6 +385,18 @@ get_test_result() {
         set_runs_jobs "$jobs_name" "$jobs_url"
     done
     echo "$TEST_RET"
+}
+
+helm_dep_update() {
+    for chartPath in $(echo "$CHART_PATH" | sed 's/|/ /g'); do
+        if [[ "$chartPath" == *"/"* ]]; then
+            echo "helm dep update $chartPath"
+            helm dep update $chartPath
+        else
+            echo "helm dep update deploy/$chartPath"
+            helm dep update deploy/$chartPath
+        fi
+    done
 }
 
 main "$@"
