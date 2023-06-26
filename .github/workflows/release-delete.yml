@@ -36,7 +36,6 @@ jobs:
         with:
           repository: apecloud/apecloud-cd
           path: apecloud-cd
-          token: ${{ env.GITHUB_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
 
       - name: delete kubeblocks release
@@ -82,7 +81,6 @@ jobs:
         with:
           repository: apecloud/apecloud-cd
           path: apecloud-cd
-          token: ${{ env.GITHUB_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
 
       - name: delete github helm chart release
@@ -113,17 +111,15 @@ jobs:
         with:
           repository: apecloud/apecloud-cd
           path: apecloud-cd
-          token: ${{ env.GITHUB_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
 
       - name: delete dockerhub image
         run: |
           for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
               script -e -c "bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
-                  --type 10 \
-                  --tag-name $release \
-                  --user ${{ env.DOCKER_USER }} \
-                  --password \"${{ env.DOCKER_PASSWORD }}\""
+                  --type 10  \
+                  --user ${{ env.DOCKER_USER }} --password \"${{ env.DOCKER_PASSWORD }}\" \
+                  --tag-name $release"
           done
 
   delete-aliyun-image:
@@ -134,7 +130,6 @@ jobs:
         with:
           repository: apecloud/apecloud-cd
           path: apecloud-cd
-          token: ${{ env.GITHUB_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
 
       - name: install skopeo
@@ -145,8 +140,7 @@ jobs:
         run: |
           for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
-                  --type 11 \
-                  --tag-name $release \
-                  --user ${{ env.ALIYUN_USER }} \
-                  --password "${{ env.ALIYUN_PASSWORD }}"
+                  --type 11  \
+                  --user ${{ env.ALIYUN_USER }} --password "${{ env.ALIYUN_PASSWORD }}" \
+                  --tag-name $release"
           done

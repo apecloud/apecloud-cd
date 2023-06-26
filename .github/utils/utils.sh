@@ -25,6 +25,7 @@ Usage: $(basename "$0") <options>
                                 11) delete aliyun images
                                 12) get test result
                                 13) helm dep update
+                                14) get delete alpha/beta release
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -60,6 +61,7 @@ main() {
     local TEST_RESULT=""
     local TEST_RET=""
     local CHART_PATH=""
+    local DELETE_RELEASE=""
 
     parse_command_line "$@"
 
@@ -113,6 +115,9 @@ main() {
         ;;
         13)
             helm_dep_update
+        ;;
+        14)
+            get_delete_release
         ;;
     esac
 }
@@ -318,7 +323,7 @@ filter_charts() {
             chart_name=$(cat $file | grep "name:"|awk 'NR==1{print $2}')
             echo "delete chart $chart_name-$TAG_NAME_TMP"
             TAG_NAME="$chart_name-$TAG_NAME_TMP"
-            delete_release_version &
+            delete_release_version
         fi
     done
 }
@@ -327,7 +332,6 @@ delete_release_charts() {
     local charts_dir=deploy
     charts_files=$( ls -1 $charts_dir )
     echo "$charts_files" | filter_charts
-    wait
 }
 
 delete_docker_images() {
@@ -397,6 +401,42 @@ helm_dep_update() {
             helm dep update deploy/$chartPath
         fi
     done
+}
+
+set_delete_release(){
+    if [[ -z "$TAG_NAME" ]]; then
+        return
+    fi
+    if [[ -z "$DELETE_RELEASE" ]]; then
+        DELETE_RELEASE="$TAG_NAME"
+    else
+        DELETE_RELEASE="$DELETE_RELEASE|$TAG_NAME"
+    fi
+}
+
+get_delete_release() {
+    release_list=$( gh release list --repo $LATEST_REPO --limit 100 | grep "Pre-release" )
+    for tag in $( echo "$release_list" ) ;do
+        delete_flag=0
+        if [[ "$tag" == "Pre-release" ]]; then
+            TAG_NAME=""
+            continue
+        fi
+
+        if [[ -z "$TAG_NAME" && "$tag" == "v"*"."*"."*"-"* ]]; then
+            TAG_NAME=$tag
+            continue
+        fi
+
+        if [[ -n "$TAG_NAME" ]]; then
+            delete_flag=$( python3 apecloud-cd/.github/utils/parse_time.py --release-date "$tag" )
+        fi
+
+        if [[ "$delete_flag" == "1" ]]; then
+            set_delete_release
+        fi
+    done
+    echo "$DELETE_RELEASE"
 }
 
 main "$@"
