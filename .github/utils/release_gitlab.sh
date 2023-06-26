@@ -231,14 +231,15 @@ delete_release_packages() {
     request_type=DELETE
     page_num=1
     found_flag=0
+    request_url=""
     while true; do
-        request_url=$API_URL/$PROJECT_ID/packages?page=$page_num
+        request_url="$API_URL/$PROJECT_ID/packages?page=$page_num&per_page=100"
         packages_info=$( gitlab_api_curl -s $request_url )
         length=$( echo "$packages_info" | jq length )
         if [[ $length -eq 0 ]]; then
             break
         fi
-        for i in {0..19}; do
+        for i in {0..9}; do
             package_version=$( echo "$packages_info" | jq '.['$i'].version' )
             package_name=$( echo "$packages_info" | jq '.['$i'].name' )
             if [[ "$package_version" == "\"$TAG_NAME\"" && "$package_name" == "\"$delete_name\"" ]]; then
@@ -251,7 +252,6 @@ delete_release_packages() {
                 break
             fi
         done
-
         if [[ $found_flag -eq 1 ]]; then
             break
         fi
@@ -274,7 +274,7 @@ filter_charts() {
             chart_name=$(cat $file | grep "name:"|awk 'NR==1{print $2}')
             echo "delete helm_chart $chart_name $TAG_NAME_TMP"
             TAG_NAME="$TAG_NAME_TMP"
-            delete_release_packages "$chart_name" &
+            delete_release_packages "$chart_name"
         fi
     done
 }
@@ -283,7 +283,6 @@ delete_helm_chart() {
     local charts_dir=deploy
     charts_files=$( ls -1 $charts_dir )
     echo "$charts_files" | filter_charts
-    wait
 }
 
 main "$@"
