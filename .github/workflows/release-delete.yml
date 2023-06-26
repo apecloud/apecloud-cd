@@ -142,5 +142,5 @@ jobs:
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
                   --type 11  \
                   --user ${{ env.ALIYUN_USER }} --password "${{ env.ALIYUN_PASSWORD }}" \
-                  --tag-name $release"
+                  --tag-name $release
           done
