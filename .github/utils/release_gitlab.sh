@@ -239,7 +239,7 @@ delete_release_packages() {
         if [[ $length -eq 0 ]]; then
             break
         fi
-        for i in {0..9}; do
+        for i in {0..99}; do
             package_version=$( echo "$packages_info" | jq '.['$i'].version' )
             package_name=$( echo "$packages_info" | jq '.['$i'].name' )
             if [[ "$package_version" == "\"$TAG_NAME\"" && "$package_name" == "\"$delete_name\"" ]]; then
