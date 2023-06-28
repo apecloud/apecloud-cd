@@ -20,7 +20,7 @@ def send_message(date_v):
 
         days = (now - target_date).days
 
-        if days > 14:
+        if days > 30:
             print(1)
         else:
             print(0)
