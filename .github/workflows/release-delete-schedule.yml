@@ -12,14 +12,22 @@ on:
 
 env:
   GH_TOKEN: ${{ github.token }}
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   GITLAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+  ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
+  GITLAB_KBCLI_PROJECT_ID: 85948
   GITLAB_HELM_CHARTS_PROJECT_ID: 85949
 
 jobs:
-  delete-chart:
+  delete-release:
     permissions:
       contents: write
     runs-on: ubuntu-latest
+    outputs:
+      release-version: ${{ steps.get_delete_version.outputs.RELEASE_VERSION }}
     steps:
       - name: Install dateutil
         run: pip3 install python-dateutil
@@ -34,11 +42,56 @@ jobs:
           path: apecloud-cd
           ref: ${{ inputs.APECD_REF }}
 
+      - name: get delete release version
+        id: get_delete_version
+        run: |
+          DELETE_VERSION=$( bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 14 )
+          echo "DELETE_VERSION:$DELETE_VERSION"
+          echo RELEASE_VERSION=$DELETE_VERSION >> $GITHUB_OUTPUT
+
+      - name: delete kubeblocks release
+        run: |
+          for release in $(echo "${{ steps.get_delete_version.outputs.RELEASE_VERSION }}" | sed 's/|/ /g'); do
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+                  --type 8 \
+                  --github-repo apecloud/kubeblocks \
+                  --tag-name $release \
+                  --github-token ${{ env.GITHUB_TOKEN }}
+          done
+
+      - name: delete github kbcli release
+        run: |
+          for release in $(echo "${{ steps.get_delete_version.outputs.RELEASE_VERSION }}" | sed 's/|/ /g'); do
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+                  --type 8 \
+                  --github-repo apecloud/kbcli \
+                  --tag-name $release \
+                  --github-token ${{ env.GITHUB_TOKEN }}
+          done
+
+      - name: delete gitlab kbcli release
+        run: |
+          for release in $(echo "${{ steps.get_delete_version.outputs.RELEASE_VERSION }}" | sed 's/|/ /g'); do
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
+                  --type 5 \
+                  --tag-name $release \
+                  --project-id ${{ env.GITLAB_KBCLI_PROJECT_ID }} \
+                  --access-token ${{ env.GITLAB_ACCESS_TOKEN }}
+          done
+
+      - name: delete github helm chart release
+        run: |
+          for release in $(echo "${{ steps.get_delete_version.outputs.RELEASE_VERSION }}" | sed 's/|/ /g'); do
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+                  --type 9 \
+                  --github-repo apecloud/helm-charts \
+                  --tag-name $release \
+                  --github-token ${{ env.GITHUB_TOKEN }}
+          done
+
       - name: delete gitlab helm chart release
         run: |
-          RELEASE_VERSION=$( bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 14 )
-          
-          for release in $(echo "${RELEASE_VERSION}" | sed 's/|/ /g'); do
+          for release in $(echo "${{ steps.get_delete_version.outputs.RELEASE_VERSION }}" | sed 's/|/ /g'); do
               echo "delete release version: $release"
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
                   --type 6 \
@@ -47,4 +100,37 @@ jobs:
                   --access-token ${{ env.GITLAB_ACCESS_TOKEN }}
           done
 
+      - name: delete dockerhub image
+        run: |
+          for release in $(echo "${{ steps.get_delete_version.outputs.RELEASE_VERSION }}" | sed 's/|/ /g'); do
+              script -e -c "bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+                  --type 10  \
+                  --user ${{ env.DOCKER_USER }} --password \"${{ env.DOCKER_PASSWORD }}\" \
+                  --tag-name $release"
+          done
+
+  delete-aliyun-image:
+    runs-on: macos-latest
+    if: ${{ always() }}
+    needs: delete-release
+    steps:
+      - name: Checkout Apecd Code
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: install skopeo
+        run: |
+          brew install skopeo
+
+      - name: delete aliyun registry image
+        run: |
+          for release in $(echo "${{ needs.delete-release.outputs.release-version }}" | sed 's/|/ /g'); do
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+                  --type 11  \
+                  --user ${{ env.ALIYUN_USER }} --password "${{ env.ALIYUN_PASSWORD }}" \
+                  --tag-name $release
+          done
 

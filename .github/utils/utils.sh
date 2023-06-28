@@ -323,9 +323,10 @@ filter_charts() {
             chart_name=$(cat $file | grep "name:"|awk 'NR==1{print $2}')
             echo "delete chart $chart_name-$TAG_NAME_TMP"
             TAG_NAME="$chart_name-$TAG_NAME_TMP"
-            delete_release_version
+            delete_release_version &
         fi
     done
+    wait
 }
 
 delete_release_charts() {
