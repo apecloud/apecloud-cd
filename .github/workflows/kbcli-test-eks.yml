@@ -28,6 +28,11 @@ on:
         type: string
         required: false
         default: 'main'
+      ARGS:
+        description: "Test args"
+        type: string
+        required: false
+        default: ''
   workflow_dispatch:
     inputs:
       CLUSTER_VERSION:
@@ -50,6 +55,10 @@ on:
         description: "The branch name of apecloud-cd"
         required: false
         default: 'main'
+      ARGS:
+        description: "Test args"
+        required: false
+        default: ''
 
 run-name: kbcli:${{ inputs.KB_VERSION }} k8s:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }}
 
@@ -78,7 +87,7 @@ jobs:
       release-version: "${{ inputs.KB_VERSION }}"
       test-type: "0"
       test-type-name: "install"
-      test-args: "--config-s3 true --upgrade true "
+      test-args: "--config-s3 true --upgrade true ${{ inputs.ARGS }}"
       eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
@@ -91,6 +100,7 @@ jobs:
       release-version: "${{ inputs.KB_VERSION }}"
       test-type: "1"
       test-type-name: "mysql"
+      test-args: "${{ inputs.ARGS }}"
       eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
@@ -103,6 +113,7 @@ jobs:
       release-version: "${{ inputs.KB_VERSION }}"
       test-type: "2"
       test-type-name: "postgresql"
+      test-args: "${{ inputs.ARGS }}"
       eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
@@ -115,6 +126,7 @@ jobs:
       release-version: "${{ inputs.KB_VERSION }}"
       test-type: "5"
       test-type-name: "redis"
+      test-args: "${{ inputs.ARGS }}"
       eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
@@ -127,6 +139,7 @@ jobs:
       release-version: "${{ inputs.KB_VERSION }}"
       test-type: "6"
       test-type-name: "mongodb"
+      test-args: "${{ inputs.ARGS }}"
       eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
