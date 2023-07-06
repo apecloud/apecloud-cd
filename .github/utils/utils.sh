@@ -26,6 +26,7 @@ Usage: $(basename "$0") <options>
                                 12) get test result
                                 13) helm dep update
                                 14) get delete alpha/beta release
+                                15) comment issue
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -38,6 +39,8 @@ Usage: $(basename "$0") <options>
     -ri, --run-id             The  run id
     -tr, --test-result        The test result
     -cp, --chart-path         The chart path
+    -in, --issue-number       The issue number
+    -in, --issue-comment       The issue comment
 EOF
 }
 
@@ -62,6 +65,8 @@ main() {
     local TEST_RET=""
     local CHART_PATH=""
     local DELETE_RELEASE=""
+    local ISSUE_NUMBER=""
+    local ISSUE_COMMENT=""
 
     parse_command_line "$@"
 
@@ -118,6 +123,9 @@ main() {
         ;;
         14)
             get_delete_release
+        ;;
+        15)
+            comment_issue
         ;;
     esac
 }
@@ -204,6 +212,16 @@ parse_command_line() {
             -cp|--chart-path)
                 if [[ -n "${2:-}" ]]; then
                     CHART_PATH="$2"
+                fi
+                ;;
+            -in|--issue-number)
+                if [[ -n "${2:-}" ]]; then
+                    ISSUE_NUMBER="$2"
+                fi
+                ;;
+            -ic|--issue-comment)
+                if [[ -n "${2:-}" ]]; then
+                    ISSUE_COMMENT="$2"
                 fi
                 ;;
             *)
@@ -438,6 +456,10 @@ get_delete_release() {
         fi
     done
     echo "$DELETE_RELEASE"
+}
+
+comment_issue() {
+    gh issue comment --repo $GITHUB_REPO $ISSUE_NUMBER --body "$ISSUE_COMMENT"
 }
 
 main "$@"

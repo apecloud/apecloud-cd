@@ -59,6 +59,9 @@ env:
   CR_TOKEN: ${{ github.token }}
   HELM_VERSION: v3.10.0
   K3S_VERSION: v1.24
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  DOCKER_REGISTRY_URL: docker.io
 
 jobs:
   release-chart:
@@ -70,6 +73,7 @@ jobs:
         uses: azure/setup-helm@v3
         with:
           version: ${{ env.HELM_VERSION }}
+      - uses: docker/setup-qemu-action@v2
 
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -139,6 +143,14 @@ jobs:
             --set="${{ inputs.HELM_SET }}"
           
           helm template ${{ inputs.CHART_NAME }} ${{ inputs.CHART_NAME }} --validate
+
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY_URL }}
+          username: ${{ env.DOCKER_USER }}
+          password: ${{ env.DOCKER_PASSWORD }}
 
       - name: check images
         if: inputs.CHECK_ENABLE
