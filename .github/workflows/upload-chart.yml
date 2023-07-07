@@ -1,16 +1,14 @@
 name: HELM-CHART-UPLOAD
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       CHART_PACKAGE_NAME:
         description: "The package name of helm chart (e.g. pyroscope-0.2.92.tgz),push to helm-charts dir first"
-        type: string
         required: false
         default: ''
       CHART_PACKAGE_URL:
         description: "The package url of helm chart"
-        type: string
         required: false
         default: ''
 
