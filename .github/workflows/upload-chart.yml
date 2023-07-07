@@ -1,10 +1,10 @@
-name: HELM-CHART-UPLOAD
+name: CHART-UPLOAD
 
 on:
   workflow_dispatch:
     inputs:
       CHART_PACKAGE_NAME:
-        description: "The package name of helm chart (e.g. pyroscope-0.2.92.tgz),push to helm-charts dir first"
+        description: "The package name of helm chart (e.g. pyroscope-0.2.92.tgz), push to apecloud-cd helm-charts dir first"
         required: false
         default: ''
       CHART_PACKAGE_URL:
@@ -37,7 +37,7 @@ jobs:
           elif [[ -n "${{ inputs.CHART_PACKAGE_NAME }}" ]]; then
               cp helm-charts/${{ inputs.CHART_PACKAGE_NAME }} .cr-release-packages
           else
-              echo "helm chart package not found"
+              echo "helm chart package or helm chart url  not found"
               exit 1
           fi
 
@@ -45,7 +45,7 @@ jobs:
         run: |
           ls .cr-release-packages
           cd .cr-release-packages
-          bash .github/utils/release_gitlab.sh \
+          bash ${{ github.workspace }}/.github/utils/release_gitlab.sh \
             --type 3 \
             --project-id ${{ env.GITLAB_HELM_CHARTS_PROJECT_ID }} \
             --asset-path ./ \
@@ -72,4 +72,4 @@ jobs:
           cd helm-charts
           args=(--owner "apecloud" --repo "helm-charts")
           
-          bash .github/utils/helm_release.sh "${args[@]}"
+          bash ${{ github.workspace }}/.github/utils/helm_release.sh "${args[@]}"
