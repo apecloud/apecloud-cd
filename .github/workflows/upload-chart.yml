@@ -1,4 +1,4 @@
-name: UPLOAD-CHART
+name: HELM-CHART-UPLOAD
 
 on:
   workflow_call:
