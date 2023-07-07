@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       CHART_PACKAGE_NAME:
-        description: "The package name of helm chart (e.g. pyroscope-0.2.92.tgz), push to apecloud-cd helm-charts dir first"
+        description: "The package name of helm chart, push to apecloud-cd helm-charts dir first (e.g. pyroscope-0.2.92.tgz)"
         required: false
         default: ''
       CHART_PACKAGE_URL:
@@ -18,6 +18,7 @@ env:
   GITLAB_HELM_CHARTS_PROJECT_ID: 85949
   GITLAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
   GITLAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
+  CR_VERSION: 1.4.1
 
 
 jobs:
@@ -27,10 +28,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: install cr
+        run: |
+          bash ${{ github.workspace }}/.github/utils/helm_package.sh --install-cr true
+
       - name: copy helm chart
         run: |
-          mkdir -p .cr-release-packages
-          mkdir -p .cr-index
           if [[ -n "${{ inputs.CHART_PACKAGE_URL }}" ]]; then
               PACKAGE_NAME=$(echo "${{ inputs.CHART_PACKAGE_URL }}" | rev | cut -d'/' -f1 | rev)
               curl -L -O  ${{ inputs.CHART_PACKAGE_URL }} 

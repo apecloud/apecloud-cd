@@ -6,6 +6,7 @@ set -o pipefail
 
 DEFAULT_CHART_RELEASER_VERSION=v1.4.1
 DEFAULT_TOOL=helm
+DEFAULT_INSTALL_CR=false
 
 show_help() {
 cat << EOF
@@ -19,6 +20,7 @@ Usage: $(basename "$0") <options>
     -n, --install-dir        The Path to install the cr tool
     -rv, --release-version   The release version of helm charts
     -t, --tool               The tool of helm package (helm,cr default: $DEFAULT_TOOL)
+    -ic, --install-cr        Install chart releaser (default: $DEFAULT_INSTALL_CR)
 EOF
 }
 
@@ -30,6 +32,7 @@ main() {
     local install_dir=
     local release_version=""
     local tool=$DEFAULT_TOOL
+    local install_cr=$DEFAULT_INSTALL_CR
 
     parse_command_line "$@"
 
@@ -43,7 +46,7 @@ main() {
     local changed_charts=()
     readarray -t changed_charts <<< "$(lookup_changed_charts)"
 
-    if [[ -n "${changed_charts[*]}" ]]; then
+    if [[ -n "${changed_charts[*]}" || "$install_cr" == "true" ]]; then
         install_chart_releaser
 
         rm -rf .cr-release-packages
@@ -112,6 +115,12 @@ parse_command_line() {
             -t|--tool)
                 if [[ -n "${2:-}" ]]; then
                     tool="$2"
+                    shift
+                fi
+                ;;
+            -ic|--install-cr)
+                if [[ -n "${2:-}" ]]; then
+                    install_cr="$2"
                     shift
                 fi
                 ;;
