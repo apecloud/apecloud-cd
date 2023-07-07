@@ -177,7 +177,7 @@ package_chart() {
         ;;
         helm)
             args=("$chart" --destination .cr-release-packages)
-            helm package "${args[@]}" --version $release_version
+            helm package "${args[@]}" --version $release_version --dependency-update
         ;;
         *)
             break
