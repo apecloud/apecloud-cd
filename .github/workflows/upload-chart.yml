@@ -1,0 +1,77 @@
+name: RELEASE-CHART
+
+on:
+  workflow_call:
+    inputs:
+      CHART_PACKAGE_NAME:
+        description: "The package name of helm chart (e.g. pyroscope-0.2.92.tgz),push to helm-charts dir first"
+        type: string
+        required: false
+        default: ''
+      CHART_PACKAGE_URL:
+        description: "The package url of helm chart"
+        type: string
+        required: false
+        default: ''
+
+
+env:
+  CR_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  GITLAB_HELM_CHARTS_PROJECT_ID: 85949
+  GITLAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
+  GITLAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
+
+
+jobs:
+  release-chart:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: copy helm chart
+        run: |
+          mkdir -p .cr-release-packages
+          if [[ -n "${{ inputs.CHART_PACKAGE_URL }}" ]]; then
+              PACKAGE_NAME=$(echo "${{ inputs.CHART_PACKAGE_URL }}" | rev | cut -d'/' -f1 | rev)
+              curl -L -O  ${{ inputs.CHART_PACKAGE_URL }} 
+              mv $PACKAGE_NAME .cr-release-packages
+          elif [[ -n "${{ inputs.CHART_PACKAGE_NAME }}" ]]; then
+              cp helm-charts/${{ inputs.CHART_PACKAGE_NAME }} .cr-release-packages
+          else
+              echo "helm chart package not found"
+              exit 1
+          fi
+
+      - name: Upload Helm Charts to Gitlab
+        run: |
+          ls .cr-release-packages
+          cd .cr-release-packages
+          bash .github/utils/release_gitlab.sh \
+            --type 3 \
+            --project-id ${{ env.GITLAB_HELM_CHARTS_PROJECT_ID }} \
+            --asset-path ./ \
+            --access-token ${{ env.GITLAB_ACCESS_TOKEN }} \
+            --access-user ${{ env.GITLAB_ACCESS_USER }}
+
+      - name: Checkout HelmCharts
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/helm-charts
+          path: helm-charts
+          token: ${{ env.CR_TOKEN }}
+
+      - name: Fetch HelmCharts History And Configure Git
+        run: |
+          cd helm-charts
+          git fetch --prune --unshallow
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Upload and Index Helm Charts
+        shell: bash
+        run: |
+          cd helm-charts
+          args=(--owner "apecloud" --repo "helm-charts")
+          
+          bash .github/utils/helm_release.sh "${args[@]}"
