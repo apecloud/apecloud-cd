@@ -1,4 +1,4 @@
-name: RELEASE-CHART
+name: UPLOAD-CHART
 
 on:
   workflow_call:
@@ -23,7 +23,7 @@ env:
 
 
 jobs:
-  release-chart:
+  upload-chart:
     permissions:
       contents: write
     runs-on: ubuntu-latest
