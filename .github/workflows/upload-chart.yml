@@ -30,6 +30,7 @@ jobs:
       - name: copy helm chart
         run: |
           mkdir -p .cr-release-packages
+          mkdir -p .cr-index
           if [[ -n "${{ inputs.CHART_PACKAGE_URL }}" ]]; then
               PACKAGE_NAME=$(echo "${{ inputs.CHART_PACKAGE_URL }}" | rev | cut -d'/' -f1 | rev)
               curl -L -O  ${{ inputs.CHART_PACKAGE_URL }} 
