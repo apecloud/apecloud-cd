@@ -12,6 +12,7 @@ on:
         required: false
         default: ''
 
+run-name: upload ${{ input.CHART_PACKAGE_NAME }} ${{ input.CHART_PACKAGE_URL }}
 
 env:
   CR_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
