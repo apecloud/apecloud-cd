@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 CHART_PATH=${1:-".cr-release-packages"}
 CHART_NAME=${2:-"kubeblocks"}
+CHECK_DOCKERHUB=${3:-"true"}
 
 main() {
     touch exit_result
@@ -27,6 +28,10 @@ main() {
 
             if [[ "$repository" == "apecloud/"* ]]; then
                 repository="registry.cn-hangzhou.aliyuncs.com/"$repository
+            fi
+
+            if [[ ("$image" == "docker.io/apecloud/"* || "$image" == "apecloud/"*) && "$CHECK_DOCKERHUB" == "false" ]]; then
+                continue
             fi
 
             echo "check image: $repository"
