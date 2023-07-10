@@ -159,8 +159,13 @@ jobs:
       - name: check images
         if: inputs.CHECK_ENABLE
         run: |   
+          check_dockerhub="true"
+          if [[ -z "${{ env.DOCKER_USER }}" || -z "${{ env.DOCKER_PASSWORD }}" ]]; then
+              check_dockerhub="false"
+          fi
+          
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/helm_image_check.sh \
-              .cr-release-packages "${{ inputs.CHART_NAME }}"
+              .cr-release-packages "${{ inputs.CHART_NAME }}" "${check_dockerhub}"
 
       - name: copy dependency chart
         if: inputs.DEP_CHART_DIR
