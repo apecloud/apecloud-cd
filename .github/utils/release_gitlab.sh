@@ -37,12 +37,12 @@ main() {
     local PACKAGE_NAME=$DEFAULT_PACKAGE_NAME
     local CHANNEL=$DEFAULT_CHANNEL
     local TAG_NAME=""
-    local PROJECT_ID
-    local ACCESS_TOKEN
-    local ACCESS_USER
-    local ASSET_PATH
-    local ASSET_NAME
-    local STABLE_RET
+    local PROJECT_ID=""
+    local ACCESS_TOKEN=""
+    local ACCESS_USER=""
+    local ASSET_PATH=""
+    local ASSET_NAME=""
+    local STABLE_RET=""
     local DELETE_FORCE=$DEFAULT_DELETE_FORCE
 
     parse_command_line "$@"
