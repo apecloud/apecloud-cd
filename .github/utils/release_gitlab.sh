@@ -195,6 +195,9 @@ release_helm() {
     ASSET_PATHS=()
     if [[ -d "$ASSET_PATH" ]]; then
         for asset_path in $ASSET_PATH/*; do
+            if [[ -z "$ASSET_NAME" && "$asset_path" != "${ASSET_NAME}-"* ]]; then
+                continue
+            fi
             ASSET_PATHS[${#ASSET_PATHS[@]}]=`basename $asset_path`
         done
     elif [[ -f "$ASSET_PATH" ]]; then
