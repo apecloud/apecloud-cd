@@ -37,7 +37,7 @@ on:
         description: "buildx args (default: --sbom=false --provenance=false)"
         type: string
         required: false
-        default: '--sbom=false --provenance=false'
+        default: ''
       GO_VERSION:
         description: "Install the specify version of GO"
         type: string
@@ -84,6 +84,7 @@ env:
   CONTROLLER_MANAGER_CFG: ${{ secrets.CONTROLLER_MANAGER_CFG }}
   OPENCONSOLE_CFG: ${{ secrets.OPENCONSOLE_CFG }}
   CONSOLE_PROXY_CFG: ${{ secrets.CONSOLE_PROXY_CFG }}
+  DEFAULT_BUILDX_ARGS: '--sbom=false --provenance=false'
 
 jobs:
   release-image:
@@ -140,7 +141,7 @@ jobs:
           cmd="make ${{ inputs.MAKE_OPS }} "
           cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
-          cmd=$cmd"BUILDX_ARGS=\"${{ inputs.BUILDX_ARGS }}\" "
+          cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
           
           if [[ ! -z "${{ inputs.VERSION }}" ]]; then
             cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
@@ -149,6 +150,9 @@ jobs:
           if [[ ! -z "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }} "
           fi
+          DOCKER_BUILD_ARGS="--cache-to type=registry,ref=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}-cache,mode=max,compression=zstd,oci-mediatypes=true"
+          DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --cache-from type=registry,ref=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}-cache"
+          cmd=$cmd"DOCKER_BUILD_ARGS=\"${DOCKER_BUILD_ARGS} \" "
           
           eval "$cmd"
 
@@ -166,7 +170,7 @@ jobs:
           cmd="make ${{ inputs.MAKE_OPS }} "
           cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
-          cmd=$cmd"BUILDX_ARGS=\"${{ inputs.BUILDX_ARGS }}\" "
+          cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
           
           if [[ ! -z "${{ inputs.VERSION }}" ]]; then
             cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
@@ -175,6 +179,9 @@ jobs:
           if [[ ! -z "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }} "
           fi
+          DOCKER_BUILD_ARGS="--cache-to type=registry,ref=${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }}-cache,mode=max,compression=zstd,oci-mediatypes=true"
+          DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --cache-from type=registry,ref=${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }}-cache"
+          cmd=$cmd"DOCKER_BUILD_ARGS=\"${DOCKER_BUILD_ARGS} \" "
           
           eval "$cmd"
 
@@ -202,7 +209,7 @@ jobs:
           cmd="make ${{ inputs.MAKE_OPS }} "
           cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
-          cmd=$cmd"BUILDX_ARGS=\"${{ inputs.BUILDX_ARGS }}\" "
+          cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
           
           if [[ ! -z "${{ inputs.VERSION }}" ]]; then
             cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
@@ -211,6 +218,9 @@ jobs:
           if [[ ! -z "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=$GOOGLE_REGISTRY_URL/${{ inputs.IMG }} "
           fi
+          DOCKER_BUILD_ARGS="--cache-to type=registry,ref=$GOOGLE_REGISTRY_URL/${{ inputs.IMG }}-cache,mode=max,compression=zstd,oci-mediatypes=true"
+          DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --cache-from type=registry,ref=$GOOGLE_REGISTRY_URL/${{ inputs.IMG }}-cache"
+          cmd=$cmd"DOCKER_BUILD_ARGS=\"${DOCKER_BUILD_ARGS} \" "
           
           eval "$cmd"
 

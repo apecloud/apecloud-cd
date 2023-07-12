@@ -37,7 +37,7 @@ on:
         description: "buildx args (default: --sbom=false --provenance=false)"
         type: string
         required: false
-        default: '--sbom=false --provenance=false'
+        default: ''
       GO_VERSION:
         description: "Install the specify version of GO"
         type: string
@@ -52,6 +52,8 @@ on:
 
 env:
   DOCKER_REGISTRY_URL: docker.io
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
 
 jobs:
   release-image:
@@ -89,19 +91,38 @@ jobs:
           tag_name="${tag_name/v/}"
           echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
 
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY_URL }}
+          username: ${{ env.DOCKER_USER }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
       - name: Build Docker
         run: |
           cmd="make ${{ inputs.MAKE_OPS }} "
           cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
-          cmd=$cmd"BUILDX_ARGS=\"${{ inputs.BUILDX_ARGS }}\" "
+          if [[ ! -z "${{ inputs.BUILDX_ARGS }}" ]]; then
+              cmd=$cmd"BUILDX_ARGS=\"${{ inputs.BUILDX_ARGS }}\" "
+          fi
           
           if [[ ! -z "${{ inputs.VERSION }}" ]]; then
-            cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
+              cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
           fi
           
           if [[ ! -z "${{ inputs.IMG }}" ]]; then
-            cmd=$cmd"IMG=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }} "
+              cmd=$cmd"IMG=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }} "
           fi
+          DOCKER_BUILD_ARGS=""
+          if [[ -z "${{ env.DOCKER_USER }}" || -z "${{ env.DOCKER_PASSWORD }}" ]]; then
+              DOCKER_BUILD_ARGS="--cache-to type=gha,mode=max,scope=${GITHUB_REF_NAME}-gha-cache "
+              DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --cache-from type=gha,scope=${GITHUB_REF_NAME}-gha-cache "
+          else
+              DOCKER_BUILD_ARGS="--cache-to type=registry,ref=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}-cache,mode=max,compression=zstd,oci-mediatypes=true"
+              DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --cache-from type=registry,ref=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}-cache"
+          fi
+          cmd=$cmd"DOCKER_BUILD_ARGS=\"${DOCKER_BUILD_ARGS} \" "
           
           eval "$cmd"
