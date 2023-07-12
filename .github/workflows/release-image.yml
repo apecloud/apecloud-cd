@@ -152,7 +152,7 @@ jobs:
           
           eval "$cmd"
 
-      - if: ${{ (env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && (env.DOCKER_USER == '' || env.DOCKER_PASSWORD == '')) && ! inputs.SYNC_ENABLE }}
+      - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && ((env.DOCKER_USER == '' || env.DOCKER_PASSWORD == '') || ! inputs.SYNC_ENABLE) }}
         name: Login to Aliyun Registry
         uses: docker/login-action@v2
         with:
@@ -160,7 +160,7 @@ jobs:
           username: ${{ env.ALIYUN_USER }}
           password: ${{ env.ALIYUN_PASSWORD }}
 
-      - if: ${{ (env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && (env.DOCKER_USER == '' || env.DOCKER_PASSWORD == '')) && ! inputs.SYNC_ENABLE }}
+      - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && ((env.DOCKER_USER == '' || env.DOCKER_PASSWORD == '') || ! inputs.SYNC_ENABLE) }}
         name: Build and Push to Aliyun Registry
         run: |
           cmd="make ${{ inputs.MAKE_OPS }} "
