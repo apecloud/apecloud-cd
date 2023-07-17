@@ -26,10 +26,6 @@ main() {
                 repository=$repository:$image
             fi
 
-            if [[ "$repository" == "apecloud/"* ]]; then
-                repository="registry.cn-hangzhou.aliyuncs.com/"$repository
-            fi
-
             if [[ ("$image" == "docker.io/apecloud/"* || "$image" == "apecloud/"*) && "$CHECK_DOCKERHUB" == "false" ]]; then
                 continue
             fi
