@@ -181,7 +181,6 @@ jobs:
             --type 3 \
             --project-id ${{ env.GITLAB_HELM_CHARTS_PROJECT_ID }} \
             --asset-path ./ \
-            --asset-name kubeblocks \
             --access-token ${{ env.GITLAB_ACCESS_TOKEN }} \
             --access-user ${{ env.GITLAB_ACCESS_USER }}
 
