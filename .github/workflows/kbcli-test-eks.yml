@@ -177,7 +177,7 @@ jobs:
     with:
       release-version: "${{ inputs.KB_VERSION }}"
       test-type: "1"
-      test-type-name: "pulsar"
+      test-type-name: "mysql-scale"
       test-args: "--enable-proxy true ${{ inputs.ARGS }}"
       eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
