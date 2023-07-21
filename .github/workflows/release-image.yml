@@ -156,7 +156,7 @@ jobs:
           
           eval "$cmd"
 
-      - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && ((env.DOCKER_USER == '' || env.DOCKER_PASSWORD == '') || ! inputs.SYNC_ENABLE) }}
+      - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
         name: Login to Aliyun Registry
         uses: docker/login-action@v2
         with:
@@ -164,7 +164,7 @@ jobs:
           username: ${{ env.ALIYUN_USER }}
           password: ${{ env.ALIYUN_PASSWORD }}
 
-      - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && ((env.DOCKER_USER == '' || env.DOCKER_PASSWORD == '') || ! inputs.SYNC_ENABLE) }}
+      - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != ''  }}
         name: Build and Push to Aliyun Registry
         run: |
           cmd="make ${{ inputs.MAKE_OPS }} "
@@ -224,27 +224,27 @@ jobs:
           
           eval "$cmd"
 
-  copy-image:
-    runs-on: macos-latest
-    if: inputs.SYNC_ENABLE
-    needs: release-image
-    steps:
-      - name: Checkout Apecd Code
-        uses: actions/checkout@v3
-        with:
-          repository: apecloud/apecloud-cd
-          path: apecloud-cd
-          token: ${{ env.GITHUB_TOKEN }}
-          ref: ${{ inputs.APECD_REF }}
-
-      - name : copy images
-        if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
-        run: |
-          brew install skopeo
-          
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/copy_image.sh \
-              --type 1 \
-              --dest-username "${{ env.ALIYUN_USER }}" \
-              --dest-password '${{ env.ALIYUN_PASSWORD }}' \
-              --src-image "${{ inputs.IMG }}" \
-              --src-tag "${{ needs.release-image.outputs.tag-name }}"
+#  copy-image:
+#    runs-on: macos-latest
+#    if: inputs.SYNC_ENABLE
+#    needs: release-image
+#    steps:
+#      - name: Checkout Apecd Code
+#        uses: actions/checkout@v3
+#        with:
+#          repository: apecloud/apecloud-cd
+#          path: apecloud-cd
+#          token: ${{ env.GITHUB_TOKEN }}
+#          ref: ${{ inputs.APECD_REF }}
+#
+#      - name : copy images
+#        if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
+#        run: |
+#          brew install skopeo
+#
+#          bash ${{ github.workspace }}/apecloud-cd/.github/utils/copy_image.sh \
+#              --type 1 \
+#              --dest-username "${{ env.ALIYUN_USER }}" \
+#              --dest-password '${{ env.ALIYUN_PASSWORD }}' \
+#              --src-image "${{ inputs.IMG }}" \
+#              --src-tag "${{ needs.release-image.outputs.tag-name }}"
