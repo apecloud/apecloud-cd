@@ -59,10 +59,10 @@ check_image_exists() {
     for i in {1..5}; do
         case $tag in
             *arm64*|*amd64*)
-                architecture=$( docker manifest inspect "$image" | grep digest )
+                architecture=$( docker buildx imagetools inspect "$image" |  grep Digest )
             ;;
             *)
-                architecture=$( docker manifest inspect "$image" | grep architecture )
+                architecture=$( docker buildx imagetools inspect "$image" | grep Platform )
             ;;
         esac
         if [[ -z "$architecture" ]]; then
