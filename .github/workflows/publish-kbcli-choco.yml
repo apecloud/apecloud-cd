@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       VERSION:
-        description: "The release version of kbcli; 'SemVer format release tag, i.e. 0.5.1'"
+        description: "The release version of kbcli; i.e. v0.5.1'"
         type: string
         required: true
         default: ''
