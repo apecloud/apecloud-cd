@@ -27,11 +27,11 @@ jobs:
       - name: Install AU
         run: choco install au
       - name: Build Package
-        working-directory: ./kbcli
+        working-directory: chocolatey/kbcli
         run: |
           ./update.ps1
       - name: Test Package Installer
-        working-directory: ./kbcli
+        working-directory: chocolatey/kbcli
         run: Test-Package $Install
       - name: kbcli Version
         run: |
@@ -40,7 +40,7 @@ jobs:
       - name: Push Package to Chocolatey
         run: |
           Push-Package kbcli.
-        working-directory: ./kbcli
+        working-directory: chocolatey/kbcli
         env:
           api_key: ${{ secrets.CHOCO_API_KEY }}
       - uses: EndBug/add-and-commit@v7
