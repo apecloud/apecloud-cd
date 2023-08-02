@@ -1,0 +1,50 @@
+name: Publish to chocolatey
+
+on:
+  workflow_dispatch:
+    inputs:
+      VERSION:
+        description: "The release version of kbcli; 'SemVer format release tag, i.e. 0.5.1'"
+        type: string
+        required: true
+        default: ''
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  publish:
+    name: publish kbcli Chocolately
+    runs-on: windows-2019
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: apecloud/chocolatey-packages
+          path: chocolatey
+          token: ${{ env.GITHUB_TOKEN }}
+      - name: Chocolately version
+        run: choco --version
+      - name: Install AU
+        run: choco install au
+      - name: Build Package
+        working-directory: ./kbcli
+        run: |
+          ./update.ps1
+      - name: Test Package Installer
+        working-directory: ./kbcli
+        run: Test-Package $Install
+      - name: kbcli Version
+        run: |
+          $env:Path += ";$env:TEMP\chocolatey\kbcli\$env:VERSION"
+          kbcli version
+      - name: Push Package to Chocolatey
+        run: |
+          Push-Package kbcli.
+        working-directory: ./kbcli
+        env:
+          api_key: ${{ secrets.CHOCO_API_KEY }}
+      - uses: EndBug/add-and-commit@v7
+        with:
+          message: "publish kbcli on Chocolatey ${{ github.event.inputs.version }}"
+          add: "."
+          cwd: "."
