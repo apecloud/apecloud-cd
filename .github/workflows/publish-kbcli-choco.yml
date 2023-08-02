@@ -16,6 +16,11 @@ jobs:
   publish:
     name: publish kbcli Chocolately
     runs-on: windows-2019
+    defaults:
+      run:
+        shell: powershell
+    env:
+      VERSION: ${{ github.event.inputs.VERSION }}
     steps:
       - uses: actions/checkout@v3
         with:
