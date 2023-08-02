@@ -38,12 +38,12 @@ jobs:
       - name: Test Package Installer
         working-directory: chocolatey/kbcli
         run: Test-Package $Install
-      # - name: Push Package to Chocolatey
-      #   run: |
-      #     Push-Package kbcli.
-      #   working-directory: chocolatey/kbcli
-      #   env:
-      #     api_key: ${{ secrets.CHOCO_API_KEY }}
+      - name: Push Package to Chocolatey
+        run: |
+          Push-Package kbcli.
+        working-directory: chocolatey/kbcli
+        env:
+          api_key: ${{ secrets.CHOCO_API_KEY }}
       - uses: EndBug/add-and-commit@v7
         with:
           message: "publish kbcli on Chocolatey ${{ github.event.inputs.version }}"
