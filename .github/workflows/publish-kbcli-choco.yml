@@ -38,10 +38,6 @@ jobs:
       - name: Test Package Installer
         working-directory: chocolatey/kbcli
         run: Test-Package $Install
-      - name: kbcli Version
-        run: |
-          $env:Path += ";$env:TEMP\chocolatey\kbcli\$env:VERSION"
-          kbcli version
       # - name: Push Package to Chocolatey
       #   run: |
       #     Push-Package kbcli.
