@@ -388,7 +388,6 @@ set_runs_jobs() {
             ;;
             *)
                 if [[ "$jobs_name" == *"$test_type" ]]; then
-                    echo $jobs_name
                     TEST_RET=$TEST_RET"##$test_ret|$jobs_url"
                 fi
             ;;
