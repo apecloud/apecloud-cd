@@ -4,7 +4,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-DEFAULT_CHART_RELEASER_VERSION=v1.4.1
+DEFAULT_CHART_RELEASER_VERSION=v1.5.0
 
 show_help() {
 cat << EOF
@@ -111,7 +111,7 @@ parse_command_line() {
 }
 
 release_charts() {
-    local args=(-o "$owner" -r "$repo" -c "$(git rev-parse HEAD)" -t $CR_TOKEN --skip-existing false --make-release-latest false)
+    local args=(-o "$owner" -r "$repo" -c "$(git rev-parse HEAD)" -t $CR_TOKEN --skip-existing)
 
     echo 'Releasing charts...'
     cr upload "${args[@]}"
