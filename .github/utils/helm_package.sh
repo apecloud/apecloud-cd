@@ -4,7 +4,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-DEFAULT_CHART_RELEASER_VERSION=v1.4.1
+DEFAULT_CHART_RELEASER_VERSION=v1.6.0
 DEFAULT_TOOL=helm
 DEFAULT_INSTALL_CR=false
 
