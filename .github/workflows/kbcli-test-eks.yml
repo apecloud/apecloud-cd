@@ -170,14 +170,14 @@ jobs:
       branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
 
-  test-mysql-scale:
+  test-mysqlscale:
     if: ${{ needs.init-aws-eks.result == 'success' && always() }}
     needs: [ init-aws-eks, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
       test-type: "1"
-      test-type-name: "mysql-scale"
+      test-type-name: "mysqlscale"
       test-args: "--enable-proxy true ${{ inputs.ARGS }}"
       eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
@@ -209,10 +209,23 @@ jobs:
       branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
 
+  test-smartengine:
+    if: ${{ needs.init-aws-eks.result == 'success' && always() }}
+    needs: [ init-aws-eks, install-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "1"
+      test-type-name: "smartengine"
+      test-args: "--smartengine true ${{ inputs.ARGS }}"
+      eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+    secrets: inherit
+
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: [ install-kubeblocks, test-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar, test-mysql-scale, test-weaviate, test-qdrant ]
+    needs: [ install-kubeblocks, test-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar, test-mysqlscale, test-weaviate, test-qdrant, test-smartengine ]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -230,9 +243,10 @@ jobs:
           TEST_RESULT="${TEST_RESULT}##mongodb|${{ needs.test-mongodb.outputs.test-result }}"
           TEST_RESULT="${TEST_RESULT}##kafka|${{ needs.test-kafka.outputs.test-result }}"
           TEST_RESULT="${TEST_RESULT}##pulsar|${{ needs.test-pulsar.outputs.test-result }}"
-          TEST_RESULT="${TEST_RESULT}##mysql-scale|${{ needs.test-mysql-scale.outputs.test-result }}"
+          TEST_RESULT="${TEST_RESULT}##mysqlscale|${{ needs.test-mysqlscale.outputs.test-result }}"
           TEST_RESULT="${TEST_RESULT}##weaviate|${{ needs.test-weaviate.outputs.test-result }}"
           TEST_RESULT="${TEST_RESULT}##qdrant|${{ needs.test-qdrant.outputs.test-result }}"
+          TEST_RESULT="${TEST_RESULT}##smartengine|${{ needs.test-smartengine.outputs.test-result }}"
           
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
               --test-result "${TEST_RESULT}" \
