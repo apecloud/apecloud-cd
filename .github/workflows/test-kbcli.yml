@@ -107,6 +107,7 @@ jobs:
           bash .github/utils/kbcli-test.sh \
               --type ${{ inputs.test-type }} \
               --kubeblocks-version ${KB_VERSION} \
+              --previous-version ${{ inputs.previous-version }} \
               --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
               --region "${{ inputs.region }}" \
               --cluster-name ${{ inputs.eks-cluster-name }} | tee -a ${file_log}
