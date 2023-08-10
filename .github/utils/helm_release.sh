@@ -111,7 +111,7 @@ parse_command_line() {
 }
 
 release_charts() {
-    local args=(-o "$owner" -r "$repo" -c "$(git rev-parse HEAD)" -t $CR_TOKEN --skip-existing false --make-release-latest false)
+    local args=( -o "$owner" -r "$repo" -c "$(git rev-parse HEAD)" -t $CR_TOKEN --make-release-latest false --skip-existing )
 
     echo 'Releasing charts...'
     cr upload "${args[@]}"
