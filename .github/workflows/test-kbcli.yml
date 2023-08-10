@@ -8,6 +8,11 @@ on:
         type: string
         required: false
         default: 'latest'
+      previous-version:
+        description: 'kubeblocks previous version of upgrade'
+        type: string
+        required: false
+        default: ''
       branch-name:
         description: 'testinfra branch name'
         type: string
