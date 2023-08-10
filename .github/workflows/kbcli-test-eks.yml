@@ -269,9 +269,13 @@ jobs:
               --run-id "$GITHUB_RUN_ID" )
           
           date_ret=$(date +%Y-%m-%d-%T)
+          test_title="[${{ inputs.KB_VERSION }}] Test KBCLI on EKS [${date_ret}]"
+          if [[ -n "${{ inputs.KB_PRE_VERSION }}" ]]; then
+              test_title="[${{ inputs.KB_PRE_VERSION }}] upgrade to "$test_title
+          fi 
           python3 .github/utils/send_mesage.py \
               --url ${{ vars.TEST_BOT_WEBHOOK }} \
-              --title "[${{ inputs.KB_VERSION }}] Test KBCLI on EKS [${date_ret}]" \
+              --title "$test_title" \
               --result "$TEST_RESULT"
 
   destroy-aws-eks:
