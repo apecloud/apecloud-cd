@@ -3,6 +3,16 @@ name: KBCLI Test on EKS
 on:
   workflow_call:
     inputs:
+      KB_VERSION:
+        description: 'kubeblocks release version'
+        type: string
+        required: false
+        default: 'latest'
+      KB_PRE_VERSION:
+        description: 'kubeblocks previous version of upgrade'
+        type: string
+        required: false
+        default: ''
       CLUSTER_VERSION:
         description: 'eks cluster version (e.g. 1.25)'
         type: string
@@ -13,11 +23,6 @@ on:
         type: string
         required: false
         default: 'amd64'
-      KB_VERSION:
-        description: 'kubeblocks release version'
-        type: string
-        required: false
-        default: 'latest'
       BRANCH_NAME:
         description: 'testinfra branch name'
         type: string
@@ -85,6 +90,7 @@ jobs:
     uses: ./.github/workflows/test-kbcli.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "0"
       test-type-name: "install"
       test-args: "--config-s3 true --upgrade true ${{ inputs.ARGS }}"
@@ -98,6 +104,7 @@ jobs:
     uses: ./.github/workflows/test-kbcli.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "1"
       test-type-name: "mysql"
       test-args: "${{ inputs.ARGS }}"
@@ -111,6 +118,7 @@ jobs:
     uses: ./.github/workflows/test-kbcli.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "2"
       test-type-name: "postgresql"
       test-args: "${{ inputs.ARGS }}"
@@ -124,6 +132,7 @@ jobs:
     uses: ./.github/workflows/test-kbcli.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "5"
       test-type-name: "redis"
       test-args: "${{ inputs.ARGS }}"
@@ -137,6 +146,7 @@ jobs:
     uses: ./.github/workflows/test-kbcli.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "6"
       test-type-name: "mongodb"
       test-args: "${{ inputs.ARGS }}"
@@ -150,6 +160,7 @@ jobs:
     uses: ./.github/workflows/test-kbcli.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "7"
       test-type-name: "kafka"
       test-args: "${{ inputs.ARGS }}"
@@ -163,6 +174,7 @@ jobs:
     uses: ./.github/workflows/test-kbcli.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "8"
       test-type-name: "pulsar"
       test-args: "${{ inputs.ARGS }}"
@@ -176,6 +188,7 @@ jobs:
     uses: ./.github/workflows/test-kbcli.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "1"
       test-type-name: "mysqlscale"
       test-args: "--enable-proxy true ${{ inputs.ARGS }}"
@@ -189,6 +202,7 @@ jobs:
     uses: ./.github/workflows/test-kbcli.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "9"
       test-type-name: "weaviate"
       test-args: "${{ inputs.ARGS }}"
@@ -202,6 +216,7 @@ jobs:
     uses: ./.github/workflows/test-kbcli.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "10"
       test-type-name: "qdrant"
       test-args: "${{ inputs.ARGS }}"
@@ -215,6 +230,7 @@ jobs:
     uses: ./.github/workflows/test-kbcli.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "1"
       test-type-name: "smartengine"
       test-args: "--smartengine true ${{ inputs.ARGS }}"
