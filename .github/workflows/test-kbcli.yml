@@ -97,6 +97,9 @@ jobs:
           KB_VERSION=$( bash .github/utils/get_kb_latest_version.sh \
               ${{ inputs.release-version }} )
           
+          PREVIOUS_VERSION="${{ inputs.previous-version }}"
+          PREVIOUS_VERSION="${PREVIOUS_VERSION/v/}"
+          
           S3_PATH=$( bash ${{ github.workspace }}/.github/utils/utils.sh \
               --type 2 --test-type ${{ inputs.test-type }} \
               --kubeblocks-version ${KB_VERSION} )
@@ -106,8 +109,8 @@ jobs:
           echo "eks-cluster-name:${{ inputs.eks-cluster-name }}"
           bash .github/utils/kbcli-test.sh \
               --type ${{ inputs.test-type }} \
-              --kubeblocks-version ${KB_VERSION} \
-              --previous-version ${{ inputs.previous-version }} \
+              --kubeblocks-version "${KB_VERSION}" \
+              --previous-version "${PREVIOUS_VERSION}" \
               --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
               --region "${{ inputs.region }}" \
               --cluster-name ${{ inputs.eks-cluster-name }} | tee -a ${file_log}
