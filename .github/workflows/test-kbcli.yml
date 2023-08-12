@@ -43,10 +43,18 @@ on:
         type: string
         required: false
         default: ''
+      random-suffix:
+        description: 'cluster random suffix'
+        type: string
+        required: false
+        default: ''
     outputs:
       test-result:
         description: "test result"
         value: ${{ jobs.kbcli-test.outputs.test-result }}
+      random-suffix:
+        description: "random suffix"
+        value: ${{ jobs.kbcli-test.outputs.random-suffix }}
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -63,6 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       test-result: ${{ steps.kbcli_test.outputs.test-result }}
+      random-suffix: ${{ steps.kbcli_test.outputs.random-suffix }}
     steps:
       - uses: azure/setup-kubectl@v3
         with:
@@ -111,9 +120,18 @@ jobs:
               --type ${{ inputs.test-type }} \
               --kubeblocks-version "${KB_VERSION}" \
               --previous-version "${PREVIOUS_VERSION}" \
+              --random-suffix "${{ inputs.random-suffix }}" \
               --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
               --region "${{ inputs.region }}" \
               --cluster-name ${{ inputs.eks-cluster-name }} | tee -a ${file_log}
+          
+          RANDOM_SUFFIX=""
+          if [[ "${{ inputs.test-type }}" == "0" ]]; then
+              RANDOM_SUFFIX="$( grep "[RANDOM_SUFFIX]" ${file_log}|| true )"
+              RANDOM_SUFFIX=${RANDOM_SUFFIX#*"[RANDOM_SUFFIX]"}      
+              RANDOM_SUFFIX=${RANDOM_SUFFIX%"[RANDOM_SUFFIX]"*}
+          fi
+          echo random-suffix=$RANDOM_SUFFIX >> $GITHUB_OUTPUT
           
           test_ret="$( grep "【FAILED】" ${file_log}|| true )"
           if [[ -n "$test_ret" ]]; then
