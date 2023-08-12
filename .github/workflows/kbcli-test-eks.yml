@@ -110,6 +110,7 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-postgresql:
@@ -124,6 +125,7 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-redis:
@@ -138,6 +140,7 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-mongodb:
@@ -152,6 +155,7 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-kafka:
@@ -166,6 +170,7 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-pulsar:
@@ -180,6 +185,7 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-mysqlscale:
@@ -194,6 +200,7 @@ jobs:
       test-args: "--enable-proxy true ${{ inputs.ARGS }}"
       eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-weaviate:
@@ -208,6 +215,7 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-qdrant:
@@ -222,6 +230,7 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-smartengine:
@@ -236,6 +245,7 @@ jobs:
       test-args: "--smartengine true ${{ inputs.ARGS }}"
       eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   send-message:
