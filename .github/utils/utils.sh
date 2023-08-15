@@ -437,6 +437,12 @@ get_delete_release() {
     release_list=$( gh release list --repo $LATEST_REPO --limit 100 | grep "Pre-release" )
     for tag in $( echo "$release_list" ) ;do
         delete_flag=0
+
+        if [[ "$tag" == *"0.6.0-beta.11"* ]]; then
+            TAG_NAME=""
+            continue
+        fi
+
         if [[ "$tag" == "Pre-release" ]]; then
             TAG_NAME=""
             continue
