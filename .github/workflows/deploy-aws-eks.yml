@@ -48,6 +48,11 @@ on:
         type: string
         required: false
         default: 'latest'
+      REMOVE_PREFIX:
+        description: "Enable remove prefix v  (default: true)"
+        type: boolean
+        required: false
+        default: true
 
 
 env:
@@ -97,7 +102,9 @@ jobs:
         shell: bash
         run: |
           tag_name="${{ inputs.VERSION }}"
-          tag_name="${tag_name/v/}"
+          if [[ "$tag_name" == "v"* && ${{ inputs.REMOVE_PREFIX }} ]]; then
+              tag_name="${tag_name/v/}"
+          fi
           echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
 
       - uses: aws-actions/configure-aws-credentials@v2.2.0
