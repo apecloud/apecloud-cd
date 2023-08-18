@@ -125,12 +125,11 @@ jobs:
           make ${{ inputs.MAKE_OPS_PRE }}
 
       - name: remove v prefix
-        if: inputs.REMOVE_PREFIX
         id: get_tag_name
         shell: bash
         run: |
           tag_name="${{ inputs.VERSION }}"
-          if [[ "$tag_name" == "v"* ]]; then
+          if [[ "$tag_name" == "v"*  && ${{ inputs.REMOVE_PREFIX }} ]]; then
               tag_name="${tag_name/v/}"
           fi
           echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
