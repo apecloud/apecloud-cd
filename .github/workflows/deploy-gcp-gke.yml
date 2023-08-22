@@ -1,0 +1,128 @@
+name: DEPLOY-GCP-GKE
+
+on:
+  workflow_call:
+    inputs:
+      MAKE_OPS:
+        description: "The ops name of makefile"
+        type: string
+        required: false
+        default: ''
+      MAKE_OPS_PRE:
+        description: "The pre ops name of makefile"
+        type: string
+        required: false
+        default: ''
+      CLUSTER_NAME:
+        description: "The cluster name of aws eks"
+        type: string
+        required: false
+        default: ''
+      REGION:
+        description: "The regin of aws eks"
+        type: string
+        required: false
+        default: ''
+      VERSION:
+        description: "The tag name of image"
+        type: string
+        required: false
+        default: ''
+      GO_VERSION:
+        description: "Install the specify version of GO"
+        type: string
+        required: false
+        default: ''
+      GIT_CONFIG:
+        description: "InsteadOf git config global url (default: false)"
+        type: boolean
+        required: false
+        default: false
+      KUBECTL_VERSION:
+        description: "Install the specify version of kubectl (default: latest)"
+        type: string
+        required: false
+        default: 'latest'
+      REMOVE_PREFIX:
+        description: "Enable remove prefix v  (default: true)"
+        type: boolean
+        required: false
+        default: true
+
+
+env:
+  GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  CONTROLLER_MANAGER_CFG: ${{ secrets.CONTROLLER_MANAGER_CFG }}
+  OPENCONSOLE_CFG: ${{ secrets.OPENCONSOLE_CFG }}
+  DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+
+
+jobs:
+  deploy-gcp-gke:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-latest
+    outputs:
+      tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Go specify version
+        if: inputs.GO_VERSION
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ inputs.GO_VERSION }}
+
+      - uses: azure/setup-kubectl@v3
+        with:
+          version: "${{ inputs.KUBECTL_VERSION }}"
+
+      - name: git config
+        if: inputs.GIT_CONFIG
+        run: |
+          git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GITHUB_TOKEN }}@github.com".insteadof "https://github.com"
+
+      - name: remove v prefix
+        id: get_tag_name
+        shell: bash
+        run: |
+          tag_name="${{ inputs.VERSION }}"
+          if [[ "$tag_name" == "v"* && ${{ inputs.REMOVE_PREFIX }} ]]; then
+              tag_name="${tag_name/v/}"
+          fi
+          echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
+
+      - if: ${{ env.GOOGLE_CREDENTIALS != '' }}
+        id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
+
+      - uses: simenandre/setup-gke-gcloud-auth-plugin@v1
+      - uses: google-github-actions/get-gke-credentials@v1
+        if: ${{ inputs.CLUSTER_NAME != '' && inputs.REGION != '' }}
+        with:
+          cluster_name: ${{ inputs.CLUSTER_NAME }}
+          location: ${{ inputs.REGION }}
+
+      - name: make pre
+        if: inputs.MAKE_OPS_PRE
+        run: |
+          make ${{ inputs.MAKE_OPS_PRE }}
+
+      - if: ${{  env.GOOGLE_CREDENTIALS != '' && inputs.CLUSTER_NAME != '' && inputs.REGION != '' }}
+        name: deploy to gcp gke
+        run: |
+          cmd="make ${{ inputs.MAKE_OPS }} "
+
+          if [[ ! -z "${{ inputs.VERSION }}" ]]; then
+            cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
+          fi
+
+          eval "$cmd"
