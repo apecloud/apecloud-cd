@@ -102,7 +102,7 @@ jobs:
         shell: bash
         run: |
           tag_name="${{ inputs.VERSION }}"
-          if [[ "$tag_name" == "v"* && ${{ inputs.REMOVE_PREFIX }} ]]; then
+          if [[ "$tag_name" == "v"* && "${{ inputs.REMOVE_PREFIX }}" == "true" ]]; then
               tag_name="${tag_name/v/}"
           fi
           echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT

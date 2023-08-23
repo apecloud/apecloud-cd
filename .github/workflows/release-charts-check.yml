@@ -109,7 +109,7 @@ jobs:
         shell: bash
         run: |
           version="${{ inputs.VERSION }}"
-          if [[ "$version" == "v"*  && ${{ inputs.REMOVE_PREFIX }} ]]; then
+          if [[ "$version" == "v"*  && "${{ inputs.REMOVE_PREFIX }}" == "true" ]]; then
               version="${version/v/}"
           fi
           echo VERSION=$version >> $GITHUB_OUTPUT
