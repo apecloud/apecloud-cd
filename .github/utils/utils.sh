@@ -40,7 +40,7 @@ Usage: $(basename "$0") <options>
     -tr, --test-result        The test result
     -cp, --chart-path         The chart path
     -in, --issue-number       The issue number
-    -in, --issue-comment       The issue comment
+    -ic, --issue-comment      The issue comment body
 EOF
 }
 
@@ -212,16 +212,19 @@ parse_command_line() {
             -cp|--chart-path)
                 if [[ -n "${2:-}" ]]; then
                     CHART_PATH="$2"
+                    shift
                 fi
                 ;;
             -in|--issue-number)
                 if [[ -n "${2:-}" ]]; then
                     ISSUE_NUMBER="$2"
+                    shift
                 fi
                 ;;
             -ic|--issue-comment)
                 if [[ -n "${2:-}" ]]; then
                     ISSUE_COMMENT="$2"
+                    shift
                 fi
                 ;;
             *)
@@ -465,7 +468,8 @@ get_delete_release() {
 }
 
 comment_issue() {
-    gh issue comment --repo $GITHUB_REPO $ISSUE_NUMBER --body "$ISSUE_COMMENT"
+    echo "gh issue comment $ISSUE_NUMBER --body \"$ISSUE_COMMENT\" --repo $GITHUB_REPO"
+    gh issue comment $ISSUE_NUMBER --body "$ISSUE_COMMENT" --repo $GITHUB_REPO
 }
 
 main "$@"
