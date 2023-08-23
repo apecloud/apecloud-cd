@@ -1,0 +1,38 @@
+name: RENEW-SEALOS-ISSUE
+
+on:
+  workflow_call:
+    inputs:
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+
+env:
+  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  renew-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Apecd Code
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: Renew issue and Sync Images
+        uses: labring/gh-rebot@v0.0.8-rc1
+        with:
+          version: v0.0.8-rc1
+        env:
+          GH_TOKEN: "${{ env.GH_TOKEN }}"
+          SEALOS_TYPE: "issue_renew"
+          SEALOS_ISSUE_TITLE: "【Auto-build】kubeblocks"
+          SEALOS_ISSUE_BODYFILE: "apecloud-cd/.github/RENEW_SEALOS_ISSUE.md"
+          SEALOS_ISSUE_LABEL: "monthly-report"
+          SEALOS_ISSUE_TYPE: "month"
+          SEALOS_ISSUE_REPO: "labring-actions/cluster-image"
+          SEALOS_COMMENT_BODY: ""
