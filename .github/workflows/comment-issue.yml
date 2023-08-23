@@ -29,10 +29,7 @@ env:
   GH_TOKEN: ${{ github.token }}
 
 jobs:
-  trigger-workflow:
-    permissions:
-      issues: write
-      contents: write
+  comment-issue:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Apecd Code
