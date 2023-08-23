@@ -73,6 +73,11 @@ on:
         type: boolean
         required: false
         default: true
+      MAKE_ARGS:
+        description: "make args"
+        type: string
+        required: false
+        default: ''
 
 env:
   DOCKER_REGISTRY_URL: docker.io
@@ -157,6 +162,10 @@ jobs:
           if [[ ! -z "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }} "
           fi
+          
+          if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
+            cmd=$cmd" \"${{ inputs.MAKE_ARGS }}\" "
+          fi
           DOCKER_BUILD_ARGS="--cache-to type=registry,ref=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}-cache,mode=max,compression=zstd,oci-mediatypes=true"
           DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --cache-from type=registry,ref=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}-cache"
           cmd=$cmd"DOCKER_BUILD_ARGS=\"${DOCKER_BUILD_ARGS} \" "
@@ -185,6 +194,10 @@ jobs:
           
           if [[ ! -z "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }} "
+          fi
+          
+          if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
+            cmd=$cmd" \"${{ inputs.MAKE_ARGS }}\" "
           fi
           DOCKER_BUILD_ARGS="--cache-to type=registry,ref=${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }}-cache,mode=max,compression=zstd,oci-mediatypes=true"
           DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --cache-from type=registry,ref=${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }}-cache"
@@ -224,6 +237,10 @@ jobs:
           
           if [[ ! -z "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=$GOOGLE_REGISTRY_URL/${{ inputs.IMG }} "
+          fi
+          
+          if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
+            cmd=$cmd" \"${{ inputs.MAKE_ARGS }}\" "
           fi
           DOCKER_BUILD_ARGS="--cache-to type=registry,ref=$GOOGLE_REGISTRY_URL/${{ inputs.IMG }}-cache,mode=max,compression=zstd,oci-mediatypes=true"
           DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --cache-from type=registry,ref=$GOOGLE_REGISTRY_URL/${{ inputs.IMG }}-cache"
