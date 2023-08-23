@@ -1,4 +1,4 @@
-name: RENEW-SEALOS-ISSUE
+name: RENEW-ISSUE
 
 on:
   workflow_call:
@@ -31,7 +31,7 @@ jobs:
           GH_TOKEN: "${{ env.GH_TOKEN }}"
           SEALOS_TYPE: "issue_renew"
           SEALOS_ISSUE_TITLE: "【Auto-build】kubeblocks"
-          SEALOS_ISSUE_BODYFILE: "apecloud-cd/.github/RENEW_SEALOS_ISSUE.md"
+          SEALOS_ISSUE_BODYFILE: "apecloud-cd/.github/RENEW_ISSUE.md"
           SEALOS_ISSUE_LABEL: "monthly-report"
           SEALOS_ISSUE_TYPE: "month"
           SEALOS_ISSUE_REPO: "labring-actions/cluster-image"
