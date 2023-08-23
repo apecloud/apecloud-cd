@@ -53,6 +53,11 @@ on:
         type: boolean
         required: false
         default: true
+      REMOVE_PREFIX:
+        description: "Enable remove prefix v  (default: true)"
+        type: boolean
+        required: false
+        default: true
 
 
 env:
@@ -108,7 +113,9 @@ jobs:
         shell: bash
         run: |
           version="${{ inputs.VERSION }}"
-          version="${version/v/}"
+          if [[ "$version" == "v"*  && ${{ inputs.REMOVE_PREFIX }} ]]; then
+              version="${version/v/}"
+          fi
           echo VERSION=$version >> $GITHUB_OUTPUT
 
       - name: Bump helm chart version
