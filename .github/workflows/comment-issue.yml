@@ -1,0 +1,52 @@
+name: COMMENT-ISSUE
+
+on:
+  workflow_call:
+    inputs:
+      GITHUB_REPO:
+        description: "The github repo to comment issue"
+        type: string
+        required: false
+        default: ''
+      ISSUE_NUMBER:
+        description: "The comment issue number"
+        type: string
+        required: false
+        default: ''
+      ISSUE_COMMENT_BODY:
+        description: "The issue comment body"
+        type: string
+        required: false
+        default: ''
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+
+
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  trigger-workflow:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Apecd Code
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: comment issue
+        if ${{ inputs.GITHUB_REPO != '' && inputs.ISSUE_NUMBER != '' && inputs.ISSUE_COMMENT_BODY != '' }}
+        run: |
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+              --type 15 \
+              --github-repo ${{ inputs.GITHUB_REPO }} \
+              --issue-number ${{ inputs.ISSUE_NUMBER }} \
+              --issue-comment "${{ inputs.ISSUE_COMMENT_BODY }}"
