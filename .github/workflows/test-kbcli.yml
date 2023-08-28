@@ -3,6 +3,11 @@ name: TEST-KBCLI
 on:
   workflow_call:
     inputs:
+      cloud-provider:
+        description: 'cloud k8s cluster provider (e.g. eks/gke)'
+        type: string
+        required: false
+        default: 'eks'
       release-version:
         description: 'kubeblocks release version'
         type: string
@@ -34,12 +39,12 @@ on:
         required: false
         default: ''
       region:
-        description: 'eks region name'
+        description: 'k8s region name'
         type: string
         required: false
         default: 'cn-northwest-1'
-      eks-cluster-name:
-        description: 'eks cluster name'
+      k8s-cluster-name:
+        description: 'k8s cluster name'
         type: string
         required: false
         default: ''
@@ -60,6 +65,7 @@ env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
 
 permissions:
   id-token: write
@@ -78,14 +84,30 @@ jobs:
           version: "latest"
 
       - uses: aws-actions/setup-sam@v2
+        if: ${{ inputs.cloud-provider == 'eks' }}
         with:
           use-installer: true
 
       - uses: aws-actions/configure-aws-credentials@v2.2.0
+        if: ${{ inputs.cloud-provider == 'eks' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' }}
         with:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws-region: "${{ inputs.region }}"
+
+      - if: ${{ inputs.cloud-provider == 'gke' && env.GOOGLE_CREDENTIALS != '' }}
+        id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
+
+      - uses: simenandre/setup-gke-gcloud-auth-plugin@v1
+      - uses: google-github-actions/get-gke-credentials@v1
+        if: ${{ inputs.cloud-provider == 'gke' && inputs.CLUSTER_NAME != '' && inputs.REGION != '' }}
+        with:
+          cluster_name: ${{ inputs.CLUSTER_NAME }}
+          location: ${{ inputs.REGION }}
 
       - name: checkout testinfra
         uses: actions/checkout@v3
@@ -115,7 +137,7 @@ jobs:
           mkdir -p ${S3_PATH}
           echo 'S3_PATH='${S3_PATH} >> $GITHUB_ENV
           
-          echo "eks-cluster-name:${{ inputs.eks-cluster-name }}"
+          echo "k8s-cluster-name:${{ inputs.k8s-cluster-name }}"
           bash .github/utils/kbcli-test.sh \
               --type ${{ inputs.test-type }} \
               --kubeblocks-version "${KB_VERSION}" \
@@ -123,7 +145,8 @@ jobs:
               --random-suffix "${{ inputs.random-suffix }}" \
               --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
               --region "${{ inputs.region }}" \
-              --cluster-name ${{ inputs.eks-cluster-name }} | tee -a ${file_log}
+              --cloud-provider "${{ inputs.cloud-provider }}" \
+              --cluster-name ${{ inputs.k8s-cluster-name }} | tee -a ${file_log}
           
           RANDOM_SUFFIX=""
           if [[ "${{ inputs.test-type }}" == "0" ]]; then

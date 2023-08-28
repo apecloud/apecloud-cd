@@ -27,6 +27,7 @@ Usage: $(basename "$0") <options>
                                 13) helm dep update
                                 14) get delete alpha/beta release
                                 15) comment issue
+                                16) delete runner
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -126,6 +127,9 @@ main() {
         ;;
         15)
             comment_issue
+        ;;
+        16)
+            delete_runner
         ;;
     esac
 }
@@ -470,6 +474,24 @@ get_delete_release() {
 comment_issue() {
     echo "gh issue comment $ISSUE_NUMBER --body \"$ISSUE_COMMENT\" --repo $GITHUB_REPO"
     gh issue comment $ISSUE_NUMBER --body "$ISSUE_COMMENT" --repo $GITHUB_REPO
+}
+
+delete_runner() {
+    runners_url=$GITHUB_API/repos/$GITHUB_REPO/actions/runners
+    runners_list=$( gh_curl -s $runners_url )
+    total_count=$( echo "$runners_list" | jq '.total_count' )
+    echo "total_count":$total_count
+    for i in $(seq 0 $total_count); do
+        runner_name=$( echo "$runners_list" | jq ".runners[$i].name" --raw-output )
+        runner_status=$( echo "$runners_list" | jq ".runners[$i].status" --raw-output )
+        runner_busy=$( echo "$runners_list" | jq ".runners[$i].busy" --raw-output )
+        runner_id=$( echo "$runners_list" | jq ".runners[$i].id" --raw-output )
+        echo $runner_status
+        if [[  "$runner_status" == "offline" && "$runner_busy" == "false" ]]; then
+            echo "delete runner_name:"$runner_name
+            gh_curl -L -X DELETE $runners_url/$runner_id
+        fi
+    done
 }
 
 main "$@"

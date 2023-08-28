@@ -3,18 +3,18 @@ name: Terrafrom Destroy
 on:
   workflow_call:
     inputs:
-      deploy-path:
-        description: 'terraform deploy path'
+      cloud-provider:
+        description: 'cloud k8s cluster provider (e.g. eks/gke)'
         type: string
         required: false
-        default: ''
+        default: 'eks'
       artifact-name:
         description: 'terraform artifact name'
         type: string
         required: false
         default: ''
       region:
-        description: 'terraform artifact name'
+        description: 'k8s region name'
         type: string
         required: false
         default: 'cn-northwest-1'
@@ -38,10 +38,30 @@ jobs:
           terraform_version: 1.4.6
 
       - uses: aws-actions/configure-aws-credentials@v2.2.0
+        if: ${{ inputs.cloud-provider == 'eks' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' }}
         with:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws-region: "${{ inputs.region }}"
+
+      - if: ${{ inputs.cloud-provider == 'gke' && env.GOOGLE_CREDENTIALS != '' }}
+        id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
+
+      - name: get deploy path
+        id: get_deploy_path
+        run: |
+          DEPLOY_PATH=""
+          if [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
+              DEPLOY_PATH="./aws/eks-default-vpc"
+          elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
+              DEPLOY_PATH="./gcp/gke-cicd"
+          fi
+          echo "deploy-path:"$DEPLOY_PATH
+          echo deploy-path=${DEPLOY_PATH} >> $GITHUB_OUTPUT
 
       - name: checkout cloud-provider
         uses: actions/checkout@v3
@@ -55,11 +75,11 @@ jobs:
         uses: actions/download-artifact@v3.0.2
         with:
           name: ${{ inputs.artifact-name }}
-          path: ${{ inputs.deploy-path }}
+          path: ${{ steps.get_deploy_path.outputs.deploy-path }}
 
       - name: terraform destroy
         run: |
-          cd ${{ inputs.deploy-path }}
+          cd ${{ steps.get_deploy_path.outputs.deploy-path }}
           bash run.sh --type 2
 
   remove-artifact:

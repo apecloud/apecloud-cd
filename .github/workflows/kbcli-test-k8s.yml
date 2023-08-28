@@ -1,8 +1,13 @@
-name: KBCLI Test on EKS
+name: KBCLI Test on K8S
 
 on:
   workflow_call:
     inputs:
+      CLOUD_PROVIDER:
+        description: 'cloud k8s cluster provider (e.g. eks/gke)'
+        type: string
+        required: false
+        default: 'eks'
       KB_VERSION:
         description: 'kubeblocks release version'
         type: string
@@ -14,10 +19,15 @@ on:
         required: false
         default: ''
       CLUSTER_VERSION:
-        description: 'eks cluster version (e.g. 1.25)'
+        description: 'k8s cluster version (e.g. 1.25)'
         type: string
         required: false
         default: '1.25'
+      REGION:
+        description: 'k8s region name'
+        type: string
+        required: false
+        default: 'cn-northwest-1'
       INSTANCE_TYPE:
         description: 'node instance types (e.g. amd64/arm64)'
         type: string
@@ -40,18 +50,31 @@ on:
         default: ''
   workflow_dispatch:
     inputs:
-      CLUSTER_VERSION:
-        description: 'eks cluster version (e.g. 1.25)'
+      CLOUD_PROVIDER:
+        description: 'cloud k8s cluster provider (e.g. eks/gke)'
         required: false
-        default: '1.25'
-      INSTANCE_TYPE:
-        description: 'node instance types (e.g. amd64/arm64)'
-        required: false
-        default: 'amd64'
+        default: 'eks'
       KB_VERSION:
         description: 'kubeblocks release version'
         required: false
         default: 'latest'
+      KB_PRE_VERSION:
+        description: 'kubeblocks previous version of upgrade'
+        type: string
+        required: false
+        default: ''
+      CLUSTER_VERSION:
+        description: 'k8s cluster version (e.g. 1.25)'
+        required: false
+        default: '1.25'
+      REGION:
+        description: 'k8s region name'
+        required: false
+        default: 'cn-northwest-1'
+      INSTANCE_TYPE:
+        description: 'node instance types (e.g. amd64/arm64)'
+        required: false
+        default: 'amd64'
       BRANCH_NAME:
         description: 'testinfra branch name'
         required: false
@@ -65,7 +88,7 @@ on:
         required: false
         default: ''
 
-run-name: kbcli:${{ inputs.KB_VERSION }} k8s:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }}
+run-name: kbcli:${{ inputs.KB_VERSION }} ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }}
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -75,175 +98,198 @@ permissions:
   contents: read
 
 jobs:
-  init-aws-eks:
+  terraform-init-k8s:
     uses: ./.github/workflows/terraform-init.yml
     with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       cluster-version: ${{ inputs.CLUSTER_VERSION }}
       instance-type: ${{ inputs.INSTANCE_TYPE }}
-      artifact-name: aws-eks-${{ github.sha }}
-      deploy-path: ./aws/eks-default-vpc
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      region: ${{ inputs.REGION }}
     secrets: inherit
 
   install-kubeblocks:
-    if: ${{ needs.init-aws-eks.result == 'success' }}
-    needs: init-aws-eks
+    if: ${{ needs.terraform-init-k8s.result == 'success' }}
+    needs: terraform-init-k8s
     uses: ./.github/workflows/test-kbcli.yml
     with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
       release-version: "${{ inputs.KB_VERSION }}"
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "0"
       test-type-name: "install"
       test-args: "--config-s3 true --upgrade true ${{ inputs.ARGS }}"
-      eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
 
   test-mysql:
-    if: ${{ needs.init-aws-eks.result == 'success' && always() }}
-    needs: [ init-aws-eks, install-kubeblocks ]
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
       release-version: "${{ inputs.KB_VERSION }}"
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "1"
       test-type-name: "mysql"
       test-args: "${{ inputs.ARGS }}"
-      eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-postgresql:
-    if: ${{ needs.init-aws-eks.result == 'success' && always() }}
-    needs: [ init-aws-eks, install-kubeblocks ]
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
       release-version: "${{ inputs.KB_VERSION }}"
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "2"
       test-type-name: "postgresql"
       test-args: "${{ inputs.ARGS }}"
-      eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-redis:
-    if: ${{ needs.init-aws-eks.result == 'success' && always() }}
-    needs: [ init-aws-eks, install-kubeblocks ]
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
       release-version: "${{ inputs.KB_VERSION }}"
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "5"
       test-type-name: "redis"
       test-args: "${{ inputs.ARGS }}"
-      eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-mongodb:
-    if: ${{ needs.init-aws-eks.result == 'success' && always() }}
-    needs: [ init-aws-eks, install-kubeblocks ]
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
       release-version: "${{ inputs.KB_VERSION }}"
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "6"
       test-type-name: "mongodb"
       test-args: "${{ inputs.ARGS }}"
-      eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-kafka:
-    if: ${{ needs.init-aws-eks.result == 'success' && always() }}
-    needs: [ init-aws-eks, install-kubeblocks ]
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
       release-version: "${{ inputs.KB_VERSION }}"
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "7"
       test-type-name: "kafka"
       test-args: "${{ inputs.ARGS }}"
-      eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-pulsar:
-    if: ${{ needs.init-aws-eks.result == 'success' && always() }}
-    needs: [ init-aws-eks, install-kubeblocks ]
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
       release-version: "${{ inputs.KB_VERSION }}"
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "8"
       test-type-name: "pulsar"
       test-args: "${{ inputs.ARGS }}"
-      eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-mysqlscale:
-    if: ${{ needs.init-aws-eks.result == 'success' && always() }}
-    needs: [ init-aws-eks, install-kubeblocks ]
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
       release-version: "${{ inputs.KB_VERSION }}"
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "1"
       test-type-name: "mysqlscale"
       test-args: "--enable-proxy true ${{ inputs.ARGS }}"
-      eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-weaviate:
-    if: ${{ needs.init-aws-eks.result == 'success' && always() }}
-    needs: [ init-aws-eks, install-kubeblocks ]
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
       release-version: "${{ inputs.KB_VERSION }}"
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "9"
       test-type-name: "weaviate"
       test-args: "${{ inputs.ARGS }}"
-      eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-qdrant:
-    if: ${{ needs.init-aws-eks.result == 'success' && always() }}
-    needs: [ init-aws-eks, install-kubeblocks ]
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
       release-version: "${{ inputs.KB_VERSION }}"
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "10"
       test-type-name: "qdrant"
       test-args: "${{ inputs.ARGS }}"
-      eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-smartengine:
-    if: ${{ needs.init-aws-eks.result == 'success' && always() }}
-    needs: [ init-aws-eks, install-kubeblocks ]
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
       release-version: "${{ inputs.KB_VERSION }}"
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "1"
       test-type-name: "smartengine"
       test-args: "--smartengine true ${{ inputs.ARGS }}"
-      eks-cluster-name: ${{ needs.init-aws-eks.outputs.eks-cluster-name }}
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -279,7 +325,7 @@ jobs:
               --run-id "$GITHUB_RUN_ID" )
           
           date_ret=$(date +%Y-%m-%d-%T)
-          test_title="[${{ inputs.KB_VERSION }}] Test KBCLI on EKS:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
+          test_title="[${{ inputs.KB_VERSION }}] Test KBCLI on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
           if [[ -n "${{ inputs.KB_PRE_VERSION }}" ]]; then
               test_title="[${{ inputs.KB_PRE_VERSION }}] upgrade to "$test_title
           fi 
@@ -288,11 +334,12 @@ jobs:
               --title "$test_title" \
               --result "$TEST_RESULT"
 
-  destroy-aws-eks:
+  terraform-destroy-k8s:
     if: ${{ always() }}
-    needs: [ init-aws-eks, send-message ]
+    needs: [ terraform-init-k8s, send-message ]
     uses: ./.github/workflows/terraform-destroy.yml
     with:
-      artifact-name: aws-eks-${{ github.sha }}
-      deploy-path: ./aws/eks-default-vpc
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      region: ${{ inputs.REGION }}
     secrets: inherit
