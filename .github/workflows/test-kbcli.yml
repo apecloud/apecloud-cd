@@ -106,8 +106,8 @@ jobs:
       - uses: google-github-actions/get-gke-credentials@v1
         if: ${{ inputs.cloud-provider == 'gke' && inputs.k8s-cluster-name != '' && inputs.region != '' }}
         with:
-          cluster_name: ${{ inputs.CLUSTER_NAME }}
-          location: ${{ inputs.REGION }}
+          cluster_name: ${{ inputs.k8s-cluster-name }}
+          location: ${{ inputs.region }}
 
       - name: checkout testinfra
         uses: actions/checkout@v3
