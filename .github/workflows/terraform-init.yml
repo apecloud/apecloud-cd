@@ -3,8 +3,13 @@ name: Terrafrom Init
 on:
   workflow_call:
     inputs:
+      cloud-provider:
+        description: 'cloud k8s cluster provider (e.g. eks/gke)'
+        type: string
+        required: false
+        default: 'eks'
       cluster-version:
-        description: 'eks cluster version (e.g. 1.25)'
+        description: 'k8s cluster version (e.g. 1.25)'
         type: string
         required: false
         default: ''
@@ -13,30 +18,36 @@ on:
         type: string
         required: false
         default: 'amd64'
-      deploy-path:
-        description: 'terraform deploy path'
-        type: string
-        required: false
-        default: ''
       artifact-name:
         description: 'terraform artifact name'
         type: string
         required: false
         default: ''
       region:
-        description: 'terraform artifact name'
+        description: 'k8s region name'
         type: string
         required: false
         default: 'cn-northwest-1'
+      cluster-name:
+        description: 'k8s cluster name'
+        type: string
+        required: false
+        default: ''
+      node-size:
+        description: 'k8s node size'
+        type: string
+        required: false
+        default: ''
     outputs:
-      eks-cluster-name:
-        description: "eks cluster name"
-        value: ${{ jobs.terraform-init.outputs.eks-cluster-name }}
+      k8s-cluster-name:
+        description: "k8s cluster name"
+        value: ${{ jobs.terraform-init.outputs.k8s-cluster-name }}
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
 
 permissions:
   id-token: write
@@ -46,7 +57,7 @@ jobs:
   terraform-init:
     runs-on: ubuntu-latest
     outputs:
-      eks-cluster-name: ${{ steps.terraform_init.outputs.eks-cluster-name }}
+      k8s-cluster-name: ${{ steps.terraform_init.outputs.k8s-cluster-name }}
     steps:
       - uses: actions/checkout@v3
       - uses: hashicorp/setup-terraform@v2
@@ -54,10 +65,30 @@ jobs:
           terraform_version: 1.4.6
 
       - uses: aws-actions/configure-aws-credentials@v2.2.0
+        if: ${{ inputs.cloud-provider == 'eks' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' }}
         with:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws-region: "${{ inputs.region }}"
+
+      - if: ${{ inputs.cloud-provider == 'gke' && env.GOOGLE_CREDENTIALS != '' }}
+        id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
+
+      - name: get deploy path
+        id: get_deploy_path
+        run: |
+          DEPLOY_PATH=""
+          if [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
+              DEPLOY_PATH="./aws/eks-default-vpc"
+          elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
+              DEPLOY_PATH="./gcp/gke-cicd"
+          fi
+          echo "deploy-path:"$DEPLOY_PATH
+          echo deploy-path=${DEPLOY_PATH} >> $GITHUB_OUTPUT
 
       - name: checkout cloud-provider
         uses: actions/checkout@v3
@@ -67,22 +98,31 @@ jobs:
           path: ./
           token: ${{ env.GITHUB_TOKEN }}
 
-      - name: terraform init aws eks
+      - name: terraform init k8s
         id: terraform_init
         run: |
-          cd ${{ inputs.deploy-path }}
+          NODE_SIZE="${{ inputs.node-size }}"
+          cd ${{ steps.get_deploy_path.outputs.deploy-path }}
           bash run.sh --type 1 \
-              --cluster-version ${{ inputs.cluster-version }} \
-              --instance-type ${{ inputs.instance-type }}
+              --cluster-version "${{ inputs.cluster-version }}" \
+              --instance-type "${{ inputs.instance-type }}" \
+              --cluster-name "${{ inputs.cluster-name }}" \
+              --cluster-region "${{ inputs.region }}" \
+              --node-size "${NODE_SIZE}"
 
-          EKS_CLUSTER_NAME=$(cat terraform.tfstate | grep "\"EKS\":" | awk 'NR==1{print $2}' | sed 's/,//g;s/\"//g')
-          echo "eks-cluster-name:${EKS_CLUSTER_NAME}"
-          echo eks-cluster-name=${EKS_CLUSTER_NAME} >> $GITHUB_OUTPUT
+          K8S_CLUSTER_NAME=""
+          if [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
+              K8S_CLUSTER_NAME=$(cat terraform.tfstate | grep "\"EKS\":" | awk 'NR==1{print $2}' | sed 's/,//g;s/\"//g')
+          elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
+              K8S_CLUSTER_NAME=$(cat terraform.tfstate | grep "\"cluster\":" | awk 'NR==1{print $2}' | sed 's/,//g;s/\"//g')
+          fi
+          echo "k8s-cluster-name:${K8S_CLUSTER_NAME}"
+          echo k8s-cluster-name=${K8S_CLUSTER_NAME} >> $GITHUB_OUTPUT
       
       - name: upload artifact
         uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: ${{ inputs.artifact-name }}
-          path: ${{ inputs.deploy-path }}
+          path: ${{ steps.get_deploy_path.outputs.deploy-path }}
           retention-days: 1

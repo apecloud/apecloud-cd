@@ -1,0 +1,28 @@
+name: DELETE-RUNNER
+
+on:
+  workflow_dispatch:
+    inputs:
+      GITHUB_REPO:
+        description: "The github repo to delete runner"
+        type: string
+        required: false
+        default: ''
+
+
+run-name: delete ${{ inputs.GITHUB_REPO }} runner
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  delete-runner:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: delete runner
+        run: |
+          bash .github/utils/utils.sh \
+            --type 16 \
+            --github-token ${{ env.GITHUB_TOKEN }} \
+            --github-repo ${{ inputs.GITHUB_REPO }}
