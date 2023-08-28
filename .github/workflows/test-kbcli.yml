@@ -79,6 +79,14 @@ jobs:
       test-result: ${{ steps.kbcli_test.outputs.test-result }}
       random-suffix: ${{ steps.kbcli_test.outputs.random-suffix }}
     steps:
+      - name: checkout testinfra
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/testinfra
+          ref: ${{ inputs.branch-name }}
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+
       - uses: azure/setup-kubectl@v3
         with:
           version: "latest"
@@ -108,14 +116,6 @@ jobs:
         with:
           cluster_name: ${{ inputs.k8s-cluster-name }}
           location: ${{ inputs.region }}
-
-      - name: checkout testinfra
-        uses: actions/checkout@v3
-        with:
-          repository: apecloud/testinfra
-          ref: ${{ inputs.branch-name }}
-          path: ./
-          token: ${{ env.GITHUB_TOKEN }}
 
       - name: run kbcli test
         id: kbcli_test
