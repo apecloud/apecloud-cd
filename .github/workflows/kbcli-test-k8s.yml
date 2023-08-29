@@ -18,6 +18,11 @@ on:
         type: string
         required: false
         default: ''
+      CLUSTER_TYPE:
+        description: 'test cluster type (e.g. mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale)'
+        type: string
+        required: false
+        default: ''
       CLUSTER_VERSION:
         description: 'k8s cluster version (e.g. 1.25)'
         type: string
@@ -101,6 +106,7 @@ jobs:
   terraform-init-k8s:
     uses: ./.github/workflows/terraform-init.yml
     with:
+      cluster-type: ${{ inputs.CLUSTER_TYPE }}
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       cluster-version: ${{ inputs.CLUSTER_VERSION }}
       instance-type: ${{ inputs.INSTANCE_TYPE }}
@@ -125,7 +131,7 @@ jobs:
     secrets: inherit
 
   test-mysql:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.CLUSTER_TYPE == '' || contains(inputs.CLUSTER_TYPE, 'mysql')) }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -142,7 +148,7 @@ jobs:
     secrets: inherit
 
   test-postgresql:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.CLUSTER_TYPE == '' || contains(inputs.CLUSTER_TYPE, 'postgres')) }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -159,7 +165,7 @@ jobs:
     secrets: inherit
 
   test-redis:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.CLUSTER_TYPE == '' || contains(inputs.CLUSTER_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -176,7 +182,7 @@ jobs:
     secrets: inherit
 
   test-mongodb:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.CLUSTER_TYPE == '' || contains(inputs.CLUSTER_TYPE, 'mongo')) }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -193,7 +199,7 @@ jobs:
     secrets: inherit
 
   test-kafka:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.CLUSTER_TYPE == '' || contains(inputs.CLUSTER_TYPE, 'kafka')) }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -210,7 +216,7 @@ jobs:
     secrets: inherit
 
   test-pulsar:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.CLUSTER_TYPE == '' || contains(inputs.CLUSTER_TYPE, 'pulsar')) }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -227,7 +233,7 @@ jobs:
     secrets: inherit
 
   test-mysqlscale:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.CLUSTER_TYPE == '' || contains(inputs.CLUSTER_TYPE, 'scale')) }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -244,7 +250,7 @@ jobs:
     secrets: inherit
 
   test-weaviate:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.CLUSTER_TYPE == '' || contains(inputs.CLUSTER_TYPE, 'weaviate')) }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -261,7 +267,7 @@ jobs:
     secrets: inherit
 
   test-qdrant:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.CLUSTER_TYPE == '' || contains(inputs.CLUSTER_TYPE, 'qdrant')) }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -278,7 +284,7 @@ jobs:
     secrets: inherit
 
   test-smartengine:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.CLUSTER_TYPE == '' || contains(inputs.CLUSTER_TYPE, 'smarte')) }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:

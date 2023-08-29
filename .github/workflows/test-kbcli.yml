@@ -113,6 +113,8 @@ jobs:
           token_format: 'access_token'
 
       - uses: simenandre/setup-gke-gcloud-auth-plugin@v1
+        if: ${{ inputs.cloud-provider == 'gke' }}
+
       - uses: google-github-actions/get-gke-credentials@v1
         if: ${{ inputs.cloud-provider == 'gke' && inputs.k8s-cluster-name != '' && inputs.region != '' }}
         with:
