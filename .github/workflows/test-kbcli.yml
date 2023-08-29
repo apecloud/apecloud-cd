@@ -118,6 +118,7 @@ jobs:
         with:
           cluster_name: ${{ inputs.k8s-cluster-name }}
           location: ${{ inputs.region }}
+          use_auth_provider: true
 
       - name: run kbcli test
         id: kbcli_test
