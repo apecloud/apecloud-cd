@@ -68,6 +68,11 @@ on:
         type: string
         required: false
         default: ''
+      TEST_TYPE:
+        description: 'test type (e.g. mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale)'
+        type: string
+        required: false
+        default: ''
       CLUSTER_VERSION:
         description: 'k8s cluster version (e.g. 1.25)'
         required: false
