@@ -118,7 +118,8 @@ jobs:
         if: ${{ inputs.cloud-provider == 'gke' }}
         uses: simenandre/setup-gke-gcloud-auth-plugin@v1
 
-      - if: ${{ inputs.cloud-provider == 'gke' && inputs.k8s-cluster-name != '' && inputs.region != '' }}
+      - name: get gke credential
+        if: ${{ inputs.cloud-provider == 'gke' && inputs.k8s-cluster-name != '' && inputs.region != '' }}
         run: |
           gcloud container clusters get-credentials ${{ inputs.k8s-cluster-name }} \
               --zone ${{ inputs.region }} \
