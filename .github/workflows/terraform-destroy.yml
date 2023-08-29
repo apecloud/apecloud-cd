@@ -51,8 +51,6 @@ jobs:
         uses: 'google-github-actions/auth@v1'
         with:
           credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
-          access_token_lifetime: '21600s'
-          token_format: 'access_token'
 
       - name: get deploy path
         id: get_deploy_path

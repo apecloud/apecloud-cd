@@ -109,18 +109,20 @@ jobs:
         uses: 'google-github-actions/auth@v1'
         with:
           credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
-          access_token_lifetime: '21600s'
-          token_format: 'access_token'
 
-      - uses: simenandre/setup-gke-gcloud-auth-plugin@v1
+      - name: Setup gcloud
         if: ${{ inputs.cloud-provider == 'gke' }}
+        uses: google-github-actions/setup-gcloud@v1
 
-      - uses: google-github-actions/get-gke-credentials@v1
-        if: ${{ inputs.cloud-provider == 'gke' && inputs.k8s-cluster-name != '' && inputs.region != '' }}
-        with:
-          cluster_name: ${{ inputs.k8s-cluster-name }}
-          location: ${{ inputs.region }}
-          use_auth_provider: true
+      - name: setup gke-gcloud-auth-plugin
+        if: ${{ inputs.cloud-provider == 'gke' }}
+        uses: simenandre/setup-gke-gcloud-auth-plugin@v1
+
+      - if: ${{ inputs.cloud-provider == 'gke' && inputs.k8s-cluster-name != '' && inputs.region != '' }}
+        run: |
+          gcloud container clusters get-credentials ${{ inputs.k8s-cluster-name }} \
+              --zone ${{ inputs.region }} \
+              --project ${{ vars.GOOGLE_PROJECT }}
 
       - name: run kbcli test
         id: kbcli_test
