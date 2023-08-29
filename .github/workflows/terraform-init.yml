@@ -33,8 +33,8 @@ on:
         type: string
         required: false
         default: ''
-      node-size:
-        description: 'k8s node size'
+      cluster-type:
+        description: 'test cluster type (e.g. mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale)'
         type: string
         required: false
         default: ''
@@ -103,7 +103,14 @@ jobs:
       - name: terraform init k8s
         id: terraform_init
         run: |
-          NODE_SIZE="${{ inputs.node-size }}"
+          count=$(echo "${{ inputs.cluster-type }}" | grep -o "|" | wc -l)
+          NODE_SIZE=""
+          if [[ "${{ inputs.cloud-provider }}" == "eks" && -n "${{ inputs.cluster-type }}" ]]; then
+              NODE_SIZE="$(( ($count + 1) * 2 ))"
+          elif [[ "${{ inputs.cloud-provider }}" == "gke" && -n "${{ inputs.cluster-type }}" ]]; then
+              NODE_SIZE="$(( ($count + 1 ) / 2 + 1 ))"
+          fi
+          
           cd ${{ steps.get_deploy_path.outputs.deploy-path }}
           bash run.sh --type 1 \
               --cluster-version "${{ inputs.cluster-version }}" \
