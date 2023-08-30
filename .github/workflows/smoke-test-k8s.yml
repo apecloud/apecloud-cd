@@ -120,7 +120,7 @@ jobs:
       release-version: "${{ inputs.KB_VERSION }}"
       test-type: "0"
       test-type-name: "install"
-      test-args: "--config-s3 true --upgrade true ${{ inputs.ARGS }}"
+      test-args: "--config-s3 true --upgrade true --check-addon false ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
