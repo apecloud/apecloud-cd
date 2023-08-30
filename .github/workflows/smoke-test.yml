@@ -23,11 +23,6 @@ on:
         type: string
         required: false
         default: ''
-      branch-name:
-        description: 'kubeblocks branch name'
-        type: string
-        required: false
-        default: 'main'
     outputs:
       test-result:
         description: "test result"
@@ -53,10 +48,6 @@ jobs:
     steps:
       - name: checkout kubeblocks
         uses: actions/checkout@v3
-        with:
-          repository: apecloud/kubeblocks
-          ref: ${{ inputs.branch-name }}
-          path: ./
 
       - uses: azure/setup-kubectl@v3
         with:
