@@ -90,13 +90,18 @@ jobs:
         if: ${{ inputs.cloud-provider == 'gke' }}
         uses: simenandre/setup-gke-gcloud-auth-plugin@v1
 
-      - name: get gke credential
-        if: ${{ inputs.cloud-provider == 'gke' && inputs.k8s-cluster-name != '' && inputs.region != '' }}
+      - name: get k8s credential
+        if: ${{ inputs.k8s-cluster-name != '' && inputs.region != '' }}
         run: |
           echo "k8s-cluster-name:${{ inputs.k8s-cluster-name }}"
-          gcloud container clusters get-credentials ${{ inputs.k8s-cluster-name }} \
-              --zone ${{ inputs.region }} \
-              --project ${{ vars.GOOGLE_PROJECT }}
+          if [[ "${{ inputs.cloud-provider" == "gke" ]]; then
+              gcloud container clusters get-credentials ${{ inputs.k8s-cluster-name }} \
+                  --zone ${{ inputs.region }} \
+                  --project ${{ vars.GOOGLE_PROJECT }}
+          elif [[ "${{ inputs.cloud-provider" == "eks" ]]; then
+              aws eks update-kubeconfig --region ${{ inputs.region }} \
+                  --name ${{ inputs.k8s-cluster-name }}
+          fi
 
       - name: run smoke test
         run: |
