@@ -110,8 +110,9 @@ jobs:
       - name: return test result
         if: ${{ always() }}
         run: |
-          file_log="./test/e2e/${{ inputs.test-type }}-log.txt"
-          test_ret="$( grep "[ERROR]" ${file_log}|| true )"
+          cd ${{ github.workspace }}/test/e2e
+          cat *-log.txt
+          test_ret="$( grep "[ERROR]" *-log.txt || true )"
           if [[ -n "$test_ret" ]]; then
               echo test-result=[FAILED] >> $GITHUB_OUTPUT
               exit 1
