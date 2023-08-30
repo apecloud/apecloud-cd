@@ -140,7 +140,7 @@ jobs:
           PREVIOUS_VERSION="${PREVIOUS_VERSION/v/}"
           
           S3_PATH=$( bash ${{ github.workspace }}/.github/utils/utils.sh \
-              --type 2 --test-type ${{ inputs.test-type }} \
+              --type 2 --test-type ${{ inputs.test-type-name }} \
               --kubeblocks-version ${KB_VERSION} )
           mkdir -p ${S3_PATH}
           echo 'S3_PATH='${S3_PATH} >> $GITHUB_ENV

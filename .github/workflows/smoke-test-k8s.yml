@@ -1,0 +1,238 @@
+name: SMOKE Test on K8S
+
+on:
+  workflow_call:
+    inputs:
+      CLOUD_PROVIDER:
+        description: 'cloud k8s cluster provider (e.g. eks/gke)'
+        type: string
+        required: false
+        default: 'eks'
+      KB_VERSION:
+        description: 'kubeblocks release version'
+        type: string
+        required: false
+        default: 'latest'
+      TEST_TYPE:
+        description: 'test type (e.g. mysql|postgres|redis|mongo|pulsar)'
+        type: string
+        required: false
+        default: ''
+      CLUSTER_VERSION:
+        description: 'k8s cluster version (e.g. 1.25)'
+        type: string
+        required: false
+        default: '1.25'
+      REGION:
+        description: 'k8s region name'
+        type: string
+        required: false
+        default: 'cn-northwest-1'
+      INSTANCE_TYPE:
+        description: 'node instance types (e.g. amd64/arm64)'
+        type: string
+        required: false
+        default: 'amd64'
+      BRANCH_NAME:
+        description: 'testinfra branch name'
+        type: string
+        required: false
+        default: 'main'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      ARGS:
+        description: "Test args"
+        type: string
+        required: false
+        default: ''
+  workflow_dispatch:
+    inputs:
+      CLOUD_PROVIDER:
+        description: 'cloud k8s cluster provider (e.g. eks/gke)'
+        required: false
+        default: 'eks'
+      KB_VERSION:
+        description: 'kubeblocks release version'
+        required: false
+        default: 'latest'
+      TEST_TYPE:
+        description: 'test type (e.g. mysql|postgres|redis|mongo|pulsar)'
+        type: string
+        required: false
+        default: ''
+      CLUSTER_VERSION:
+        description: 'k8s cluster version (e.g. 1.25)'
+        required: false
+        default: '1.25'
+      REGION:
+        description: 'k8s region name'
+        required: false
+        default: 'cn-northwest-1'
+      INSTANCE_TYPE:
+        description: 'node instance types (e.g. amd64/arm64)'
+        required: false
+        default: 'amd64'
+      BRANCH_NAME:
+        description: 'testinfra branch name'
+        required: false
+        default: 'main'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        required: false
+        default: 'main'
+      ARGS:
+        description: "Test args"
+        required: false
+        default: ''
+
+run-name: SMOKE:${{ inputs.KB_VERSION }} ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }}
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform-init-k8s:
+    uses: ./.github/workflows/terraform-init.yml
+    with:
+      test-type: ${{ inputs.TEST_TYPE }}
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      cluster-version: ${{ inputs.CLUSTER_VERSION }}
+      instance-type: ${{ inputs.INSTANCE_TYPE }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      region: ${{ inputs.REGION }}
+      test-count: 5
+    secrets: inherit
+
+  install-kubeblocks:
+    if: ${{ needs.terraform-init-k8s.result == 'success' }}
+    needs: terraform-init-k8s
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "0"
+      test-type-name: "install"
+      test-args: "--config-s3 true --upgrade true ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+    secrets: inherit
+
+  test-mysql:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mysql')) }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
+    uses: ./.github/workflows/smoke-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      test-type: "wesql"
+      region: ${{ inputs.REGION }}
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+    secrets: inherit
+
+  test-postgresql:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgres')) }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
+    uses: ./.github/workflows/smoke-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      test-type: "postgresql"
+      region: ${{ inputs.REGION }}
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+    secrets: inherit
+
+  test-redis:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis')) }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
+    uses: ./.github/workflows/smoke-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      test-type: "redis"
+      region: ${{ inputs.REGION }}
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+    secrets: inherit
+
+  test-mongodb:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongo')) }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
+    uses: ./.github/workflows/smoke-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      test-type: "mongodb"
+      region: ${{ inputs.REGION }}
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+    secrets: inherit
+
+  test-pulsar:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pulsar')) }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
+    uses: ./.github/workflows/smoke-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      test-type: "pulsar"
+      region: ${{ inputs.REGION }}
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+    secrets: inherit
+
+  send-message:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    needs: [ install-kubeblocks, test-mysql, test-postgresql, test-redis, test-mongodb, test-pulsar ]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: send message
+        id: get_trigger_mode
+        run: |
+          TEST_RESULT="install|${{ needs.install-kubeblocks.outputs.test-result }}"
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mysql"* ]]; then
+              TEST_RESULT="${TEST_RESULT}##mysql|${{ needs.test-mysql.outputs.test-result }}"
+          fi
+          
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"postgres"* ]]; then
+              TEST_RESULT="${TEST_RESULT}##postgresql|${{ needs.test-postgresql.outputs.test-result }}"
+          fi
+          
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"redis"* ]]; then
+              TEST_RESULT="${TEST_RESULT}##redis|${{ needs.test-redis.outputs.test-result }}"
+          fi
+          
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mongo"* ]]; then
+              TEST_RESULT="${TEST_RESULT}##mongodb|${{ needs.test-mongodb.outputs.test-result }}"
+          fi
+          
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"pulsar"* ]]; then
+              TEST_RESULT="${TEST_RESULT}##pulsar|${{ needs.test-pulsar.outputs.test-result }}"
+          fi
+          
+          TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
+              --test-result "${TEST_RESULT}" \
+              --run-id "$GITHUB_RUN_ID" )
+          
+          date_ret=$(date +%Y-%m-%d-%T)
+          test_title="[${{ inputs.KB_VERSION }}] Smoke Test on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
+          
+          python3 .github/utils/send_mesage.py \
+              --url ${{ vars.TEST_BOT_WEBHOOK }} \
+              --title "$test_title" \
+              --result "$TEST_RESULT"
+
+  terraform-destroy-k8s:
+    if: ${{ always() }}
+    needs: [ terraform-init-k8s, send-message ]
+    uses: ./.github/workflows/terraform-destroy.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      region: ${{ inputs.REGION }}
+    secrets: inherit
