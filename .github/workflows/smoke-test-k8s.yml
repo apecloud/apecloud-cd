@@ -43,6 +43,11 @@ on:
         type: string
         required: false
         default: 'main'
+      KB_BRANCH_NAME:
+        description: "The branch name of kubeblocks"
+        type: string
+        required: false
+        default: 'main'
       ARGS:
         description: "Test args"
         type: string
@@ -81,6 +86,11 @@ on:
         default: 'main'
       APECD_REF:
         description: "The branch name of apecloud-cd"
+        required: false
+        default: 'main'
+      KB_BRANCH_NAME:
+        description: "The branch name of kubeblocks"
+        type: string
         required: false
         default: 'main'
       ARGS:
@@ -134,6 +144,7 @@ jobs:
       test-type: "wesql"
       region: ${{ inputs.REGION }}
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.KB_BRANCH_NAME }}
     secrets: inherit
 
   test-postgresql:
@@ -145,6 +156,7 @@ jobs:
       test-type: "postgresql"
       region: ${{ inputs.REGION }}
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.KB_BRANCH_NAME }}
     secrets: inherit
 
   test-redis:
@@ -156,6 +168,7 @@ jobs:
       test-type: "redis"
       region: ${{ inputs.REGION }}
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.KB_BRANCH_NAME }}
     secrets: inherit
 
   test-mongodb:
@@ -167,6 +180,7 @@ jobs:
       test-type: "mongodb"
       region: ${{ inputs.REGION }}
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.KB_BRANCH_NAME }}
     secrets: inherit
 
   test-pulsar:
@@ -178,6 +192,7 @@ jobs:
       test-type: "pulsar"
       region: ${{ inputs.REGION }}
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.KB_BRANCH_NAME }}
     secrets: inherit
 
   send-message:
