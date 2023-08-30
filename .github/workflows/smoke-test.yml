@@ -98,7 +98,7 @@ jobs:
               gcloud container clusters get-credentials ${{ inputs.k8s-cluster-name }} \
                   --zone ${{ inputs.region }} \
                   --project ${{ vars.GOOGLE_PROJECT }}
-          elif [[ "${{ inputs.cloud-provider" == "gke" ]]; then
+          elif [[ "${{ inputs.cloud-provider" == "eks" ]]; then
               aws eks update-kubeconfig --region ${{ inputs.region }} \
                   --name ${{ inputs.k8s-cluster-name }}
           fi
