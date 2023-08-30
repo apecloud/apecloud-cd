@@ -107,7 +107,7 @@ jobs:
       instance-type: ${{ inputs.INSTANCE_TYPE }}
       artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
       region: ${{ inputs.REGION }}
-      test-count: 2
+      test-mode: "smoke"
     secrets: inherit
 
   install-kubeblocks:

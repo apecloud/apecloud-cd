@@ -38,11 +38,11 @@ on:
         type: string
         required: false
         default: ''
-      test-count:
-        description: 'test cluster count'
-        type: number
+      test-mode:
+        description: 'test mode'
+        type: string
         required: false
-        default: 0
+        default: ""
     outputs:
       k8s-cluster-name:
         description: "k8s cluster name"
@@ -106,18 +106,38 @@ jobs:
       - name: terraform init k8s
         id: terraform_init
         run: |
-          NODE_SIZE=""
           COUNTS=""
           if [[ -n "${{ inputs.test-type }}" ]]; then
               COUNTS=$(echo "${{ inputs.test-type }}" | grep -o "|" | wc -l)
-          elif [[ "${{ inputs.test-count }}" != "0" && -n "${{ inputs.test-count }}" ]]; then
-              COUNTS=${{ inputs.test-count }}
+              COUNTS=$(( $COUNTS + 1 ))
           fi
-          
+          NODE_TYPE=""
+          if [[ "${{ inputs.test-mode }}" == "smoke" ]]; then
+              if [[ -z "$COUNTS" ]]; then
+                  COUNTS=4
+              elif [[ $COUNTS -gt 1 ]]; theb
+                  COUNTS=$(( $COUNTS - 1 ))
+              fi
+              
+              if [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
+                  if [[ "${{ inputs.instance-type }}" == "arm64 ]]; then
+                      NODE_TYPE=t4g.medium
+                  else
+                      NODE_TYPE=t3a.medium
+                  fi
+              elif [[ "${{ inputs.cloud-provider }}" == "gke" ]];
+                  if [[ "${{ inputs.instance-type }}" == "arm64 ]]; then
+                      NODE_TYPE=t2a-standard-2
+                  else
+                      NODE_TYPE=e2-standard-2
+                  fi
+              fi
+          fi
+          NODE_SIZE=""
           if [[ "${{ inputs.cloud-provider }}" == "eks" && -n "${COUNTS}" ]]; then
-              NODE_SIZE="$(( ($COUNTS + 1) * 2 ))"
+              NODE_SIZE="$(( $COUNTS * 2 ))"
           elif [[ "${{ inputs.cloud-provider }}" == "gke" && -n "${COUNTS}" ]]; then
-              NODE_SIZE="$(( ($COUNTS + 1 ) / 2 + 1 ))"
+              NODE_SIZE="$(( $COUNTS / 2 + 1 ))"
           fi
           
           cd ${{ steps.get_deploy_path.outputs.deploy-path }}
@@ -126,7 +146,8 @@ jobs:
               --instance-type "${{ inputs.instance-type }}" \
               --cluster-name "${{ inputs.cluster-name }}" \
               --cluster-region "${{ inputs.region }}" \
-              --node-size "${NODE_SIZE}"
+              --node-size "${NODE_SIZE}" \
+              --node-type "${NODE_TYPE}"
 
           K8S_CLUSTER_NAME=""
           if [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
