@@ -115,7 +115,7 @@ jobs:
           if [[ "${{ inputs.test-mode }}" == "smoke" ]]; then
               if [[ -z "$COUNTS" ]]; then
                   COUNTS=4
-              elif [[ $COUNTS -gt 1 ]]; theb
+              elif [[ $COUNTS -gt 1 ]]; then
                   COUNTS=$(( $COUNTS - 1 ))
               fi
               
