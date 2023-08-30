@@ -38,6 +38,11 @@ on:
         type: string
         required: false
         default: ''
+      test-count:
+        description: 'test cluster count'
+        type: number
+        required: false
+        default: 0
     outputs:
       k8s-cluster-name:
         description: "k8s cluster name"
@@ -101,12 +106,18 @@ jobs:
       - name: terraform init k8s
         id: terraform_init
         run: |
-          counts=$(echo "${{ inputs.test-type }}" | grep -o "|" | wc -l)
           NODE_SIZE=""
-          if [[ "${{ inputs.cloud-provider }}" == "eks" && -n "${{ inputs.test-type }}" ]]; then
-              NODE_SIZE="$(( ($counts + 1) * 2 ))"
-          elif [[ "${{ inputs.cloud-provider }}" == "gke" && -n "${{ inputs.test-type }}" ]]; then
-              NODE_SIZE="$(( ($counts + 1 ) / 2 + 1 ))"
+          COUNTS=""
+          if [[ -n "${{ inputs.test-type }}" ]]; then
+              COUNTS=$(echo "${{ inputs.test-type }}" | grep -o "|" | wc -l)
+          elif [[ "${{ inputs.test-count }}" != "0" && -n "${{ inputs.test-count }}" ]]; then
+              COUNTS=${{ inputs.test-count }}
+          fi
+          
+          if [[ "${{ inputs.cloud-provider }}" == "eks" && -n "${COUNTS}" ]]; then
+              NODE_SIZE="$(( ($COUNTS + 1) * 2 ))"
+          elif [[ "${{ inputs.cloud-provider }}" == "gke" && -n "${COUNTS}" ]]; then
+              NODE_SIZE="$(( ($COUNTS + 1 ) / 2 + 1 ))"
           fi
           
           cd ${{ steps.get_deploy_path.outputs.deploy-path }}

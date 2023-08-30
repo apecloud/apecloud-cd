@@ -1,0 +1,115 @@
+name: SMOKE-TEST
+
+on:
+  workflow_call:
+    inputs:
+      cloud-provider:
+        description: 'cloud k8s cluster provider (e.g. eks/gke)'
+        type: string
+        required: false
+        default: 'eks'
+      test-type:
+        description: 'test type name (wesql postgresql redis mongodb pulsar)'
+        type: string
+        required: false
+        default: ''
+      region:
+        description: 'k8s region name'
+        type: string
+        required: false
+        default: 'cn-northwest-1'
+      k8s-cluster-name:
+        description: 'k8s cluster name'
+        type: string
+        required: false
+        default: ''
+    outputs:
+      test-result:
+        description: "test result"
+        value: ${{ jobs.kbcli-test.outputs.test-result }}
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  GO_VERSION: '1.20'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  smoke-test:
+    name: test ${{ inputs.test-type }}
+    runs-on: ubuntu-latest
+    outputs:
+      test-result: ${{ steps.kbcli_test.outputs.test-result }}
+    steps:
+      - name: checkout kubeblocks
+        uses: actions/checkout@v3
+
+      - uses: azure/setup-kubectl@v3
+        with:
+          version: "latest"
+
+      - name: setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Install ginkgo
+        run: |
+          go install github.com/onsi/ginkgo/v2/ginkgo@v2.5.1
+          go install github.com/onsi/gomega/...
+
+      - uses: aws-actions/setup-sam@v2
+        if: ${{ inputs.cloud-provider == 'eks' }}
+        with:
+          use-installer: true
+
+      - uses: aws-actions/configure-aws-credentials@v2.2.0
+        if: ${{ inputs.cloud-provider == 'eks' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' }}
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "${{ inputs.region }}"
+
+      - if: ${{ inputs.cloud-provider == 'gke' && env.GOOGLE_CREDENTIALS != '' }}
+        id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
+
+      - name: Setup gcloud
+        if: ${{ inputs.cloud-provider == 'gke' }}
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: setup gke-gcloud-auth-plugin
+        if: ${{ inputs.cloud-provider == 'gke' }}
+        uses: simenandre/setup-gke-gcloud-auth-plugin@v1
+
+      - name: get gke credential
+        if: ${{ inputs.cloud-provider == 'gke' && inputs.k8s-cluster-name != '' && inputs.region != '' }}
+        run: |
+          echo "k8s-cluster-name:${{ inputs.k8s-cluster-name }}"
+          gcloud container clusters get-credentials ${{ inputs.k8s-cluster-name }} \
+              --zone ${{ inputs.region }} \
+              --project ${{ vars.GOOGLE_PROJECT }}
+
+      - name: run smoke test
+        run: |
+          make test-e2e TEST_TYPE=${{ inputs.test-type }}
+
+      - name: return test result
+        if: ${{ always() }}
+        run: |
+          file_log="./test/e2e/${{ inputs.test-type }}-log.txt"
+          test_ret="$( grep "[ERROR]" ${file_log}|| true )"
+          if [[ -n "$test_ret" ]]; then
+              echo test-result=[FAILED] >> $GITHUB_OUTPUT
+              exit 1
+          else
+              echo test-result=[PASSED] >> $GITHUB_OUTPUT
+          fi
