@@ -121,17 +121,18 @@ jobs:
               
               if [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
                   if [[ "${{ inputs.instance-type }}" == "arm64" ]]; then
-                      NODE_TYPE=t4g.medium
+                      NODE_TYPE="t4g.medium"
                   else
-                      NODE_TYPE=t3a.medium
+                      NODE_TYPE="t3a.medium"
                   fi
               elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
                   if [[ "${{ inputs.instance-type }}" == "arm64" ]]; then
                       NODE_TYPE=t2a-standard-2
                   else
-                      NODE_TYPE=e2-standard-2
+                      NODE_TYPE="e2-standard-2"
                   fi
               fi
+              echo "NODE_TYPE:$NODE_TYPE"
           fi
           NODE_SIZE=""
           if [[ "${{ inputs.cloud-provider }}" == "eks" && -n "${COUNTS}" ]]; then
