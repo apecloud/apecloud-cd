@@ -120,13 +120,13 @@ jobs:
               fi
               
               if [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
-                  if [[ "${{ inputs.instance-type }}" == "arm64 ]]; then
+                  if [[ "${{ inputs.instance-type }}" == "arm64" ]]; then
                       NODE_TYPE=t4g.medium
                   else
                       NODE_TYPE=t3a.medium
                   fi
               elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
-                  if [[ "${{ inputs.instance-type }}" == "arm64 ]]; then
+                  if [[ "${{ inputs.instance-type }}" == "arm64" ]]; then
                       NODE_TYPE=t2a-standard-2
                   else
                       NODE_TYPE=e2-standard-2
