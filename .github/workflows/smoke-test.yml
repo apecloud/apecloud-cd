@@ -26,7 +26,7 @@ on:
     outputs:
       test-result:
         description: "test result"
-        value: ${{ jobs.kbcli-test.outputs.test-result }}
+        value: ${{ jobs.smoke-test.outputs.test-result }}
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -44,7 +44,7 @@ jobs:
     name: test ${{ inputs.test-type }}
     runs-on: ubuntu-latest
     outputs:
-      test-result: ${{ steps.kbcli_test.outputs.test-result }}
+      test-result: ${{ steps.smoke_test.outputs.test-result }}
     steps:
       - name: checkout kubeblocks
         uses: actions/checkout@v3
@@ -108,11 +108,11 @@ jobs:
           make test-e2e TEST_TYPE=${{ inputs.test-type }}
 
       - name: return test result
+        id: smoke_test
         if: ${{ always() }}
         run: |
-          cd ${{ github.workspace }}/test/e2e
-          cat *-log.txt
-          test_ret="$( grep "[ERROR]" *-log.txt || true )"
+          cat ./test/e2e/*-log.txt
+          test_ret="$( grep "[ERROR]" ./test/e2e/*-log.txt || true )"
           if [[ -n "$test_ret" ]]; then
               echo test-result=[FAILED] >> $GITHUB_OUTPUT
               exit 1
