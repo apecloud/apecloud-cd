@@ -106,7 +106,7 @@ jobs:
       - name: run smoke test
         run: |
           TEST_TYPE=${{ inputs.test-type }}
-          if [[ "$TEST_TYPE" == "mysql ]]; then
+          if [[ "$TEST_TYPE" == "mysql" ]]; then
               TEST_TYPE="wesql"
           fi
           make test-e2e TEST_TYPE=${TEST_TYPE}
