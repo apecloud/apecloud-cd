@@ -133,7 +133,12 @@ jobs:
                   fi
               fi
               echo "NODE_TYPE:$NODE_TYPE"
+          elif [[ "${{ inputs.test-mode }}" == "fault" ]]; then
+              if [[ -z "$COUNTS" ]]; then
+                  COUNTS=3
+              fi
           fi
+          
           NODE_SIZE=""
           if [[ "${{ inputs.cloud-provider }}" == "eks" && -n "${COUNTS}" ]]; then
               NODE_SIZE="$(( $COUNTS * 2 ))"

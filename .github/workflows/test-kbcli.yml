@@ -53,6 +53,11 @@ on:
         type: string
         required: false
         default: ''
+      test-mode:
+        description: 'test mode'
+        type: string
+        required: false
+        default: ''
     outputs:
       test-result:
         description: "test result"
@@ -148,6 +153,7 @@ jobs:
           echo "k8s-cluster-name:${{ inputs.k8s-cluster-name }}"
           bash .github/utils/kbcli-test.sh \
               --type ${{ inputs.test-type }} \
+              --test-mode ${{ inputs.test-mode }} \
               --kubeblocks-version "${KB_VERSION}" \
               --previous-version "${PREVIOUS_VERSION}" \
               --random-suffix "${{ inputs.random-suffix }}" \
