@@ -152,15 +152,15 @@ jobs:
           
           echo "k8s-cluster-name:${{ inputs.k8s-cluster-name }}"
           bash .github/utils/kbcli-test.sh \
-              --type ${{ inputs.test-type }} \
-              --test-mode ${{ inputs.test-mode }} \
+              --type "${{ inputs.test-type }}" \
+              --test-mode "${{ inputs.test-mode }}" \
               --kubeblocks-version "${KB_VERSION}" \
               --previous-version "${PREVIOUS_VERSION}" \
               --random-suffix "${{ inputs.random-suffix }}" \
               --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
               --region "${{ inputs.region }}" \
               --cloud-provider "${{ inputs.cloud-provider }}" \
-              --cluster-name ${{ inputs.k8s-cluster-name }} | tee -a ${file_log}
+              --cluster-name "${{ inputs.k8s-cluster-name }}" | tee -a ${file_log}
           
           RANDOM_SUFFIX=""
           if [[ "${{ inputs.test-type }}" == "0" ]]; then
