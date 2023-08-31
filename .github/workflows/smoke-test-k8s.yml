@@ -131,7 +131,7 @@ jobs:
     uses: ./.github/workflows/smoke-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
-      test-type: "wesql"
+      test-type: "mysql"
       region: ${{ inputs.REGION }}
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
     secrets: inherit
