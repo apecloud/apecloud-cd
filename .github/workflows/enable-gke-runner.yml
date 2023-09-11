@@ -14,14 +14,15 @@ on:
         required: false
         default: 'main'
   workflow_dispatch:
-    GITHUB_REPO:
-      description: "runner github repo name"
-      required: false
-      default: ''
-    APECD_REF:
-      description: "The branch name of apecloud-cd"
-      required: false
-      default: 'main'
+    inputs:
+      GITHUB_REPO:
+        description: "runner github repo name"
+        required: false
+        default: ''
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        required: false
+        default: 'main'
 
 
 env:
