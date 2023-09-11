@@ -71,6 +71,8 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  HELM_VERSION: v3.10.0
+
 
 permissions:
   id-token: write
@@ -91,6 +93,12 @@ jobs:
           ref: ${{ inputs.branch-name }}
           path: ./
           token: ${{ env.GITHUB_TOKEN }}
+
+      - name: Install Helm
+        if: ${{ test-type-name == 'etcd' }}
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
 
       - uses: azure/setup-kubectl@v3
         with:
