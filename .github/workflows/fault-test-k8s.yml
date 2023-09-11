@@ -59,7 +59,7 @@ on:
         required: false
         default: 'latest'
       TEST_TYPE:
-        description: 'test type (e.g. mysql|postgres|redis|mongo|pulsar)'
+        description: 'test type (e.g. mysql|postgres|smarte)'
         type: string
         required: false
         default: ''
