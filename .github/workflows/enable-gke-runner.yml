@@ -1,0 +1,74 @@
+name: ENABLE-GCP-RUNNER
+
+on:
+  workflow_call:
+    inputs:
+      GITHUB_REPO:
+        description: "runner github repo name"
+        type: string
+        required: false
+        default: ''
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+  workflow_dispatch:
+    GITHUB_REPO:
+      description: "runner github repo name"
+      required: false
+      default: ''
+    APECD_REF:
+      description: "The branch name of apecloud-cd"
+      required: false
+      default: 'main'
+
+
+env:
+  GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  CLUSTER_NAME: "infracreate-gke"
+  REGION: "us-central1"
+  RUNNER_NAMESPACE: "github-runner"
+
+
+jobs:
+  deploy-gcp-gke:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Apecd Code
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+          ref: ${{ inputs.APECD_REF }}
+
+      - uses: azure/setup-kubectl@v3
+        with:
+          version: "latest"
+
+      - if: ${{ env.GOOGLE_CREDENTIALS != '' }}
+        id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
+
+      - uses: simenandre/setup-gke-gcloud-auth-plugin@v1
+      - uses: google-github-actions/get-gke-credentials@v1
+        with:
+          cluster_name: ${{ env.CLUSTER_NAME }}
+          location: ${{ env.REGION }}
+
+      - name: enable runner
+        if: ${{ inputs.GITHUB_REPO != '' }}
+        run: |
+          runner_list=$(kubectl get runnerdeployments -n ${{ env.RUNNER_NAMESPACE }} | grep "${{ inputs.GITHUB_REPO }}" | awk '{print $1}')
+          if [[ -n "$runner_list" ]]; then
+              for runner_name in $(echo "$runner_list"); do
+                  echo "runner name: $runner_name"
+                  kubectl patch runnerdeployments $runner_name -n ${{ env.RUNNER_NAMESPACE }} -p '{"spec":{"replicas": 1}}' --type=merge
+              done
+          fi
