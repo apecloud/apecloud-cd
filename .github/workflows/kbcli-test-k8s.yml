@@ -414,7 +414,7 @@ jobs:
               fi
           fi
           
-          if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* "${{ inputs.KB_VERSION }}" != "v0.6."* ]]; then
+          if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* ]]; then
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"greptime"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##greptimedb|${{ needs.test-greptimedb.outputs.test-result }}"
               fi
