@@ -43,9 +43,6 @@ env:
 
 jobs:
   enable-runner:
-    permissions:
-      contents: 'read'
-      id-token: 'write'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Apecd Code
