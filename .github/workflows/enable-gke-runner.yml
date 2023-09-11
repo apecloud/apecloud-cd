@@ -1,4 +1,4 @@
-name: ENABLE-GCP-RUNNER
+name: ENABLE-GKE-RUNNER
 
 on:
   workflow_call:
@@ -32,7 +32,7 @@ env:
 
 
 jobs:
-  deploy-gcp-gke:
+  enable-runner:
     permissions:
       contents: 'read'
       id-token: 'write'
