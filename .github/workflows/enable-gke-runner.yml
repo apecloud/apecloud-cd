@@ -13,6 +13,11 @@ on:
         type: string
         required: false
         default: 'main'
+      ENBALE_FLAG:
+        description: "enable flag:(enable:true)"
+        type: string
+        required: false
+        default: 'true'
   workflow_dispatch:
     inputs:
       GITHUB_REPO:
@@ -23,6 +28,10 @@ on:
         description: "The branch name of apecloud-cd"
         required: false
         default: 'main'
+      ENBALE_FLAG:
+        description: "enable flag:(enable:true)"
+        required: false
+        default: 'true'
 
 
 env:
@@ -70,6 +79,10 @@ jobs:
           if [[ -n "$runner_list" ]]; then
               for runner_name in $(echo "$runner_list"); do
                   echo "runner name: $runner_name"
-                  kubectl patch runnerdeployments $runner_name -n ${{ env.RUNNER_NAMESPACE }} -p '{"spec":{"replicas": 1}}' --type=merge
+                  if [[ "${{ inputs.ENBALE_FLAG }}" == "true" ]]; then
+                      kubectl patch runnerdeployments $runner_name -n ${{ env.RUNNER_NAMESPACE }} -p '{"spec":{"replicas": 1}}' --type=merge
+                  else
+                      kubectl patch runnerdeployments $runner_name -n ${{ env.RUNNER_NAMESPACE }} -p '{"spec":{"replicas": 0}}' --type=merge
+                  fi
               done
           fi
