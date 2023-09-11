@@ -34,7 +34,7 @@ on:
         required: false
         default: ''
       test-type:
-        description: 'test cluster type (e.g. mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale)'
+        description: 'test cluster type (e.g. mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale|greptime|nebula|rswave|starrock)'
         type: string
         required: false
         default: ''
@@ -43,6 +43,16 @@ on:
         type: string
         required: false
         default: ""
+      node-type:
+        description: 'node type'
+        type: string
+        required: false
+        default: ""
+      kb-version:
+        description: 'kubeblocks release version'
+        type: string
+        required: false
+        default: ''
     outputs:
       k8s-cluster-name:
         description: "k8s cluster name"
@@ -87,7 +97,9 @@ jobs:
         id: get_deploy_path
         run: |
           DEPLOY_PATH=""
-          if [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
+          if [[ "${{ inputs.cloud-provider }}" == "eks" && "${{ inputs.test-mode }}" == "multinode" ]]; then
+              DEPLOY_PATH="./aws/eks-default-vpc-multinode"
+          elif [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
               DEPLOY_PATH="./aws/eks-default-vpc"
           elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
               DEPLOY_PATH="./gcp/gke-cicd"
@@ -111,7 +123,7 @@ jobs:
               COUNTS=$(echo "${{ inputs.test-type }}" | grep -o "|" | wc -l)
               COUNTS=$(( $COUNTS + 1 ))
           fi
-          NODE_TYPE=""
+          NODE_TYPE="${{ inputs.node-type }}"
           if [[ "${{ inputs.test-mode }}" == "smoke" ]]; then
               if [[ -z "$COUNTS" ]]; then
                   COUNTS=4
@@ -144,6 +156,20 @@ jobs:
               NODE_SIZE="$(( $COUNTS * 2 ))"
           elif [[ "${{ inputs.cloud-provider }}" == "gke" && -n "${COUNTS}" ]]; then
               NODE_SIZE="$(( $COUNTS / 2 + 1 ))"
+          fi
+          
+          if [[ "${{ inputs.cloud-provider }}" == "eks" && -z "${NODE_SIZE}" ]]; then
+              if [[ "${{ inputs.kb-version }}" == "v0.5."* ]]; then
+                  NODE_SIZE=4
+              elif [[ "${{ inputs.kb-version }}" == "v0.6."* ]]; then
+                  NODE_SIZE=17
+              fi
+          elif [[ "${{ inputs.cloud-provider }}" == "gke" && -z "${NODE_SIZE}" ]]; then
+              if [[ "${{ inputs.kb-version }}" == "v0.5."* ]]; then
+                  NODE_SIZE=2
+              elif [[ "${{ inputs.kb-version }}" == "v0.6."* ]]; then
+                  NODE_SIZE=6
+              fi
           fi
           
           cd ${{ steps.get_deploy_path.outputs.deploy-path }}
