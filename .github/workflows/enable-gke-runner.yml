@@ -85,10 +85,21 @@ jobs:
           if [[ -n "$runner_list" ]]; then
               for runner_name in $(echo "$runner_list"); do
                   echo "runner name: $runner_name"
+                  hautoscalers=$(kubectl get horizontalrunnerautoscalers -n ${{ env.RUNNER_NAMESPACE }} | (grep "$runner_name-autoscaler" || true) )
                   if [[ "${{ inputs.ENABLE }}" == "true" ]]; then
+                      echo "enable runner"
                       kubectl patch runnerdeployments $runner_name -n ${{ env.RUNNER_NAMESPACE }} -p '{"spec":{"replicas": 1}}' --type=merge
+                      if [[ -n "$hautoscalers" ]]; then
+                          echo "enable runner autoscaler"
+                          kubectl patch horizontalrunnerautoscalers $runner_name-autoscaler -n ${{ env.RUNNER_NAMESPACE }} -p '{"spec":{"minReplicas": 1}}' --type=merge
+                      fi
                   else
+                      echo "disable runner"
                       kubectl patch runnerdeployments $runner_name -n ${{ env.RUNNER_NAMESPACE }} -p '{"spec":{"replicas": 0}}' --type=merge
+                      if [[ -n "$hautoscalers" ]]; then
+                          echo "disable runner autoscaler"
+                          kubectl patch horizontalrunnerautoscalers $runner_name-autoscaler -n ${{ env.RUNNER_NAMESPACE }} -p '{"spec":{"minReplicas": 0}}' --type=merge
+                      fi
                   fi
               done
           fi
