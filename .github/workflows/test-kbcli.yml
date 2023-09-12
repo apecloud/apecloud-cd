@@ -95,7 +95,6 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: Install Helm
-        if: ${{ test-type-name == 'etcd' }}
         uses: azure/setup-helm@v3
         with:
           version: ${{ env.HELM_VERSION }}
