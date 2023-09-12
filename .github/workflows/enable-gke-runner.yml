@@ -81,7 +81,7 @@ jobs:
       - name: enable runner
         if: ${{ inputs.GITHUB_REPO != '' }}
         run: |
-          runner_list=$(kubectl get runnerdeployments -n ${{ env.RUNNER_NAMESPACE }} | (grep "wesql/wesql-serve" | egrep "${{ inputs.RUNNER_LABEL }}" || true) | awk '{print $1}')
+          runner_list=$(kubectl get runnerdeployments -n ${{ env.RUNNER_NAMESPACE }} | (grep "${{ inputs.GITHUB_REPO }}" | egrep "${{ inputs.RUNNER_LABEL }}" || true) | awk '{print $1}')
           if [[ -n "$runner_list" ]]; then
               for runner_name in $(echo "$runner_list"); do
                   echo "runner name: $runner_name"
