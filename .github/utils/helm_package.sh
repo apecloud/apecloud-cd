@@ -186,7 +186,14 @@ package_chart() {
         ;;
         helm)
             args=("$chart" --destination .cr-release-packages)
-            helm package "${args[@]}" --version $release_version --dependency-update
+            for i in {1..10}; do
+                ret_msg=$(helm package "${args[@]}" --version $release_version --dependency-update)
+                echo "return message:$ret_msg"
+                if [[ "$ret_msg" == *"Successfully packaged"* ]]; then
+                    break
+                fi
+                sleep 1
+            done
         ;;
         *)
             break
