@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
-set -o errexit
 set -o nounset
-set -o pipefail
 
 DEFAULT_CHART_RELEASER_VERSION=v1.6.0
 DEFAULT_TOOL=helm
@@ -186,14 +184,21 @@ package_chart() {
         ;;
         helm)
             args=("$chart" --destination .cr-release-packages)
+            package_flag=0
             for i in {1..10}; do
                 ret_msg=$(helm package "${args[@]}" --version $release_version --dependency-update)
                 echo "return message:$ret_msg"
                 if [[ "$ret_msg" == *"Successfully packaged"* ]]; then
+                    echo "$(tput -T xterm setaf 2)$ret_msg$(tput -T xterm sgr0)"
+                    package_flag=1
                     break
                 fi
                 sleep 1
             done
+            if [[ $package_flag -eq 0 ]]; then
+                echo "$(tput -T xterm setaf 1)helm package $chart error$(tput -T xterm sgr0)"
+                exit 1
+            fi
         ;;
         *)
             break
