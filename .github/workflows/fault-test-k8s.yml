@@ -202,7 +202,7 @@ jobs:
       region: ${{ inputs.REGION }}
       release-version: "${{ inputs.KB_VERSION }}"
       test-type: "4"
-      test-type-name: "redis"
+      test-type-name: "mongodb"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
