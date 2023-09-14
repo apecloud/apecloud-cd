@@ -237,6 +237,14 @@ jobs:
               TEST_RESULT="${TEST_RESULT}##smartengine|${{ needs.test-smartengine.outputs.test-result }}"
           fi
           
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"redis"* ]]; then
+              TEST_RESULT="${TEST_RESULT}##redis|${{ needs.test-redis.outputs.test-result }}"
+          fi
+          
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mongodb"* ]]; then
+              TEST_RESULT="${TEST_RESULT}##mongodb|${{ needs.test-mongodb.outputs.test-result }}"
+          fi
+          
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
               --test-result "${TEST_RESULT}" \
               --run-id "$GITHUB_RUN_ID" )
