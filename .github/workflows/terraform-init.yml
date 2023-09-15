@@ -34,7 +34,7 @@ on:
         required: false
         default: ''
       test-type:
-        description: 'test cluster type (e.g. mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale|greptimedb|nebula|risingwave|starrocks)'
+        description: 'test cluster type (e.g. mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale|greptimedb|nebula|risingwave|starrocks|oceanbase)'
         type: string
         required: false
         default: ''
@@ -97,7 +97,7 @@ jobs:
         id: get_deploy_path
         run: |
           DEPLOY_PATH=""
-          if [[ "${{ inputs.cloud-provider }}" == "eks" && "${{ inputs.test-mode }}" == "multinode" ]]; then
+          if [[ "${{ inputs.cloud-provider }}" == "eks" && "${{ inputs.test-mode }}" == "performance" ]]; then
               DEPLOY_PATH="./aws/eks-default-vpc-multinode"
           elif [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
               DEPLOY_PATH="./aws/eks-default-vpc"
@@ -164,13 +164,13 @@ jobs:
               NODE_SIZE="$(( $COUNTS / 2 + 1 ))"
           fi
           
-          if [[ "${{ inputs.cloud-provider }}" == "eks" && -z "${NODE_SIZE}" ]]; then
+          if [[ "${{ inputs.cloud-provider }}" == "eks" && -z "${NODE_SIZE}" && -z "${{ inputs.test-mode }}" ]]; then
               if [[ "${{ inputs.kb-version }}" == "v0.5."* ]]; then
                   NODE_SIZE=4
               elif [[ "${{ inputs.kb-version }}" == "v0.6."* ]]; then
                   NODE_SIZE=17
               fi
-          elif [[ "${{ inputs.cloud-provider }}" == "gke" && -z "${NODE_SIZE}" ]]; then
+          elif [[ "${{ inputs.cloud-provider }}" == "gke" && -z "${NODE_SIZE}" && -z "${{ inputs.test-mode }}" ]]; then
               if [[ "${{ inputs.kb-version }}" == "v0.5."* ]]; then
                   NODE_SIZE=2
               elif [[ "${{ inputs.kb-version }}" == "v0.6."* ]]; then
