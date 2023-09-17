@@ -186,7 +186,7 @@ jobs:
     secrets: inherit
 
   performance-prepare:
-    if: ${{ needs.create-mysql.result == 'success' && needs.create-mysql.outputs.cluster-name != '' }}
+    if: ${{ needs.create-cluster.result == 'success' && needs.create-cluster.outputs.cluster-name != '' }}
     needs: [ create-cluster, terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-perfromance.yml
     with:
@@ -208,7 +208,7 @@ jobs:
     secrets: inherit
 
   performance-run:
-    if: ${{ needs.performance-prepare.result == 'success' && needs.create-mysql.outputs.cluster-name != '' }}
+    if: ${{ needs.performance-prepare.result == 'success' && needs.create-cluster.outputs.cluster-name != '' }}
     needs: [ performance-prepare, terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-perfromance.yml
     with:
