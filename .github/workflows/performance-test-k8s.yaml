@@ -192,7 +192,7 @@ jobs:
     with:
       test-type: "${{ inputs.TEST_TYPE }}"
       test-type-name: "sysbench-prepare"
-      cluster-name: ${{ eeds.create-cluster.outputs.cluster-name }}
+      cluster-name: ${{ needs.create-cluster.outputs.cluster-name }}
       cluster-storage: "${{ inputs.CLUSTER_STORAGE }}"
       node-type: "${{ inputs.NODE_TYPE }}"
       bench-mode: "prepare"
@@ -216,7 +216,7 @@ jobs:
       test-type: "${{ inputs.TEST_TYPE }}"
       test-type-name: "sysbench-run"
       cluster-storage: "${{ inputs.CLUSTER_STORAGE }}"
-      cluster-name: ${{ eeds.create-cluster.outputs.cluster-name }}
+      cluster-name: ${{ needs.create-cluster.outputs.cluster-name }}
       node-type: "${{ inputs.NODE_TYPE }}"
       bench-mode: "run"
       performance-type: "${{ inputs.PERFORMANCE_TYPE }}"
@@ -238,7 +238,7 @@ jobs:
     with:
       test-type: "${{ inputs.TEST_TYPE }}"
       test-type-name: "clean"
-      cluster-name: ${{ eeds.create-cluster.outputs.cluster-name }}
+      cluster-name: ${{ needs.create-cluster.outputs.cluster-name }}
       test-args: "--clean-cluster true ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       test-date: ${{ needs.install-kubeblocks.outputs.test-date }}
