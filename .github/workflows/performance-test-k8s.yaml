@@ -44,10 +44,10 @@ on:
         required: false
         default: 'eks'
       CLUSTER_VERSION:
-        description: 'k8s cluster version (e.g. 1.25)'
+        description: 'k8s cluster version (e.g. 1.26)'
         type: string
         required: false
-        default: '1.25'
+        default: '1.26'
       REGION:
         description: 'k8s region name'
         type: string
@@ -109,9 +109,9 @@ on:
         required: false
         default: 'eks'
       CLUSTER_VERSION:
-        description: 'k8s cluster version (e.g. 1.25)'
+        description: 'k8s cluster version (e.g. 1.26)'
         required: false
-        default: '1.25'
+        default: '1.26'
       REGION:
         description: 'k8s region name'
         required: false

@@ -9,7 +9,7 @@ on:
         required: false
         default: 'eks'
       cluster-version:
-        description: 'k8s cluster version (e.g. 1.25)'
+        description: 'k8s cluster version (e.g. 1.26)'
         type: string
         required: false
         default: ''
