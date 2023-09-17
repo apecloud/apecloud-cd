@@ -187,7 +187,7 @@ jobs:
 
   performance-prepare:
     if: ${{ needs.create-mysql.result == 'success' && needs.create-mysql.outputs.cluster-name != '' }}
-    needs: [ create-mysql, install-kubeblocks ]
+    needs: [ create-cluster, terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-perfromance.yml
     with:
       test-type: "${{ inputs.TEST_TYPE }}"
@@ -209,7 +209,7 @@ jobs:
 
   performance-run:
     if: ${{ needs.performance-prepare.result == 'success' && needs.create-mysql.outputs.cluster-name != '' }}
-    needs: [ performance-prepare, install-kubeblocks ]
+    needs: [ performance-prepare, terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-perfromance.yml
     with:
       test-type: "${{ inputs.TEST_TYPE }}"
@@ -243,19 +243,20 @@ jobs:
       - name: send message
         id: get_trigger_mode
         run: |
-          
           JOB_RUL=$( bash .github/utils/utils.sh --type 17 \
               --github-repo "${{ github.repository }}" \
               --job-name "sysbench-run" \
               --run-id "$GITHUB_RUN_ID" )
           
           date_ret=$(date +%Y-%m-%d-%T)
-          test_title="[${{ inputs.KB_VERSION }}] performance ${{ inputs.TEST_TYPE }} ${{ inputs.NODE_TYPE }} ${{ inputs.PERFORMANCE_TYPE }} [${date_ret}]"
-          echo "TEST_TITLE:"$test_title
+          TEST_TITLE="[${{ inputs.KB_VERSION }}] performance ${{ inputs.TEST_TYPE }} ${{ inputs.NODE_TYPE }} ${{ inputs.PERFORMANCE_TYPE }} [${date_ret}]"
+          TEST_RESULT="${{ needs.performance-run.outputs.perfromance-result }}"
+          echo "TEST_TITLE:"$TEST_TITLE
           echo "TEST_RESULT:"$TEST_RESULT
+          
           python3 .github/utils/send_mesage.py \
               --url ${{ vars.TEST_BOT_WEBHOOK }} \
-              --title "$test_title" \
+              --title "$TEST_TITLE" \
               --result "$TEST_RESULT" \
               --job-url "$JOB_RUL" \
               --send-type "performance"
