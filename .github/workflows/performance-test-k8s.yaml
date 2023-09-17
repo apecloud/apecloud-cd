@@ -1,4 +1,4 @@
-name: performance Test on K8S
+name: Performance Test on K8S
 
 on:
   workflow_call:
@@ -155,7 +155,7 @@ jobs:
   install-kubeblocks:
     if: ${{ needs.terraform-init-k8s.result == 'success' }}
     needs: [ terraform-init-k8s ]
-    uses: ./.github/workflows/test-perfromance.yml.yml
+    uses: ./.github/workflows/test-perfromance.yml
     with:
       test-type: "0"
       test-type-name: "install"
@@ -170,7 +170,7 @@ jobs:
   create-cluster:
     if: ${{ needs.terraform-init-k8s.result == 'success' && needs.install-kubeblocks.result == 'success' }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
-    uses: ./.github/workflows/test-perfromance.yml.yml
+    uses: ./.github/workflows/test-perfromance.yml
     with:
       test-type: "${{ inputs.TEST_TYPE }}"
       test-type-name: "${{ inputs.TEST_TYPE }}"
@@ -188,7 +188,7 @@ jobs:
   performance-prepare:
     if: ${{ needs.create-mysql.result == 'success' && needs.create-mysql.outputs.cluster-name != '' }}
     needs: [ create-mysql, install-kubeblocks ]
-    uses: ./.github/workflows/test-perfromance.yml.yml
+    uses: ./.github/workflows/test-perfromance.yml
     with:
       test-type: "${{ inputs.TEST_TYPE }}"
       test-type-name: "sysbench-prepare"
@@ -210,7 +210,7 @@ jobs:
   performance-run:
     if: ${{ needs.performance-prepare.result == 'success' && needs.create-mysql.outputs.cluster-name != '' }}
     needs: [ performance-prepare, install-kubeblocks ]
-    uses: ./.github/workflows/test-perfromance.yml.yml
+    uses: ./.github/workflows/test-perfromance.yml
     with:
       test-type: "${{ inputs.TEST_TYPE }}"
       test-type-name: "sysbench-run"
