@@ -198,6 +198,7 @@ jobs:
       
       - name: upload artifact
         uses: actions/upload-artifact@v3
+        if: ${{ always() }}
         with:
           if-no-files-found: error
           name: ${{ inputs.artifact-name }}
