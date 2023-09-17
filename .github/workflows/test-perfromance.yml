@@ -46,7 +46,7 @@ on:
       performance-type:
         description: 'node type (e.g. 1:Read-Intensive,2:Balanced,3:Write-Intensive)'
         type: string
-        required: true
+        required: false
         default: ''
       bench-sizes:
         description: 'bench sizes'
