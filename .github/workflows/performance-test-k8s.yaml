@@ -118,7 +118,7 @@ on:
       BRANCH_NAME:
         description: 'testinfra branch name'
         required: false
-        default: 'performance'
+        default: 'main'
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
