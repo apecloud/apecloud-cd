@@ -83,6 +83,11 @@ on:
         type: string
         required: false
         default: ""
+      clean-cluster:
+        description: 'clean cluster'
+        type: string
+        required: false
+        default: ""
     outputs:
       test-result:
         description: "test result"
@@ -203,12 +208,12 @@ jobs:
               --bench-tables "${{ inputs.bench-tables }}" \
               --storage "${{ inputs.cluster-storage }}" \
               --cluster-name "${{ inputs.cluster-name }}" \
+              --clean-cluster "${{ inputs.clean-cluster }}" \
               --version "${KB_VERSION}" \
               --region "${{ inputs.region }}" \
               --k8s-name "${{ inputs.k8s-cluster-name }}" \
               --cloud-provider "${{ inputs.cloud-provider }}" \
-              --export-dir ${S3_PATH} \
-              --args "${{ inputs.test-args }}" | tee -a ${file_log}
+              --export-dir ${S3_PATH} | tee -a ${file_log}
           
           CLUSTER_NAME="$( grep "[CLUSTER_NAME]" ${file_log} || true )"
           CLUSTER_NAME=${CLUSTER_NAME#*"[CLUSTER_NAME]"}      
