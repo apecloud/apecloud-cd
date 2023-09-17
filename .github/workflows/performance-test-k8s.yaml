@@ -100,21 +100,6 @@ on:
           - Read-Intensive
           - Balanced
           - Write-Intensive
-      BENCH_SIZES:
-        description: 'bench sizes'
-        type: string
-        required: false
-        default: ''
-      BENCH_TABLES:
-        description: 'bench tables'
-        type: string
-        required: false
-        default: ''
-      CLUSTER_STORAGE:
-        description: 'cluster storage'
-        type: string
-        required: false
-        default: ''
       KB_VERSION:
         description: 'kubeblocks release version'
         required: false
@@ -135,16 +120,13 @@ on:
         description: 'node instance types (e.g. amd64)'
         required: false
         default: 'amd64'
-      ARGS:
-        description: "Test args"
-        required: false
-        default: ''
       BRANCH_NAME:
         description: 'testinfra branch name'
         required: false
         default: 'performance'
       APECD_REF:
         description: "The branch name of apecloud-cd"
+        type: string
         required: false
         default: 'main'
 
