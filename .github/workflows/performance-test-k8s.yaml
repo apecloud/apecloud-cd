@@ -201,14 +201,14 @@ jobs:
     secrets: inherit
 
   performance-run:
-    if: ${{ needs.performance-prepare.result == 'success' && needs.create-cluster.outputs.cluster-name != '' }}
+    if: ${{ needs.performance-prepare.result == 'success' && needs.performance-prepare.outputs.cluster-name != '' }}
     needs: [ performance-prepare, terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-perfromance.yml
     with:
       test-type: "${{ inputs.TEST_TYPE }}"
       test-type-name: "sysbench-run"
       cluster-storage: "${{ inputs.CLUSTER_STORAGE }}"
-      cluster-name: ${{ needs.create-cluster.outputs.cluster-name }}
+      cluster-name: ${{ needs.performance-prepare.outputs.cluster-name }}
       node-type: "${{ inputs.NODE_TYPE }}"
       bench-mode: "run"
       performance-type: "${{ inputs.PERFORMANCE_TYPE }}"
@@ -223,13 +223,13 @@ jobs:
     secrets: inherit
 
   clean-cluster:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && needs.install-kubeblocks.result == 'success' && needs.create-cluster.outputs.cluster-name != '' }}
-    needs: [ terraform-init-k8s, install-kubeblocks, create-cluster, performance-run ]
+    if: ${{ needs.terraform-init-k8s.result == 'success' && needs.install-kubeblocks.result == 'success' && needs.performance-run.outputs.cluster-name != '' }}
+    needs: [ terraform-init-k8s, install-kubeblocks, performance-run ]
     uses: ./.github/workflows/test-perfromance.yml
     with:
       test-type: "${{ inputs.TEST_TYPE }}"
       test-type-name: "clean"
-      cluster-name: ${{ needs.create-cluster.outputs.cluster-name }}
+      cluster-name: ${{ needs.performance-run.outputs.cluster-name }}
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       test-date: ${{ needs.install-kubeblocks.outputs.test-date }}
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
