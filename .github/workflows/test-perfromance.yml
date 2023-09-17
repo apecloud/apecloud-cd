@@ -1,0 +1,240 @@
+name: TEST-PERFORMANCE
+
+on:
+  workflow_call:
+    inputs:
+      cloud-provider:
+        description: 'cloud k8s cluster provider (e.g. eks/gke)'
+        type: string
+        required: false
+        default: 'eks'
+      release-version:
+        description: 'kubeblocks release version'
+        type: string
+        required: false
+        default: 'latest'
+      branch-name:
+        description: 'testinfra branch name'
+        type: string
+        required: false
+        default: 'main'
+      test-type:
+        description: 'test type (0:install 1:mysql 2:postgresql)'
+        type: string
+        required: false
+        default: ''
+      test-type-name:
+        description: 'test type name (0:install 1:mysql 2:postgresql)'
+        type: string
+        required: false
+        default: ''
+      test-args:
+        description: 'test args'
+        type: string
+        required: false
+        default: ''
+      region:
+        description: 'k8s region name'
+        type: string
+        required: false
+        default: 'cn-northwest-1'
+      k8s-cluster-name:
+        description: 'k8s cluster name'
+        type: string
+        required: false
+        default: ''
+      performance-type:
+        description: 'node type (e.g. 1:Read-Intensive,2:Balanced,3:Write-Intensive)'
+        type: string
+        required: true
+        default: ''
+      bench-sizes:
+        description: 'bench sizes'
+        type: string
+        required: false
+        default: ''
+      bench-tables:
+        description: 'bench tables'
+        type: string
+        required: false
+        default: ''
+      cluster-storage:
+        description: 'bench storage'
+        type: string
+        required: false
+        default: ''
+      node-type:
+        description: 'node type'
+        type: string
+        required: false
+        default: ""
+      bench-mode:
+        description: 'bench mode prepare/run/cleanup/all'
+        type: string
+        required: false
+        default: ""
+      cluster-name:
+        description: 'cluster name'
+        type: string
+        required: false
+        default: ""
+      test-date:
+        description: 'test date'
+        type: string
+        required: false
+        default: ""
+    outputs:
+      test-result:
+        description: "test result"
+        value: ${{ jobs.performance-test.outputs.test-result }}
+      cluster-name:
+        description: "cluster name"
+        value: ${{ jobs.performance-test.outputs.cluster-name }}
+      test-date:
+        description: "test date"
+        value: ${{ jobs.performance-test.outputs.test-date }}
+      perfromance-result:
+        description: "perfromance result"
+        value: ${{ jobs.performance-test.outputs.perfromance-result }}
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  HELM_VERSION: v3.10.0
+
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  performance-test:
+    name: test ${{ inputs.test-type-name }}
+    runs-on: ubuntu-latest
+    outputs:
+      test-result: ${{ steps.perfromance_test.outputs.test-result }}
+      cluster-name: ${{ steps.perfromance_test.outputs.cluster-name }}
+      test-date: ${{ steps.perfromance_test.outputs.test-date }}
+      perfromance-result: ${{ steps.perfromance_test.outputs.perfromance-result }}
+    steps:
+      - name: checkout testinfra
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/testinfra
+          ref: ${{ inputs.branch-name }}
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - uses: azure/setup-kubectl@v3
+        with:
+          version: "latest"
+
+      - uses: aws-actions/setup-sam@v2
+        if: ${{ inputs.cloud-provider == 'eks' }}
+        with:
+          use-installer: true
+
+      - uses: aws-actions/configure-aws-credentials@v2.2.0
+        if: ${{ inputs.cloud-provider == 'eks' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' }}
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "${{ inputs.region }}"
+
+      - if: ${{ inputs.cloud-provider == 'gke' && env.GOOGLE_CREDENTIALS != '' }}
+        id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
+
+      - name: Setup gcloud
+        if: ${{ inputs.cloud-provider == 'gke' }}
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: setup gke-gcloud-auth-plugin
+        if: ${{ inputs.cloud-provider == 'gke' }}
+        uses: simenandre/setup-gke-gcloud-auth-plugin@v1
+
+      - name: get gke credential
+        if: ${{ inputs.cloud-provider == 'gke' && inputs.k8s-cluster-name != '' && inputs.region != '' }}
+        run: |
+          gcloud container clusters get-credentials ${{ inputs.k8s-cluster-name }} \
+              --zone ${{ inputs.region }} \
+              --project ${{ vars.GOOGLE_PROJECT }}
+
+      - name: run perfromance test
+        id: perfromance_test
+        run: |
+          KB_VERSION=$( bash .github/utils/get_kb_latest_version.sh ${{ inputs.release-version }})
+          
+          TEST_DATE=$(date +%Y%m%d%T | sed 's/://g')
+          if [[ -n "${{ inputs.test-date }}" ]]; then
+              TEST_DATE="${{ inputs.test-date }}"
+          fi
+          echo test-date=$TEST_DATE >> $GITHUB_OUTPUT
+          
+          S3_PATH=$( bash .github/utils/utils.sh \
+              --type 4 --test-type "${TEST_DATE}/${{ inputs.test-type-name }}" \
+              --kubeblocks-version ${KB_VERSION})
+          mkdir -p ${S3_PATH}
+          echo 'S3_PATH='${S3_PATH} >> $GITHUB_ENV
+          
+          file_log="$(date +%Y-%m-%d-%T)".log
+          touch ${file_log}
+          echo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> ${file_log}
+          echo 'FILE_LOG='${file_log} >> $GITHUB_ENV
+          
+          echo "k8s-cluster-name:${{ inputs.k8s-cluster-name }}"
+          bash test/kbcli/test_performance.sh \
+              --type "${{ inputs.test-type }}" \
+              --performance-type "${{ inputs.performance-type }}" \
+              --bench-mode "${{ inputs.bench-mode }}" \
+              --node-type "${{ inputs.node-type }}" \
+              --bench-mode "${{ inputs.bench-mode }}" \
+              --bench-sizes "${{ inputs.bench-sizes }}" \
+              --bench-tables "${{ inputs.bench-tables }}" \
+              --storage "${{ inputs.cluster-storage }}" \
+              --cluster-name "${{ inputs.cluster-name }}" \
+              --version "${KB_VERSION}" \
+              --region "${{ inputs.region }}" \
+              --k8s-name "${{ inputs.k8s-cluster-name }}" \
+              --cloud-provider "${{ inputs.cloud-provider }}" \
+              --export-dir ${S3_PATH} \
+              --args "${{ inputs.test-args }}" | tee -a ${file_log}
+          
+          CLUSTER_NAME="$( grep "[CLUSTER_NAME]" ${file_log} || true )"
+          CLUSTER_NAME=${CLUSTER_NAME#*"[CLUSTER_NAME]"}      
+          CLUSTER_NAME=${CLUSTER_NAME%"[CLUSTER_NAME]"*}
+          echo cluster-name=$CLUSTER_NAME >> $GITHUB_OUTPUT
+          
+          PERFORMANCE_RESULT="$( grep "[PERFORMANCE_RESULT]" ${file_log} || true )"
+          PERFORMANCE_RESULT=${PERFORMANCE_RESULT#*"[PERFORMANCE_RESULT]"}      
+          PERFORMANCE_RESULT=${PERFORMANCE_RESULT%"[PERFORMANCE_RESULT]"*}
+          echo perfromance-result=$PERFORMANCE_RESULT >> $GITHUB_OUTPUT
+
+      - name: copy log file
+        if: ${{ always() }}
+        run: |
+          sed -i 's/${{ env.AWS_ACCESS_KEY_ID }}/***/g' ${FILE_LOG}
+          sed -i 's/${{ env.AWS_SECRET_ACCESS_KEY }}/***/g' ${FILE_LOG}
+          echo "cp ${FILE_LOG} ${S3_PATH}"
+          cp ${FILE_LOG} ${S3_PATH}
+
+      - uses: shallwefootball/s3-upload-action@master
+        if: ${{ always() }}
+        name: upload logs to S3
+        with:
+          aws_key_id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws_bucket: ${{ vars.AWS_S3_BUCKET }}
+          source_dir: ${{ env.S3_PATH }}
+          destination_dir: ${{ env.S3_PATH }}
+          endpoint: ${{ vars.AWS_S3_ENDPOINT }}
