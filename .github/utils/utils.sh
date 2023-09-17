@@ -28,6 +28,7 @@ Usage: $(basename "$0") <options>
                                 14) get delete alpha/beta release
                                 15) comment issue
                                 16) delete runner
+                                17) get job url
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -37,11 +38,12 @@ Usage: $(basename "$0") <options>
     -u, --user                The docker registry user
     -p, --password            The docker registry password
     -df, --delete-force       Force to delete stable release (default: DEFAULT_DELETE_FORCE)
-    -ri, --run-id             The  run id
+    -ri, --run-id             The github run id
     -tr, --test-result        The test result
     -cp, --chart-path         The chart path
     -in, --issue-number       The issue number
     -ic, --issue-comment      The issue comment body
+    -jn, --job-name           The github runner job name
 EOF
 }
 
@@ -68,6 +70,7 @@ main() {
     local DELETE_RELEASE=""
     local ISSUE_NUMBER=""
     local ISSUE_COMMENT=""
+    local JOB_NAME=""
 
     parse_command_line "$@"
 
@@ -130,6 +133,9 @@ main() {
         ;;
         16)
             delete_runner
+        ;;
+        17)
+            get_job_url
         ;;
     esac
 }
@@ -228,6 +234,12 @@ parse_command_line() {
             -ic|--issue-comment)
                 if [[ -n "${2:-}" ]]; then
                     ISSUE_COMMENT="$2"
+                    shift
+                fi
+                ;;
+            -jn|--job-name)
+                if [[ -n "${2:-}" ]]; then
+                    JOB_NAME="$2"
                     shift
                 fi
                 ;;
@@ -403,7 +415,7 @@ set_runs_jobs() {
 }
 
 get_test_result() {
-    jobs_url=$GITHUB_API/repos/$LATEST_REPO/actions/runs/$RUN_ID/jobs
+    jobs_url=$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs
     jobs_list=$( gh_curl -s $jobs_url )
     total_count=$( echo "$jobs_list" | jq '.total_count' )
     for i in $(seq 0 $total_count); do
@@ -415,6 +427,21 @@ get_test_result() {
         set_runs_jobs "$jobs_name" "$jobs_url"
     done
     echo "$TEST_RET"
+}
+
+get_job_url() {
+    JOB_URL=""
+    jobs_url=$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs
+    jobs_list=$( gh_curl -s $jobs_url )
+    total_count=$( echo "$jobs_list" | jq '.total_count' )
+    for i in $(seq 0 $total_count); do
+        job_name=$( echo "$jobs_list" | jq ".jobs[$i].name" --raw-output )
+        if [[ "$job_name" == *"$JOB_NAME" ]]; then
+            JOB_URL=$( echo "$jobs_list" | jq ".jobs[$i].html_url" --raw-output )
+            break
+        fi
+    done
+    echo "$JOB_URL"
 }
 
 helm_dep_update() {
