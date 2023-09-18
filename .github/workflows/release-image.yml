@@ -82,11 +82,14 @@ on:
 env:
   DOCKER_REGISTRY_URL: docker.io
   ALIYUN_REGISTRY_URL: registry.cn-hangzhou.aliyuncs.com
+  ALIYUN_REGISTRY_URL_NEW: infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com
   GOOGLE_REGISTRY_URL: us-east1-docker.pkg.dev
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
   ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
+  ALIYUN_USER_NEW: ${{ secrets.ALIYUN_USER_NEW }}
+  ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
   GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
@@ -201,6 +204,39 @@ jobs:
           fi
           DOCKER_BUILD_ARGS="--cache-to type=registry,ref=${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }}-cache,mode=max,compression=zstd,oci-mediatypes=true"
           DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --cache-from type=registry,ref=${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }}-cache"
+          cmd=$cmd"DOCKER_BUILD_ARGS=\"${DOCKER_BUILD_ARGS} \" "
+          
+          eval "$cmd"
+
+      - if: ${{ env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
+        name: Login to Aliyun Registry New
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.ALIYUN_REGISTRY_URL_NEW }}
+          username: ${{ env.ALIYUN_USER_NEW }}
+          password: ${{ env.ALIYUN_PASSWORD_NEW }}
+
+      - if: ${{ env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != ''  }}
+        name: Build and Push to Aliyun Registry New
+        run: |
+          cmd="make ${{ inputs.MAKE_OPS }} "
+          cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
+          cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
+          cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
+          
+          if [[ ! -z "${{ inputs.VERSION }}" ]]; then
+            cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
+          fi
+          
+          if [[ ! -z "${{ inputs.IMG }}" ]]; then
+            cmd=$cmd"IMG=${{ env.ALIYUN_REGISTRY_URL_NEW }}/${{ inputs.IMG }} "
+          fi
+          
+          if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
+            cmd=$cmd" \"${{ inputs.MAKE_ARGS }}\" "
+          fi
+          DOCKER_BUILD_ARGS="--cache-to type=registry,ref=${{ env.ALIYUN_REGISTRY_URL_NEW }}/${{ inputs.IMG }}-cache,mode=max,compression=zstd,oci-mediatypes=true"
+          DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --cache-from type=registry,ref=${{ env.ALIYUN_REGISTRY_URL_NEW }}/${{ inputs.IMG }}-cache"
           cmd=$cmd"DOCKER_BUILD_ARGS=\"${DOCKER_BUILD_ARGS} \" "
           
           eval "$cmd"
