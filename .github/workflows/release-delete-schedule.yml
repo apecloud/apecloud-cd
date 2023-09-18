@@ -18,6 +18,8 @@ env:
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
   ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
+  ALIYUN_USER_NEW: ${{ secrets.ALIYUN_USER_NEW }}
+  ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
   GITLAB_KBCLI_PROJECT_ID: 85948
   GITLAB_HELM_CHARTS_PROJECT_ID: 85949
 
@@ -131,6 +133,11 @@ jobs:
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
                   --type 11  \
                   --user ${{ env.ALIYUN_USER }} --password "${{ env.ALIYUN_PASSWORD }}" \
+                  --tag-name $release
+          
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+                  --type 18  \
+                  --user ${{ env.ALIYUN_USER_NEW }} --password "${{ env.ALIYUN_PASSWORD_NEW }}" \
                   --tag-name $release
           done
 

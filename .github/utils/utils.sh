@@ -137,6 +137,9 @@ main() {
         17)
             get_job_url
         ;;
+        18)
+            delete_aliyun_images_new
+        ;;
     esac
 }
 
@@ -391,6 +394,15 @@ delete_aliyun_images() {
 
     echo "delete kubeblocks-tools image $TAG_NAME_TMP"
     skopeo delete docker://registry.cn-hangzhou.aliyuncs.com/apecloud/kubeblocks-tools:$TAG_NAME_TMP \
+        --creds "$USER:$PASSWORD"
+
+delete_aliyun_images_new() {
+    echo "delete kubeblocks image $TAG_NAME_TMP"
+    skopeo delete docker://infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/kubeblocks:$TAG_NAME_TMP \
+        --creds "$USER:$PASSWORD"
+
+    echo "delete kubeblocks-tools image $TAG_NAME_TMP"
+    skopeo delete docker://infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/kubeblocks-tools:$TAG_NAME_TMP \
         --creds "$USER:$PASSWORD"
 }
 
