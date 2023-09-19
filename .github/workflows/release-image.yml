@@ -191,8 +191,8 @@ jobs:
           
           if [[ ! -z "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }} "
-          elif [[ -n "$REPOSITORY" ]]; then
-            cmd=$cmd"REPOSITORY=${{ env.DOCKER_REGISTRY_URL }}/${{ REPOSITORY }} "
+          elif [[ -n "${{ inputs.REPOSITORY }}" ]]; then
+            cmd=$cmd"REPOSITORY=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.REPOSITORY }} "
           fi
           
           if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
@@ -227,8 +227,8 @@ jobs:
           
           if [[ ! -z "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }} "
-          elif [[ -n "$REPOSITORY" ]]; then
-            cmd=$cmd"REPOSITORY=${{ env.DOCKER_REGISTRY_URL }}/${{ REPOSITORY }} "
+          elif [[ -n "${{ inputs.REPOSITORY }}" ]]; then
+            cmd=$cmd"REPOSITORY=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.REPOSITORY }} "
           fi
           
           if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
@@ -263,8 +263,8 @@ jobs:
           
           if [[ ! -z "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=${{ env.ALIYUN_REGISTRY_URL_NEW }}/${{ inputs.IMG }} "
-          elif [[ -n "$REPOSITORY" ]]; then
-            cmd=$cmd"REPOSITORY=${{ env.DOCKER_REGISTRY_URL }}/${{ REPOSITORY }} "
+          elif [[ -n "${{ inputs.REPOSITORY }}" ]]; then
+            cmd=$cmd"REPOSITORY=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.REPOSITORY }} "
           fi
           
           if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
@@ -309,8 +309,8 @@ jobs:
           
           if [[ ! -z "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=$GOOGLE_REGISTRY_URL/${{ inputs.IMG }} "
-          elif [[ -n "$REPOSITORY" ]]; then
-            cmd=$cmd"REPOSITORY=${{ env.DOCKER_REGISTRY_URL }}/${{ REPOSITORY }} "
+          elif [[ -n "${{ inputs.REPOSITORY }}" ]]; then
+            cmd=$cmd"REPOSITORY=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.REPOSITORY }} "
           fi
           
           if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
