@@ -191,6 +191,14 @@ jobs:
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/helm_image_check.sh \
               .cr-release-packages "${{ inputs.CHART_NAME }}" "${check_dockerhub}"
 
+      - name: Checkout HelmCharts
+        if: inputs.PUSH_ENABLE
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/helm-charts
+          path: helm-charts
+          token: ${{ env.CR_TOKEN }}
+
       - name: copy dependency chart
         if: inputs.DEP_CHART_DIR
         run: |
@@ -207,14 +215,6 @@ jobs:
             --asset-path ./ \
             --access-token ${{ env.GITLAB_ACCESS_TOKEN }} \
             --access-user ${{ env.GITLAB_ACCESS_USER }}
-
-      - name: Checkout HelmCharts
-        if: inputs.PUSH_ENABLE
-        uses: actions/checkout@v3
-        with:
-          repository: apecloud/helm-charts
-          path: helm-charts
-          token: ${{ env.CR_TOKEN }}
 
       - name: Fetch HelmCharts History And Configure Git
         if: inputs.PUSH_ENABLE
