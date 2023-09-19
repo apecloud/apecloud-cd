@@ -191,9 +191,6 @@ jobs:
           if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
             cmd=$cmd" \"${{ inputs.MAKE_ARGS }}\" "
           fi
-          DOCKER_BUILD_ARGS="--cache-to type=registry,ref=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}-cache,mode=max,compression=zstd,oci-mediatypes=true"
-          DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --cache-from type=registry,ref=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}-cache"
-          cmd=$cmd"DOCKER_BUILD_ARGS=\"${DOCKER_BUILD_ARGS} \" "
           
           eval "$cmd"
 
@@ -228,9 +225,6 @@ jobs:
           if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
             cmd=$cmd" \"${{ inputs.MAKE_ARGS }}\" "
           fi
-          DOCKER_BUILD_ARGS="--cache-to type=registry,ref=${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }}-cache,mode=max,compression=zstd,oci-mediatypes=true"
-          DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --cache-from type=registry,ref=${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }}-cache"
-          cmd=$cmd"DOCKER_BUILD_ARGS=\"${DOCKER_BUILD_ARGS} \" "
           
           eval "$cmd"
 
@@ -265,9 +259,6 @@ jobs:
           if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
             cmd=$cmd" \"${{ inputs.MAKE_ARGS }}\" "
           fi
-          DOCKER_BUILD_ARGS="--cache-to type=registry,ref=${{ env.ALIYUN_REGISTRY_URL_NEW }}/${{ inputs.IMG }}-cache,mode=max,compression=zstd,oci-mediatypes=true"
-          DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --cache-from type=registry,ref=${{ env.ALIYUN_REGISTRY_URL_NEW }}/${{ inputs.IMG }}-cache"
-          cmd=$cmd"DOCKER_BUILD_ARGS=\"${DOCKER_BUILD_ARGS} \" "
           
           eval "$cmd"
 
@@ -312,33 +303,5 @@ jobs:
           if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
             cmd=$cmd" \"${{ inputs.MAKE_ARGS }}\" "
           fi
-          DOCKER_BUILD_ARGS="--cache-to type=registry,ref=$GOOGLE_REGISTRY_URL/${{ inputs.IMG }}-cache,mode=max,compression=zstd,oci-mediatypes=true"
-          DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --cache-from type=registry,ref=$GOOGLE_REGISTRY_URL/${{ inputs.IMG }}-cache"
-          cmd=$cmd"DOCKER_BUILD_ARGS=\"${DOCKER_BUILD_ARGS} \" "
           
           eval "$cmd"
-
-#  copy-image:
-#    runs-on: macos-latest
-#    if: inputs.SYNC_ENABLE
-#    needs: release-image
-#    steps:
-#      - name: Checkout Apecd Code
-#        uses: actions/checkout@v3
-#        with:
-#          repository: apecloud/apecloud-cd
-#          path: apecloud-cd
-#          token: ${{ env.GITHUB_TOKEN }}
-#          ref: ${{ inputs.APECD_REF }}
-#
-#      - name : copy images
-#        if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
-#        run: |
-#          brew install skopeo
-#
-#          bash ${{ github.workspace }}/apecloud-cd/.github/utils/copy_image.sh \
-#              --type 1 \
-#              --dest-username "${{ env.ALIYUN_USER }}" \
-#              --dest-password '${{ env.ALIYUN_PASSWORD }}' \
-#              --src-image "${{ inputs.IMG }}" \
-#              --src-tag "${{ needs.release-image.outputs.tag-name }}"
