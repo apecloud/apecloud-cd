@@ -18,6 +18,11 @@ on:
         type: string
         required: false
         default: ''
+      REPOSITORY:
+        description: "The REPOSITORY to use building/pushing image targets (e.g. apecloud)"
+        type: string
+        required: false
+        default: ''
       VERSION:
         description: "The tag name of image (default: latest)"
         type: string
@@ -186,6 +191,8 @@ jobs:
           
           if [[ ! -z "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }} "
+          elif [[ -n "$REPOSITORY" ]]; then
+            cmd=$cmd"REPOSITORY=${{ env.DOCKER_REGISTRY_URL }}/${{ REPOSITORY }} "
           fi
           
           if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
@@ -220,6 +227,8 @@ jobs:
           
           if [[ ! -z "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }} "
+          elif [[ -n "$REPOSITORY" ]]; then
+            cmd=$cmd"REPOSITORY=${{ env.DOCKER_REGISTRY_URL }}/${{ REPOSITORY }} "
           fi
           
           if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
@@ -254,6 +263,8 @@ jobs:
           
           if [[ ! -z "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=${{ env.ALIYUN_REGISTRY_URL_NEW }}/${{ inputs.IMG }} "
+          elif [[ -n "$REPOSITORY" ]]; then
+            cmd=$cmd"REPOSITORY=${{ env.DOCKER_REGISTRY_URL }}/${{ REPOSITORY }} "
           fi
           
           if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
@@ -298,6 +309,8 @@ jobs:
           
           if [[ ! -z "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=$GOOGLE_REGISTRY_URL/${{ inputs.IMG }} "
+          elif [[ -n "$REPOSITORY" ]]; then
+            cmd=$cmd"REPOSITORY=${{ env.DOCKER_REGISTRY_URL }}/${{ REPOSITORY }} "
           fi
           
           if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
