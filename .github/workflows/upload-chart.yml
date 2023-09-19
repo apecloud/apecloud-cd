@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       CHART_PACKAGE_NAME:
-        description: "The package name of helm chart, push to apecloud-cd helm-charts dir first (e.g. pyroscope-0.2.92.tgz)"
+        description: "The package name of helm chart, push to apecloud-cd upload-charts dir first (e.g. pyroscope-0.2.92.tgz)"
         required: false
         default: ''
       CHART_PACKAGE_URL:
@@ -40,11 +40,18 @@ jobs:
               curl -L -O  ${{ inputs.CHART_PACKAGE_URL }} 
               mv $PACKAGE_NAME .cr-release-packages
           elif [[ -n "${{ inputs.CHART_PACKAGE_NAME }}" ]]; then
-              cp helm-charts/${{ inputs.CHART_PACKAGE_NAME }} .cr-release-packages
+              cp upload-charts/${{ inputs.CHART_PACKAGE_NAME }} .cr-release-packages
           else
               echo "helm chart package or helm chart url  not found"
               exit 1
           fi
+
+      - name: Checkout HelmCharts
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/helm-charts
+          path: helm-charts
+          token: ${{ env.CR_TOKEN }}
 
       - name: Upload Helm Charts to Gitlab
         run: |
@@ -56,13 +63,6 @@ jobs:
             --asset-path ./ \
             --access-token ${{ env.GITLAB_ACCESS_TOKEN }} \
             --access-user ${{ env.GITLAB_ACCESS_USER }}
-
-      - name: Checkout HelmCharts
-        uses: actions/checkout@v3
-        with:
-          repository: apecloud/helm-charts
-          path: helm-charts
-          token: ${{ env.CR_TOKEN }}
 
       - name: Fetch HelmCharts History And Configure Git
         run: |
