@@ -26,8 +26,9 @@ main() {
                 repository=$repository:$image
             fi
 
-            if [[ ("$image" == "docker.io/apecloud/"* || "$image" == "apecloud/"*) && "$CHECK_DOCKERHUB" == "false" ]]; then
+            if [[ ("$repository" == "docker.io/apecloud/"* || "$repository" == "apecloud/"*) && "$CHECK_DOCKERHUB" == "false" ]]; then
                 continue
+                repository=""
             fi
 
             echo "check image: $repository"
