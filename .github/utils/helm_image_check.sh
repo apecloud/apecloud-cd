@@ -10,9 +10,9 @@ main() {
         if [[ "$chart" == *"loadbalancer"* || "$chart" == *"etcd"* ]]; then
             continue
         fi
-        images=`helm template $chart | egrep 'image:|repository:|tag:' | awk '{print $2}' | sed 's/"//g'`
+        images=$( helm template $chart | egrep 'image:|repository:|tag:' | awk '{print $2}' | sed 's/"//g' )
         repository=""
-        for image in $images; do
+        for image in $( echo "$images" ); do
             if [[ "$image" == *"apecloud/$CHART_NAME"* || "$image" == *"apecloud/chatgpt-retrieval-plugin"*  ]]; then
                 continue
             fi
@@ -37,7 +37,7 @@ main() {
     done
     wait
     cat exit_result
-    exit `cat exit_result`
+    exit $(cat exit_result)
 }
 
 check_image() {
