@@ -3,6 +3,11 @@ name: RELEASE-CHART
 on:
   workflow_call:
     inputs:
+      GITHUB_REPO:
+        description: "The github repo to release chart"
+        type: string
+        required: false
+        default: ''
       MAKE_OPS:
         description: "The ops name of makefile (e.g. bump-chart-ver)"
         type: string
@@ -83,7 +88,17 @@ jobs:
           version: ${{ env.HELM_VERSION }}
 
       - name: Checkout Code
+        if: ${{ inputs.GITHUB_REPO == '' }}
         uses: actions/checkout@v3
+
+      - name: Checkout Code With Github Repo
+        if: ${{ inputs.GITHUB_REPO != '' }}
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ inputs.GITHUB_REPO }}
+          path: ./
+          token: ${{ env.CR_TOKEN }}
+
       - uses: docker/setup-qemu-action@v2
 
       - name: Fetch History And Configure Git
