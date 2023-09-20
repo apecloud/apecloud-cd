@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
-set -o errexit
 set -o nounset
-set -o pipefail
 
 DEFAULT_PACKAGE_NAME=kubeblocks
 DEFAULT_CHANNEL=stable
