@@ -95,7 +95,7 @@ jobs:
         if: ${{ inputs.GITHUB_REPO == '' }}
         uses: actions/checkout@v3
 
-      - name: Checkout Code With Github Repo
+      - name: Checkout ${{ inputs.GITHUB_REPO }} Code
         if: ${{ inputs.GITHUB_REPO != '' }}
         uses: actions/checkout@v3
         with:
@@ -215,11 +215,11 @@ jobs:
           cd .cr-release-packages
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
             --type 3 \
-            --project-id ${{ inputs.PROJECT_ID }} \
+            --project-id "${{ inputs.PROJECT_ID }}" \
             --asset-path ./ \
             --charts-dir "${{ github.workspace }}/helm-charts/deploy" \
-            --access-token ${{ env.GITLAB_ACCESS_TOKEN }} \
-            --access-user ${{ env.GITLAB_ACCESS_USER }}
+            --access-token "${{ env.GITLAB_ACCESS_TOKEN }}" \
+            --access-user "${{ env.GITLAB_ACCESS_USER }}"
 
       - name: Fetch HelmCharts History And Configure Git
         if: inputs.PUSH_ENABLE
