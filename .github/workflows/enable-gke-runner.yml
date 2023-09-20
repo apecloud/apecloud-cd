@@ -54,7 +54,7 @@ jobs:
   enable-runner:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Apecd Code
+      - name: Checkout apecloud-cd Code
         uses: actions/checkout@v3
         with:
           repository: apecloud/apecloud-cd

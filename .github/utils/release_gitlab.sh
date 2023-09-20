@@ -235,6 +235,7 @@ get_addons_list() {
 
 get_project_id() {
     chart_package_name=${1:-""}
+    chart_ops=${2:-""}
     PROJECT_ID_TMP=""
     if [[ -n "$PROJECT_ID" ]]; then
         PROJECT_ID_TMP=$(echo "$PROJECT_ID" | tr '[:upper:]' '[:lower:]')
@@ -255,12 +256,14 @@ get_project_id() {
         return
     fi
     # get chart package name
-    chart_name="$( helm show chart $chart_package_name | yq eval '.name' - )"
+    chart_name="$chart_package_name"
+    if [[ -z "$chart_ops" ]]; then
+        chart_name="$( helm show chart $chart_package_name | yq eval '.name' - )"
+    fi
     chart_name=$(echo "$chart_name" | tr '[:upper:]' '[:lower:]')
-
     echo "chart name:$chart_name"
     if [[ "$chart_name" == "kblib" ]]; then
-        echo "skip upload chart $chart_name"
+        echo "skip chart $chart_name"
         return
     fi
     # check kubeblocks charts
@@ -346,12 +349,13 @@ check_stable_release() {
 
 delete_release_packages() {
     delete_name=${1:-""}
+    project_id=${2:-""}
     request_type=DELETE
     page_num=1
     found_flag=0
     request_url=""
     while true; do
-        request_url="$API_URL/$PROJECT_ID/packages?page=$page_num&per_page=100"
+        request_url="$API_URL/$project_id/packages?page=$page_num&per_page=100"
         packages_info=$( gitlab_api_curl -s $request_url )
         length=$( echo "$packages_info" | jq length )
         if [[ $length -eq 0 ]]; then
@@ -364,7 +368,7 @@ delete_release_packages() {
                 package_id=$( echo "$packages_info" | jq '.['$i'].id' )
                 echo "package_id:$package_id"
                 echo "delete packages $package_name $package_version"
-                request_url=$API_URL/$PROJECT_ID/packages/$package_id
+                request_url=$API_URL/$project_id/packages/$package_id
                 gitlab_api_curl --request $request_type $request_url
                 found_flag=1
                 break
@@ -378,7 +382,7 @@ delete_release_packages() {
 }
 
 delete_release() {
-    delete_release_packages "kubeblocks"
+    delete_release_packages "kubeblocks" "$PROJECT_ID"
     echo "delete release $TAG_NAME"
     request_url=$API_URL/$PROJECT_ID/repository/tags/$TAG_NAME
     gitlab_api_curl --request $request_type $request_url
@@ -391,14 +395,18 @@ filter_charts() {
         if [[ -f "$file" ]]; then
             chart_name=$(cat $file | grep "name:"|awk 'NR==1{print $2}')
             echo "delete helm_chart $chart_name $TAG_NAME_TMP"
-            TAG_NAME="$TAG_NAME_TMP"
-            delete_release_packages "$chart_name" &
+            get_project_id "$chart_name" "delete"
+            if [[ -n "$PROJECT_ID_TMP" ]]; then
+                delete_release_packages "$chart_name" "$PROJECT_ID_TMP" &
+            fi
         fi
     done
     wait
 }
 
 delete_helm_chart() {
+    TAG_NAME="$TAG_NAME_TMP"
+    get_addons_list
     local charts_dir=deploy
     charts_files=$( ls -1 $charts_dir )
     echo "$charts_files" | filter_charts
