@@ -395,6 +395,7 @@ delete_aliyun_images() {
     echo "delete kubeblocks-tools image $TAG_NAME_TMP"
     skopeo delete docker://registry.cn-hangzhou.aliyuncs.com/apecloud/kubeblocks-tools:$TAG_NAME_TMP \
         --creds "$USER:$PASSWORD"
+}
 
 delete_aliyun_images_new() {
     echo "delete kubeblocks image $TAG_NAME_TMP"
