@@ -50,7 +50,6 @@ jobs:
           done
 
       - name: delete github kbcli release
-        if: ${{ always() }}
         run: |
           for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
@@ -61,7 +60,6 @@ jobs:
           done
 
       - name: delete Jihulab kbcli release
-        if: ${{ always() }}
         run: |
           for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
@@ -104,7 +102,6 @@ jobs:
           done
 
       - name: delete Jihulab helm chart release
-        if: ${{ always() }}
         run: |
           for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
@@ -154,12 +151,7 @@ jobs:
                   --type 11  \
                   --user ${{ env.ALIYUN_USER }} --password "${{ env.ALIYUN_PASSWORD }}" \
                   --tag-name $release
-          done
-
-      - name: delete aliyun registry image New
-        if: ${{ always() }}
-        run: |
-          for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
+          
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
                   --type 18  \
                   --user ${{ env.ALIYUN_USER_NEW }} --password "${{ env.ALIYUN_PASSWORD_NEW }}" \
