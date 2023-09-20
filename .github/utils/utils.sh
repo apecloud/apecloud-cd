@@ -401,37 +401,50 @@ delete_docker_images() {
 }
 
 delete_aliyun_images() {
+    cmd_head="skopeo delete --creds \"$USER:$PASSWORD\" docker://registry.cn-hangzhou.aliyuncs.com/apecloud"
     echo "delete kubeblocks image $TAG_NAME_TMP"
-    echo $(skopeo delete docker://registry.cn-hangzhou.aliyuncs.com/apecloud/kubeblocks:$TAG_NAME_TMP --creds "$USER:$PASSWORD")
+    eval_cmd="${cmd_head}/kubeblocks:$TAG_NAME_TMP"
+    echo $(eval $eval_cmd)
 
     echo "delete kubeblocks-tools image $TAG_NAME_TMP"
-    echo $(skopeo delete docker://registry.cn-hangzhou.aliyuncs.com/apecloud/kubeblocks-tools:$TAG_NAME_TMP --creds "$USER:$PASSWORD")
+    eval_cmd="${cmd_head}/kubeblocks-tools:$TAG_NAME_TMP"
+    echo $(eval $eval_cmd)
 
     echo "delete kubeblocks-datascript image $TAG_NAME_TMP"
-    echo $(skopeo delete docker://registry.cn-hangzhou.aliyuncs.com/apecloud/kubeblocks-datascript:$TAG_NAME_TMP --creds "$USER:$PASSWORD")
+    eval_cmd="${cmd_head}/kubeblocks-datascript:$TAG_NAME_TMP"
+    echo $(eval $eval_cmd)
 
     echo "delete kubeblocks-charts image $TAG_NAME_TMP"
-    echo $(skopeo delete docker://registry.cn-hangzhou.aliyuncs.com/apecloud/kubeblocks-charts:$TAG_NAME_TMP --creds "$USER:$PASSWORD")
+    eval_cmd="${cmd_head}/kubeblocks-charts:$TAG_NAME_TMP"
+    echo $(eval $eval_cmd)
 
     echo "delete kubeblocks-dataprotection image $TAG_NAME_TMP"
-    echo $(skopeo delete docker://registry.cn-hangzhou.aliyuncs.com/apecloud/kubeblocks-dataprotection:$TAG_NAME_TMP --creds "$USER:$PASSWORD")
+    eval_cmd="${cmd_head}/kubeblocks-dataprotection:$TAG_NAME_TMP"
+    echo $(eval $eval_cmd)
 }
 
 delete_aliyun_images_new() {
+    cmd_head="skopeo delete --creds \"$USER:$PASSWORD\" docker://infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud"
     echo "delete kubeblocks image $TAG_NAME_TMP"
-    echo $(skopeo delete docker://infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/kubeblocks:$TAG_NAME_TMP --creds "$USER:$PASSWORD")
+
+    eval_cmd="${cmd_head}/kubeblocks:$TAG_NAME_TMP"
+    echo $(eval $eval_cmd)
 
     echo "delete kubeblocks-tools image $TAG_NAME_TMP"
-    echo $(skopeo delete docker://infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/kubeblocks-tools:$TAG_NAME_TMP --creds "$USER:$PASSWORD")
+    eval_cmd="${cmd_head}/kubeblocks-tools:$TAG_NAME_TMP"
+    echo $(eval $eval_cmd)
 
     echo "delete kubeblocks-datascript image $TAG_NAME_TMP"
-    echo $(skopeo delete docker://infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/kubeblocks-datascript:$TAG_NAME_TMP --creds "$USER:$PASSWORD")
+    eval_cmd="${cmd_head}/kubeblocks-datascript:$TAG_NAME_TMP"
+    echo $(eval $eval_cmd)
 
     echo "delete kubeblocks-charts image $TAG_NAME_TMP"
-    echo $(skopeo delete docker://infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/kubeblocks-charts:$TAG_NAME_TMP --creds "$USER:$PASSWORD")
+    eval_cmd="${cmd_head}/kubeblocks-charts:$TAG_NAME_TMP"
+    echo $(eval $eval_cmd)
 
     echo "delete kubeblocks-dataprotection image $TAG_NAME_TMP"
-    echo $(skopeo delete docker://infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/kubeblocks-dataprotection:$TAG_NAME_TMP --creds "$USER:$PASSWORD")
+    eval_cmd="${cmd_head}/kubeblocks-dataprotection:$TAG_NAME_TMP"
+    echo $(eval $eval_cmd)
 }
 
 set_runs_jobs() {
