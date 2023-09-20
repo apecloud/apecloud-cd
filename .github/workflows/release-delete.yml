@@ -17,15 +17,14 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  GITLAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
+  JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
   ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
   ALIYUN_USER_NEW: ${{ secrets.ALIYUN_USER_NEW }}
   ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
-  GITLAB_KBCLI_PROJECT_ID: 85948
-  GITLAB_HELM_CHARTS_PROJECT_ID: 85949
+  JIHULAB_KBCLI_PROJECT_ID: 85948
 
 jobs:
   delete-release:
@@ -33,7 +32,7 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Apecd Code
+      - name: Checkout apecloud-cd Code
         uses: actions/checkout@v3
         with:
           repository: apecloud/apecloud-cd
@@ -60,14 +59,14 @@ jobs:
                   --github-token ${{ env.GITHUB_TOKEN }}
           done
 
-      - name: delete gitlab kbcli release
+      - name: delete Jihulab kbcli release
         run: |
           for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
                   --type 5 \
                   --tag-name $release \
-                  --project-id ${{ env.GITLAB_KBCLI_PROJECT_ID }} \
-                  --access-token ${{ env.GITLAB_ACCESS_TOKEN }}
+                  --project-id ${{ env.JIHULAB_KBCLI_PROJECT_ID }} \
+                  --access-token ${{ env.JIHULAB_ACCESS_TOKEN }}
           done
 
   delete-chart:
@@ -78,7 +77,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Checkout Apecd Code
+      - name: Checkout helm-charts Code
+        uses: actions/checkout@v3
+        with:
+          repository: apecloud/helm-charts
+          path: helm-charts
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: Checkout apecloud-cd Code
         uses: actions/checkout@v3
         with:
           repository: apecloud/apecloud-cd
@@ -95,20 +101,20 @@ jobs:
                   --github-token ${{ env.GITHUB_TOKEN }}
           done
 
-      - name: delete gitlab helm chart release
+      - name: delete Jihulab helm chart release
         run: |
           for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
                   --type 6 \
                   --tag-name $release \
-                  --project-id ${{ env.GITLAB_HELM_CHARTS_PROJECT_ID }} \
-                  --access-token ${{ env.GITLAB_ACCESS_TOKEN }}
+                  --charts-dir "${{ github.workspace }}/helm-charts/deploy" \
+                  --access-token ${{ env.JIHULAB_ACCESS_TOKEN }}
           done
 
   delete-image:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Apecd Code
+      - name: Checkout apecloud-cd Code
         uses: actions/checkout@v3
         with:
           repository: apecloud/apecloud-cd
@@ -127,7 +133,7 @@ jobs:
   delete-aliyun-image:
     runs-on: macos-latest
     steps:
-      - name: Checkout Apecd Code
+      - name: Checkout apecloud-cd Code
         uses: actions/checkout@v3
         with:
           repository: apecloud/apecloud-cd

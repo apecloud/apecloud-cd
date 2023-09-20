@@ -21,8 +21,8 @@ run-name: upload ${{ inputs.CHART_PACKAGE_NAME }} ${{ inputs.CHART_PACKAGE_URL }
 
 env:
   CR_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  GITLAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
-  GITLAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
+  JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
+  JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
   CR_VERSION: 1.4.1
 
 
@@ -50,14 +50,14 @@ jobs:
               exit 1
           fi
 
-      - name: Checkout HelmCharts
+      - name: Checkout helm-charts Code
         uses: actions/checkout@v3
         with:
           repository: apecloud/helm-charts
           path: helm-charts
           token: ${{ env.CR_TOKEN }}
 
-      - name: Upload Helm Charts to Gitlab
+      - name: Upload Helm Charts to Jihulab
         run: |
           ls .cr-release-packages
           cd .cr-release-packages
@@ -65,11 +65,11 @@ jobs:
             --type 3 \
             --asset-path ./ \
             --charts-dir "${{ github.workspace }}/helm-charts/deploy" \
-            --access-token "${{ env.GITLAB_ACCESS_TOKEN }}" \
-            --access-user "${{ env.GITLAB_ACCESS_USER }}" \
+            --access-token "${{ env.JIHULAB_ACCESS_TOKEN }}" \
+            --access-user "${{ env.JIHULAB_ACCESS_USER }}" \
             --project-id "${{ env.PROJECT_ID }}"
 
-      - name: Fetch HelmCharts History And Configure Git
+      - name: Fetch helm-charts History And Configure Git
         run: |
           cd helm-charts
           git fetch --prune --unshallow

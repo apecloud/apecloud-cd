@@ -111,7 +111,7 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-      - name: Checkout Apecd Code
+      - name: Checkout apecloud-cd Code
         uses: actions/checkout@v3
         with:
           repository: apecloud/apecloud-cd
@@ -195,7 +195,7 @@ jobs:
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/helm_image_check.sh \
               .cr-release-packages "${{ inputs.CHART_NAME }}" "${check_dockerhub}"
 
-      - name: Checkout HelmCharts
+      - name: Checkout helm-charts Code
         if: inputs.PUSH_ENABLE
         uses: actions/checkout@v3
         with:
@@ -221,7 +221,7 @@ jobs:
             --access-user "${{ env.JIHULAB_ACCESS_USER }}"\
             --project-id "${{ inputs.PROJECT_ID }}"
 
-      - name: Fetch HelmCharts History And Configure Git
+      - name: Fetch helm-charts History And Configure Git
         if: inputs.PUSH_ENABLE
         run: |
           cd helm-charts

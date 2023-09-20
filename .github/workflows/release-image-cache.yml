@@ -241,7 +241,7 @@ jobs:
 #    if: inputs.SYNC_ENABLE
 #    needs: release-image
 #    steps:
-#      - name: Checkout Apecd Code
+#      - name: Checkout apecloud-cd Code
 #        uses: actions/checkout@v3
 #        with:
 #          repository: apecloud/apecloud-cd
