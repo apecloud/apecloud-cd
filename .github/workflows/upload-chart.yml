@@ -63,11 +63,11 @@ jobs:
           cd .cr-release-packages
           bash ${{ github.workspace }}/.github/utils/release_gitlab.sh \
             --type 3 \
-            --project-id "${{ env.PROJECT_ID }}" \
             --asset-path ./ \
             --charts-dir "${{ github.workspace }}/helm-charts/deploy" \
             --access-token "${{ env.GITLAB_ACCESS_TOKEN }}" \
-            --access-user "${{ env.GITLAB_ACCESS_USER }}"
+            --access-user "${{ env.GITLAB_ACCESS_USER }}" \
+            --project-id "${{ env.PROJECT_ID }}"
 
       - name: Fetch HelmCharts History And Configure Git
         run: |
