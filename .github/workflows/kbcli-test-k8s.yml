@@ -452,7 +452,7 @@ jobs:
         id: get_trigger_mode
         run: |
           TEST_RESULT="playground|${{ needs.test-playground.outputs.test-result }}"
-          TEST_RESULT="{TEST_RESULT}##install|${{ needs.install-kubeblocks.outputs.test-result }}"
+          TEST_RESULT="${TEST_RESULT}##install|${{ needs.install-kubeblocks.outputs.test-result }}"
           if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mysql"* ]]; then
               TEST_RESULT="${TEST_RESULT}##mysql|${{ needs.test-mysql.outputs.test-result }}"
           fi
