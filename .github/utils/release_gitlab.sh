@@ -300,6 +300,28 @@ get_project_id() {
     PROJECT_ID_TMP=$TOOLS_PROJECT_ID
 }
 
+upload_chart() {
+    request_type=${1:-""}
+    request_url=${2:-""}
+    chart=${3:-""}
+    upload_flag=0
+    upload_cmd="curl --request $request_type $request_url --form 'chart=@'$chart --user $ACCESS_USER:$ACCESS_TOKEN"
+    for i in {1..10}; do
+        ret_msg=$(eval $upload_cmd)
+        echo "return message:$ret_msg"
+        if [[ "$ret_msg" == *"201 Created"* ]]; then
+            echo "$(tput -T xterm setaf 2)$ret_msg$(tput -T xterm sgr0)"
+            upload_flag=1
+            break
+        fi
+        sleep 1
+    done
+    if [[ $upload_flag -eq 0 ]]; then
+        echo "$(tput -T xterm setaf 1)upload chart $chart error$(tput -T xterm sgr0)"
+        exit 1
+    fi
+}
+
 release_helm() {
     get_addons_list
     request_type=POST
@@ -323,7 +345,7 @@ release_helm() {
             continue
         fi
         request_url=$API_URL/$PROJECT_ID_TMP/packages/helm/api/$CHANNEL/charts
-        curl --request $request_type $request_url --form 'chart=@'$chart --user $ACCESS_USER:$ACCESS_TOKEN
+        upload_chart $request_type $request_url $chart
     done
 }
 
