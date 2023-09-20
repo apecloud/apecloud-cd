@@ -63,13 +63,17 @@ on:
         type: boolean
         required: false
         default: true
+      PROJECT_ID:
+        description: "The jihulab priject id to upload"
+        type: string
+        required: false
+        default: ''
 
 
 env:
   CR_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   HELM_VERSION: v3.10.0
   K3S_VERSION: v1.23
-  GITLAB_HELM_CHARTS_PROJECT_ID: 85949
   GITLAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
   GITLAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
@@ -211,8 +215,9 @@ jobs:
           cd .cr-release-packages
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
             --type 3 \
-            --project-id ${{ env.GITLAB_HELM_CHARTS_PROJECT_ID }} \
+            --project-id ${{ inputs.PROJECT_ID }} \
             --asset-path ./ \
+            --charts-dir "${{ github.workspace }}/helm-charts/deploy" \
             --access-token ${{ env.GITLAB_ACCESS_TOKEN }} \
             --access-user ${{ env.GITLAB_ACCESS_USER }}
 
