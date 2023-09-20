@@ -11,12 +11,16 @@ on:
         description: "The package url of helm chart"
         required: false
         default: ''
+      PROJECT_ID:
+        description: "The jihulab priject id to upload (e.g. kubeblocks/addons/tools/plugins)"
+        type: string
+        required: false
+        default: ''
 
 run-name: upload ${{ inputs.CHART_PACKAGE_NAME }} ${{ inputs.CHART_PACKAGE_URL }}
 
 env:
   CR_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  GITLAB_HELM_CHARTS_PROJECT_ID: 85949
   GITLAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
   GITLAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
   CR_VERSION: 1.4.1
@@ -59,8 +63,9 @@ jobs:
           cd .cr-release-packages
           bash ${{ github.workspace }}/.github/utils/release_gitlab.sh \
             --type 3 \
-            --project-id ${{ env.GITLAB_HELM_CHARTS_PROJECT_ID }} \
+            --project-id ${{ env.PROJECT_ID }} \
             --asset-path ./ \
+            --charts-dir "${{ github.workspace }}/helm-charts/deploy" \
             --access-token ${{ env.GITLAB_ACCESS_TOKEN }} \
             --access-user ${{ env.GITLAB_ACCESS_USER }}
 

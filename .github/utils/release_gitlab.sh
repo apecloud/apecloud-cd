@@ -8,6 +8,14 @@ DEFAULT_PACKAGE_NAME=kubeblocks
 DEFAULT_CHANNEL=stable
 API_URL=https://jihulab.com/api/v4/projects
 DEFAULT_DELETE_FORCE="false"
+DEFAULT_HELM_CHARTS_PROJECT_ID=85949
+DEFAULT_ADDONS_PROJECT_ID=150246
+DEFAULT_PLUGINS_PROJECT_ID=150247
+DEFAULT_TOOLS_PROJECT_ID=150248
+DEFAULT_HELM_CHARTS_LIST="kubeblocks|kubeblocks-cloud"
+DEFAULT_ADDONS_LIST="prometheus"
+DEFAULT_PLUGINS_LIST="load-balancer|ingress|cloud-provider|metalb|csi-|esdk-k8s-plugin|openebs|cert-manager"
+DEFAULT_CHARTS_DIR="../helm-charts/deploy"
 
 show_help() {
 cat << EOF
@@ -30,6 +38,7 @@ Usage: $(basename "$0") <options>
     -pn, --package-name       Gitlab package name (default: $DEFAULT_PACKAGE_NAME)
     -c, --channel             Gitlab helm channel name (default: DEFAULT_CHANNEL)
     -df, --delete-force       Force to delete stable release (default: DEFAULT_DELETE_FORCE)
+    -cd, --charts-dir         The dir of helm-charts (default: DEFAULT_CHARTS_DIR)
 EOF
 }
 
@@ -44,6 +53,15 @@ main() {
     local ASSET_NAME=""
     local STABLE_RET=""
     local DELETE_FORCE=$DEFAULT_DELETE_FORCE
+    local PROJECT_ID_TMP=""
+    local HELM_CHARTS_PROJECT_ID=$DEFAULT_HELM_CHARTS_PROJECT_ID
+    local ADDONS_PROJECT_ID=$DEFAULT_ADDONS_PROJECT_ID
+    local PLUGINS_PROJECT_ID=$DEFAULT_PLUGINS_PROJECT_ID
+    local TOOLS_PROJECT_ID=$DEFAULT_TOOLS_PROJECT_ID
+    local HELM_CHARTS_LIST=$DEFAULT_HELM_CHARTS_LIST
+    local ADDONS_LIST=$DEFAULT_ADDONS_LIST
+    local PLUGINS_LIST=$DEFAULT_PLUGINS_LIST
+    local CHARTS_DIR=$DEFAULT_CHARTS_DIR
 
     parse_command_line "$@"
 
@@ -112,12 +130,14 @@ parse_command_line() {
             -at|--access-token)
                 if [[ -n "${2:-}" ]]; then
                     ACCESS_TOKEN="$2"
+                    echo $ACCESS_TOKEN
                     shift
                 fi
                 ;;
-            -at|--access-user)
+            -au|--access-user)
                 if [[ -n "${2:-}" ]]; then
                     ACCESS_USER="$2"
+                    echo $ACCESS_USER
                     shift
                 fi
                 ;;
@@ -127,7 +147,7 @@ parse_command_line() {
                     shift
                 fi
                 ;;
-            -ap|--asset-name)
+            -an|--asset-name)
                 if [[ -n "${2:-}" ]]; then
                     ASSET_NAME="$2"
                     shift
@@ -145,9 +165,15 @@ parse_command_line() {
                     shift
                 fi
                 ;;
-            -df|--delete-force )
+            -df|--delete-force)
                 if [[ -n "${2:-}" ]]; then
                     DELETE_FORCE="$2"
+                    shift
+                fi
+                ;;
+            -cd|--charts-dir)
+                if [[ -n "${2:-}" ]]; then
+                    CHARTS_DIR="$2"
                     shift
                 fi
                 ;;
@@ -189,20 +215,112 @@ update_release_asset() {
     gitlab_api_curl --request $request_type $request_url --data $request_data
 }
 
+get_addons_list() {
+    if [[ ! -d "$CHARTS_DIR" ]]; then
+        echo "not found helm-charts dir"
+        return
+    fi
+    for chart in $( ls -1 $CHARTS_DIR ); do
+        chart_dir=$CHARTS_DIR/$chart
+        if [[ -d "$chart_dir" ]]; then
+            chart_file="$chart_dir/Chart.yaml"
+            if [[ -f "$chart_file" ]]; then
+                chart_name=$(cat $chart_file | grep "name:"|awk 'NR==1{print $2}')
+                chart_name=$(echo "$chart_name" | tr '[:upper:]' '[:lower:]')
+                if [[ "$chart_name" == *"-cluster" ]]; then
+                    ADDONS_LIST="$ADDONS_LIST|${chart_name%*-cluster}"
+                fi
+            fi
+        fi
+    done
+}
+
+get_project_id() {
+    chart_package_name=${1:-""}
+    PROJECT_ID_TMP=""
+    if [[ -n "$PROJECT_ID" ]]; then
+        PROJECT_ID_TMP=$(echo "$PROJECT_ID" | tr '[:upper:]' '[:lower:]')
+        case $PROJECT_ID_TMP in
+            *kubeblock*)
+                PROJECT_ID_TMP=$HELM_CHARTS_PROJECT_ID
+            ;;
+            *addon*)
+                PROJECT_ID_TMP=$HELM_CHARTS_PROJECT_ID
+            ;;
+            *plugin*)
+                PROJECT_ID_TMP=$PLUGINS_PROJECT_ID
+            ;;
+            *tool*)
+                PROJECT_ID_TMP=$TOOLS_PROJECT_ID
+            ;;
+        esac
+        return
+    fi
+    # get chart package name
+    chart_name="$( helm show chart $chart_package_name | yq eval '.name' - )"
+    chart_name=$(echo "$chart_name" | tr '[:upper:]' '[:lower:]')
+
+    echo "chart name:$chart_name"
+    if [[ "$chart_name" == "kblib" ]]; then
+        echo "skip upload chart $chart_name"
+        return
+    fi
+    # check kubeblocks charts
+    for helm_charts in $(echo "$HELM_CHARTS_LIST" | sed 's/|/ /g'); do
+        if [[ "$chart_name" == "$helm_charts" ]]; then
+            PROJECT_ID_TMP=$HELM_CHARTS_PROJECT_ID
+            break
+        fi
+    done
+    if [[ -n "$PROJECT_ID_TMP" ]]; then
+        return
+    fi
+    # check addons charts
+    for addons in $(echo "$ADDONS_LIST" | sed 's/|/ /g'); do
+        if [[ "$chart_name" == "${addons}" || "$chart_name" == "${addons}-cluster" ]]; then
+            PROJECT_ID_TMP=$ADDONS_PROJECT_ID
+            break
+        fi
+    done
+    if [[ -n "$PROJECT_ID_TMP" ]]; then
+        return
+    fi
+    # check plugins charts
+    for plugins in $(echo "$PLUGINS_LIST" | sed 's/|/ /g'); do
+        if [[ "$chart_name" == *"${plugins}"*  ]]; then
+            PROJECT_ID_TMP=$PLUGINS_PROJECT_ID
+            break
+        fi
+    done
+    if [[ -n "$PROJECT_ID_TMP" ]]; then
+        return
+    fi
+    # check tools charts
+    PROJECT_ID_TMP=$TOOLS_PROJECT_ID
+}
+
 release_helm() {
+    get_addons_list
     request_type=POST
-    request_url=$API_URL/$PROJECT_ID/packages/helm/api/$CHANNEL/charts
     ASSET_PATHS=()
     if [[ -d "$ASSET_PATH" ]]; then
         for asset_path in $ASSET_PATH/*; do
             ASSET_PATHS[${#ASSET_PATHS[@]}]=`basename $asset_path`
         done
     elif [[ -f "$ASSET_PATH" ]]; then
-        ASSET_PATHS[${#ASSET_PATHS[@]}]=$ASSET_PATH
+        ASSET_PATHS[${#ASSET_PATHS[@]}]=`basename $ASSET_PATH`
     fi
 
     for chart in ${ASSET_PATHS[@]}; do
+        get_project_id "$chart"
+        echo "chart package name:$chart"
+        echo "PROJECT_ID:$PROJECT_ID_TMP"
+        if [[ -z "$PROJECT_ID_TMP" ]]; then
+            continue
+        fi
+        request_url=$API_URL/$PROJECT_ID_TMP/packages/helm/api/$CHANNEL/charts
         curl --request $request_type $request_url --form 'chart=@'$chart --user $ACCESS_USER:$ACCESS_TOKEN
+        echo "curl --request $request_type $request_url --form 'chart=@'$chart --user $ACCESS_USER:$ACCESS_TOKEN"
     done
 }
 
