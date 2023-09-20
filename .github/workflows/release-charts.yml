@@ -74,8 +74,8 @@ env:
   CR_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   HELM_VERSION: v3.10.0
   K3S_VERSION: v1.23
-  GITLAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
-  GITLAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
+  JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
+  JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   DOCKER_REGISTRY_URL: docker.io
@@ -208,18 +208,18 @@ jobs:
         run: |
           cp ${{ inputs.DEP_CHART_DIR }}/* .cr-release-packages
 
-      - name: Upload Helm Charts to Gitlab
+      - name: Upload Helm Charts to Jihulab
         if: inputs.PUSH_ENABLE
         run: |
           ls .cr-release-packages
           cd .cr-release-packages
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
-            --type 3 \
-            --project-id "${{ inputs.PROJECT_ID }}" \
+            --type 3  \
             --asset-path ./ \
             --charts-dir "${{ github.workspace }}/helm-charts/deploy" \
-            --access-token "${{ env.GITLAB_ACCESS_TOKEN }}" \
-            --access-user "${{ env.GITLAB_ACCESS_USER }}"
+            --access-token "${{ env.JIHULAB_ACCESS_TOKEN }}" \
+            --access-user "${{ env.JIHULAB_ACCESS_USER }}"\
+            --project-id "${{ inputs.PROJECT_ID }}"
 
       - name: Fetch HelmCharts History And Configure Git
         if: inputs.PUSH_ENABLE

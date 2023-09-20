@@ -130,14 +130,12 @@ parse_command_line() {
             -at|--access-token)
                 if [[ -n "${2:-}" ]]; then
                     ACCESS_TOKEN="$2"
-                    echo $ACCESS_TOKEN
                     shift
                 fi
                 ;;
             -au|--access-user)
                 if [[ -n "${2:-}" ]]; then
                     ACCESS_USER="$2"
-                    echo $ACCESS_USER
                     shift
                 fi
                 ;;
@@ -310,7 +308,10 @@ release_helm() {
     elif [[ -f "$ASSET_PATH" ]]; then
         ASSET_PATHS[${#ASSET_PATHS[@]}]=`basename $ASSET_PATH`
     fi
-
+    if [[ ${#ASSET_PATHS[@]} -eq 0 ]]; then
+        echo "not found helm-charts $ASSET_PATH"
+        return
+    fi
     for chart in ${ASSET_PATHS[@]}; do
         get_project_id "$chart"
         echo "chart package name:$chart"
@@ -320,7 +321,6 @@ release_helm() {
         fi
         request_url=$API_URL/$PROJECT_ID_TMP/packages/helm/api/$CHANNEL/charts
         curl --request $request_type $request_url --form 'chart=@'$chart --user $ACCESS_USER:$ACCESS_TOKEN
-        echo "curl --request $request_type $request_url --form 'chart=@'$chart --user $ACCESS_USER:$ACCESS_TOKEN"
     done
 }
 
