@@ -47,7 +47,7 @@ jobs:
       test-result: ${{ steps.smoke_test.outputs.test-result }}
     steps:
       - name: checkout kubeblocks
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - uses: azure/setup-kubectl@v3
         with:

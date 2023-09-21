@@ -442,7 +442,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ test-playground, install-kubeblocks, test-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar, test-mysqlscale, test-weaviate, test-qdrant, test-smartengine, test-greptimedb, test-nebula, test-risingwave, test-starrocks, test-oceanbase, test-foxlake, test-oracle-mysql ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: apecloud/apecloud-cd
           path: ./

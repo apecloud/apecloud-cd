@@ -19,7 +19,7 @@ jobs:
   delete-runner:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: delete runner
         run: |
           bash .github/utils/utils.sh \

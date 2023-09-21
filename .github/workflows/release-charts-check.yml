@@ -81,7 +81,7 @@ jobs:
       - uses: docker/setup-qemu-action@v2
 
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Fetch History And Configure Git
         run: |
@@ -90,7 +90,7 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Checkout apecloud-cd Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: apecloud/apecloud-cd
           path: apecloud-cd

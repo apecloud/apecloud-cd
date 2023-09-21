@@ -72,7 +72,7 @@ jobs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Go specify version
         if: inputs.GO_VERSION

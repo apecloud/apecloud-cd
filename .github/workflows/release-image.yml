@@ -125,11 +125,11 @@ jobs:
     steps:
       - name: Checkout Code
         if: ${{ ! inputs.ENABLE_SUBMODULE }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Checkout Code With Submodule
         if: inputs.ENABLE_SUBMODULE
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
           token: ${{ env.GITHUB_TOKEN }}
