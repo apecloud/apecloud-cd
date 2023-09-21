@@ -48,6 +48,11 @@ on:
         type: string
         required: false
         default: ""
+      node-size:
+        description: 'node size'
+        type: string
+        required: false
+        default: ""
       kb-version:
         description: 'kubeblocks release version'
         type: string
@@ -157,10 +162,10 @@ jobs:
               fi
           fi
           
-          NODE_SIZE=""
-          if [[ "${{ inputs.cloud-provider }}" == "eks" && -n "${COUNTS}" ]]; then
+          NODE_SIZE="${{ inputs.node-size }}"
+          if [[ "${{ inputs.cloud-provider }}" == "eks" && -n "${COUNTS}" && -z "${NODE_SIZE}" ]]; then
               NODE_SIZE="$(( $COUNTS * 2 ))"
-          elif [[ "${{ inputs.cloud-provider }}" == "gke" && -n "${COUNTS}" ]]; then
+          elif [[ "${{ inputs.cloud-provider }}" == "gke" && -n "${COUNTS}" && -z "${NODE_SIZE}" ]]; then
               NODE_SIZE="$(( $COUNTS / 2 + 1 ))"
           fi
           
