@@ -19,7 +19,7 @@ jobs:
     outputs:
       version: ${{ steps.get_version.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: remove prefix v
         id: get_version
         run: |
@@ -39,7 +39,7 @@ jobs:
     env:
       VERSION: ${{ needs.get-version.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: apecloud/chocolatey-packages
           path: chocolatey

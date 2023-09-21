@@ -34,17 +34,17 @@ jobs:
         run: pip3 install python-dateutil
 
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Checkout helm-charts Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: apecloud/helm-charts
           path: helm-charts
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: Checkout apecloud-cd Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: apecloud/apecloud-cd
           path: apecloud-cd
@@ -128,7 +128,7 @@ jobs:
     needs: delete-release
     steps:
       - name: Checkout apecloud-cd Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: apecloud/apecloud-cd
           path: apecloud-cd

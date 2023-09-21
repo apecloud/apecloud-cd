@@ -93,11 +93,11 @@ jobs:
 
       - name: Checkout Code
         if: ${{ inputs.GITHUB_REPO == '' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Checkout ${{ inputs.GITHUB_REPO }} Code
         if: ${{ inputs.GITHUB_REPO != '' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: ${{ inputs.GITHUB_REPO }}
           path: ./
@@ -112,7 +112,7 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Checkout apecloud-cd Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: apecloud/apecloud-cd
           path: apecloud-cd
@@ -197,7 +197,7 @@ jobs:
 
       - name: Checkout helm-charts Code
         if: inputs.PUSH_ENABLE
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: apecloud/helm-charts
           path: helm-charts

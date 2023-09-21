@@ -215,7 +215,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ install-kubeblocks, test-mysql, test-postgresql, test-smartengine ,test-redis, test-mongodb ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: apecloud/apecloud-cd
           path: ./

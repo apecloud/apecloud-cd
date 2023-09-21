@@ -33,7 +33,7 @@ jobs:
   terraform-destroy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.4.6
@@ -65,7 +65,7 @@ jobs:
           echo deploy-path=${DEPLOY_PATH} >> $GITHUB_OUTPUT
 
       - name: checkout cloud-provider
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: apecloud/cloud-provider
           ref: "apecd-deploy"

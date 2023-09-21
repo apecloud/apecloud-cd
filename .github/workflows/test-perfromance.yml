@@ -125,7 +125,7 @@ jobs:
       perfromance-result: ${{ steps.perfromance_test.outputs.perfromance-result }}
     steps:
       - name: checkout testinfra
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: apecloud/testinfra
           ref: ${{ inputs.branch-name }}

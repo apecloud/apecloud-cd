@@ -16,7 +16,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: remove prefix v
         run: |
           publish_version=`bash ${{ github.workspace }}/.github/utils/utils.sh \
