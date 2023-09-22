@@ -7,6 +7,7 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  RELEASE_VERSION: ${{ github.ref_name }}
 
 jobs:
   create-release:
@@ -18,14 +19,16 @@ jobs:
       - name: Get repository name
         run: |
           repo_name=${GITHUB_REPOSITORY#*/}
+          tag_name=${GITHUB_REF#refs/tags/}
           echo 'REPO_NAME='${repo_name} >> $GITHUB_ENV
+          echo 'TAG_NAME='${tag_name} >> $GITHUB_ENV
 
       - name: release pre-release
         uses: softprops/action-gh-release@v1
         with:
           token: ${{ env.GITHUB_TOKEN }}
-          name: ${{ env.REPO_NAME }} v${{ env.REL_VERSION }}
-          tag_name: v${{ env.REL_VERSION }}
+          name: ${{ env.REPO_NAME }} ${{ env.TAG_NAME }}
+          tag_name: ${{ env.TAG_NAME }}
           generate_release_notes: true
           prerelease: true
 
