@@ -72,7 +72,6 @@ jobs:
     with:
       TYPE: "1"
       VERSION: "${{ needs.get-version.outputs.release-version }}"
-      cluster-version: ${{ inputs.CLUSTER_VERSION }}
     secrets: inherit
 
   release-version:
