@@ -9,8 +9,7 @@ env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
 jobs:
-  publish:
-    name: create release
+  create-release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -26,15 +25,15 @@ jobs:
         with:
           token: ${{ env.GITHUB_TOKEN }}
           name: ${{ env.REPO_NAME }} v${{ env.REL_VERSION }}
-          generate_release_notes: true
           tag_name: v${{ env.REL_VERSION }}
+          generate_release_notes: true
           prerelease: true
 
   send-message:
-    needs: [ get-version, release-version ]
+    needs: [ create-release ]
     if: ${{ failure() || cancelled() }}
     uses: ./.github/workflows/feishui-message.yml
     with:
       TYPE: "2"
-      CONTENT: "release ${{ needs.get-version.outputs.release-version }} create error"
+      CONTENT: "create release ${{ needs.get-version.outputs.release-version }} error"
     secrets: inherit
