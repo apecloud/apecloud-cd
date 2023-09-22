@@ -79,8 +79,7 @@ check_release_version(){
     if [[ -z "$latest_version" || "$latest_version" == "null" ]]; then
         VERSION="v0.1"
     else
-        VERSION_TMP=$(echo "$latest_version" | awk -F '.' '{print $1"."$2}')
-        VERSION=$(awk 'BEGIN {print '$VERSION_TMP' + 0.1}')
+        VERSION=$(echo "$latest_version" | awk -F '.' '{print $1"."$2}')
     fi
 }
 
