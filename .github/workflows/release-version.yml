@@ -84,7 +84,7 @@ jobs:
         uses: mathieudutour/github-tag-action@v6.1
         with:
           custom_tag: ${{ needs.get-version.outputs.release-version }}
-          github_token: ${{ env.GITHUB_TOKEN }}
+          github_token: ${{ env.GH_TOKEN }}
           tag_prefix: ""
 
   send-message:
