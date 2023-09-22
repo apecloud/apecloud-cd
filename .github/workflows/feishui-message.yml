@@ -18,6 +18,11 @@ on:
         required: false
         type: string
         default: ''
+      APECD_REF:
+        description: "The ref of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
 
 env:
   RELEASE_BOT_WEBHOOK: ${{ secrets.RELEASE_BOT_WEBHOOK }}
@@ -35,6 +40,7 @@ jobs:
         with:
           repository: apecloud/apecloud-cd
           path: apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
 
       - name: send message
         run: |

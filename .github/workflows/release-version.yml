@@ -13,6 +13,11 @@ on:
         type: string
         required: false
         default: ''
+      apecd_ref:
+        description: "The ref of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
   workflow_dispatch:
     inputs:
       release_version:
@@ -23,6 +28,10 @@ on:
         description: 'the request content'
         required: false
         default: ''
+      apecd_ref:
+        description: "The ref of apecloud-cd"
+        required: false
+        default: 'main'
 
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -34,6 +43,7 @@ jobs:
     with:
       RELEASE_VERSION: "${{ inputs.release_version }}"
       CONTENT: "${{ inputs.content }}"
+      APECD_REF: ${{ inputs.apecd_ref }}
     secrets: inherit
 
   release-message:
@@ -43,6 +53,7 @@ jobs:
     with:
       TYPE: "1"
       VERSION: "${{ needs.get-version.outputs.release-version }}"
+      APECD_REF: ${{ inputs.apecd_ref }}
     secrets: inherit
 
   release-version:
@@ -65,4 +76,5 @@ jobs:
     with:
       TYPE: "2"
       CONTENT: "release ${{ needs.get-version.outputs.release-version }} error"
+      APECD_REF: ${{ inputs.apecd_ref }}
     secrets: inherit
