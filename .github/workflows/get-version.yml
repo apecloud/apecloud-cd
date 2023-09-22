@@ -1,0 +1,60 @@
+name: Get Version
+
+on:
+  workflow_call:
+    inputs:
+      RELEASE_VERSION:
+        description: 'The version of release'
+        type: string
+        required: false
+        default: ''
+      CONTENT:
+        description: 'the request content'
+        type: string
+        required: false
+        default: ''
+    outputs:
+      release-version:
+        description: "test result"
+        value: ${{ jobs.get-version.outputs.release-version }}
+
+env:
+  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  RELEASE_BOT_WEBHOOK: ${{ secrets.RELEASE_BOT_WEBHOOK }}
+
+jobs:
+  get-version:
+    runs-on: ubuntu-latest
+    outputs:
+      release-version: ${{ steps.get_version.outputs.release-version }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+
+      - name: get version
+        id: get_version
+        run: |
+          cmd="bash apecloud-cd/.github/utils/webhook_utils.sh --type 3 \
+              --github-token ${{ env.GH_TOKEN }} \
+              --github-repo ${{ github.repository }} "
+          
+          if [[ -n "${{ inputs.CONTENT }}" ]]; then
+              cmd="${cmd} --content '${{ inputs.CONTENT }}' "
+          fi
+          
+          if [[ -n "${{ inputs.RELEASE_VERSION }}" ]]; then
+              cmd="${cmd} --version '${{ inputs.RELEASE_VERSION }}' "
+          fi
+          
+          if [[ -n "${{ env.RELEASE_BOT_WEBHOOK }}" ]]; then
+              cmd="${cmd} --bot-webhook '${{ env.RELEASE_BOT_WEBHOOK }}' "
+          fi
+          echo "$cmd"
+          RELEASE_VERSION=$(eval "$cmd")
+          echo release-version=$RELEASE_VERSION >> $GITHUB_OUTPUT
+          if [[ -z "${RELEASE_VERSION}" ]]; then
+              exit 1
+          fi
