@@ -8,6 +8,11 @@ on:
         type: string
         required: true
         default: ''
+      apecd_ref:
+        description: "The ref of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
   push:
     tags:
       - v*
@@ -20,9 +25,6 @@ jobs:
   create-release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
       - name: Get repository name
         run: |
           tag_name="${{ inputs.version }}"
@@ -49,4 +51,5 @@ jobs:
     with:
       TYPE: "2"
       CONTENT: "create release ${{ needs.get-version.outputs.release-version }} error"
+      APECD_REF: ${{ inputs.apecd_ref }}
     secrets: inherit

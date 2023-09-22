@@ -13,6 +13,11 @@ on:
         type: string
         required: false
         default: ''
+      APECD_REF:
+        description: "The ref of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
     outputs:
       release-version:
         description: "test result"
@@ -33,6 +38,7 @@ jobs:
         with:
           repository: apecloud/apecloud-cd
           path: apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
 
       - name: get version
         id: get_version
