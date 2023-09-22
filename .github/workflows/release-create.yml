@@ -1,6 +1,13 @@
 name: Release Create
 
 on:
+  workflow_call:
+    inputs:
+      version:
+        description: "The version of release"
+        type: string
+        required: true
+        default: ''
   push:
     tags:
       - v*
@@ -18,8 +25,11 @@ jobs:
 
       - name: Get repository name
         run: |
+          tag_name="${{ inputs.version }}"
+          if [[ -z "$tag_name" ]]; then
+              tag_name=${GITHUB_REF#refs/tags/}
+          fi
           repo_name=${GITHUB_REPOSITORY#*/}
-          tag_name=${GITHUB_REF#refs/tags/}
           echo 'REPO_NAME='${repo_name} >> $GITHUB_ENV
           echo 'TAG_NAME='${tag_name} >> $GITHUB_ENV
 
