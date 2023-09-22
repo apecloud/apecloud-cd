@@ -1,0 +1,40 @@
+name: Release Create
+
+on:
+  push:
+    tags:
+      - v*
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  publish:
+    name: create release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Get repository name
+        run: |
+          repo_name=${GITHUB_REPOSITORY#*/}
+          echo 'REPO_NAME='${repo_name} >> $GITHUB_ENV
+
+      - name: release pre-release
+        uses: softprops/action-gh-release@v1
+        with:
+          token: ${{ env.GITHUB_TOKEN }}
+          name: ${{ env.REPO_NAME }} v${{ env.REL_VERSION }}
+          generate_release_notes: true
+          tag_name: v${{ env.REL_VERSION }}
+          prerelease: true
+
+  send-message:
+    needs: [ get-version, release-version ]
+    if: ${{ failure() || cancelled() }}
+    uses: ./.github/workflows/feishui-message.yml
+    with:
+      TYPE: "2"
+      CONTENT: "release ${{ needs.get-version.outputs.release-version }} create error"
+    secrets: inherit

@@ -1,0 +1,98 @@
+name: Release Version
+
+on:
+  workflow_call:
+    inputs:
+      release_version:
+        description: 'The version of release'
+        type: string
+        required: false
+        default: ''
+      content:
+        description: 'the request content'
+        type: string
+        required: false
+        default: ''
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'The version of release'
+        required: false
+        default: ''
+      content:
+        description: 'the request content'
+        required: false
+        default: ''
+
+env:
+  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  RELEASE_BOT_WEBHOOK: ${{ secrets.RELEASE_BOT_WEBHOOK }}
+
+jobs:
+  get-version:
+    runs-on: ubuntu-latest
+    outputs:
+      release-version: ${{ steps.get_version.outputs.release-version }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+
+      - name: get version
+        id: get_version
+        run: |
+          cmd="bash apecloud-cd/.github/utils/webhook_utils.sh --type 3 \
+              --github-token ${{ env.GH_TOKEN }} \
+              --github-repo ${{ github.repository }} "
+          
+          if [[ -n "${{ inputs.content }}" ]]; then
+              cmd="${cmd} --content '${{ inputs.content }}' "
+          fi
+          
+          if [[ -n "${{ inputs.release_version }}" ]]; then
+              cmd="${cmd} --version '${{ inputs.release_version }}' "
+          fi
+          
+          if [[ -n "${{ env.RELEASE_BOT_WEBHOOK }}" ]]; then
+              cmd="${cmd} --bot-webhook '${{ env.RELEASE_BOT_WEBHOOK }}' "
+          fi
+          echo "$cmd"
+          RELEASE_VERSION=$(eval "$cmd")
+          echo release-version=$RELEASE_VERSION >> $GITHUB_OUTPUT
+          if [[ -z "${RELEASE_VERSION}" ]]; then
+              exit 1
+          fi
+
+  release-message:
+    if: ${{ needs.get-version.result == 'success' }}
+    needs: [ get-version ]
+    uses: ./.github/workflows/feishui-message.yml
+    with:
+      TYPE: "1"
+      VERSION: "${{ needs.get-version.outputs.release-version }}"
+      cluster-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  release-version:
+    needs: [ get-version, release-message ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout branch ${{ github.ref_name }}
+        uses: actions/checkout@v4
+      - name: push tag
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          custom_tag: ${{ needs.get-version.outputs.release-version }}
+          github_token: ${{ env.GITHUB_TOKEN }}
+          tag_prefix: ""
+
+  send-message:
+    needs: [ get-version, release-version ]
+    if: ${{ failure() || cancelled() }}
+    uses: ./.github/workflows/feishui-message.yml
+    with:
+      TYPE: "2"
+      CONTENT: "release ${{ needs.get-version.outputs.release-version }} error"
+    secrets: inherit

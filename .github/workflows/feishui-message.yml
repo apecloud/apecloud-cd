@@ -1,0 +1,61 @@
+name: Send Feishui Message
+
+on:
+  workflow_call:
+    inputs:
+      TYPE:
+        description: 'The type to send message'
+        required: false
+        type: string
+        default: '2'
+      CONTENT:
+        description: 'The send message content'
+        required: false
+        type: string
+        default: ''
+      VERSION:
+        description: 'The version of release'
+        required: false
+        type: string
+        default: ''
+
+env:
+  RELEASE_BOT_WEBHOOK: ${{ secrets.RELEASE_BOT_WEBHOOK }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  sned-message:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+
+      - name: send message
+        run: |
+          cmd="bash apecloud-cd/.github/utils/webhook_utils.sh --type ${{ inputs.TYPE }} \
+              --github-repo ${{ github.repository }} \
+              --run-url $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID "
+          
+          if [[ -z "${{ env.RELEASE_BOT_WEBHOOK }}" ]]; then
+              echo "Please set github secrets 'RELEASE_BOT_WEBHOOK'"
+              exit 1
+          else
+              cmd="${cmd} --bot-webhook '${{ env.RELEASE_BOT_WEBHOOK }}' "
+          fi
+          
+          if [[ -n "${{ inputs.CONTENT }}" ]]; then
+              cmd="${cmd} --content '${{ inputs.CONTENT }}' "
+          fi
+          
+          if [[ -n "${{ inputs.VERSION }}" ]]; then
+              cmd="${cmd} --version '${{ inputs.VERSION }}' "
+          fi
+          
+          echo "$cmd"
+          eval "$cmd"
