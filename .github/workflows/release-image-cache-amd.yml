@@ -1,4 +1,4 @@
-name: RELEASE-IMAGE-CACHE
+name: RELEASE-IMAGE-CACHE-AMD
 
 on:
   workflow_call:
@@ -93,7 +93,7 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, amd-runner ]
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
     steps:
