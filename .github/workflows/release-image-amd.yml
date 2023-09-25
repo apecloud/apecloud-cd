@@ -1,4 +1,4 @@
-name: RELEASE-IMAGE-ARM
+name: RELEASE-IMAGE-AMD
 
 on:
   workflow_call:
@@ -72,7 +72,7 @@ jobs:
     permissions:
       contents: 'write'
       id-token: 'write'
-    runs-on: [self-hosted, arm-runner ]
+    runs-on: [self-hosted, amd-runner ]
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
     steps:
