@@ -274,7 +274,6 @@ get_addons_list() {
             fi
         else
             echo "not found chart dir $charts_dir"
-            return
         fi
     done
     echo "ADDONS_LIST:"$ADDONS_LIST
