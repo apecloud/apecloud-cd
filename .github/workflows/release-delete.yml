@@ -121,41 +121,6 @@ jobs:
                   --access-token ${{ env.JIHULAB_ACCESS_TOKEN }}
           done
 
-  delete-charts-index:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout helm-charts Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/helm-charts
-          path: ./
-          token: ${{ env.GITHUB_TOKEN }}
-          ref: gh-pages
-
-      - name: delete helm-charts index
-        id: delete_index
-        run: |
-          CHART_VERSION=""
-          for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
-              CHART_VERSION="${release/v/}"
-              yq eval 'del(.entries.[].[]|select(.version|contains("'${CHART_VERSION}'")))' -i ${{ github.workspace }}/index.yaml
-          done
-          FILE_CHANGES=`git diff --name-only ${{ github.sha }}`
-          if [[ ! -z "$FILE_CHANGES" ]]; then
-            echo $FILE_CHANGES
-            git config --local user.name "$GITHUB_ACTOR"
-            git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
-            git commit -a -m "chore: delete index chart version ${CHART_VERSION}"
-          fi
-          echo file_changes=$FILE_CHANGES >> $GITHUB_OUTPUT
-
-      - name: Push index.yaml changes
-        uses: ad-m/github-push-action@master
-        if: ${{ steps.delete_index.outputs.file_changes }}
-        with:
-          github_token: ${{ env.GITHUB_TOKEN }}
-          branch: gh-pages
-
   delete-image:
     runs-on: ubuntu-latest
     steps:
