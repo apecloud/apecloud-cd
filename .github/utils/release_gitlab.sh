@@ -236,7 +236,7 @@ set_block_index_addon_list() {
             addon_name=$(cat $addon_file | grep -v '{{' | yq eval '.metadata.name' -)
             addon_name=$(get_upper_lower_name $addon_name)
             if [[ "$ADDONS_LIST" != *"[$addon_name]"* ]]; then
-                ADDONS_LIST=$ADDONS_LIST"["$addon_name"]"
+                ADDONS_LIST=$ADDONS_LIST"|["$addon_name"]"
             fi
         done
     done
@@ -259,7 +259,7 @@ set_addon_list() {
         chart_name=$(get_upper_lower_name $chart_name)
         addon_name=${chart_name%*-cluster}
         if [[ "$chart_name" == *"-cluster" && "$ADDONS_LIST" != *"[$addon_name]"* ]]; then
-            ADDONS_LIST=$ADDONS_LIST"["$addon_name"]"
+            ADDONS_LIST=$ADDONS_LIST"|["$addon_name"]"
         fi
     done
 }
@@ -327,8 +327,9 @@ get_project_id() {
         return
     fi
     # check addons charts
-    for addons in $(echo "$ADDONS_LIST" | sed 's/|/ /g'); do
-        if [[ "$chart_name" == "${addons}" || "$chart_name" == "${addons}-cluster" ]]; then
+    for addon_name in $(echo "$ADDONS_LIST" | sed 's/|/ /g'); do
+        addon_name=$(echo "$addon_name" | sed 's/^\[//' | sed 's/\]$//')
+        if [[ "$chart_name" == "${addon_name}" || "$chart_name" == "${addon_name}-cluster" ]]; then
             PROJECT_ID_TMP=$ADDONS_PROJECT_ID
             break
         fi
