@@ -2,6 +2,8 @@ name: CHART-UPLOAD
 
 on:
   push:
+    branches:
+      - 'main'
     paths:
       - 'upload-charts/*.tgz'
   workflow_dispatch:
@@ -49,7 +51,7 @@ jobs:
           elif [[ -n "${{ inputs.CHART_PACKAGE_NAME }}" ]]; then
               cp upload-charts/${{ inputs.CHART_PACKAGE_NAME }} .cr-release-packages
           else
-              cp upload-charts/*.tgz .cr-release-packages
+              bash ${{ github.workspace }}/.github/utils/utils.sh --type 20
           fi
 
       - name: Checkout helm-charts Code
