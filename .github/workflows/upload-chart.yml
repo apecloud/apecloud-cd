@@ -62,7 +62,6 @@ jobs:
           token: ${{ env.CR_TOKEN }}
 
       - name: Checkout block-index Code
-        if: inputs.PUSH_ENABLE
         uses: actions/checkout@v4
         with:
           repository: apecloud/block-index
