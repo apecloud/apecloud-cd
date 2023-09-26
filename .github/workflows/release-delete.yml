@@ -172,3 +172,13 @@ jobs:
                   --user ${{ env.ALIYUN_USER_NEW }} --password "${{ env.ALIYUN_PASSWORD_NEW }}" \
                   --tag-name $release
           done
+
+  update-charts-index:
+    if: ${{ always() }}
+    uses: ./.github/workflows/trigger-workflow.yml
+    with:
+      GITHUB_REPO: "apecloud/helm-charts"
+      BRANCH_NAME: "gh-pages"
+      WORKFLOW_ID: "update-index.yml"
+      VERSION: "${{ inputs.VERSION }}"
+    secrets: inherit
