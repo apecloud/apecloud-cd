@@ -145,8 +145,8 @@ jobs:
         run: |
           CHART_VERSION=""
           for release in $(echo "${{ needs.delete-release.outputs.release-version }}" | sed 's/|/ /g'); do
-              CHART_VERSION=$release
-              yq eval 'del(.entries.[].[]|select(.version|contains("'${release}'")))' -i ${{ github.workspace }}/index.yaml
+              CHART_VERSION="${release/v/}"
+              yq eval 'del(.entries.[].[]|select(.version|contains("'${CHART_VERSION}'")))' -i ${{ github.workspace }}/index.yaml
           done
           FILE_CHANGES=`git diff --name-only ${{ github.sha }}`
           if [[ ! -z "$FILE_CHANGES" ]]; then
