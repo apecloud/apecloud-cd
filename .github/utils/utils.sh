@@ -603,7 +603,7 @@ delete_charts_index() {
 }
 
 get_incremental_chart_package() {
-    for filePath in $( git diff --name-only HEAD HEAD~100 ); do
+    for filePath in $( git diff --name-only HEAD HEAD^ ); do
         if [[ "$filePath" == "upload-charts/"*".tgz" ]]; then
             echo "cp $filePath .cr-release-packages"
             cp $filePath .cr-release-packages
