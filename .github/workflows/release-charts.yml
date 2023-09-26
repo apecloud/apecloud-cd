@@ -203,8 +203,16 @@ jobs:
           path: helm-charts
           token: ${{ env.CR_TOKEN }}
 
+      - name: Checkout block-index Code
+        if: inputs.PUSH_ENABLE
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/block-index
+          path: block-index
+          token: ${{ env.CR_TOKEN }}
+
       - name: copy dependency chart
-        if: inputs.DEP_CHART_DIR
+        if: ${{ inputs.DEP_CHART_DIR && inputs.PUSH_ENABLE }}
         run: |
           cp ${{ inputs.DEP_CHART_DIR }}/* .cr-release-packages
 
@@ -216,7 +224,7 @@ jobs:
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
             --type 3  \
             --asset-path ./ \
-            --charts-dir "${{ github.workspace }}/helm-charts/deploy" \
+            --charts-dir "${{ github.workspace }}/block-index/addons|${{ github.workspace }}/helm-charts/deploy|${{ github.workspace }}/deploy" \
             --access-token "${{ env.JIHULAB_ACCESS_TOKEN }}" \
             --access-user "${{ env.JIHULAB_ACCESS_USER }}"\
             --project-id "${{ inputs.PROJECT_ID }}"

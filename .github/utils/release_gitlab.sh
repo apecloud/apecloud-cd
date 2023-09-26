@@ -6,14 +6,15 @@ DEFAULT_PACKAGE_NAME=kubeblocks
 DEFAULT_CHANNEL=stable
 API_URL=https://jihulab.com/api/v4/projects
 DEFAULT_DELETE_FORCE="false"
-DEFAULT_HELM_CHARTS_PROJECT_ID=85949
-DEFAULT_ADDONS_PROJECT_ID=150246
-DEFAULT_PLUGINS_PROJECT_ID=150247
-DEFAULT_TOOLS_PROJECT_ID=150248
+DEFAULT_HELM_CHARTS_PROJECT_ID=85949 # helm-charts
+DEFAULT_ADDONS_PROJECT_ID=150246 # addons
+DEFAULT_PLUGINS_PROJECT_ID=150247 # plugins
+DEFAULT_TOOLS_PROJECT_ID=150248 # tools
+DEFAULT_APPLICATIONS_PROJECT_ID=152630 # applications
 DEFAULT_HELM_CHARTS_LIST="kubeblocks|kubeblocks-cloud"
-DEFAULT_ADDONS_LIST="prometheus"
+DEFAULT_ADDONS_LIST="[prometheus]"
 DEFAULT_PLUGINS_LIST="load-balancer|ingress|cloud-provider|metalb|csi-|esdk-k8s-plugin|openebs|cert-manager"
-DEFAULT_CHARTS_DIR="../helm-charts/deploy"
+DEFAULT_CHARTS_DIR="../deploy"
 
 show_help() {
 cat << EOF
@@ -56,6 +57,7 @@ main() {
     local ADDONS_PROJECT_ID=$DEFAULT_ADDONS_PROJECT_ID
     local PLUGINS_PROJECT_ID=$DEFAULT_PLUGINS_PROJECT_ID
     local TOOLS_PROJECT_ID=$DEFAULT_TOOLS_PROJECT_ID
+    local APPLICATIONS_PROJECT_ID=$DEFAULT_APPLICATIONS_PROJECT_ID
     local HELM_CHARTS_LIST=$DEFAULT_HELM_CHARTS_LIST
     local ADDONS_LIST=$DEFAULT_ADDONS_LIST
     local PLUGINS_LIST=$DEFAULT_PLUGINS_LIST
@@ -211,24 +213,71 @@ update_release_asset() {
     gitlab_api_curl --request $request_type $request_url --data $request_data
 }
 
-get_addons_list() {
-    if [[ ! -d "$CHARTS_DIR" ]]; then
-        echo "not found helm-charts dir"
-        return
-    fi
-    for chart in $( ls -1 $CHARTS_DIR ); do
-        chart_dir=$CHARTS_DIR/$chart
-        if [[ -d "$chart_dir" ]]; then
-            chart_file="$chart_dir/Chart.yaml"
-            if [[ -f "$chart_file" ]]; then
-                chart_name=$(cat $chart_file | grep "name:"|awk 'NR==1{print $2}')
-                chart_name=$(echo "$chart_name" | tr '[:upper:]' '[:lower:]')
-                if [[ "$chart_name" == *"-cluster" ]]; then
-                    ADDONS_LIST="$ADDONS_LIST|${chart_name%*-cluster}"
-                fi
+get_upper_lower_name() {
+    tr_name=${1:-""}
+    tr_name=$(echo "$tr_name" | tr '[:upper:]' '[:lower:]')
+    echo "$tr_name"
+}
+
+set_block_index_addon_list() {
+    chart_dir=${1:-""}
+    for chart in $( ls -1 $chart_dir ); do
+        addon_dir=$chart_dir/$chart
+        if [[ ! -d "$addon_dir" ]]; then
+            echo "not found addon dir $addon_dir"
+            continue
+        fi
+        for addon_file in $( ls -1 $addon_dir ); do
+            addon_file=$addon_dir/$addon_file
+            if [[ ! -f "$addon_file" ]]; then
+                echo "not found addon file $addon_file"
+                continue
             fi
+            addon_name=$(cat $addon_file | grep -v '{{' | yq eval '.metadata.name' -)
+            addon_name=$(get_upper_lower_name $addon_name)
+            if [[ "$ADDONS_LIST" != *"[$addon_name]"* ]]; then
+                ADDONS_LIST=$ADDONS_LIST"["$addon_name"]"
+            fi
+        done
+    done
+}
+
+set_addon_list() {
+    chart_dir=${1:-""}
+    for chart in $( ls -1 $chart_dir ); do
+        addon_dir=$chart_dir/$chart
+        if [[ ! -d "$addon_dir" ]]; then
+            echo "not found chart dir $addon_dir"
+            continue
+        fi
+        chart_file="$addon_dir/Chart.yaml"
+        if [[ ! -f "$chart_file" ]]; then
+            echo "not found chart file $chart_file"
+            continue
+        fi
+        chart_name=$(cat $chart_file | yq eval '.name' -)
+        chart_name=$(get_upper_lower_name $chart_name)
+        addon_name=${chart_name%*-cluster}
+        if [[ "$chart_name" == *"-cluster" && "$ADDONS_LIST" != *"[$addon_name]"* ]]; then
+            ADDONS_LIST=$ADDONS_LIST"["$addon_name"]"
         fi
     done
+}
+
+get_addons_list() {
+    for charts_dir in $(echo "$CHARTS_DIR" | sed 's/|/ /g'); do
+        if [[ -d "$charts_dir" ]]; then
+            if [[ "$charts_dir" == *"block-index"* ]]; then
+                set_block_index_addon_list "$charts_dir"
+            else
+                set_addon_list "$charts_dir"
+            fi
+        else
+            echo "not found chart dir $charts_dir"
+            return
+        fi
+    done
+    echo "ADDONS_LIST:"$ADDONS_LIST
 }
 
 get_project_id() {
@@ -236,7 +285,7 @@ get_project_id() {
     chart_ops=${2:-""}
     PROJECT_ID_TMP=""
     if [[ -n "$PROJECT_ID" ]]; then
-        PROJECT_ID_TMP=$(echo "$PROJECT_ID" | tr '[:upper:]' '[:lower:]')
+        PROJECT_ID_TMP=$(get_upper_lower_name "$PROJECT_ID")
         case $PROJECT_ID_TMP in
             *kubeblock*)
                 PROJECT_ID_TMP=$HELM_CHARTS_PROJECT_ID
@@ -250,6 +299,9 @@ get_project_id() {
             *tool*)
                 PROJECT_ID_TMP=$TOOLS_PROJECT_ID
             ;;
+            *application*)
+                PROJECT_ID_TMP=$APPLICATIONS_PROJECT_ID
+            ;;
         esac
         return
     fi
@@ -258,7 +310,7 @@ get_project_id() {
     if [[ -z "$chart_ops" ]]; then
         chart_name="$( helm show chart $chart_package_name | yq eval '.name' - )"
     fi
-    chart_name=$(echo "$chart_name" | tr '[:upper:]' '[:lower:]')
+    chart_name=$(get_upper_lower_name $chart_name)
     echo "chart name:$chart_name"
     if [[ "$chart_name" == "kblib" ]]; then
         echo "skip chart $chart_name"
@@ -266,7 +318,7 @@ get_project_id() {
     fi
     # check kubeblocks charts
     for helm_charts in $(echo "$HELM_CHARTS_LIST" | sed 's/|/ /g'); do
-        if [[ "$chart_name" == *"$helm_charts"* ]]; then
+        if [[ "$chart_name" == "$helm_charts"* ]]; then
             PROJECT_ID_TMP=$HELM_CHARTS_PROJECT_ID
             break
         fi
@@ -285,17 +337,17 @@ get_project_id() {
         return
     fi
     # check plugins charts
-    for plugins in $(echo "$PLUGINS_LIST" | sed 's/|/ /g'); do
-        if [[ "$chart_name" == *"${plugins}"*  ]]; then
-            PROJECT_ID_TMP=$PLUGINS_PROJECT_ID
-            break
-        fi
-    done
-    if [[ -n "$PROJECT_ID_TMP" ]]; then
-        return
-    fi
+#    for plugins in $(echo "$PLUGINS_LIST" | sed 's/|/ /g'); do
+#        if [[ "$chart_name" == *"${plugins}"*  ]]; then
+#            PROJECT_ID_TMP=$PLUGINS_PROJECT_ID
+#            break
+#        fi
+#    done
+#    if [[ -n "$PROJECT_ID_TMP" ]]; then
+#        return
+#    fi
     # check tools charts
-    PROJECT_ID_TMP=$TOOLS_PROJECT_ID
+    PROJECT_ID_TMP=$APPLICATIONS_PROJECT_ID
 }
 
 upload_chart() {
@@ -332,7 +384,7 @@ release_helm() {
         ASSET_PATHS[${#ASSET_PATHS[@]}]=`basename $ASSET_PATH`
     fi
     if [[ ${#ASSET_PATHS[@]} -eq 0 ]]; then
-        echo "not found helm-charts $ASSET_PATH"
+        echo "not found charts file $ASSET_PATH"
         return
     fi
     for chart in ${ASSET_PATHS[@]}; do
@@ -413,7 +465,7 @@ filter_charts() {
         [[ ! -d "$charts_dir/$chart" ]] && continue
         local file="$charts_dir/$chart/Chart.yaml"
         if [[ -f "$file" ]]; then
-            chart_name=$(cat $file | grep "name:"|awk 'NR==1{print $2}')
+            chart_name=$(cat $file | yq eval '.name' -)
             echo "delete helm_chart $chart_name $TAG_NAME_TMP"
             get_project_id "$chart_name" "delete"
             if [[ -n "$PROJECT_ID_TMP" ]]; then
