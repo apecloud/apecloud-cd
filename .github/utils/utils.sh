@@ -29,6 +29,7 @@ Usage: $(basename "$0") <options>
                                 17) get job url
                                 18) delete aliyun images new
                                 19) delete helm-charts index
+                                20) get incremental chart package
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -142,6 +143,9 @@ main() {
         ;;
         19)
             delete_charts_index
+        ;;
+        20)
+            get_incremental_chart_package
         ;;
     esac
 }
@@ -596,6 +600,15 @@ delete_runner() {
 
 delete_charts_index() {
     yq eval 'del(.entries.[].[]|select(.version|contains("'$TAG_NAME_TMP'")))' -i index.yaml
+}
+
+get_incremental_chart_package() {
+    for filePath in $( git diff --name-only HEAD HEAD^ ); do
+        if [[ "$filePath" == "upload-charts/"*".tgz" ]]; then
+            echo "cp $filePath .cr-release-packages"
+            cp $filePath .cr-release-packages
+        fi
+    done
 }
 
 main "$@"
