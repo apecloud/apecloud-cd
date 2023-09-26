@@ -1,6 +1,9 @@
 name: CHART-UPLOAD
 
 on:
+  push:
+    paths:
+      - 'upload-charts/*.tgz'
   workflow_dispatch:
     inputs:
       CHART_PACKAGE_NAME:
@@ -46,8 +49,7 @@ jobs:
           elif [[ -n "${{ inputs.CHART_PACKAGE_NAME }}" ]]; then
               cp upload-charts/${{ inputs.CHART_PACKAGE_NAME }} .cr-release-packages
           else
-              echo "helm chart package or helm chart url  not found"
-              exit 1
+              cp upload-charts/*.tgz .cr-release-packages
           fi
 
       - name: Checkout helm-charts Code
