@@ -297,7 +297,11 @@ add_trigger_mode() {
 trigger_repo_workflow() {
     data='{"ref":"'$BRANCH_NAME'"}'
     if [[ ! -z "$VERSION" ]]; then
-        data='{"ref":"main","inputs":{"VERSION":"'$VERSION'"}}'
+        if [[ -n "$BRANCH_NAME" ]]; then
+            data='{"ref":"'$BRANCH_NAME'","inputs":{"VERSION":"'$VERSION'"}}'
+        else
+            data='{"ref":"main","inputs":{"VERSION":"'$VERSION'"}}'
+        fi
     fi
     gh_curl -X POST \
         $GITHUB_API/repos/$GITHUB_REPO/actions/workflows/$WORKFLOW_ID/dispatches \
