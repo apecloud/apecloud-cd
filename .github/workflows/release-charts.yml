@@ -64,7 +64,7 @@ on:
         required: false
         default: true
       PROJECT_ID:
-        description: "The jihulab priject id to upload"
+        description: "The jihulab project id to upload"
         type: string
         required: false
         default: ''
