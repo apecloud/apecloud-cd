@@ -27,6 +27,8 @@ Usage: $(basename "$0") <options>
                                 15) comment issue
                                 16) delete runner
                                 17) get job url
+                                18) delete aliyun images new
+                                19) delete helm-charts index
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -137,6 +139,9 @@ main() {
         ;;
         18)
             delete_aliyun_images_new
+        ;;
+        19)
+            delete_charts_index
         ;;
     esac
 }
@@ -355,10 +360,14 @@ delete_release_version() {
 
 filter_charts() {
     while read -r chart; do
-        [[ ! -d "$charts_dir/$chart" ]] && continue
-        local file="$charts_dir/$chart/Chart.yaml"
+        chart_dir=$DELETE_CHARTS_DIR/$chart
+        if [[ ! -d "$chart_dir" ]]; then
+            echo "not found chart dir $chart_dir"
+            continue
+        fi
+        local file="$chart_dir/Chart.yaml"
         if [[ -f "$file" ]]; then
-            chart_name=$(cat $file | grep "name:"|awk 'NR==1{print $2}')
+            chart_name=$(cat $file | yq eval '.name' -)
             echo "delete chart $chart_name-$TAG_NAME_TMP"
             TAG_NAME="$chart_name-$TAG_NAME_TMP"
             delete_release_version &
@@ -368,9 +377,16 @@ filter_charts() {
 }
 
 delete_release_charts() {
-    local charts_dir=deploy
-    charts_files=$( ls -1 $charts_dir )
-    echo "$charts_files" | filter_charts
+    local DELETE_CHARTS_DIR=""
+    for charts_dir in $(echo "deploy|helm-charts/deploy" | sed 's/|/ /g'); do
+        if [[ ! -d "$charts_dir" ]]; then
+            echo "not found chart dir $charts_dir"
+            continue
+        fi
+        DELETE_CHARTS_DIR=$charts_dir
+        charts_files=$( ls -1 $charts_dir )
+        echo "$charts_files" | filter_charts
+    done
 }
 
 delete_docker_images() {
@@ -572,6 +588,10 @@ delete_runner() {
             gh_curl -L -X DELETE $runners_url/$runner_id
         fi
     done
+}
+
+delete_charts_index() {
+    yq eval 'del(.entries.[].[]|select(.version|contains("'$TAG_NAME_TMP'")))' -i index.yaml
 }
 
 main "$@"
