@@ -50,6 +50,13 @@ jobs:
           path: apecloud-cd
           ref: ${{ inputs.APECD_REF }}
 
+      - name: Checkout block-index Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/block-index
+          path: block-index
+          token:  ${{ env.GITHUB_TOKEN }}
+
       - name: get delete release version
         id: get_delete_version
         run: |
@@ -108,7 +115,7 @@ jobs:
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
                   --type 6 \
                   --tag-name $release \
-                  --charts-dir "${{ github.workspace }}/helm-charts/deploy" \
+                  --charts-dir "${{ github.workspace }}/block-index/addons|${{ github.workspace }}/helm-charts/deploy|${{ github.workspace }}/deploy" \
                   --access-token ${{ env.JIHULAB_ACCESS_TOKEN }}
           done
 
