@@ -462,8 +462,12 @@ delete_release() {
 
 filter_charts() {
     while read -r chart; do
-        [[ ! -d "$delete_charts_dir/$chart" ]] && continue
-        local file="$delete_charts_dir/$chart/Chart.yaml"
+        chart_dir=$DELETE_CHARTS_DIR/$chart
+        if [[ ! -d "$chart_dir" ]]; then
+            echo "not found chart dir $chart_dir"
+            continue
+        fi
+        local file="$chart_dir/Chart.yaml"
         if [[ -f "$file" ]]; then
             chart_name=$(cat $file | yq eval '.name' -)
             echo "delete helm_chart $chart_name $TAG_NAME_TMP"
@@ -479,10 +483,14 @@ filter_charts() {
 delete_helm_chart() {
     TAG_NAME="$TAG_NAME_TMP"
     get_addons_list
-    local delete_charts_dir=""
+    local DELETE_CHARTS_DIR=""
     for charts_dir in $(echo "deploy|helm-charts/deploy" | sed 's/|/ /g'); do
-        delete_charts_dir=$charts_dir
-        charts_files=$( ls -1 $delete_charts_dir )
+        if [[ ! -d "$charts_dir" ]]; then
+            echo "not found chart dir $charts_dir"
+            continue
+        fi
+        DELETE_CHARTS_DIR=$charts_dir
+        charts_files=$( ls -1 $charts_dir )
         echo "$charts_files" | filter_charts
     done
 }
