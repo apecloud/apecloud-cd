@@ -19,7 +19,7 @@ on:
         required: false
         default: ''
       TEST_TYPE:
-        description: 'test type (e.g. mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale|greptimedb|nebula|risingwave|starrocks|oceanbase|foxlake|oracle-mysql|asmysql|openldap)'
+        description: 'test type (e.g. apecloud-mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale|greptimedb|nebula|risingwave|starrocks|oceanbase|foxlake|oracle-mysql|asmysql|openldap)'
         type: string
         required: false
         default: ''
@@ -69,7 +69,7 @@ on:
         required: false
         default: ''
       TEST_TYPE:
-        description: 'test type (e.g. mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale|greptimedb|nebula|risingwave|starrocks|oceanbase|foxlake|oracle-mysql|asmysql|openldap)'
+        description: 'test type (e.g. apecloud-mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale|greptimedb|nebula|risingwave|starrocks|oceanbase|foxlake|oracle-mysql|asmysql|openldap)'
         type: string
         required: false
         default: ''
@@ -148,8 +148,8 @@ jobs:
       branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
 
-  test-mysql:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mysql')) }}
+  test-apecloud-mysql:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'apecloud-mysql')) }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -158,7 +158,7 @@ jobs:
       release-version: "${{ inputs.KB_VERSION }}"
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "1"
-      test-type-name: "mysql"
+      test-type-name: "apecloud-mysql"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
@@ -474,7 +474,7 @@ jobs:
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: [ test-playground, install-kubeblocks, test-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar, test-mysqlscale, test-weaviate, test-qdrant, test-smartengine, test-greptimedb, test-nebula, test-risingwave, test-starrocks, test-oceanbase, test-foxlake, test-oracle-mysql, test-asmysql, test-openldap ]
+    needs: [ test-playground, install-kubeblocks, test-apecloud-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar, test-mysqlscale, test-weaviate, test-qdrant, test-smartengine, test-greptimedb, test-nebula, test-risingwave, test-starrocks, test-oceanbase, test-foxlake, test-oracle-mysql, test-asmysql, test-openldap ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -485,10 +485,9 @@ jobs:
       - name: send message
         id: get_trigger_mode
         run: |
-          TEST_RESULT="playground|${{ needs.test-playground.outputs.test-result }}"
-          TEST_RESULT="${TEST_RESULT}##install|${{ needs.install-kubeblocks.outputs.test-result }}"
-          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mysql"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##mysql|${{ needs.test-mysql.outputs.test-result }}"
+          TEST_RESULT="playground|${{ needs.test-playground.outputs.test-result }}##install|${{ needs.install-kubeblocks.outputs.test-result }}"
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"apecloud-mysql"* ]]; then
+              TEST_RESULT="${TEST_RESULT}##apecloud-mysql|${{ needs.apecloud-mysql.outputs.test-result }}"
           fi
           
           if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"postgres"* ]]; then
