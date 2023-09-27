@@ -30,7 +30,9 @@ Usage: $(basename "$0") <options>
                                 18) delete aliyun images new
                                 19) delete helm-charts index
                                 20) get incremental chart package
-                                21) set size label
+                                21) set pr size label
+                                22) set pr milestone
+                                23) set issue milestone
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -46,6 +48,7 @@ Usage: $(basename "$0") <options>
     -in, --issue-number       The issue number
     -ic, --issue-comment      The issue comment body
     -jn, --job-name           The github runner job name
+    -pn, --pr-number          The pull request number
 EOF
 }
 
@@ -73,6 +76,7 @@ main() {
     local ISSUE_NUMBER=""
     local ISSUE_COMMENT=""
     local JOB_NAME=""
+    local PR_NUMBER=""
 
     parse_command_line "$@"
 
@@ -150,6 +154,12 @@ main() {
         ;;
         21)
             set_size_label
+        ;;
+        22)
+            set_pr_milestone
+        ;;
+        23)
+            set_issue_milestone
         ;;
     esac
 }
@@ -254,6 +264,12 @@ parse_command_line() {
             -jn|--job-name)
                 if [[ -n "${2:-}" ]]; then
                     JOB_NAME="$2"
+                    shift
+                fi
+                ;;
+            -pn|--pr-number)
+                if [[ -n "${2:-}" ]]; then
+                    PR_NUMBER="$2"
                     shift
                 fi
                 ;;
@@ -666,6 +682,31 @@ set_size_label() {
     if [[ $add_label == true ]]; then
         echo "add label:$size_label"
         gh pr edit $PR_NUMBER --repo $GITHUB_REPO --add-label "$size_label"
+    fi
+}
+
+get_latest_milestone() {
+    latest_milestone=$( gh_curl -s $GITHUB_API/repos/$GITHUB_REPO/milestones | jq -r '[.[] | select(.state == "open")][0].title')
+    echo "$latest_milestone"
+}
+
+set_pr_milestone() {
+    latest_milestone_name=$( get_latest_milestone )
+    pr_info=$( gh pr view $PR_NUMBER --repo $GITHUB_REPO --json "milestone" )
+    pr_milestone=$( echo "$pr_info" | jq -r '.milestone' )
+    if [[ "$pr_milestone" == "null" || -z "$pr_milestone" ]]; then
+        echo "set pr milestone:$latest_milestone_name"
+        gh pr edit $PR_NUMBER --repo $GITHUB_REPO --milestone "$latest_milestone_name"
+    fi
+}
+
+set_issue_milestone() {
+    latest_milestone_name=$( get_latest_milestone )
+    issue_info=$( gh issue view $ISSUE_NUMBER --repo $GITHUB_REPO --json "milestone" )
+    issue_milestone=$( echo "$issue_info" | jq -r '.milestone' )
+    if [[ "$issue_milestone" == "null" || -z "$issue_milestone" ]]; then
+        echo "set issue milestone:$latest_milestone_name"
+        gh issue edit $ISSUE_NUMBER --repo $GITHUB_REPO --milestone "$latest_milestone_name"
     fi
 }
 
