@@ -1,0 +1,33 @@
+name: Pull Request Milestone
+
+on:
+  workflow_call:
+    inputs:
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+
+
+env:
+  GITHUB_TOKEN: ${{ github.token }}
+
+jobs:
+  pr-milestone:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: set pr milestone
+        run: |
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+              --type 22 \
+              --github-repo "${{ github.repository }}" \
+              --github-token "${{ env.GITHUB_TOKEN }}" \
+              --pr-number "${{ github.event.pull_request.number }}"
