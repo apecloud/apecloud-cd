@@ -30,6 +30,7 @@ Usage: $(basename "$0") <options>
                                 18) delete aliyun images new
                                 19) delete helm-charts index
                                 20) get incremental chart package
+                                21) set size label
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -49,12 +50,12 @@ EOF
 }
 
 GITHUB_API="https://api.github.com"
-LATEST_REPO=apecloud/kubeblocks
+DEFAULT_GITHUB_REPO=apecloud/kubeblocks
 
 main() {
     local TYPE=""
     local TAG_NAME=""
-    local GITHUB_REPO=""
+    local GITHUB_REPO="$DEFAULT_GITHUB_REPO"
     local GITHUB_TOKEN=""
     local TRIGGER_MODE=""
     local BRANCH_NAME="main"
@@ -146,6 +147,9 @@ main() {
         ;;
         20)
             get_incremental_chart_package
+        ;;
+        21)
+            set_size_label
         ;;
     esac
 }
@@ -279,7 +283,7 @@ get_upload_url() {
 }
 
 get_latest_tag() {
-    latest_release_tag=`gh_curl -s $GITHUB_API/repos/$LATEST_REPO/releases/latest | jq -r '.tag_name'`
+    latest_release_tag=`gh_curl -s $GITHUB_API/repos/$GITHUB_REPO/releases/latest | jq -r '.tag_name'`
     echo $latest_release_tag
 }
 
@@ -545,7 +549,7 @@ set_delete_release(){
 }
 
 get_delete_release() {
-    release_list=$( gh release list --repo $LATEST_REPO --limit 100 | grep "Pre-release" )
+    release_list=$( gh release list --repo $GITHUB_REPO --limit 100 | grep "Pre-release" )
     for tag in $( echo "$release_list" ) ;do
         delete_flag=0
 
@@ -613,6 +617,56 @@ get_incremental_chart_package() {
             fi
         fi
     done
+}
+
+set_size_label() {
+    pr_info=$( gh pr view $PR_NUMBER --repo $GITHUB_REPO --json "additions,deletions,labels" )
+    pr_additions=$( echo "$pr_info" | jq -r '.additions' )
+    pr_deletions=$( echo "$pr_info" | jq -r '.deletions' )
+    total_changes=$(( $pr_additions + $pr_deletions ))
+    size_label=""
+    if [[ $total_changes -lt 10 ]]; then
+        size_label="size/XS"
+    elif [[ $total_changes -lt 30 ]]; then
+        size_label="size/S"
+    elif [[ $total_changes -lt 100 ]]; then
+        size_label="size/M"
+    elif [[ $total_changes -lt 500 ]]; then
+        size_label="size/L"
+    elif [[ $total_changes -lt 1000 ]]; then
+        size_label="size/XL"
+    else
+        size_label="size/XXL"
+    fi
+    echo "size label:$size_label"
+    label_list=$(  echo "$pr_info" | jq -r '.labels[].name' )
+    remove_label=""
+    add_label=true
+    for label in $( echo "$label_list" ); do
+        case $label in
+            $size_label)
+                add_label=false
+                continue
+            ;;
+            size/*)
+                if [[ -z "$remove_label" ]]; then
+                    remove_label=$label
+                else
+                    remove_label="$label,$remove_label"
+                fi
+            ;;
+        esac
+    done
+
+    if [[ ! -z "$remove_label" ]]; then
+        echo "remove label:$remove_label"
+        gh pr edit $PR_NUMBER --repo $GITHUB_REPO --remove-label "$remove_label"
+    fi
+
+    if [[ $add_label == true ]]; then
+        echo "add label:$size_label"
+        gh pr edit $PR_NUMBER --repo $GITHUB_REPO --add-label "$size_label"
+    fi
 }
 
 main "$@"
