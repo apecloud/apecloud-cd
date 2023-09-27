@@ -33,6 +33,7 @@ Usage: $(basename "$0") <options>
                                 21) set pr size label
                                 22) set pr milestone
                                 23) set issue milestone
+                                24) move pr/issue to next milestone
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -49,6 +50,7 @@ Usage: $(basename "$0") <options>
     -ic, --issue-comment      The issue comment body
     -jn, --job-name           The github runner job name
     -pn, --pr-number          The pull request number
+    -ln, --limit-number       Maximum number of issues/pulls to fetch
 EOF
 }
 
@@ -77,6 +79,7 @@ main() {
     local ISSUE_COMMENT=""
     local JOB_NAME=""
     local PR_NUMBER=""
+    local LIMIT_NUMBER=""
 
     parse_command_line "$@"
 
@@ -160,6 +163,9 @@ main() {
         ;;
         23)
             set_issue_milestone
+        ;;
+        24)
+            move_pr_issue_to_next_milestone
         ;;
     esac
 }
@@ -270,6 +276,12 @@ parse_command_line() {
             -pn|--pr-number)
                 if [[ -n "${2:-}" ]]; then
                     PR_NUMBER="$2"
+                    shift
+                fi
+                ;;
+            -ln|--limit-number)
+                if [[ -n "${2:-}" ]]; then
+                    LIMIT_NUMBER="$2"
                     shift
                 fi
                 ;;
@@ -675,39 +687,95 @@ set_size_label() {
     done
 
     if [[ ! -z "$remove_label" ]]; then
-        echo "remove label:$remove_label"
+        echo "$(tput -T xterm setaf 3)remove $GITHUB_REPO $PR_NUMBER label:$remove_label$(tput -T xterm sgr0)"
         gh pr edit $PR_NUMBER --repo $GITHUB_REPO --remove-label "$remove_label"
     fi
 
     if [[ $add_label == true ]]; then
-        echo "add label:$size_label"
+        echo "$(tput -T xterm setaf 2)add $GITHUB_REPO $PR_NUMBER label:$size_label$(tput -T xterm sgr0)"
         gh pr edit $PR_NUMBER --repo $GITHUB_REPO --add-label "$size_label"
     fi
 }
 
-get_latest_milestone() {
-    latest_milestone=$( gh_curl -s $GITHUB_API/repos/$GITHUB_REPO/milestones | jq -r '[.[] | select(.state == "open")][0].title')
-    echo "$latest_milestone"
+get_latest_milestone_title() {
+    milestone_title=$( gh_curl -s $GITHUB_API/repos/$GITHUB_REPO/milestones | jq -r '[.[] | select(.state == "open")][0].title')
+    echo "$milestone_title"
+}
+
+get_latest_milestone_number() {
+    milestone_number=$( gh_curl -s $GITHUB_API/repos/$GITHUB_REPO/milestones | jq -r '[.[] | select(.state == "open")][0].number')
+    echo $milestone_number
 }
 
 set_pr_milestone() {
-    latest_milestone_name=$( get_latest_milestone )
+    latest_milestone_title=$( get_latest_milestone_title )
     pr_info=$( gh pr view $PR_NUMBER --repo $GITHUB_REPO --json "milestone" )
     pr_milestone=$( echo "$pr_info" | jq -r '.milestone' )
     if [[ "$pr_milestone" == "null" || -z "$pr_milestone" ]]; then
-        echo "set pr milestone:$latest_milestone_name"
-        gh pr edit $PR_NUMBER --repo $GITHUB_REPO --milestone "$latest_milestone_name"
+        echo "$(tput -T xterm setaf 2)set pr milestone:$latest_milestone_title$(tput -T xterm sgr0)"
+        gh pr edit $PR_NUMBER --repo $GITHUB_REPO --milestone "$latest_milestone_title"
     fi
 }
 
 set_issue_milestone() {
-    latest_milestone_name=$( get_latest_milestone )
+    latest_milestone_title=$( get_latest_milestone_title )
     issue_info=$( gh issue view $ISSUE_NUMBER --repo $GITHUB_REPO --json "milestone" )
     issue_milestone=$( echo "$issue_info" | jq -r '.milestone' )
     if [[ "$issue_milestone" == "null" || -z "$issue_milestone" ]]; then
-        echo "set issue milestone:$latest_milestone_name"
-        gh issue edit $ISSUE_NUMBER --repo $GITHUB_REPO --milestone "$latest_milestone_name"
+        echo "$(tput -T xterm setaf 2)set issue milestone:$latest_milestone_title$(tput -T xterm sgr0)"
+        gh issue edit $ISSUE_NUMBER --repo $GITHUB_REPO --milestone "$latest_milestone_title"
     fi
+}
+
+move_pr_to_next_milestone() {
+    next_milestone_number=${1:-""}
+    next_milestone_title=${2:-""}
+    LIMIT_NUMBER_TEMP=100
+    if [[ -n "$LIMIT_NUMBER" ]]; then
+        LIMIT_NUMBER_TEMP=$LIMIT_NUMBER
+    fi
+    pr_list=$( gh pr list --repo $GITHUB_REPO --limit $LIMIT_NUMBER_TEMP --json "number,milestone" )
+    for i in $(seq 0 $LIMIT_NUMBER_TEMP); do
+        pr_number=$( echo "$pr_list" | jq ".[$i].number" --raw-output )
+        if [[ -z "$pr_number" || "$pr_number" == "null" ]]; then
+            break
+        fi
+        pr_milestone_number=$( echo "$pr_list" | jq ".[$i].milestone.number" --raw-output )
+        if [[ "$pr_milestone_number" == "null" || -z "$pr_milestone_number" || $pr_milestone_number -lt $next_milestone_number ]]; then
+            echo "$(tput -T xterm setaf 3)set pr $pr_number milestone:$next_milestone_title$(tput -T xterm sgr0)"
+            gh pr edit $pr_number --repo $GITHUB_REPO --milestone "$next_milestone_title"
+        fi
+    done
+    echo "$(tput -T xterm setaf 2)move $GITHUB_REPO pr milestone done$(tput -T xterm sgr0)"
+}
+
+move_issue_to_next_milestone() {
+    next_milestone_number=${1:-""}
+    next_milestone_title=${2:-""}
+    LIMIT_NUMBER_TEMP=500
+    if [[ -n "$LIMIT_NUMBER" ]]; then
+        LIMIT_NUMBER_TEMP=$LIMIT_NUMBER
+    fi
+    issue_list=$( gh issue list --repo $GITHUB_REPO --limit $LIMIT_NUMBER_TEMP --json "number,milestone" )
+    for i in $(seq 0 $LIMIT_NUMBER_TEMP); do
+        issue_number=$( echo "$issue_list" | jq ".[$i].number" --raw-output )
+        if [[ -z "$issue_number" || "$issue_number" == "null" ]]; then
+            break
+        fi
+        issue_milestone_number=$( echo "$issue_list" | jq ".[$i].milestone.number" --raw-output )
+        if [[ "$issue_milestone_number" == "null" || -z "$issue_milestone_number" || $issue_milestone_number -lt $next_milestone_number ]]; then
+            echo "$(tput -T xterm setaf 3)set issue $issue_number milestone:$next_milestone_title$(tput -T xterm sgr0)"
+            gh issue edit $issue_number --repo $GITHUB_REPO --milestone "$next_milestone_title"
+        fi
+    done
+    echo "$(tput -T xterm setaf 2)move $GITHUB_REPO issue milestone done$(tput -T xterm sgr0)"
+}
+
+move_pr_issue_to_next_milestone() {
+    latest_milestone_number=$( get_latest_milestone_number )
+    latest_milestone_title=$( get_latest_milestone_title )
+    move_pr_to_next_milestone $latest_milestone_number "$latest_milestone_title"
+    move_issue_to_next_milestone $latest_milestone_number "$latest_milestone_title"
 }
 
 main "$@"
