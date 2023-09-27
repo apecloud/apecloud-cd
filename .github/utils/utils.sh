@@ -32,6 +32,7 @@ Usage: $(basename "$0") <options>
                                 20) get incremental chart package
                                 21) set pr size label
                                 22) set pr milestone
+                                23) set issue milestone
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
