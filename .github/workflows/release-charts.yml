@@ -103,7 +103,7 @@ jobs:
           path: ./
           token: ${{ env.CR_TOKEN }}
 
-      - uses: docker/setup-qemu-action@v2
+      - uses: docker/setup-qemu-action@v3
 
       - name: Fetch History And Configure Git
         run: |
