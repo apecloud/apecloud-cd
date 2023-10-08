@@ -741,7 +741,10 @@ move_pr_to_next_milestone() {
             break
         fi
         pr_milestone_number=$( echo "$pr_list" | jq ".[$i].milestone.number" --raw-output )
-        if [[ "$pr_milestone_number" == "null" || -z "$pr_milestone_number" || $pr_milestone_number -lt $next_milestone_number ]]; then
+        if [[ "$pr_milestone_number" == "null" || -z "$pr_milestone_number" ]]; then
+            continue
+        fi
+        if [[ $pr_milestone_number -lt $next_milestone_number ]]; then
             echo "$(tput -T xterm setaf 3)set pr $pr_number milestone:$next_milestone_title$(tput -T xterm sgr0)"
             gh pr edit $pr_number --repo $GITHUB_REPO --milestone "$next_milestone_title"
         fi
@@ -763,7 +766,10 @@ move_issue_to_next_milestone() {
             break
         fi
         issue_milestone_number=$( echo "$issue_list" | jq ".[$i].milestone.number" --raw-output )
-        if [[ "$issue_milestone_number" == "null" || -z "$issue_milestone_number" || $issue_milestone_number -lt $next_milestone_number ]]; then
+        if [[ "$issue_milestone_number" == "null" || -z "$issue_milestone_number" ]]; then
+            continue
+        fi
+        if [[ $issue_milestone_number -lt $next_milestone_number ]]; then
             echo "$(tput -T xterm setaf 3)set issue $issue_number milestone:$next_milestone_title$(tput -T xterm sgr0)"
             gh issue edit $issue_number --repo $GITHUB_REPO --milestone "$next_milestone_title"
         fi
