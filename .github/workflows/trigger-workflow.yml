@@ -51,8 +51,8 @@ jobs:
         run: |
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
               --type 7 \
-              --github-token ${{ env.GITHUB_TOKEN }} \
-              --github-repo ${{ inputs.GITHUB_REPO }} \
-              --branch-name ${{ inputs.BRANCH_NAME }} \
-              --workflow-id ${{ inputs.WORKFLOW_ID }} \
-              --version ${{ inputs.VERSION }}
+              --github-token "${{ env.GITHUB_TOKEN }}" \
+              --github-repo "${{ inputs.GITHUB_REPO }}" \
+              --branch-name "${{ inputs.BRANCH_NAME }}" \
+              --workflow-id "${{ inputs.WORKFLOW_ID }}" \
+              --version "${{ inputs.VERSION }}"
