@@ -19,7 +19,7 @@ on:
         required: false
         default: ''
       TEST_TYPE:
-        description: 'test type (e.g. apecloud-mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale|greptimedb|nebula|risingwave|starrocks|oceanbase|foxlake|oracle-mysql|asmysql|openldap|polardbx|milvus|clickhouse|pika|opensearch|elasticsearch|vllm|orioledb)'
+        description: 'test type (e.g. apecloud-mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale|greptimedb|nebula|risingwave|starrocks|oceanbase|foxlake|oracle-mysql|asmysql|openldap|polardbx|milvus|clickhouse|pika|opensearch|elasticsearch|vllm|orioledb|official-pg)'
         type: string
         required: false
         default: ''
@@ -69,7 +69,7 @@ on:
         required: false
         default: ''
       TEST_TYPE:
-        description: 'test type (e.g. apecloud-mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale|greptimedb|nebula|risingwave|starrocks|oceanbase|foxlake|oracle-mysql|asmysql|openldap|polardbx|milvus|clickhouse|pika|opensearch|elasticsearch|vllm|orioledb)'
+        description: 'test type (e.g. apecloud-mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale|greptimedb|nebula|risingwave|starrocks|oceanbase|foxlake|oracle-mysql|asmysql|openldap|polardbx|milvus|clickhouse|pika|opensearch|elasticsearch|vllm|orioledb|official-pg)'
         type: string
         required: false
         default: ''
@@ -471,6 +471,23 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-official-pg:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'official-pg')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "20"
+      test-type-name: "official-pg"
+      test-args: "${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   test-asmysql:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'asmysql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
@@ -627,7 +644,7 @@ jobs:
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: [ test-playground, install-kubeblocks, test-apecloud-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar, test-mysqlscale, test-weaviate, test-qdrant, test-smartengine, test-greptimedb, test-nebula, test-risingwave, test-starrocks, test-etcd, test-oceanbase, test-foxlake, test-oracle-mysql, test-asmysql, test-openldap, test-polardbx, test-milvus, test-clickhouse, test-pika, test-opensearch, test-elasticsearch, test-vllm, test-orioledb  ]
+    needs: [ test-playground, install-kubeblocks, test-apecloud-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar, test-mysqlscale, test-weaviate, test-qdrant, test-smartengine, test-greptimedb, test-nebula, test-risingwave, test-starrocks, test-etcd, test-oceanbase, test-foxlake, test-oracle-mysql, test-asmysql, test-openldap, test-polardbx, test-milvus, test-clickhouse, test-pika, test-opensearch, test-elasticsearch, test-vllm, test-orioledb, test-official-pg  ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -752,7 +769,11 @@ jobs:
              
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"orioledb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##orioledb|${{ needs.test-orioledb.outputs.test-result }}"
-              fi   
+              fi  
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"official-pg"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##official-pg|${{ needs.test-official-pg.outputs.test-result }}"
+              fi 
           fi
           
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
