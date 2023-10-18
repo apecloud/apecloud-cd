@@ -31,6 +31,11 @@ main() {
                 repository=""
             fi
 
+            if [[ "$repository" == *':$('*')' ]]; then
+                continue
+                repository=""
+            fi
+
             echo "check image: $repository"
             check_image "$repository" &
             repository=""
