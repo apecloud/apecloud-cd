@@ -101,7 +101,7 @@ jobs:
 
       - uses: azure/setup-kubectl@v3
         with:
-          version: "latest"
+          version: "v1.28.3"
 
       - uses: aws-actions/setup-sam@v2
         if: ${{ inputs.cloud-provider == 'eks' }}

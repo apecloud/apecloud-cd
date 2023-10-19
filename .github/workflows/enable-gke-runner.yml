@@ -63,7 +63,7 @@ jobs:
 
       - uses: azure/setup-kubectl@v3
         with:
-          version: "latest"
+          version: "v1.28.3"
 
       - if: ${{ env.GOOGLE_CREDENTIALS != '' }}
         id: 'auth'
