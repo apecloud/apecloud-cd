@@ -42,7 +42,7 @@ on:
         description: "Install the specify version of kubectl (default: latest)"
         type: string
         required: false
-        default: 'latest'
+        default: 'v1.28.3'
       REMOVE_PREFIX:
         description: "Enable remove prefix v  (default: true)"
         type: boolean
