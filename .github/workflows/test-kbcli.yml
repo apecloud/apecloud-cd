@@ -84,131 +84,131 @@ permissions:
   contents: read
 
 jobs:
-#  kbcli-test:
-#    if: ${{ inputs.cloud-provider != 'k3s' }}
-#    name: test ${{ inputs.test-type-name }}
-#    runs-on: ubuntu-latest
-#    outputs:
-#      test-result: ${{ steps.kbcli_test.outputs.test-result }}
-#      random-suffix: ${{ steps.kbcli_test.outputs.random-suffix }}
-#    steps:
-#      - name: checkout testinfra
-#        uses: actions/checkout@v4
-#        with:
-#          repository: apecloud/testinfra
-#          ref: ${{ inputs.branch-name }}
-#          path: ./
-#          token: ${{ env.GITHUB_TOKEN }}
-#
-#      - name: Install Helm
-#        uses: azure/setup-helm@v3
-#        with:
-#          version: ${{ env.HELM_VERSION }}
-#
-#      - uses: azure/setup-kubectl@v3
-#        with:
-#          version: "v1.28.3"
-#
-#      - uses: aws-actions/setup-sam@v2
-#        if: ${{ inputs.cloud-provider == 'eks' }}
-#        with:
-#          use-installer: true
-#
-#      - uses: aws-actions/configure-aws-credentials@v2.2.0
-#        if: ${{ inputs.cloud-provider == 'eks' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' }}
-#        with:
-#          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
-#          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-#          aws-region: "${{ inputs.region }}"
-#
-#      - if: ${{ inputs.cloud-provider == 'gke' && env.GOOGLE_CREDENTIALS != '' }}
-#        id: 'auth'
-#        name: 'Authenticate to Google Cloud'
-#        uses: 'google-github-actions/auth@v1'
-#        with:
-#          credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
-#
-#      - name: Setup gcloud
-#        if: ${{ inputs.cloud-provider == 'gke' }}
-#        uses: google-github-actions/setup-gcloud@v1
-#
-#      - name: setup gke-gcloud-auth-plugin
-#        if: ${{ inputs.cloud-provider == 'gke' }}
-#        uses: simenandre/setup-gke-gcloud-auth-plugin@v1
-#
-#      - name: get gke credential
-#        if: ${{ inputs.cloud-provider == 'gke' && inputs.k8s-cluster-name != '' && inputs.region != '' }}
-#        run: |
-#          gcloud container clusters get-credentials ${{ inputs.k8s-cluster-name }} \
-#              --zone ${{ inputs.region }} \
-#              --project ${{ vars.GOOGLE_PROJECT }}
-#
-#      - name: run kbcli test
-#        id: kbcli_test
-#        run: |
-#          file_log="$(date +%Y-%m-%d-%T)".log
-#          touch ${file_log}
-#          echo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> ${file_log}
-#          echo 'FILE_LOG='${file_log} >> $GITHUB_ENV
-#
-#          KB_VERSION=$( bash .github/utils/get_kb_latest_version.sh \
-#              ${{ inputs.release-version }} )
-#
-#          PREVIOUS_VERSION="${{ inputs.previous-version }}"
-#          PREVIOUS_VERSION="${PREVIOUS_VERSION/v/}"
-#
-#          S3_PATH=$( bash ${{ github.workspace }}/.github/utils/utils.sh \
-#              --type 2 --test-type ${{ inputs.test-type-name }} \
-#              --kubeblocks-version ${KB_VERSION} )
-#          mkdir -p ${S3_PATH}
-#          echo 'S3_PATH='${S3_PATH} >> $GITHUB_ENV
-#
-#          echo "k8s-cluster-name:${{ inputs.k8s-cluster-name }}"
-#          bash .github/utils/kbcli-test.sh \
-#              --type "${{ inputs.test-type }}" \
-#              --test-mode "${{ inputs.test-mode }}" \
-#              --kubeblocks-version "${KB_VERSION}" \
-#              --previous-version "${PREVIOUS_VERSION}" \
-#              --random-suffix "${{ inputs.random-suffix }}" \
-#              --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
-#              --region "${{ inputs.region }}" \
-#              --cloud-provider "${{ inputs.cloud-provider }}" \
-#              --cluster-name "${{ inputs.k8s-cluster-name }}" | tee -a ${file_log}
-#
-#          RANDOM_SUFFIX=""
-#          if [[ "${{ inputs.test-type }}" == "0" ]]; then
-#              RANDOM_SUFFIX="$( grep "[RANDOM_SUFFIX]" ${file_log}|| true )"
-#              RANDOM_SUFFIX=${RANDOM_SUFFIX#*"[RANDOM_SUFFIX]"}
-#              RANDOM_SUFFIX=${RANDOM_SUFFIX%"[RANDOM_SUFFIX]"*}
-#          fi
-#          echo random-suffix=$RANDOM_SUFFIX >> $GITHUB_OUTPUT
-#
-#          test_ret="$( grep "【FAILED】" ${file_log}|| true )"
-#          if [[ -n "$test_ret" ]]; then
-#              echo test-result=[FAILED] >> $GITHUB_OUTPUT
-#              exit 1
-#          else
-#              echo test-result=[PASSED] >> $GITHUB_OUTPUT
-#          fi
-#
-#      - name: copy log file
-#        if: ${{ always() }}
-#        run: |
-#          sed -i 's/${{ env.AWS_ACCESS_KEY_ID }}/***/g' ${FILE_LOG}
-#          sed -i 's/${{ env.AWS_SECRET_ACCESS_KEY }}/***/g' ${FILE_LOG}
-#          echo "cp ${FILE_LOG} ${S3_PATH}"
-#          cp ${FILE_LOG} ${S3_PATH}
-#
-#      - uses: shallwefootball/s3-upload-action@master
-#        if: ${{ always() }}
-#        name: upload logs to S3
-#        with:
-#          aws_key_id: ${{ env.AWS_ACCESS_KEY_ID }}
-#          aws_secret_access_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-#          aws_bucket: ${{ vars.AWS_S3_BUCKET }}
-#          source_dir: ${{ env.S3_PATH }}
-#          destination_dir: ${{ env.S3_PATH }}
-#          endpoint: ${{ vars.AWS_S3_ENDPOINT }}
+  kbcli-test:
+    if: ${{ inputs.cloud-provider != 'k3s' }}
+    name: test ${{ inputs.test-type-name }}
+    runs-on: ubuntu-latest
+    outputs:
+      test-result: ${{ steps.kbcli_test.outputs.test-result }}
+      random-suffix: ${{ steps.kbcli_test.outputs.random-suffix }}
+    steps:
+      - name: checkout testinfra
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/testinfra
+          ref: ${{ inputs.branch-name }}
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.28.3"
+
+      - uses: aws-actions/setup-sam@v2
+        if: ${{ inputs.cloud-provider == 'eks' }}
+        with:
+          use-installer: true
+
+      - uses: aws-actions/configure-aws-credentials@v2.2.0
+        if: ${{ inputs.cloud-provider == 'eks' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' }}
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "${{ inputs.region }}"
+
+      - if: ${{ inputs.cloud-provider == 'gke' && env.GOOGLE_CREDENTIALS != '' }}
+        id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
+
+      - name: Setup gcloud
+        if: ${{ inputs.cloud-provider == 'gke' }}
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: setup gke-gcloud-auth-plugin
+        if: ${{ inputs.cloud-provider == 'gke' }}
+        uses: simenandre/setup-gke-gcloud-auth-plugin@v1
+
+      - name: get gke credential
+        if: ${{ inputs.cloud-provider == 'gke' && inputs.k8s-cluster-name != '' && inputs.region != '' }}
+        run: |
+          gcloud container clusters get-credentials ${{ inputs.k8s-cluster-name }} \
+              --zone ${{ inputs.region }} \
+              --project ${{ vars.GOOGLE_PROJECT }}
+
+      - name: run kbcli test
+        id: kbcli_test
+        run: |
+          file_log="$(date +%Y-%m-%d-%T)".log
+          touch ${file_log}
+          echo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> ${file_log}
+          echo 'FILE_LOG='${file_log} >> $GITHUB_ENV
+
+          KB_VERSION=$( bash .github/utils/get_kb_latest_version.sh \
+              ${{ inputs.release-version }} )
+
+          PREVIOUS_VERSION="${{ inputs.previous-version }}"
+          PREVIOUS_VERSION="${PREVIOUS_VERSION/v/}"
+
+          S3_PATH=$( bash ${{ github.workspace }}/.github/utils/utils.sh \
+              --type 2 --test-type ${{ inputs.test-type-name }} \
+              --kubeblocks-version ${KB_VERSION} )
+          mkdir -p ${S3_PATH}
+          echo 'S3_PATH='${S3_PATH} >> $GITHUB_ENV
+
+          echo "k8s-cluster-name:${{ inputs.k8s-cluster-name }}"
+          bash .github/utils/kbcli-test.sh \
+              --type "${{ inputs.test-type }}" \
+              --test-mode "${{ inputs.test-mode }}" \
+              --kubeblocks-version "${KB_VERSION}" \
+              --previous-version "${PREVIOUS_VERSION}" \
+              --random-suffix "${{ inputs.random-suffix }}" \
+              --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
+              --region "${{ inputs.region }}" \
+              --cloud-provider "${{ inputs.cloud-provider }}" \
+              --cluster-name "${{ inputs.k8s-cluster-name }}" | tee -a ${file_log}
+
+          RANDOM_SUFFIX=""
+          if [[ "${{ inputs.test-type }}" == "0" ]]; then
+              RANDOM_SUFFIX="$( grep "[RANDOM_SUFFIX]" ${file_log}|| true )"
+              RANDOM_SUFFIX=${RANDOM_SUFFIX#*"[RANDOM_SUFFIX]"}
+              RANDOM_SUFFIX=${RANDOM_SUFFIX%"[RANDOM_SUFFIX]"*}
+          fi
+          echo random-suffix=$RANDOM_SUFFIX >> $GITHUB_OUTPUT
+
+          test_ret="$( grep "【FAILED】" ${file_log}|| true )"
+          if [[ -n "$test_ret" ]]; then
+              echo test-result=[FAILED] >> $GITHUB_OUTPUT
+              exit 1
+          else
+              echo test-result=[PASSED] >> $GITHUB_OUTPUT
+          fi
+
+      - name: copy log file
+        if: ${{ always() }}
+        run: |
+          sed -i 's/${{ env.AWS_ACCESS_KEY_ID }}/***/g' ${FILE_LOG}
+          sed -i 's/${{ env.AWS_SECRET_ACCESS_KEY }}/***/g' ${FILE_LOG}
+          echo "cp ${FILE_LOG} ${S3_PATH}"
+          cp ${FILE_LOG} ${S3_PATH}
+
+      - uses: shallwefootball/s3-upload-action@master
+        if: ${{ always() }}
+        name: upload logs to S3
+        with:
+          aws_key_id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws_bucket: ${{ vars.AWS_S3_BUCKET }}
+          source_dir: ${{ env.S3_PATH }}
+          destination_dir: ${{ env.S3_PATH }}
+          endpoint: ${{ vars.AWS_S3_ENDPOINT }}
 
   kbcli-test-k3s:
     if: ${{ inputs.cloud-provider == 'k3s' }}
