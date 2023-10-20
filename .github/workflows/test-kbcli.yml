@@ -228,10 +228,10 @@ jobs:
       - name: setup k3d k3s
         uses: apecloud/setup-k3d-k3s@v1
         with:
-          k3d-name: "v${{ inputs.k8s-version }}"
-          version: ${{ env.K3S_VERSION }}
+          k3d-name: "${{ env.K3D_NAME }}"
+          version: "v${{ inputs.k8s-version }}"
           github-token: ${{ env.GITHUB_TOKEN }}
-          k3d-args: --no-lb --k3s-node-label topology.hostpath.csi/node=k3d-default-server-0@server:0
+          k3d-args: --no-lb --k3s-node-label topology.hostpath.csi/node=${{ env.K3D_NAME }}-server-0@server:0
 
       - name: run kbcli test
         id: kbcli_test
@@ -251,7 +251,7 @@ jobs:
               --type "0" \
               --kubeblocks-version "${KB_VERSION}" \
               --previous-version "${PREVIOUS_VERSION}" \
-              --args "${{ inputs.test-args }} --config-s3 true --check-addon false --upgrade true --enable-addon csi-hostpath-driver|kubebench --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
+              --args "${{ inputs.test-args }} --config-s3 true --check-addon false --upgrade true --enable-addon kubebench --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
               --region "us-central1}" | tee -a ${file_log_install}
           
           RANDOM_SUFFIX=""
