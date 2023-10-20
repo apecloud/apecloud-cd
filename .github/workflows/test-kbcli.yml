@@ -228,10 +228,10 @@ jobs:
       - name: setup k3d k3s
         uses: apecloud/setup-k3d-k3s@v1
         with:
-          k3d-name: "v${{ inputs.k8s-version }}"
-          version: ${{ env.K3S_VERSION }}
+          k3d-name: "${{ env.K3D_NAME }}"
+          version: "v${{ inputs.k8s-version }}"
           github-token: ${{ env.GITHUB_TOKEN }}
-          k3d-args: --no-lb --k3s-node-label topology.hostpath.csi/node=k3d-default-server-0@server:0
+          k3d-args: --no-lb --k3s-node-label topology.hostpath.csi/node=${{ env.K3D_NAME }}-server-0@server:0
 
       - name: run kbcli test
         id: kbcli_test
