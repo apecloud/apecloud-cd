@@ -237,11 +237,6 @@ jobs:
       - name: run kbcli test
         id: kbcli_test
         run: |
-          if [[ "${{ inputs.test-type }}" == "0" ]]; then
-              echo "skip install"
-              exit 0
-          fi
-          
           file_log_install="$(date +%Y-%m-%d-%T)".log
           file_log="$(date +%Y-%m-%d-%T)".log
           touch ${file_log_install} ${file_log}

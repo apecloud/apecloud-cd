@@ -134,7 +134,7 @@ jobs:
     secrets: inherit
 
   install-kubeblocks:
-    if: ${{ needs.terraform-init-k8s.result == 'success' }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && inputs.CLOUD_PROVIDER != 'k3s' }}
     needs: terraform-init-k8s
     uses: ./.github/workflows/test-kbcli.yml
     with:
