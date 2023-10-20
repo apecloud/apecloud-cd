@@ -212,7 +212,7 @@ jobs:
 
   kbcli-test-k3s:
     if: ${{ inputs.cloud-provider == 'k3s' }}
-    name: k3s-test ${{ inputs.test-type-name }}
+    name: test ${{ inputs.test-type-name }}
     runs-on: [ self-hosted, k3d-runner ]
     outputs:
       test-result: ${{ steps.kbcli_test.outputs.test-result }}
@@ -226,6 +226,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: setup k3d k3s
+        if: ${{ inputs.test-type != '0' }}
         uses: apecloud/setup-k3d-k3s@v1
         with:
           k3d-name: "${{ env.K3D_NAME }}"
@@ -236,6 +237,11 @@ jobs:
       - name: run kbcli test
         id: kbcli_test
         run: |
+          if [[ "${{ inputs.test-type }}" == "0" ]]; then
+              echo "skip install"
+              return
+          fi
+          
           file_log_install="$(date +%Y-%m-%d-%T)".log
           file_log="$(date +%Y-%m-%d-%T)".log
           touch ${file_log_install} ${file_log}
@@ -246,7 +252,6 @@ jobs:
           PREVIOUS_VERSION="${{ inputs.previous-version }}"
           PREVIOUS_VERSION="${PREVIOUS_VERSION/v/}"
           
-          echo "k8s-cluster-name:${{ inputs.k8s-cluster-name }}"
           bash .github/utils/kbcli-test.sh \
               --type "0" \
               --kubeblocks-version "${KB_VERSION}" \
@@ -255,12 +260,9 @@ jobs:
               --args "${{ inputs.test-args }} --config-s3 true --check-addon false --upgrade true --enable-addon kubebench --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
               --region "us-central1}" | tee -a ${file_log_install}
           
-          RANDOM_SUFFIX=""
-          if [[ "${{ inputs.test-type }}" == "0" ]]; then
-              RANDOM_SUFFIX="$( grep "[RANDOM_SUFFIX]" ${file_log_install}|| true )"
-              RANDOM_SUFFIX=${RANDOM_SUFFIX#*"[RANDOM_SUFFIX]"}      
-              RANDOM_SUFFIX=${RANDOM_SUFFIX%"[RANDOM_SUFFIX]"*}
-          fi
+          RANDOM_SUFFIX="$( grep "[RANDOM_SUFFIX]" ${file_log_install}|| true )"
+          RANDOM_SUFFIX=${RANDOM_SUFFIX#*"[RANDOM_SUFFIX]"}      
+          RANDOM_SUFFIX=${RANDOM_SUFFIX%"[RANDOM_SUFFIX]"*}
           
           bash .github/utils/kbcli-test.sh \
               --type "${{ inputs.test-type }}" \
