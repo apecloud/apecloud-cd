@@ -66,7 +66,7 @@ on:
     outputs:
       test-result:
         description: "test result"
-        value: ${{ jobs.kbcli-test.outputs.test-result }}
+        value: "${{ jobs.kbcli-test.outputs.test-result }}${{ jobs.kbcli-test-k3s.outputs.test-result }}"
       random-suffix:
         description: "random suffix"
         value: ${{ jobs.kbcli-test.outputs.random-suffix }}
@@ -215,7 +215,7 @@ jobs:
     name: test ${{ inputs.test-type-name }}
     runs-on: [ self-hosted, k3d-runner ]
     outputs:
-      test-result: ${{ steps.kbcli_test.outputs.test-result }}
+      test-result: ${{ steps.kbcli_test_k3s.outputs.test-result }}
     steps:
       - name: checkout testinfra
         uses: actions/checkout@v4
@@ -235,13 +235,8 @@ jobs:
           k3d-args: --no-lb --k3s-node-label topology.hostpath.csi/node=k3d-${{ env.K3D_NAME }}-server-0@server:0
 
       - name: run kbcli test
-        id: kbcli_test
+        id: kbcli_test_k3s
         run: |
-          if [[ "${{ inputs.test-type }}" == "0" ]]; then
-              echo "skip install"
-              exit 0
-          fi
-          
           file_log_install="$(date +%Y-%m-%d-%T)".log
           file_log="$(date +%Y-%m-%d-%T)".log
           touch ${file_log_install} ${file_log}
