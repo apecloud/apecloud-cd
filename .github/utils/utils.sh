@@ -509,9 +509,9 @@ set_runs_jobs() {
     for test_ret in `echo "$TEST_RESULT" | sed 's/##/ /g'`; do
         test_type=${test_ret%|*}
         case $test_type in
-            install)
+            install|playground)
                 if [[ "$jobs_name" == *"$test_type"* ]]; then
-                    TEST_RET="$test_ret|$jobs_url"
+                    TEST_RET=$TEST_RET"##$test_ret|$jobs_url"
                 fi
             ;;
             *)

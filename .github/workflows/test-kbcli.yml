@@ -58,6 +58,11 @@ on:
         type: string
         required: false
         default: ''
+      k8s-version:
+        description: 'k8s cluster version (e.g. 1.26)'
+        type: string
+        required: false
+        default: '1.26'
     outputs:
       test-result:
         description: "test result"
@@ -72,7 +77,7 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
   HELM_VERSION: v3.10.0
-
+  K3D_NAME: default
 
 permissions:
   id-token: write
@@ -80,6 +85,7 @@ permissions:
 
 jobs:
   kbcli-test:
+    if: ${{ inputs.cloud-provider != 'k3s' }}
     name: test ${{ inputs.test-type-name }}
     runs-on: ubuntu-latest
     outputs:
@@ -203,3 +209,70 @@ jobs:
           source_dir: ${{ env.S3_PATH }}
           destination_dir: ${{ env.S3_PATH }}
           endpoint: ${{ vars.AWS_S3_ENDPOINT }}
+
+  kbcli-test-k3s:
+    if: ${{ inputs.cloud-provider == 'k3s' }}
+    name: test ${{ inputs.test-type-name }}
+    runs-on: [ self-hosted, k3d-runner ]
+    outputs:
+      test-result: ${{ steps.kbcli_test.outputs.test-result }}
+    steps:
+      - name: checkout testinfra
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/testinfra
+          ref: ${{ inputs.branch-name }}
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: setup k3d k3s
+        uses: apecloud/setup-k3d-k3s@v1
+        with:
+          k3d-name: "v${{ inputs.k8s-version }}"
+          version: ${{ env.K3S_VERSION }}
+          github-token: ${{ env.GITHUB_TOKEN }}
+          k3d-args: --no-lb --k3s-node-label topology.hostpath.csi/node=k3d-default-server-0@server:0
+
+      - name: run kbcli test
+        id: kbcli_test
+        run: |
+          file_log_install="$(date +%Y-%m-%d-%T)".log
+          file_log="$(date +%Y-%m-%d-%T)".log
+          touch ${file_log_install} ${file_log}
+          
+          KB_VERSION=$( bash .github/utils/get_kb_latest_version.sh \
+              ${{ inputs.release-version }} )
+          
+          PREVIOUS_VERSION="${{ inputs.previous-version }}"
+          PREVIOUS_VERSION="${PREVIOUS_VERSION/v/}"
+          
+          echo "k8s-cluster-name:${{ inputs.k8s-cluster-name }}"
+          bash .github/utils/kbcli-test.sh \
+              --type "0" \
+              --kubeblocks-version "${KB_VERSION}" \
+              --previous-version "${PREVIOUS_VERSION}" \
+              --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
+              --region "us-central1}" | tee -a ${file_log_install}
+          
+          RANDOM_SUFFIX=""
+          if [[ "${{ inputs.test-type }}" == "0" ]]; then
+              RANDOM_SUFFIX="$( grep "[RANDOM_SUFFIX]" ${file_log_install}|| true )"
+              RANDOM_SUFFIX=${RANDOM_SUFFIX#*"[RANDOM_SUFFIX]"}      
+              RANDOM_SUFFIX=${RANDOM_SUFFIX%"[RANDOM_SUFFIX]"*}
+          fi
+          
+          bash .github/utils/kbcli-test.sh \
+              --type "${{ inputs.test-type }}" \
+              --kubeblocks-version "${KB_VERSION}" \
+              --previous-version "${PREVIOUS_VERSION}" \
+              --random-suffix "${RANDOM_SUFFIX}" \
+              --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
+              --region "us-central1" | tee -a ${file_log}
+          
+          test_ret="$( grep "【FAILED】" ${file_log}|| true )"
+          if [[ -n "$test_ret" ]]; then
+              echo test-result=[FAILED] >> $GITHUB_OUTPUT
+              exit 1
+          else
+              echo test-result=[PASSED] >> $GITHUB_OUTPUT
+          fi

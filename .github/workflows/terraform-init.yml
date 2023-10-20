@@ -81,6 +81,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v2
+        if: ${{ inputs.cloud-provider != 'k3s' }}
         with:
           terraform_version: 1.4.6
 
@@ -101,7 +102,7 @@ jobs:
       - name: get deploy path
         id: get_deploy_path
         run: |
-          DEPLOY_PATH=""
+          DEPLOY_PATH="./"
           if [[ "${{ inputs.cloud-provider }}" == "eks" && "${{ inputs.test-mode }}" == "performance" ]]; then
               DEPLOY_PATH="./aws/eks-default-vpc-multinode"
           elif [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
@@ -184,26 +185,30 @@ jobs:
           fi
           
           cd ${{ steps.get_deploy_path.outputs.deploy-path }}
-          bash run.sh --type 1 \
-              --cluster-version "${{ inputs.cluster-version }}" \
-              --instance-type "${{ inputs.instance-type }}" \
-              --cluster-name "${{ inputs.cluster-name }}" \
-              --cluster-region "${{ inputs.region }}" \
-              --node-size "${NODE_SIZE}" \
-              --node-type "${NODE_TYPE}"
+          if [[ "${{ inputs.cloud-provider }}" != "k3s" ]]; then
+              bash run.sh --type 1 \
+                  --cluster-version "${{ inputs.cluster-version }}" \
+                  --instance-type "${{ inputs.instance-type }}" \
+                  --cluster-name "${{ inputs.cluster-name }}" \
+                  --cluster-region "${{ inputs.region }}" \
+                  --node-size "${NODE_SIZE}" \
+                  --node-type "${NODE_TYPE}"
+          fi
 
           K8S_CLUSTER_NAME=""
           if [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
               K8S_CLUSTER_NAME=$(cat terraform.tfstate | grep "\"EKS\":" | awk 'NR==1{print $2}' | sed 's/,//g;s/\"//g')
           elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
               K8S_CLUSTER_NAME=$(cat terraform.tfstate | grep "\"cluster\":" | awk 'NR==1{print $2}' | sed 's/,//g;s/\"//g')
+          elif [[ "${{ inputs.cloud-provider }}" == "k3s" ]]; then
+              K8S_CLUSTER_NAME="${{ inputs.artifact-name }}"
           fi
           echo "k8s-cluster-name:${K8S_CLUSTER_NAME}"
           echo k8s-cluster-name=${K8S_CLUSTER_NAME} >> $GITHUB_OUTPUT
       
       - name: upload artifact
         uses: actions/upload-artifact@v3
-        if: ${{ always() }}
+        if: ${{ always() && inputs.cloud-provider != 'k3s' }}
         with:
           if-no-files-found: error
           name: ${{ inputs.artifact-name }}
