@@ -231,7 +231,7 @@ jobs:
           k3d-name: "${{ env.K3D_NAME }}"
           version: "v${{ inputs.k8s-version }}"
           github-token: ${{ env.GITHUB_TOKEN }}
-          k3d-args: --no-lb --k3s-node-label topology.hostpath.csi/node=${{ env.K3D_NAME }}-server-0@server:0
+          k3d-args: --no-lb --k3s-node-label topology.hostpath.csi/node=k3d-${{ env.K3D_NAME }}-server-0@server:0
 
       - name: run kbcli test
         id: kbcli_test
