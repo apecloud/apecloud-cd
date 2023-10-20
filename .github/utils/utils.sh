@@ -34,6 +34,7 @@ Usage: $(basename "$0") <options>
                                 22) set pr milestone
                                 23) set issue milestone
                                 24) move pr/issue to next milestone
+                                25) remove runner
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -51,6 +52,7 @@ Usage: $(basename "$0") <options>
     -jn, --job-name           The github runner job name
     -pn, --pr-number          The pull request number
     -ln, --limit-number       Maximum number of issues/pulls to fetch
+    -rn, --runner-name        The runner name
 EOF
 }
 
@@ -80,6 +82,7 @@ main() {
     local JOB_NAME=""
     local PR_NUMBER=""
     local LIMIT_NUMBER=""
+    local RUNNER_NAME=""
 
     parse_command_line "$@"
 
@@ -166,6 +169,9 @@ main() {
         ;;
         24)
             move_pr_issue_to_next_milestone
+        ;;
+        25)
+            remove_runner
         ;;
     esac
 }
@@ -282,6 +288,12 @@ parse_command_line() {
             -ln|--limit-number)
                 if [[ -n "${2:-}" ]]; then
                     LIMIT_NUMBER="$2"
+                    shift
+                fi
+                ;;
+            -rn|--runner-name)
+                if [[ -n "${2:-}" ]]; then
+                    RUNNER_NAME="$2"
                     shift
                 fi
                 ;;
@@ -782,6 +794,28 @@ move_pr_issue_to_next_milestone() {
     latest_milestone_title=$( get_latest_milestone_title )
     move_pr_to_next_milestone $latest_milestone_number "$latest_milestone_title"
     move_issue_to_next_milestone $latest_milestone_number "$latest_milestone_title"
+}
+
+remove_runner() {
+    runners_url=$GITHUB_API/repos/$GITHUB_REPO/actions/runners
+    runners_list=$( gh_curl -s $runners_url )
+    total_count=$( echo "$runners_list" | jq '.total_count' )
+    for i in $(seq 0 $total_count); do
+        if [[ "$i" == "$total_count" ]]; then
+            break
+        fi
+        runner_name=$( echo "$runners_list" | jq ".runners[$i].name" --raw-output )
+        runner_status=$( echo "$runners_list" | jq ".runners[$i].status" --raw-output )
+        runner_busy=$( echo "$runners_list" | jq ".runners[$i].busy" --raw-output )
+        runner_id=$( echo "$runners_list" | jq ".runners[$i].id" --raw-output )
+        for runnerName in $( echo "$RUNNER_NAME" | sed 's/|/ /g' ); do
+            if [[ "$runner_name" == "$runnerName" && "$runner_status" == "online" && "$runner_busy" == "false"  ]]; then
+                echo "runner_name:"$runner_name
+                gh_curl -L -X DELETE $runners_url/$runner_id
+                break
+            fi
+        done
+    done
 }
 
 main "$@"

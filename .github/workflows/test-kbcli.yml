@@ -216,6 +216,7 @@ jobs:
     runs-on: [ self-hosted, k3d-runner ]
     outputs:
       test-result: ${{ steps.kbcli_test_k3s.outputs.test-result }}
+      runner-name: ${{ steps.get_runner_name.outputs.runner-name }}
     steps:
       - name: checkout testinfra
         uses: actions/checkout@v4
@@ -255,17 +256,20 @@ jobs:
               --args "${{ inputs.test-args }} --config-s3 true --check-addon false --upgrade true --enable-addon kubebench --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
               --region "us-central1}" | tee -a ${file_log_install}
           
-          RANDOM_SUFFIX="$( grep "[RANDOM_SUFFIX]" ${file_log_install}|| true )"
-          RANDOM_SUFFIX=${RANDOM_SUFFIX#*"[RANDOM_SUFFIX]"}      
-          RANDOM_SUFFIX=${RANDOM_SUFFIX%"[RANDOM_SUFFIX]"*}
+          RANDOM_SUFFIX=""
+          RANDOM_SUFFIX_TMP="$( grep "[RANDOM_SUFFIX]" ${file_log_install}|| true )"
+          if [[ -n "$RANDOM_SUFFIX_TMP" && "$RANDOM_SUFFIX_TMP" == *"[RANDOM_SUFFIX]"* ]]; then
+              RANDOM_SUFFIX=${RANDOM_SUFFIX_TMP#*"[RANDOM_SUFFIX]"}      
+              RANDOM_SUFFIX=${RANDOM_SUFFIX_TMP%"[RANDOM_SUFFIX]"*}
+          fi
           
           bash .github/utils/kbcli-test.sh \
               --type "${{ inputs.test-type }}" \
               --kubeblocks-version "${KB_VERSION}" \
-              --previous-version "${PREVIOUS_VERSION}" \
-              --random-suffix "${RANDOM_SUFFIX}" \
+              --previous-version "${PREVIOUS_VERSION}"\
               --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
-              --region "us-central1" | tee -a ${file_log}
+              --region "us-central1" \
+              --random-suffix "${RANDOM_SUFFIX}" | tee -a ${file_log}
           
           test_ret="$( grep "【FAILED】" ${file_log}|| true )"
           if [[ -n "$test_ret" ]]; then
@@ -274,3 +278,27 @@ jobs:
           else
               echo test-result=[PASSED] >> $GITHUB_OUTPUT
           fi
+
+      - name: get runner name
+        id: get_runner_name
+        if: ${{ always() }}
+        run: |
+          echo runner-name=${RUNNER_NAME} >> $GITHUB_OUTPUT
+
+  remove-runner:
+    needs: [ kbcli-test-k3s ]
+    runs-on: ubuntu-latest
+    if: ${{ inputs.cloud-provider == 'k3s' && always() }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+
+      - name: remove runner
+        run: |
+          bash .github/utils/utils.sh --type 25 \
+              --github-token "${{ env.GITHUB_TOKEN }}" \
+              --github-repo "${{ github.repository }}" \
+              --runner-name ${{ needs.kbcli-test-k3s.outputs.runner-name }}
