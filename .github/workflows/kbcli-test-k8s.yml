@@ -847,7 +847,7 @@ jobs:
               --result "$TEST_RESULT"
 
   terraform-destroy-k8s:
-    if: ${{ always() && inputs.CLOUD_PROVIDER != 'k3s' }}
+    if: ${{ always() }}
     needs: [ terraform-init-k8s, send-message ]
     uses: ./.github/workflows/terraform-destroy.yml
     with:

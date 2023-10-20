@@ -68,6 +68,10 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  RUNNER_CLUSTER_NAME: "infracreate-gke"
+  RUNNER_REGION: "us-central1"
+  RUNNER_NAMESPACE: "default"
+  RUNNER_LABEL: "k3d-runner"
 
 permissions:
   id-token: write
@@ -92,7 +96,7 @@ jobs:
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws-region: "${{ inputs.region }}"
 
-      - if: ${{ inputs.cloud-provider == 'gke' && env.GOOGLE_CREDENTIALS != '' }}
+      - if: ${{ (inputs.cloud-provider == 'gke' || inputs.cloud-provider == 'k3s') && env.GOOGLE_CREDENTIALS != '' }}
         id: 'auth'
         name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
@@ -114,6 +118,7 @@ jobs:
           echo deploy-path=${DEPLOY_PATH} >> $GITHUB_OUTPUT
 
       - name: checkout cloud-provider
+        if: ${{ inputs.cloud-provider != 'k3s' }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/cloud-provider
@@ -214,3 +219,32 @@ jobs:
           name: ${{ inputs.artifact-name }}
           path: ${{ steps.get_deploy_path.outputs.deploy-path }}
           retention-days: 1
+
+      - uses: simenandre/setup-gke-gcloud-auth-plugin@v1
+      - uses: google-github-actions/get-gke-credentials@v1
+        if: ${{ inputs.cloud-provider == 'k3s' }}
+        with:
+          cluster_name: ${{ env.RUNNER_CLUSTER_NAME }}
+          location: ${{ env.RUNNER_REGION }}
+
+      - uses: azure/setup-kubectl@v3
+        if: ${{ inputs.cloud-provider == 'k3s' }}
+        with:
+          version: "v1.28.3"
+
+      - name: enable runner
+        if: ${{ inputs.cloud-provider == 'k3s' }}
+        run: |
+          runner_list=$(kubectl get runnerdeployments -n ${{ env.RUNNER_NAMESPACE }} | (grep "${{ github.repository }}" | egrep "${{ env.RUNNER_LABEL }}" || true) | awk '{print $1}')
+          if [[ -n "$runner_list" ]]; then
+              for runner_name in $(echo "$runner_list"); do
+                  echo "runner name: $runner_name"
+                  hautoscalers=$(kubectl get horizontalrunnerautoscalers -n ${{ env.RUNNER_NAMESPACE }} | (grep "$runner_name-autoscaler" || true) )
+                  echo "enable runner"
+                  if [[ -n "$hautoscalers" ]]; then
+                      echo "enable runner autoscaler"
+                      kubectl patch horizontalrunnerautoscalers $runner_name-autoscaler -n ${{ env.RUNNER_NAMESPACE }} -p '{"spec":{"minReplicas": 1}}' --type=merge
+                  fi
+                  kubectl patch runnerdeployments $runner_name -n ${{ env.RUNNER_NAMESPACE }} -p '{"spec":{"replicas": 1}}' --type=merge
+              done
+          fi
