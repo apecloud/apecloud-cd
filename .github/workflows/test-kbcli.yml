@@ -251,7 +251,7 @@ jobs:
               --type "0" \
               --kubeblocks-version "${KB_VERSION}" \
               --previous-version "${PREVIOUS_VERSION}" \
-              --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
+              --args "${{ inputs.test-args }} --config-s3 true --check-addon false --upgrade true --enable-addon csi-hostpath-driver|kubebench --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
               --region "us-central1}" | tee -a ${file_log_install}
           
           RANDOM_SUFFIX=""
