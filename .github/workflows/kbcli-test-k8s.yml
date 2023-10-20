@@ -704,6 +704,9 @@ jobs:
         id: get_trigger_mode
         run: |
           TEST_RESULT="playground|${{ needs.test-playground.outputs.test-result }}##install|${{ needs.install-kubeblocks.outputs.test-result }}"
+          if [[ "${{ inputs.CLOUD_PROVIDER }}" == 'k3s' ]]; then
+              TEST_RESULT=""
+          fi
           if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"apecloud-mysql"* ]]; then
               TEST_RESULT="${TEST_RESULT}##apecloud-mysql|${{ needs.test-apecloud-mysql.outputs.test-result }}"
           fi
