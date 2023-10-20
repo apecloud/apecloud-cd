@@ -239,7 +239,7 @@ jobs:
         run: |
           if [[ "${{ inputs.test-type }}" == "0" ]]; then
               echo "skip install"
-              return
+              exit 0
           fi
           
           file_log_install="$(date +%Y-%m-%d-%T)".log
