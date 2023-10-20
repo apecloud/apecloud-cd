@@ -286,6 +286,7 @@ jobs:
           echo runner-name=${RUNNER_NAME} >> $GITHUB_OUTPUT
 
   remove-runner:
+    name: remove ${{ inputs.test-type-name }} runner
     needs: [ kbcli-test-k3s ]
     runs-on: ubuntu-latest
     if: ${{ inputs.cloud-provider == 'k3s' && always() }}
@@ -294,7 +295,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: apecloud/apecloud-cd
-          path: apecloud-cd
+          path: ./
 
       - name: remove runner
         run: |

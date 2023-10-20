@@ -103,7 +103,7 @@ jobs:
         with:
           version: "v1.28.3"
 
-      - name: enable runner
+      - name: disable runner
         if: ${{ inputs.cloud-provider == 'k3s' }}
         run: |
           runner_list=$(kubectl get runnerdeployments -n ${{ env.RUNNER_NAMESPACE }} | (grep "${{ github.repository }}" | egrep "${{ env.RUNNER_LABEL }}" || true) | awk '{print $1}')
