@@ -524,7 +524,7 @@ set_runs_jobs() {
 }
 
 get_test_result() {
-    jobs_url=$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs
+    jobs_url="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=1"
     jobs_list=$( gh_curl -s $jobs_url )
     total_count=$( echo "$jobs_list" | jq '.total_count' )
     for i in $(seq 0 $total_count); do
@@ -540,7 +540,7 @@ get_test_result() {
 
 get_job_url() {
     JOB_URL=""
-    jobs_url=$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs
+    jobs_url="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=1"
     jobs_list=$( gh_curl -s $jobs_url )
     total_count=$( echo "$jobs_list" | jq '.total_count' )
     for i in $(seq 0 $total_count); do
