@@ -525,14 +525,18 @@ set_runs_jobs() {
 
 get_test_result() {
     jobs_url=$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs
+    echo $jobs_url
     jobs_list=$( gh_curl -s $jobs_url )
+    echo $jobs_list
     total_count=$( echo "$jobs_list" | jq '.total_count' )
+    echo $total_count
     for i in $(seq 0 $total_count); do
         if [[ "$i" == "$total_count" ]]; then
             break
         fi
         jobs_name=$( echo "$jobs_list" | jq ".jobs[$i].name" --raw-output )
         jobs_url=$( echo "$jobs_list" | jq ".jobs[$i].html_url" --raw-output )
+        echo $jobs_name
         set_runs_jobs "$jobs_name" "$jobs_url"
     done
     echo "$TEST_RET"
