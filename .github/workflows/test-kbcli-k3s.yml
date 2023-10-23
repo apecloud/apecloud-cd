@@ -1,0 +1,150 @@
+name: TEST-KBCLI-K3S
+
+on:
+  workflow_call:
+    inputs:
+      release-version:
+        description: 'kubeblocks release version'
+        type: string
+        required: false
+        default: 'latest'
+      previous-version:
+        description: 'kubeblocks previous version of upgrade'
+        type: string
+        required: false
+        default: ''
+      branch-name:
+        description: 'testinfra branch name'
+        type: string
+        required: false
+        default: 'main'
+      test-type:
+        description: 'test type (0:install 1:mysql 2:postgresql 5:redis 6:mongodb)'
+        type: string
+        required: false
+        default: '0'
+      test-type-name:
+        description: 'test type name (0:install 1:mysql 2:postgresql 5:redis 6:mongodb)'
+        type: string
+        required: false
+        default: 'install'
+      test-args:
+        description: 'test args'
+        type: string
+        required: false
+        default: ''
+      k3s-version:
+        description: 'k3s cluster version (e.g. 1.26)'
+        type: string
+        required: false
+        default: '1.26'
+    outputs:
+      test-result:
+        description: "test result"
+        value: "${{ jobs.kbcli-test-k3s.outputs.test-result }}"
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  HELM_VERSION: v3.10.0
+  K3D_NAME: default
+  REGION: us-central1
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  kbcli-test-k3s:
+    name: test ${{ inputs.test-type-name }}
+    runs-on: [ self-hosted, k3d-runner ]
+    outputs:
+      test-result: ${{ steps.kbcli_test_k3s.outputs.test-result }}
+      runner-name: ${{ steps.get_runner_name.outputs.runner-name }}
+    steps:
+      - name: checkout testinfra
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/testinfra
+          ref: ${{ inputs.branch-name }}
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: setup k3d k3s
+        uses: apecloud/setup-k3d-k3s@v1
+        with:
+          k3d-name: "${{ env.K3D_NAME }}"
+          version: "v${{ inputs.k3s-version }}"
+          github-token: ${{ env.GITHUB_TOKEN }}
+          k3d-args: --no-lb --k3s-node-label topology.hostpath.csi/node=k3d-${{ env.K3D_NAME }}-server-0@server:0
+
+      - name: run kbcli test
+        id: kbcli_test_k3s
+        run: |
+          file_log_install="$(date +%Y-%m-%d-%T)".log
+          file_log="$(date +%Y-%m-%d-%T)".log
+          touch ${file_log_install} ${file_log}
+          
+          KB_VERSION=$( bash .github/utils/get_kb_latest_version.sh \
+              ${{ inputs.release-version }} )
+          
+          PREVIOUS_VERSION="${{ inputs.previous-version }}"
+          PREVIOUS_VERSION="${PREVIOUS_VERSION/v/}"
+          
+          bash .github/utils/kbcli-test.sh \
+              --type "0" \
+              --kubeblocks-version "${KB_VERSION}" \
+              --previous-version "${PREVIOUS_VERSION}" \
+              --cloud-provider "k3s" \
+              --args "${{ inputs.test-args }} --config-s3 true --check-addon false --upgrade true --enable-addon kubebench --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
+              --region "${{ env.REGION }}" | tee -a ${file_log_install}
+          
+          RANDOM_SUFFIX=""
+          RANDOM_SUFFIX_TMP="$( grep "[RANDOM_SUFFIX]" ${file_log_install}|| true )"
+          if [[ -n "$RANDOM_SUFFIX_TMP" && "$RANDOM_SUFFIX_TMP" == *"[RANDOM_SUFFIX]"* ]]; then
+              RANDOM_SUFFIX=${RANDOM_SUFFIX_TMP#*"[RANDOM_SUFFIX]"}      
+              RANDOM_SUFFIX=${RANDOM_SUFFIX_TMP%"[RANDOM_SUFFIX]"*}
+          fi
+          
+          bash .github/utils/kbcli-test.sh \
+              --type "${{ inputs.test-type }}" \
+              --kubeblocks-version "${KB_VERSION}" \
+              --previous-version "${PREVIOUS_VERSION}"\
+              --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
+              --region "${{ env.REGION }}" \
+              --random-suffix "${RANDOM_SUFFIX}" | tee -a ${file_log}
+          
+          test_ret="$( grep "【FAILED】" ${file_log}|| true )"
+          if [[ -n "$test_ret" ]]; then
+              echo test-result=[FAILED] >> $GITHUB_OUTPUT
+              exit 1
+          else
+              echo test-result=[PASSED] >> $GITHUB_OUTPUT
+          fi
+
+      - name: get runner name
+        id: get_runner_name
+        if: ${{ always() }}
+        run: |
+          echo runner-name=${RUNNER_NAME} >> $GITHUB_OUTPUT
+
+  remove-runner:
+    name: remove ${{ inputs.test-type-name }} runner
+    needs: [ kbcli-test-k3s ]
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+
+      - name: remove runner
+        run: |
+          bash .github/utils/utils.sh --type 25 \
+              --github-token "${{ env.GITHUB_TOKEN }}" \
+              --github-repo "${{ github.repository }}" \
+              --runner-name ${{ needs.kbcli-test-k3s.outputs.runner-name }}

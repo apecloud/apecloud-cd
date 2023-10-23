@@ -23,6 +23,11 @@ on:
         type: string
         required: false
         default: ''
+      RUNNER_NAMESPACE:
+        description: "runner namespace"
+        type: string
+        required: false
+        default: 'github-runner'
   workflow_dispatch:
     inputs:
       GITHUB_REPO:
@@ -41,14 +46,16 @@ on:
         description: "runner label"
         required: false
         default: ''
+      RUNNER_NAMESPACE:
+        description: "runner namespace"
+        required: false
+        default: 'github-runner'
 
 
 env:
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
   CLUSTER_NAME: "infracreate-gke"
   REGION: "us-central1"
-  RUNNER_NAMESPACE: "github-runner"
-
 
 jobs:
   enable-runner:
@@ -81,25 +88,25 @@ jobs:
       - name: enable runner
         if: ${{ inputs.GITHUB_REPO != '' }}
         run: |
-          runner_list=$(kubectl get runnerdeployments -n ${{ env.RUNNER_NAMESPACE }} | (grep "${{ inputs.GITHUB_REPO }}" | egrep "${{ inputs.RUNNER_LABEL }}" || true) | awk '{print $1}')
+          runner_list=$(kubectl get runnerdeployments -n ${{ inputs.RUNNER_NAMESPACE }} | (grep "${{ inputs.GITHUB_REPO }}" | egrep "${{ inputs.RUNNER_LABEL }}" || true) | awk '{print $1}')
           if [[ -n "$runner_list" ]]; then
               for runner_name in $(echo "$runner_list"); do
                   echo "runner name: $runner_name"
-                  hautoscalers=$(kubectl get horizontalrunnerautoscalers -n ${{ env.RUNNER_NAMESPACE }} | (grep "$runner_name-autoscaler" || true) )
+                  hautoscalers=$(kubectl get horizontalrunnerautoscalers -n ${{ inputs.RUNNER_NAMESPACE }} | (grep "$runner_name-autoscaler" || true) )
                   if [[ "${{ inputs.ENABLE }}" == "true" ]]; then
                       echo "enable runner"
                       if [[ -n "$hautoscalers" ]]; then
                           echo "enable runner autoscaler"
-                          kubectl patch horizontalrunnerautoscalers $runner_name-autoscaler -n ${{ env.RUNNER_NAMESPACE }} -p '{"spec":{"minReplicas": 1}}' --type=merge
+                          kubectl patch horizontalrunnerautoscalers $runner_name-autoscaler -n ${{ inputs.RUNNER_NAMESPACE }} -p '{"spec":{"minReplicas": 1}}' --type=merge
                       fi
-                      kubectl patch runnerdeployments $runner_name -n ${{ env.RUNNER_NAMESPACE }} -p '{"spec":{"replicas": 1}}' --type=merge
+                      kubectl patch runnerdeployments $runner_name -n ${{ inputs.RUNNER_NAMESPACE }} -p '{"spec":{"replicas": 1}}' --type=merge
                   else
                       echo "disable runner"
                       if [[ -n "$hautoscalers" ]]; then
                           echo "disable runner autoscaler"
-                          kubectl patch horizontalrunnerautoscalers $runner_name-autoscaler -n ${{ env.RUNNER_NAMESPACE }} -p '{"spec":{"minReplicas": 0}}' --type=merge
+                          kubectl patch horizontalrunnerautoscalers $runner_name-autoscaler -n ${{ inputs.RUNNER_NAMESPACE }} -p '{"spec":{"minReplicas": 0}}' --type=merge
                       fi
-                      kubectl patch runnerdeployments $runner_name -n ${{ env.RUNNER_NAMESPACE }} -p '{"spec":{"replicas": 0}}' --type=merge
+                      kubectl patch runnerdeployments $runner_name -n ${{ inputs.RUNNER_NAMESPACE }} -p '{"spec":{"replicas": 0}}' --type=merge
                   fi
               done
           fi
