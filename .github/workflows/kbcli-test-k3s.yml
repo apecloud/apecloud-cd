@@ -14,7 +14,7 @@ on:
         required: false
         default: ''
       TEST_TYPE:
-        description: 'test type (e.g. apecloud-mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale|greptimedb|nebula|risingwave|starrocks|oceanbase|foxlake|oracle-mysql|asmysql|openldap|polardbx|milvus|clickhouse|pika|opensearch|elasticsearch|vllm|orioledb|official-pg)'
+        description: 'test type (e.g. apecloud-mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale|greptimedb|nebula|risingwave|starrocks|foxlake|oracle-mysql|asmysql|openldap|milvus|clickhouse|pika|opensearch|elasticsearch|vllm|orioledb|official-pg)'
         type: string
         required: false
         default: ''
@@ -45,7 +45,7 @@ on:
         required: false
         default: ''
       TEST_TYPE:
-        description: 'test type (e.g. apecloud-mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale|greptimedb|nebula|risingwave|starrocks|oceanbase|foxlake|oracle-mysql|asmysql|openldap|polardbx|milvus|clickhouse|pika|opensearch|elasticsearch|vllm|orioledb|official-pg)'
+        description: 'test type (e.g. apecloud-mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale|greptimedb|nebula|risingwave|starrocks|foxlake|oracle-mysql|asmysql|openldap|milvus|clickhouse|pika|opensearch|elasticsearch|vllm|orioledb|official-pg)'
         type: string
         required: false
         default: ''
@@ -290,20 +290,6 @@ jobs:
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
     secrets: inherit
 
-  test-oceanbase:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oceanbase')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
-    uses: ./.github/workflows/test-kbcli-k3s.yml
-    with:
-      release-version: "${{ inputs.KB_VERSION }}"
-      previous-version: "${{ inputs.KB_PRE_VERSION }}"
-      test-type: "16"
-      test-type-name: "oceanbase"
-      test-args: "${{ inputs.ARGS }}"
-      branch-name: ${{ inputs.BRANCH_NAME }}
-      k3s-version: ${{ inputs.CLUSTER_VERSION }}
-    secrets: inherit
-
   test-foxlake:
     if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'foxlake')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ enable-gke-runner ]
@@ -383,20 +369,6 @@ jobs:
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "22"
       test-type-name: "openldap"
-      test-args: "${{ inputs.ARGS }}"
-      branch-name: ${{ inputs.BRANCH_NAME }}
-      k3s-version: ${{ inputs.CLUSTER_VERSION }}
-    secrets: inherit
-
-  test-polardbx:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'polardbx')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
-    uses: ./.github/workflows/test-kbcli-k3s.yml
-    with:
-      release-version: "${{ inputs.KB_VERSION }}"
-      previous-version: "${{ inputs.KB_PRE_VERSION }}"
-      test-type: "23"
-      test-type-name: "polardbx"
       test-args: "${{ inputs.ARGS }}"
       branch-name: ${{ inputs.BRANCH_NAME }}
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
@@ -489,7 +461,7 @@ jobs:
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: [ test-apecloud-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar, test-mysqlscale, test-weaviate, test-qdrant, test-smartengine, test-greptimedb, test-nebula, test-risingwave, test-starrocks, test-etcd, test-oceanbase, test-foxlake, test-oracle-mysql, test-asmysql, test-openldap, test-polardbx, test-milvus, test-clickhouse, test-pika, test-opensearch, test-elasticsearch, test-vllm, test-orioledb, test-official-pg ]
+    needs: [ test-apecloud-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar, test-mysqlscale, test-weaviate, test-qdrant, test-smartengine, test-greptimedb, test-nebula, test-risingwave, test-starrocks, test-etcd, test-foxlake, test-oracle-mysql, test-asmysql, test-openldap, test-milvus, test-clickhouse, test-pika, test-opensearch, test-elasticsearch, test-vllm, test-orioledb, test-official-pg ]
     steps:
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -563,10 +535,6 @@ jobs:
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"etcd"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##etcd|${{ needs.test-etcd.outputs.test-result }}"
               fi
-          
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oceanbase"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##oceanbase|${{ needs.test-oceanbase.outputs.test-result }}"
-              fi
              
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"foxlake"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##foxlake|${{ needs.test-foxlake.outputs.test-result }}"
@@ -582,10 +550,6 @@ jobs:
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"openldap"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##openldap|${{ needs.test-openldap.outputs.test-result }}"
-              fi
-          
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"polardbx"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##polardbx|${{ needs.test-polardbx.outputs.test-result }}"
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"milvus"* ]]; then
