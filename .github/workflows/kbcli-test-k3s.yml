@@ -1,0 +1,666 @@
+name: KBCLI Test on K3S
+
+on:
+  workflow_call:
+    inputs:
+      KB_VERSION:
+        description: 'kubeblocks release version'
+        type: string
+        required: false
+        default: 'latest'
+      KB_PRE_VERSION:
+        description: 'kubeblocks previous version of upgrade'
+        type: string
+        required: false
+        default: ''
+      TEST_TYPE:
+        description: 'test type (e.g. apecloud-mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale|greptimedb|nebula|risingwave|starrocks|oceanbase|foxlake|oracle-mysql|asmysql|openldap|polardbx|milvus|clickhouse|pika|opensearch|elasticsearch|vllm|orioledb|official-pg|ggml)'
+        type: string
+        required: false
+        default: ''
+      CLUSTER_VERSION:
+        description: 'k3s cluster version (e.g. 1.26)'
+        type: string
+        required: false
+        default: '1.26'
+      BRANCH_NAME:
+        description: 'testinfra branch name'
+        type: string
+        required: false
+        default: 'main'
+      ARGS:
+        description: "Test args"
+        type: string
+        required: false
+        default: ''
+  workflow_dispatch:
+    inputs:
+      KB_VERSION:
+        description: 'kubeblocks release version'
+        required: false
+        default: 'latest'
+      KB_PRE_VERSION:
+        description: 'kubeblocks previous version of upgrade'
+        type: string
+        required: false
+        default: ''
+      TEST_TYPE:
+        description: 'test type (e.g. apecloud-mysql|postgres|redis|mongo|kafka|pulsar|weaviate|qdrant|smarte|scale|greptimedb|nebula|risingwave|starrocks|oceanbase|foxlake|oracle-mysql|asmysql|openldap|polardbx|milvus|clickhouse|pika|opensearch|elasticsearch|vllm|orioledb|official-pg|ggml)'
+        type: string
+        required: false
+        default: ''
+      CLUSTER_VERSION:
+        description: 'k3s cluster version (e.g. 1.26)'
+        required: false
+        default: '1.26'
+      BRANCH_NAME:
+        description: 'testinfra branch name'
+        required: false
+        default: 'main'
+      ARGS:
+        description: "Test args"
+        required: false
+        default: ''
+
+run-name: kbcli:${{ inputs.KB_VERSION }} k3s:${{ inputs.CLUSTER_VERSION }} ${{ inputs.TEST_TYPE }}
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  enable-gke-runner:
+    uses: ./.github/workflows/enable-gke-runner.yml
+    with:
+      GITHUB_REPO: "${{ github.repository }}"
+      RUNNER_NAMESPACE: "default"
+      RUNNER_LABEL: "k3d-runner"
+    secrets: inherit
+
+  test-apecloud-mysql:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'apecloud-mysql')) }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "1"
+      test-type-name: "apecloud-mysql"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-postgresql:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgres')) }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "2"
+      test-type-name: "postgresql"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-redis:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis')) }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "5"
+      test-type-name: "redis"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-mongodb:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongo')) }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "6"
+      test-type-name: "mongodb"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-kafka:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'kafka')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "7"
+      test-type-name: "kafka"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-pulsar:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pulsar')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "8"
+      test-type-name: "pulsar"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-mysqlscale:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'scale')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "1"
+      test-type-name: "mysqlscale"
+      test-args: "--enable-proxy true ${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-weaviate:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'weaviate')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "9"
+      test-type-name: "weaviate"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-qdrant:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'qdrant')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "10"
+      test-type-name: "qdrant"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-smartengine:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'smarte')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "1"
+      test-type-name: "smartengine"
+      test-args: "--smartengine true ${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-greptimedb:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'greptimedb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "11"
+      test-type-name: "greptimedb"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-nebula:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'nebula')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "12"
+      test-type-name: "nebula"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-risingwave:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'risingwave')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "13"
+      test-type-name: "risingwave"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-starrocks:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "14"
+      test-type-name: "starrocks"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-etcd:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'etcd')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "15"
+      test-type-name: "etcd"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-oceanbase:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oceanbase')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "16"
+      test-type-name: "oceanbase"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-foxlake:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'foxlake')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "17"
+      test-type-name: "foxlake"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-orioledb:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'orioledb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "18"
+      test-type-name: "orioledb"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-oracle-mysql:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oracle-mysql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "19"
+      test-type-name: "oracle-mysql"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-official-pg:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'official-pg')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "20"
+      test-type-name: "official-pg"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-asmysql:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'asmysql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "21"
+      test-type-name: "asmysql"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-openldap:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'openldap')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "22"
+      test-type-name: "openldap"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-polardbx:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'polardbx')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "23"
+      test-type-name: "polardbx"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-opensearch:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'opensearch')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "24"
+      test-type-name: "opensearch"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-elasticsearch:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'elasticsearch')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "25"
+      test-type-name: "elasticsearch"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-vllm:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'vllm')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "26"
+      test-type-name: "vllm"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-milvus:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'milvus')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "28"
+      test-type-name: "milvus"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-clickhouse:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'clickhouse')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "29"
+      test-type-name: "clickhouse"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-pika:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pika')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "30"
+      test-type-name: "pika"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-ggml:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'ggml')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "31"
+      test-type-name: "ggml"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  send-message:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    needs: [ test-apecloud-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar, test-mysqlscale, test-weaviate, test-qdrant, test-smartengine, test-greptimedb, test-nebula, test-risingwave, test-starrocks, test-etcd, test-oceanbase, test-foxlake, test-oracle-mysql, test-asmysql, test-openldap, test-polardbx, test-milvus, test-clickhouse, test-pika, test-opensearch, test-elasticsearch, test-vllm, test-orioledb, test-official-pg, test-ggml  ]
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+
+      - name: send message
+        id: get_trigger_mode
+        run: |
+          TEST_RESULT=""
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"apecloud-mysql"* ]]; then
+              TEST_RESULT="${TEST_RESULT}##apecloud-mysql|${{ needs.test-apecloud-mysql.outputs.test-result }}"
+          fi
+          
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"postgres"* ]]; then
+              TEST_RESULT="${TEST_RESULT}##postgresql|${{ needs.test-postgresql.outputs.test-result }}"
+          fi
+          
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"redis"* ]]; then
+              TEST_RESULT="${TEST_RESULT}##redis|${{ needs.test-redis.outputs.test-result }}"
+          fi
+          
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mongo"* ]]; then
+              TEST_RESULT="${TEST_RESULT}##mongodb|${{ needs.test-mongodb.outputs.test-result }}"
+          fi
+          
+          if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* ]]; then
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"kafka"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##kafka|${{ needs.test-kafka.outputs.test-result }}"
+              fi
+              
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"pulsar"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##pulsar|${{ needs.test-pulsar.outputs.test-result }}"
+              fi
+              
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"scale"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##mysqlscale|${{ needs.test-mysqlscale.outputs.test-result }}"
+              fi
+              
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"weaviate"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##weaviate|${{ needs.test-weaviate.outputs.test-result }}"
+              fi
+              
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"qdrant"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##qdrant|${{ needs.test-qdrant.outputs.test-result }}"
+              fi
+              
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"smarte"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##smartengine|${{ needs.test-smartengine.outputs.test-result }}"
+              fi
+          fi
+          
+          if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* ]]; then
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"greptimedb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##greptimedb|${{ needs.test-greptimedb.outputs.test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"nebula"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##nebula|${{ needs.test-nebula.outputs.test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"risingwave"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##risingwave|${{ needs.test-risingwave.outputs.test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"starrocks"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##starrocks|${{ needs.test-starrocks.outputs.test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"etcd"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##etcd|${{ needs.test-etcd.outputs.test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oceanbase"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##oceanbase|${{ needs.test-oceanbase.outputs.test-result }}"
+              fi
+             
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"foxlake"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##foxlake|${{ needs.test-foxlake.outputs.test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oracle-mysql"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##oracle-mysql|${{ needs.test-oracle-mysql.outputs.test-result }}"
+              fi
+            
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"asmysql"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##asmysql|${{ needs.test-asmysql.outputs.test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"openldap"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##openldap|${{ needs.test-openldap.outputs.test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"polardbx"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##polardbx|${{ needs.test-polardbx.outputs.test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"milvus"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##milvus|${{ needs.test-milvus.outputs.test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"clickhouse"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##clickhouse|${{ needs.test-clickhouse.outputs.test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"pika"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##pika|${{ needs.test-pika.outputs.test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"opensearch"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##opensearch|${{ needs.test-opensearch.outputs.test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"elasticsearch"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##elasticsearch|${{ needs.test-elasticsearch.outputs.test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"vllm"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##vllm|${{ needs.test-vllm.outputs.test-result }}"
+              fi    
+             
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"orioledb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##orioledb|${{ needs.test-orioledb.outputs.test-result }}"
+              fi  
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"official-pg"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##official-pg|${{ needs.test-official-pg.outputs.test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"ggml"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##ggml|${{ needs.test-ggml.outputs.test-result }}"
+              fi 
+          fi
+          
+          TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
+              --github-repo "${{ github.repository }}" \
+              --test-result "${TEST_RESULT}" \
+              --run-id "$GITHUB_RUN_ID" )
+          
+          date_ret=$(date +%Y-%m-%d-%T)
+          test_title="[${{ inputs.KB_VERSION }}] Test KBCLI on k3s:${{ inputs.CLUSTER_VERSION }} [${date_ret}]"
+          if [[ -n "${{ inputs.KB_PRE_VERSION }}" ]]; then
+              test_title="[${{ inputs.KB_PRE_VERSION }}] upgrade to "$test_title
+          fi 
+          python3 .github/utils/send_mesage.py \
+              --url ${{ vars.TEST_BOT_WEBHOOK }} \
+              --title "$test_title" \
+              --result "$TEST_RESULT"
+
+  disable-gke-runner:
+    if: ${{ always() }}
+    needs: [ enable-gke-runner, send-message ]
+    uses: ./.github/workflows/enable-gke-runner.yml
+    with:
+      GITHUB_REPO: "${{ github.repository }}"
+      RUNNER_NAMESPACE: "default"
+      RUNNER_LABEL: "k3d-runner"
+      ENABLE: "disable"
+    secrets: inherit
