@@ -10,9 +10,9 @@ Usage: $(basename "$0") <options>
 
     -h, --help                Display help
     -t, --type                Operation type
-                                1) trigger release
-                                2) release message
-                                3) send message
+                                1) release message
+                                2) send message
+                                3) get release version
     -gr, --github-repo        Github repo
     -gt, --github-token       Github token
     -v, --version             The release version

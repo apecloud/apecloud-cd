@@ -153,8 +153,8 @@ jobs:
           CHARS_DIR="${CHARS_DIR%/*}"
           
           args=(--charts-dir "$CHARS_DIR" \
-            --release-version ${{ steps.get_version.outputs.VERSION }}) \
-            --specify-chart "${{ inputs.SPECIFY_CHART }}"
+            --release-version ${{ steps.get_version.outputs.VERSION }} \
+            --specify-chart "${{ inputs.SPECIFY_CHART }}")
           
           "${{ github.workspace }}/apecloud-cd/.github/utils/helm_package.sh" "${args[@]}"
 
