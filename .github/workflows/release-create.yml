@@ -57,10 +57,6 @@ jobs:
           tag_name: v${{ env.REL_VERSION }}
           prerelease: true
 
-      - name: sanitized release body
-        if: not ${{ env.WITH_RELEASE_NOTES }}
-        run: ./apecloud-cd/.github/utils/sanitize_release_body.sh
-
   send-message:
     needs: [ create-release ]
     if: ${{ failure() || cancelled() }}
