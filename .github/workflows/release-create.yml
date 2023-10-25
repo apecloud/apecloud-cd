@@ -3,19 +3,11 @@ name: Release Create
 on:
   workflow_call:
     inputs:
-      version:
-        description: "The version of release"
-        type: string
-        required: true
-        default: ''
-      apecd_ref:
+      APECD_REF:
         description: "The ref of apecloud-cd"
         type: string
         required: false
         default: 'main'
-  push:
-    tags:
-      - v*
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -24,25 +16,50 @@ env:
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    outputs:
+      rel-version: ${{ steps.get_rel_version.outputs.rel_version }}
     steps:
-      - name: Get repository name
+      - uses: actions/checkout@v4
+
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: Parse release version and set REL_VERSION
+        id: get_rel_version
         run: |
-          tag_name="${{ inputs.version }}"
-          if [[ -z "$tag_name" ]]; then
-              tag_name=${GITHUB_REF#refs/tags/}
-          fi
+          python ./apecloud-cd/.github/utils/is_rc_or_stable_release_version.py
+          echo rel_version=v${{ env.REL_VERSION }} >> $GITHUB_OUTPUT
+          
           repo_name=${GITHUB_REPOSITORY#*/}
           echo 'REPO_NAME='${repo_name} >> $GITHUB_ENV
-          echo 'TAG_NAME='${tag_name} >> $GITHUB_ENV
 
-      - name: release pre-release
+      - name: release pre-release without release notes
         uses: softprops/action-gh-release@v1
+        if: not ${{ env.WITH_RELEASE_NOTES }}
         with:
-          token: ${{ env.GITHUB_TOKEN }}
-          name: ${{ env.REPO_NAME }} ${{ env.TAG_NAME }}
-          tag_name: ${{ env.TAG_NAME }}
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          name: ${{ env.REPO_NAME }} v${{ env.REL_VERSION }}
+          tag_name: v${{ env.REL_VERSION }}
           generate_release_notes: true
           prerelease: true
+
+      - name: release RC with release notes
+        uses: softprops/action-gh-release@v1
+        if: ${{ env.WITH_RELEASE_NOTES }}
+        with:
+          body_path: ./docs/release_notes/v${{ env.REL_VERSION }}/v${{ env.REL_VERSION }}.md
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          name: ${{ env.REPO_NAME }} v${{ env.REL_VERSION }}
+          tag_name: v${{ env.REL_VERSION }}
+          prerelease: true
+
+      - name: sanitized release body
+        if: not ${{ env.WITH_RELEASE_NOTES }}
+        run: ./apecloud-cd/.github/utils/sanitize_release_body.sh
 
   send-message:
     needs: [ create-release ]
@@ -50,6 +67,6 @@ jobs:
     uses: ./.github/workflows/feishui-message.yml
     with:
       TYPE: "2"
-      CONTENT: "create release ${{ needs.get-version.outputs.release-version }} error"
-      APECD_REF: ${{ inputs.apecd_ref }}
+      CONTENT: "create release ${{ needs.create-release.outputs.rel-version }} error"
+      APECD_REF: ${{ inputs.APECD_REF }}
     secrets: inherit
