@@ -1,0 +1,40 @@
+name: skopeo sync images aliyun to aliyun
+
+on:
+  workflow_dispatch:
+    inputs:
+      images_name:
+        description: 'sync images name e.g. apecloud/kubeblocks:0.3.8'
+        required: false
+        default: ''
+      registry:
+        description: 'sync images registry e.g. registry.cn-hangzhou.aliyuncs.com'
+        required: false
+        default: 'registry.cn-hangzhou.aliyuncs.com'
+
+run-name: sync to aliyun:${{ github.event.inputs.images_name }}
+
+jobs:
+  script:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name : skopeo sync images
+        run: |
+          brew install skopeo
+          skopeo sync -h
+          if [[ ! -z "${{ github.event.inputs.images_name }}" ]];then
+              bash ${{ github.workspace }}/.github/utils/utils.sh \
+                  --type 1 \
+                  --images "${{ github.event.inputs.images_name }}" \
+                  --images-list ${{ github.workspace }}/.github/utils/images-list.txt
+          fi
+
+          
+          bash ${{ github.workspace }}/.github/utils/skopeo_sync_aliyun_to_aliyun_new.sh \
+              "${{ secrets.ALIYUN_USER }}" \
+              '${{ secrets.ALIYUN_PASSWORD }}' \
+              "${{ secrets.ALIYUN_USER_NEW }}" \
+              "${{ secrets.ALIYUN_PASSWORD_NEW }}" \
+              ${{ github.workspace }}/.github/utils/images-list.txt \
+              "${{ github.event.inputs.registry }}"

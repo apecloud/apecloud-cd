@@ -1,0 +1,47 @@
+name: skopeo sync images to aliyun
+
+on:
+  workflow_dispatch:
+    inputs:
+      images_name:
+        description: 'sync images name e.g. apecloud/kubeblocks:0.3.8'
+        required: false
+        default: ''
+      registry:
+        description: 'sync images registry e.g. docker.io'
+        required: false
+        default: 'docker.io'
+
+run-name: sync to aliyun:${{ github.event.inputs.images_name }}
+
+jobs:
+  script:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name : skopeo sync images
+        run: |
+          brew install skopeo
+          skopeo sync -h
+          if [[ ! -z "${{ github.event.inputs.images_name }}" ]];then
+              bash ${{ github.workspace }}/.github/utils/utils.sh \
+                  --type 1 \
+                  --images "${{ github.event.inputs.images_name }}" \
+                  --images-list ${{ github.workspace }}/.github/utils/images-list.txt
+          fi
+          
+          bash ${{ github.workspace }}/.github/utils/skopeo_sync_to_aliyun.sh \
+              "${{ secrets.DOCKER_USER }}" \
+              '${{ secrets.DOCKER_PASSWORD }}' \
+              "${{ secrets.ALIYUN_USER }}" \
+              "${{ secrets.ALIYUN_PASSWORD }}" \
+              ${{ github.workspace }}/.github/utils/images-list.txt \
+              "${{ github.event.inputs.registry }}"
+          
+          bash ${{ github.workspace }}/.github/utils/skopeo_sync_to_aliyun_new.sh \
+              "${{ secrets.DOCKER_USER }}" \
+              '${{ secrets.DOCKER_PASSWORD }}' \
+              "${{ secrets.ALIYUN_USER_NEW }}" \
+              "${{ secrets.ALIYUN_PASSWORD_NEW }}" \
+              ${{ github.workspace }}/.github/utils/images-list.txt \
+              "${{ github.event.inputs.registry }}"

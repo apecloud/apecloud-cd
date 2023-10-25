@@ -35,6 +35,7 @@ Usage: $(basename "$0") <options>
                                 23) set issue milestone
                                 24) move pr/issue to next milestone
                                 25) remove runner
+                                26) set images list
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -53,258 +54,13 @@ Usage: $(basename "$0") <options>
     -pn, --pr-number          The pull request number
     -ln, --limit-number       Maximum number of issues/pulls to fetch
     -rn, --runner-name        The runner name
+    -i, --images              Docker images
+    -il, --images-list        Docker images list
 EOF
 }
 
 GITHUB_API="https://api.github.com"
 DEFAULT_GITHUB_REPO=apecloud/kubeblocks
-
-main() {
-    local TYPE=""
-    local TAG_NAME=""
-    local GITHUB_REPO="$DEFAULT_GITHUB_REPO"
-    local GITHUB_TOKEN=""
-    local TRIGGER_MODE=""
-    local BRANCH_NAME="main"
-    local WORKFLOW_ID=""
-    local VERSION=""
-    local USER=""
-    local PASSWORD=""
-    local STABLE_RET
-    local DELETE_FORCE=$DEFAULT_DELETE_FORCE
-    local RUN_ID=""
-    local TEST_RESULT=""
-    local TEST_RET=""
-    local CHART_PATH=""
-    local DELETE_RELEASE=""
-    local ISSUE_NUMBER=""
-    local ISSUE_COMMENT=""
-    local JOB_NAME=""
-    local PR_NUMBER=""
-    local LIMIT_NUMBER=""
-    local RUNNER_NAME=""
-
-    parse_command_line "$@"
-
-    local TAG_NAME_TMP=${TAG_NAME/v/}
-
-    case $TYPE in
-        8|9|10|11)
-            STABLE_RET=$( check_stable_release )
-            if [[ -z "$TAG_NAME" || ("$STABLE_RET" == "1" && "$DELETE_FORCE" == "false") ]]; then
-                echo "skip delete stable release $TAG_NAME"
-                return
-            fi
-        ;;
-    esac
-    case $TYPE in
-        1)
-            echo "${TAG_NAME/v/}"
-        ;;
-        2)
-            echo "${TAG_NAME/-/.}"
-        ;;
-        3)
-            get_upload_url
-        ;;
-        4)
-            get_latest_tag
-        ;;
-        5)
-            update_release_latest
-        ;;
-        6)
-            get_trigger_mode
-        ;;
-        7)
-            trigger_repo_workflow
-        ;;
-        8)
-            delete_release_version
-        ;;
-        9)
-            delete_release_charts
-        ;;
-        10)
-            delete_docker_images
-        ;;
-        11)
-            delete_aliyun_images
-        ;;
-        12)
-            get_test_result
-        ;;
-        13)
-            helm_dep_update
-        ;;
-        14)
-            get_delete_release
-        ;;
-        15)
-            comment_issue
-        ;;
-        16)
-            delete_runner
-        ;;
-        17)
-            get_job_url
-        ;;
-        18)
-            delete_aliyun_images_new
-        ;;
-        19)
-            delete_charts_index
-        ;;
-        20)
-            get_incremental_chart_package
-        ;;
-        21)
-            set_size_label
-        ;;
-        22)
-            set_pr_milestone
-        ;;
-        23)
-            set_issue_milestone
-        ;;
-        24)
-            move_pr_issue_to_next_milestone
-        ;;
-        25)
-            remove_runner
-        ;;
-    esac
-}
-
-parse_command_line() {
-    while :; do
-        case "${1:-}" in
-            -h|--help)
-                show_help
-                exit
-                ;;
-            -t|--type)
-                if [[ -n "${2:-}" ]]; then
-                    TYPE="$2"
-                    shift
-                fi
-                ;;
-            -tn|--tag-name)
-                if [[ -n "${2:-}" ]]; then
-                    TAG_NAME="$2"
-                    shift
-                fi
-                ;;
-            -gr|--github-repo)
-                if [[ -n "${2:-}" ]]; then
-                    GITHUB_REPO="$2"
-                    shift
-                fi
-                ;;
-            -gt|--github-token)
-                if [[ -n "${2:-}" ]]; then
-                    GITHUB_TOKEN="$2"
-                    shift
-                fi
-                ;;
-            -bn|--branch-name)
-                if [[ -n "${2:-}" ]]; then
-                    BRANCH_NAME="$2"
-                    shift
-                fi
-                ;;
-            -wi|--workflow-id)
-                if [[ -n "${2:-}" ]]; then
-                    WORKFLOW_ID="$2"
-                    shift
-                fi
-                ;;
-            -v|--version)
-                if [[ -n "${2:-}" ]]; then
-                    VERSION="$2"
-                    shift
-                fi
-                ;;
-            -u|--user)
-                if [[ -n "${2:-}" ]]; then
-                    USER="$2"
-                    shift
-                fi
-                ;;
-            -p|--password)
-                if [[ -n "${2:-}" ]]; then
-                    PASSWORD="$2"
-                    shift
-                fi
-                ;;
-            -df|--delete-force)
-                if [[ -n "${2:-}" ]]; then
-                    DELETE_FORCE="$2"
-                    shift
-                fi
-                ;;
-            -ri|--run-id)
-                if [[ -n "${2:-}" ]]; then
-                    RUN_ID="$2"
-                    shift
-                fi
-                ;;
-            -tr|--test-result)
-                if [[ -n "${2:-}" ]]; then
-                    TEST_RESULT="$2"
-                    shift
-                fi
-                ;;
-            -cp|--chart-path)
-                if [[ -n "${2:-}" ]]; then
-                    CHART_PATH="$2"
-                    shift
-                fi
-                ;;
-            -in|--issue-number)
-                if [[ -n "${2:-}" ]]; then
-                    ISSUE_NUMBER="$2"
-                    shift
-                fi
-                ;;
-            -ic|--issue-comment)
-                if [[ -n "${2:-}" ]]; then
-                    ISSUE_COMMENT="$2"
-                    shift
-                fi
-                ;;
-            -jn|--job-name)
-                if [[ -n "${2:-}" ]]; then
-                    JOB_NAME="$2"
-                    shift
-                fi
-                ;;
-            -pn|--pr-number)
-                if [[ -n "${2:-}" ]]; then
-                    PR_NUMBER="$2"
-                    shift
-                fi
-                ;;
-            -ln|--limit-number)
-                if [[ -n "${2:-}" ]]; then
-                    LIMIT_NUMBER="$2"
-                    shift
-                fi
-                ;;
-            -rn|--runner-name)
-                if [[ -n "${2:-}" ]]; then
-                    RUNNER_NAME="$2"
-                    shift
-                fi
-                ;;
-            *)
-                break
-                ;;
-        esac
-
-        shift
-    done
-}
 
 gh_curl() {
     if [[ -z "$GITHUB_TOKEN" ]]; then
@@ -816,6 +572,275 @@ remove_runner() {
             fi
         done
     done
+}
+
+set_images_list() {
+    rm -f $IMAGES_LIST
+    touch $IMAGES_LIST
+
+    for image in `echo "$IMAGES" | sed 's/|/ /g'`; do
+       echo "$image" >> $IMAGES_LIST
+    done
+}
+
+parse_command_line() {
+    while :; do
+        case "${1:-}" in
+            -h|--help)
+                show_help
+                exit
+            ;;
+            -t|--type)
+                if [[ -n "${2:-}" ]]; then
+                    TYPE="$2"
+                    shift
+                fi
+            ;;
+            -tn|--tag-name)
+                if [[ -n "${2:-}" ]]; then
+                    TAG_NAME="$2"
+                    shift
+                fi
+            ;;
+            -gr|--github-repo)
+                if [[ -n "${2:-}" ]]; then
+                    GITHUB_REPO="$2"
+                    shift
+                fi
+            ;;
+            -gt|--github-token)
+                if [[ -n "${2:-}" ]]; then
+                    GITHUB_TOKEN="$2"
+                    shift
+                fi
+            ;;
+            -bn|--branch-name)
+                if [[ -n "${2:-}" ]]; then
+                    BRANCH_NAME="$2"
+                    shift
+                fi
+            ;;
+            -wi|--workflow-id)
+                if [[ -n "${2:-}" ]]; then
+                    WORKFLOW_ID="$2"
+                    shift
+                fi
+            ;;
+            -v|--version)
+                if [[ -n "${2:-}" ]]; then
+                    VERSION="$2"
+                    shift
+                fi
+            ;;
+            -u|--user)
+                if [[ -n "${2:-}" ]]; then
+                    USER="$2"
+                    shift
+                fi
+            ;;
+            -p|--password)
+                if [[ -n "${2:-}" ]]; then
+                    PASSWORD="$2"
+                    shift
+                fi
+            ;;
+            -df|--delete-force)
+                if [[ -n "${2:-}" ]]; then
+                    DELETE_FORCE="$2"
+                    shift
+                fi
+            ;;
+            -ri|--run-id)
+                if [[ -n "${2:-}" ]]; then
+                    RUN_ID="$2"
+                    shift
+                fi
+            ;;
+            -tr|--test-result)
+                if [[ -n "${2:-}" ]]; then
+                    TEST_RESULT="$2"
+                    shift
+                fi
+            ;;
+            -cp|--chart-path)
+                if [[ -n "${2:-}" ]]; then
+                    CHART_PATH="$2"
+                    shift
+                fi
+            ;;
+            -in|--issue-number)
+                if [[ -n "${2:-}" ]]; then
+                    ISSUE_NUMBER="$2"
+                    shift
+                fi
+            ;;
+            -ic|--issue-comment)
+                if [[ -n "${2:-}" ]]; then
+                    ISSUE_COMMENT="$2"
+                    shift
+                fi
+            ;;
+            -jn|--job-name)
+                if [[ -n "${2:-}" ]]; then
+                    JOB_NAME="$2"
+                    shift
+                fi
+            ;;
+            -pn|--pr-number)
+                if [[ -n "${2:-}" ]]; then
+                    PR_NUMBER="$2"
+                    shift
+                fi
+            ;;
+            -ln|--limit-number)
+                if [[ -n "${2:-}" ]]; then
+                    LIMIT_NUMBER="$2"
+                    shift
+                fi
+            ;;
+            -rn|--runner-name)
+                if [[ -n "${2:-}" ]]; then
+                    RUNNER_NAME="$2"
+                    shift
+                fi
+            ;;
+            -i|--images)
+                IMAGES="$2"
+                shift
+            ;;
+            -il|--images-list)
+                IMAGES_LIST="$2"
+                shift
+            ;;
+            *)
+                break
+            ;;
+        esac
+
+        shift
+    done
+}
+
+main() {
+    local TYPE=""
+    local TAG_NAME=""
+    local GITHUB_REPO="$DEFAULT_GITHUB_REPO"
+    local GITHUB_TOKEN=""
+    local TRIGGER_MODE=""
+    local BRANCH_NAME="main"
+    local WORKFLOW_ID=""
+    local VERSION=""
+    local USER=""
+    local PASSWORD=""
+    local STABLE_RET
+    local DELETE_FORCE=$DEFAULT_DELETE_FORCE
+    local RUN_ID=""
+    local TEST_RESULT=""
+    local TEST_RET=""
+    local CHART_PATH=""
+    local DELETE_RELEASE=""
+    local ISSUE_NUMBER=""
+    local ISSUE_COMMENT=""
+    local JOB_NAME=""
+    local PR_NUMBER=""
+    local LIMIT_NUMBER=""
+    local RUNNER_NAME=""
+    local IMAGES=""
+    local IMAGES_LIST=""
+
+    parse_command_line "$@"
+
+    local TAG_NAME_TMP=${TAG_NAME/v/}
+
+    case $TYPE in
+        8|9|10|11)
+            STABLE_RET=$( check_stable_release )
+            if [[ -z "$TAG_NAME" || ("$STABLE_RET" == "1" && "$DELETE_FORCE" == "false") ]]; then
+                echo "skip delete stable release $TAG_NAME"
+                return
+            fi
+        ;;
+    esac
+    case $TYPE in
+        1)
+            echo "${TAG_NAME/v/}"
+        ;;
+        2)
+            echo "${TAG_NAME/-/.}"
+        ;;
+        3)
+            get_upload_url
+        ;;
+        4)
+            get_latest_tag
+        ;;
+        5)
+            update_release_latest
+        ;;
+        6)
+            get_trigger_mode
+        ;;
+        7)
+            trigger_repo_workflow
+        ;;
+        8)
+            delete_release_version
+        ;;
+        9)
+            delete_release_charts
+        ;;
+        10)
+            delete_docker_images
+        ;;
+        11)
+            delete_aliyun_images
+        ;;
+        12)
+            get_test_result
+        ;;
+        13)
+            helm_dep_update
+        ;;
+        14)
+            get_delete_release
+        ;;
+        15)
+            comment_issue
+        ;;
+        16)
+            delete_runner
+        ;;
+        17)
+            get_job_url
+        ;;
+        18)
+            delete_aliyun_images_new
+        ;;
+        19)
+            delete_charts_index
+        ;;
+        20)
+            get_incremental_chart_package
+        ;;
+        21)
+            set_size_label
+        ;;
+        22)
+            set_pr_milestone
+        ;;
+        23)
+            set_issue_milestone
+        ;;
+        24)
+            move_pr_issue_to_next_milestone
+        ;;
+        25)
+            remove_runner
+        ;;
+        26)
+            set_images_list
+        ;;
+    esac
 }
 
 main "$@"
