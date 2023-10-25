@@ -63,16 +63,6 @@ on:
         type: boolean
         required: false
         default: false
-      APECD_REF:
-        description: "The branch name of apecloud-cd"
-        type: string
-        required: false
-        default: 'main'
-      SYNC_ENABLE:
-        description: "Enable sync images"
-        type: boolean
-        required: false
-        default: true
       REMOVE_PREFIX:
         description: "Enable remove prefix v  (default: true)"
         type: boolean
