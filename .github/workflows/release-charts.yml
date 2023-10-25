@@ -24,10 +24,10 @@ on:
         required: false
         default: ''
       CHART_DIR:
-        description: "The dir of Chart.yaml (default: deploy/helm)"
+        description: "The package dir of helm chart (default: deploy)"
         type: string
         required: false
-        default: 'deploy/helm'
+        default: 'deploy'
       HELM_SET:
         description: "The install args of helm chart (e.g. prometheus.enabled=true)"
         type: string
@@ -65,6 +65,11 @@ on:
         default: true
       PROJECT_ID:
         description: "The jihulab project id to upload"
+        type: string
+        required: false
+        default: ''
+      SPECIFY_CHART:
+        description: "Only package the specify sub dir chart (default: helm)"
         type: string
         required: false
         default: ''
@@ -120,12 +125,10 @@ jobs:
           ref: ${{ inputs.APECD_REF }}
 
       - name: Update Dependency
+        if: inputs.DEP_REPO
         run: |
-          if [ ! -z "${{ inputs.DEP_REPO }}" ]; then
-              bash apecloud-cd/.github/utils/utils.sh --type 13 \
-                  --chart-path "${{ inputs.DEP_REPO }}"
-          fi
-          helm dep update ${{ inputs.CHART_DIR }}
+          bash apecloud-cd/.github/utils/utils.sh --type 13 \
+              --chart-path "${{ inputs.DEP_REPO }}"
 
       - name: remove v prefix
         id: get_version
@@ -149,20 +152,21 @@ jobs:
           CHARS_DIR="${{ inputs.CHART_DIR }}"
           CHARS_DIR="${CHARS_DIR%/*}"
           
-          args=(--owner "apecloud" \
-            --repo "${{ inputs.CHART_NAME }}" \
-            --charts-dir "$CHARS_DIR" \
-            --release-version ${{ steps.get_version.outputs.VERSION }})
+          args=(--charts-dir "$CHARS_DIR" \
+            --release-version ${{ steps.get_version.outputs.VERSION }}) \
+            --specify-chart "${{ inputs.SPECIFY_CHART }}"
           
           "${{ github.workspace }}/apecloud-cd/.github/utils/helm_package.sh" "${args[@]}"
 
       - name: setup k3s ${{ env.K3S_VERSION }}
+        if: inputs.CHART_NAME
         uses: nolar/setup-k3d-k3s@v1
         with:
           version: ${{ env.K3S_VERSION }}
           github-token: ${{ env.CR_TOKEN }}
 
       - name: helm validate
+        if: inputs.CHART_NAME
         run: |
           cp .cr-release-packages/${{ inputs.CHART_NAME }}-${{ steps.get_version.outputs.VERSION }}.tgz ./
           
