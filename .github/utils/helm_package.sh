@@ -123,7 +123,7 @@ parse_command_line() {
                     shift
                 fi
             ;;
-            -sc, --specify-chart)
+            -sc|--specify-chart)
                 if [[ -n "${2:-}" ]]; then
                     SPECIFY_CHART="$2"
                     shift
