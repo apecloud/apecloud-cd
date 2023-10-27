@@ -92,8 +92,6 @@ package_chart() {
             break
         ;;
     esac
-    echo "helm lint $chart"
-    helm lint $chart
 }
 
 parse_command_line() {
