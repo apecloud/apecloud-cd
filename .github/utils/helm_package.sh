@@ -11,7 +11,7 @@ cat << EOF
 Usage: $(basename "$0") <options>
 
     -h, --help               Display help
-    -d, --charts-dir         The charts directory (default: charts)
+    -d, --charts-dir         The charts directory (default: deploy)
     -rv, --release-version   The release version of helm charts
     -t, --tool               The tool of helm package (helm,cr default: $DEFAULT_TOOL)
     -ic, --install-cr        Install chart releaser (default: $DEFAULT_INSTALL_CR)
@@ -146,7 +146,7 @@ parse_command_line() {
 
 main() {
     local version="$DEFAULT_CHART_RELEASER_VERSION"
-    local charts_dir=charts
+    local charts_dir=deploy
     local install_dir=""
     local release_version=""
     local tool=$DEFAULT_TOOL
