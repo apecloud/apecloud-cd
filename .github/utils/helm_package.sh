@@ -16,6 +16,8 @@ Usage: $(basename "$0") <options>
     -t, --tool               The tool of helm package (helm,cr default: $DEFAULT_TOOL)
     -ic, --install-cr        Install chart releaser (default: $DEFAULT_INSTALL_CR)
     -sc, --specify-chart     Only package the specify sub dir chart
+    -o, --owner              The repo owner
+    -r, --repo               The repo name
 EOF
 }
 
@@ -126,6 +128,18 @@ parse_command_line() {
             -sc|--specify-chart)
                 if [[ -n "${2:-}" ]]; then
                     SPECIFY_CHART="$2"
+                    shift
+                fi
+            ;;
+            -o|--owner)
+                if [[ -n "${2:-}" ]]; then
+                    owner="$2"
+                    shift
+                fi
+            ;;
+            -r|--repo)
+                if [[ -n "${2:-}" ]]; then
+                    repo="$2"
                     shift
                 fi
             ;;
