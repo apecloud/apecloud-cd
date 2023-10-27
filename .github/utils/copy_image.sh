@@ -100,12 +100,27 @@ parse_command_line() {
 
 copy_image() {
     image_name=${SRC_IMAGE##*/}
-    echo "copy $SRC_REGISTRY/$SRC_IMAGE:$SRC_TAG to $DEST_REGISTRY/$image_name:$SRC_TAG"
-    skopeo copy --all \
-        --dest-username "$DEST_USERNAME" \
-        --dest-password "$DEST_PASSWORD" \
-        docker://$SRC_REGISTRY/$SRC_IMAGE:$SRC_TAG \
-        docker://$DEST_REGISTRY/$image_name:$SRC_TAG
+    skopeo_msg="skopeo copy $SRC_REGISTRY/$SRC_IMAGE:$SRC_TAG to $DEST_REGISTRY/$image_name:$SRC_TAG"
+    echo "$skopeo_msg"
+    skopeo_flag=0
+    for i in {1..10}; do
+        ret_msg=$(skopeo copy --all \
+            --dest-username "$DEST_USERNAME" \
+            --dest-password "$DEST_PASSWORD" \
+            docker://$SRC_REGISTRY/$SRC_IMAGE:$SRC_TAG \
+            docker://$DEST_REGISTRY/$image_name:$SRC_TAG)
+        echo "return message:$ret_msg"
+        if [[ "$ret_msg" == *"Storing list signatures"* || "$ret_msg" == *"Skipping"* ]]; then
+            echo "$(tput -T xterm setaf 2)$skopeo_msg success$(tput -T xterm sgr0)"
+            skopeo_flag=1
+            break
+        fi
+        sleep 1
+    done
+    if [[ $skopeo_flag -eq 0 ]]; then
+        echo "$(tput -T xterm setaf 1)$skopeo_msg error$(tput -T xterm sgr0)"
+        exit 1
+    fi
 }
 
 main "$@"
