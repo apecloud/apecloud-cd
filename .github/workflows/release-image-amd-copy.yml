@@ -153,7 +153,7 @@ jobs:
         run: |
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/copy_image.sh \
               --type 1 \
-              --dest-registry registry.cn-hangzhou.aliyuncs.com/apecloud \
+              --dest-registry ${{ env.ALIYUN_REGISTRY_URL }}/apecloud \
               --dest-username "${{ env.ALIYUN_USER }}" \
               --dest-password '${{ env.ALIYUN_PASSWORD }}' \
               --src-image "${{ inputs.IMG }}" \
@@ -176,7 +176,7 @@ jobs:
         run: |
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/copy_image.sh \
               --type 1 \
-              --dest-registry infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com \
+              --dest-registry ${{ env.ALIYUN_REGISTRY_URL_NEW }}/apecloud \
               --dest-username "${{ env.ALIYUN_USER_NEW }}" \
               --dest-password '${{ env.ALIYUN_PASSWORD_NEW }}' \
               --src-image "${{ inputs.IMG }}" \
