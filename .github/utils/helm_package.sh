@@ -66,6 +66,7 @@ package_chart() {
     local chart="$1"
     local args=("$chart" --package-path .cr-release-packages)
     echo "$tool packaging $release_version chart '$chart'..."
+    helm lint $chart
     case $tool in
         cr)
             cr package "${args[@]}"
