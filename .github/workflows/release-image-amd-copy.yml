@@ -138,7 +138,6 @@ jobs:
 
   copy-to-aliyun:
     runs-on: [ self-hosted, amd-runner ]
-    if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
     needs: release-image
     steps:
       - name: Checkout apecloud-cd Code
@@ -149,7 +148,8 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
 
-      - name : copy image to Aliyun registry
+      - name : copy image to Aliyun ${{ env.ALIYUN_REGISTRY_URL }}
+        if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
         run: |
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/copy_image.sh \
               --type 1 \
@@ -161,7 +161,6 @@ jobs:
 
   copy-to-aliyun-new:
     runs-on: [ self-hosted, amd-runner ]
-    if: ${{ env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' && env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
     needs: release-image
     steps:
       - name: Checkout apecloud-cd Code
@@ -172,7 +171,8 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
 
-      - name : copy image to Aliyun registry new
+      - name : copy image to Aliyun ${{ env.ALIYUN_REGISTRY_URL_NEW }}
+        if: ${{ env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' && env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
         run: |
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/copy_image.sh \
               --type 1 \
