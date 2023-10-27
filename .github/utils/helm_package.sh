@@ -74,6 +74,7 @@ package_chart() {
             args=("$chart" --destination .cr-release-packages)
             package_flag=0
             for i in {1..10}; do
+                echo "helm package "${args[@]}" --version $release_version --dependency-update"
                 ret_msg=$(helm package "${args[@]}" --version $release_version --dependency-update)
                 echo "return message:$ret_msg"
                 if [[ "$ret_msg" == *"Successfully packaged"* ]]; then
