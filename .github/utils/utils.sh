@@ -56,6 +56,7 @@ Usage: $(basename "$0") <options>
     -rn, --runner-name        The runner name
     -i, --images              Docker images
     -il, --images-list        Docker images list
+    -ea, --extra-args         The extra args for workflow
 EOF
 }
 
@@ -100,13 +101,30 @@ add_trigger_mode() {
 
 trigger_repo_workflow() {
     data='{"ref":"'$BRANCH_NAME'"}'
-    if [[ ! -z "$VERSION" ]]; then
+    if [[ -n "$EXTRA_ARGS" ]]; then
+        extra_args_json=""
+        for extra_arg in $(echo "$EXTRA_ARGS" | sed 's/#/ /g'); do
+            extra_arg_key=${extra_arg%=*}
+            extra_arg_value=${extra_arg#*=}
+            if [[ -n "$extra_args_json" ]]; then
+                extra_args_json="$extra_args_json,\"$extra_arg_key\":\"$extra_arg_value\""
+            else
+                extra_args_json="\"$extra_arg_key\":\"$extra_arg_value\""
+            fi
+        done
+        if [[ -n "$BRANCH_NAME" ]]; then
+            data='{"ref":"'$BRANCH_NAME'","inputs":{'$extra_args_json'}}'
+        else
+            data='{"ref":"main","inputs":{'$extra_args_json'}}'
+        fi
+    elif [[ ! -z "$VERSION" ]]; then
         if [[ -n "$BRANCH_NAME" ]]; then
             data='{"ref":"'$BRANCH_NAME'","inputs":{"VERSION":"'$VERSION'"}}'
         else
             data='{"ref":"main","inputs":{"VERSION":"'$VERSION'"}}'
         fi
     fi
+    echo "data:"$data
     gh_curl -X POST \
         $GITHUB_API/repos/$GITHUB_REPO/actions/workflows/$WORKFLOW_ID/dispatches \
         -d $data
@@ -712,6 +730,10 @@ parse_command_line() {
                 IMAGES_LIST="$2"
                 shift
             ;;
+            -ea|--extra-args)
+                EXTRA_ARGS="$2"
+                shift
+            ;;
             *)
                 break
             ;;
@@ -747,6 +769,7 @@ main() {
     local RUNNER_NAME=""
     local IMAGES=""
     local IMAGES_LIST=""
+    local EXTRA_ARGS=""
 
     parse_command_line "$@"
 
