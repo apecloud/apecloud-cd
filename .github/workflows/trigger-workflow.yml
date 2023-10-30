@@ -28,6 +28,11 @@ on:
         type: string
         required: false
         default: ''
+      EXTRA_ARGS:
+        description: "The extra args"
+        type: string
+        required: false
+        default: ''
 
 
 env:
@@ -55,4 +60,5 @@ jobs:
               --github-repo "${{ inputs.GITHUB_REPO }}" \
               --branch-name "${{ inputs.BRANCH_NAME }}" \
               --workflow-id "${{ inputs.WORKFLOW_ID }}" \
-              --version "${{ inputs.VERSION }}"
+              --version "${{ inputs.VERSION }}" \
+              --extra-args "${{ inputs.EXTRA_ARGS }}"
