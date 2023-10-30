@@ -103,6 +103,9 @@ trigger_repo_workflow() {
     data='{"ref":"'$BRANCH_NAME'"}'
     if [[ -n "$EXTRA_ARGS" ]]; then
         extra_args_json=""
+        if [[ ! -z "$VERSION" ]]; then
+            extra_args_json="\"VERSION\":\"$VERSION\""
+        fi
         for extra_arg in $(echo "$EXTRA_ARGS" | sed 's/#/ /g'); do
             extra_arg_key=${extra_arg%=*}
             extra_arg_value=${extra_arg#*=}
