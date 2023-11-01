@@ -225,21 +225,21 @@ jobs:
           PERFORMANCE_RESULT=${PERFORMANCE_RESULT%"[PERFORMANCE_RESULT]"*}
           echo perfromance-result=$PERFORMANCE_RESULT >> $GITHUB_OUTPUT
 
-      - name: copy log file
-        if: ${{ always() }}
-        run: |
-          sed -i 's/${{ env.AWS_ACCESS_KEY_ID }}/***/g' ${FILE_LOG}
-          sed -i 's/${{ env.AWS_SECRET_ACCESS_KEY }}/***/g' ${FILE_LOG}
-          echo "cp ${FILE_LOG} ${S3_PATH}"
-          cp ${FILE_LOG} ${S3_PATH}
-
-      - uses: shallwefootball/s3-upload-action@master
-        if: ${{ always() }}
-        name: upload logs to S3
-        with:
-          aws_key_id: ${{ env.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          aws_bucket: ${{ vars.AWS_S3_BUCKET }}
-          source_dir: ${{ env.S3_PATH }}
-          destination_dir: ${{ env.S3_PATH }}
-          endpoint: ${{ vars.AWS_S3_ENDPOINT }}
+#      - name: copy log file
+#        if: ${{ always() }}
+#        run: |
+#          sed -i 's/${{ env.AWS_ACCESS_KEY_ID }}/***/g' ${FILE_LOG}
+#          sed -i 's/${{ env.AWS_SECRET_ACCESS_KEY }}/***/g' ${FILE_LOG}
+#          echo "cp ${FILE_LOG} ${S3_PATH}"
+#          cp ${FILE_LOG} ${S3_PATH}
+#
+#      - uses: shallwefootball/s3-upload-action@master
+#        if: ${{ always() }}
+#        name: upload logs to S3
+#        with:
+#          aws_key_id: ${{ env.AWS_ACCESS_KEY_ID }}
+#          aws_secret_access_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+#          aws_bucket: ${{ vars.AWS_S3_BUCKET }}
+#          source_dir: ${{ env.S3_PATH }}
+#          destination_dir: ${{ env.S3_PATH }}
+#          endpoint: ${{ vars.AWS_S3_ENDPOINT }}
