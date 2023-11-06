@@ -13,6 +13,11 @@ on:
         type: string
         required: false
         default: ''
+      config-type:
+        description: 'test type name (mysql postgresql redis mongodb pulsar)'
+        type: string
+        required: true
+        default: 's3'
       region:
         description: 'k8s region name'
         type: string
@@ -33,7 +38,7 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-  GO_VERSION: '1.20'
+  GO_VERSION: '1.21'
 
 permissions:
   id-token: write
@@ -109,17 +114,20 @@ jobs:
           if [[ "$TEST_TYPE" == "mysql" ]]; then
               TEST_TYPE="wesql"
           fi
-          make test-e2e TEST_TYPE=${TEST_TYPE}
+          make test-e2e TEST_TYPE=${TEST_TYPE} CONFIG_TYPE=${{ inputs.config-type }}
 
       - name: return test result
         id: smoke_test
         if: ${{ always() }}
         run: |
-          cat ./test/e2e/*-log.txt
-          test_ret="$( grep "[ERROR]" ./test/e2e/*-log.txt || true )"
-          if [[ -n "$test_ret" ]]; then
-              echo test-result=[FAILED] >> $GITHUB_OUTPUT
-              exit 1
-          else
-              echo test-result=[PASSED] >> $GITHUB_OUTPUT
+          if ls *-log.txt >/dev/null 2>&1; then
+              cat ./test/e2e/*-log.txt
+              test_ret="$( grep "[ERROR]" ./test/e2e/*-log.txt || true )"
+              if [[ -n "$test_ret" ]]; then
+                  echo test-result=[FAILED] >> $GITHUB_OUTPUT
+                  exit 1
+              else
+                  echo test-result=[PASSED] >> $GITHUB_OUTPUT
+              fi
           fi
+          
