@@ -53,6 +53,11 @@ on:
         type: boolean
         required: false
         default: true
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
 
 env:
   DOCKER_REGISTRY_URL: docker.io
