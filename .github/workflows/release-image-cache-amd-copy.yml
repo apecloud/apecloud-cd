@@ -138,8 +138,8 @@ jobs:
           provenance: false
           sbom: false
 
-  copy-to-aliyun:
-    runs-on: [ self-hosted, amd-runner ]
+  sync-to-aliyun:
+    runs-on: ubuntu-latest
     needs: release-image
     steps:
       - name: Checkout apecloud-cd Code
@@ -150,36 +150,23 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
 
-      - name : copy image to Aliyun ${{ env.ALIYUN_REGISTRY_URL }}
-        if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
+      - name: generate image yaml
         run: |
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/copy_image.sh \
-              --type 1 \
-              --dest-registry ${{ env.ALIYUN_REGISTRY_URL }}/apecloud \
-              --dest-username "${{ env.ALIYUN_USER }}" \
-              --dest-password '${{ env.ALIYUN_PASSWORD }}' \
-              --src-image "${{ inputs.IMG }}" \
-              --src-tag "${{ needs.release-image.outputs.tag-name }}"
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/generate_image.sh \
+            --type 27 \
+            --images "${{ inputs.IMG }}:${{ needs.release-image.outputs.tag-name }}" \
+            --registry "${{ env.DOCKER_REGISTRY_URL }}"
 
-  copy-to-aliyun-new:
-    runs-on: [ self-hosted, amd-runner ]
-    needs: release-image
-    steps:
-      - name: Checkout apecloud-cd Code
-        uses: actions/checkout@v4
+      - uses: hhyasdf/image-sync-action@v1.1
+        if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
         with:
-          repository: apecloud/apecloud-cd
-          path: apecloud-cd
-          token: ${{ env.GITHUB_TOKEN }}
-          ref: ${{ inputs.APECD_REF }}
-
-      - name : copy image to Aliyun ${{ env.ALIYUN_REGISTRY_URL_NEW }}
-        if: ${{ env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' && env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
-        run: |
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/copy_image.sh \
-              --type 1 \
-              --dest-registry ${{ env.ALIYUN_REGISTRY_URL_NEW }}/apecloud \
-              --dest-username "${{ env.ALIYUN_USER_NEW }}" \
-              --dest-password '${{ env.ALIYUN_PASSWORD_NEW }}' \
-              --src-image "${{ inputs.IMG }}" \
-              --src-tag "${{ needs.release-image.outputs.tag-name }}"
+          auth_file: ${{ github.workspace }}/apecloud-cd/.github/actions/image-sync-auth.yml
+          images_file: ./image_sync_yaml.yml
+          proc: 6
+        env:
+          DOCKER_USER: ${{ env.DOCKER_USER }}
+          DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
+          ALIYUN_USER: ${{ env.ALIYUN_USER }}
+          ALIYUN_PASSWORD: ${{ env.ALIYUN_PASSWORD }}
+          ALIYUN_USER_NEW: ${{ env.ALIYUN_USER_NEW }}
+          ALIYUN_PASSWORD_NEW: ${{ env.ALIYUN_PASSWORD_NEW }}
