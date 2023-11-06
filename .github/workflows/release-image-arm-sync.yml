@@ -1,4 +1,4 @@
-name: RELEASE-IMAGE-ARM
+name: Releae Image On Arm And Sync To Aliyun
 
 on:
   workflow_call:

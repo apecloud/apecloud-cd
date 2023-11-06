@@ -1,4 +1,4 @@
-name: RELEASE-IMAGE-ARM
+name: Releae Image On Arm
 
 on:
   workflow_call:
