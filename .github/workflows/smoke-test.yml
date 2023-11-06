@@ -14,7 +14,7 @@ on:
         required: false
         default: ''
       config-type:
-        description: 'test type name (mysql postgresql redis mongodb pulsar)'
+        description: 'backup test type name '
         type: string
         required: true
         default: 's3'
