@@ -1,4 +1,4 @@
-name: Releae Image And Copy On Amd
+name: Releae Image On Amd And Sync To Aliyun
 
 on:
   workflow_call:

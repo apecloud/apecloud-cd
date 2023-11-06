@@ -1,4 +1,4 @@
-name: RELEASE-IMAGE-CACHE-AMD
+name: Releae Image Cache On Amd And Sync To Aliyun
 
 on:
   workflow_call:

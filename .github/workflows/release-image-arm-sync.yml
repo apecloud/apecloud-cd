@@ -1,0 +1,165 @@
+name: RELEASE-IMAGE-ARM
+
+on:
+  workflow_call:
+    inputs:
+      MAKE_OPS:
+        description: "The ops name of makefile (default: push-image)"
+        type: string
+        required: false
+        default: 'push-image'
+      MAKE_OPS_PRE:
+        description: "The pre ops name of makefile (e.g. generate)"
+        type: string
+        required: false
+        default: ''
+      IMG:
+        description: "The URL to use building/pushing image targets (e.g. apecloud/kubeblocks)"
+        type: string
+        required: false
+        default: ''
+      VERSION:
+        description: "The tag name of image (default: latest)"
+        type: string
+        required: false
+        default: ''
+      BUILDX_PLATFORMS:
+        description: "buildx platforms (default: linux/amd64,linux/arm64)"
+        type: string
+        required: false
+        default: 'linux/amd64,linux/arm64'
+      BUILDX_ENABLED:
+        description: "buildx enable (default: true)"
+        type: string
+        required: false
+        default: 'true'
+      BUILDX_ARGS:
+        description: "buildx args (default: --sbom=false --provenance=false)"
+        type: string
+        required: false
+        default: '--sbom=false --provenance=false'
+      GO_VERSION:
+        description: "Install the specify version of GO"
+        type: string
+        required: false
+        default: ''
+      GIT_CONFIG:
+        description: "InsteadOf git config global url (default: false)"
+        type: boolean
+        required: false
+        default: false
+      REMOVE_PREFIX:
+        description: "Enable remove prefix v  (default: true)"
+        type: boolean
+        required: false
+        default: true
+
+env:
+  DOCKER_REGISTRY_URL: docker.io
+  ALIYUN_REGISTRY_URL: registry.cn-hangzhou.aliyuncs.com
+  ALIYUN_REGISTRY_URL_NEW: infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+  ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
+  ALIYUN_USER_NEW: ${{ secrets.ALIYUN_USER_NEW }}
+  ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
+  GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  release-image:
+    permissions:
+      contents: 'write'
+      id-token: 'write'
+    runs-on: [self-hosted, arm-runner ]
+    outputs:
+      tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go specify version
+        if: inputs.GO_VERSION
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ inputs.GO_VERSION }}
+
+      - name: git config
+        if: inputs.GIT_CONFIG
+        run: |
+          git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GITHUB_TOKEN }}@github.com".insteadof "https://github.com"
+
+      - name: make pre
+        if: inputs.MAKE_OPS_PRE
+        run: |
+          make ${{ inputs.MAKE_OPS_PRE }}
+
+      - name: remove v prefix
+        id: get_tag_name
+        shell: bash
+        run: |
+          tag_name="${{ inputs.VERSION }}"
+          if [[ "$tag_name" == "v"*  && "${{ inputs.REMOVE_PREFIX }}" == "true" ]]; then
+              tag_name="${tag_name/v/}"
+          fi
+          echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
+
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY_URL }}
+          username: ${{ env.DOCKER_USER }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
+        name: Build and Push to Docker Hub
+        run: |
+          cmd="make ${{ inputs.MAKE_OPS }} "
+          cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
+          cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
+          cmd=$cmd"BUILDX_ARGS=\"${{ inputs.BUILDX_ARGS }}\" "
+          
+          if [[ ! -z "${{ inputs.VERSION }}" ]]; then
+            cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
+          fi
+          
+          if [[ ! -z "${{ inputs.IMG }}" ]]; then
+            cmd=$cmd"IMG=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }} "
+          fi
+          
+          eval "$cmd"
+
+  sync-to-aliyun:
+    runs-on: ubuntu-latest
+    needs: release-image
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: generate image yaml
+        run: |
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/generate_image.sh \
+            --type 27 \
+            --images "${{ inputs.IMG }}:${{ needs.release-image.outputs.tag-name }}" \
+            --registry "${{ env.DOCKER_REGISTRY_URL }}"
+
+      - uses: hhyasdf/image-sync-action@v1.1
+        if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
+        with:
+          auth_file: ${{ github.workspace }}/apecloud-cd/.github/actions/image-sync-auth.yml
+          images_file: ./image_sync_yaml.yml
+          proc: 6
+        env:
+          DOCKER_USER: ${{ env.DOCKER_USER }}
+          DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
+          ALIYUN_USER: ${{ env.ALIYUN_USER }}
+          ALIYUN_PASSWORD: ${{ env.ALIYUN_PASSWORD }}
+          ALIYUN_USER_NEW: ${{ env.ALIYUN_USER_NEW }}
+          ALIYUN_PASSWORD_NEW: ${{ env.ALIYUN_PASSWORD_NEW }}
