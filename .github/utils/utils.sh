@@ -3,6 +3,7 @@
 set -o nounset
 
 DEFAULT_DELETE_FORCE="false"
+REGISTRY_DEFAULT=docker.io
 
 show_help() {
 cat << EOF
@@ -36,6 +37,7 @@ Usage: $(basename "$0") <options>
                                 24) move pr/issue to next milestone
                                 25) remove runner
                                 26) set images list
+                                27) generate image yaml
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -57,6 +59,7 @@ Usage: $(basename "$0") <options>
     -i, --images              Docker images
     -il, --images-list        Docker images list
     -ea, --extra-args         The extra args for workflow
+    -r, --registry            Docker image registry (default: $REGISTRY_DEFAULT)
 EOF
 }
 
@@ -604,6 +607,24 @@ set_images_list() {
     done
 }
 
+generate_image_yaml() {
+    if [[ -z "$IMAGES" ]]; then
+        echo "images name is empty"
+        return
+    fi
+    image_sync_yaml="./image_sync_yaml.yml"
+    rm -f $image_sync_yaml
+    touch $image_sync_yaml
+    for image in `echo "$IMAGES" | sed 's/|/ /g'`; do
+        image_name=${image##*/}
+        tee -a $image_sync_yaml << EOF
+${REGISTRY}/${image}:
+  - "infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/${image_name}"
+  - "registry.cn-hangzhou.aliyuncs.com/apecloud/${image_name}"
+EOF
+    done
+}
+
 parse_command_line() {
     while :; do
         case "${1:-}" in
@@ -737,6 +758,10 @@ parse_command_line() {
                 EXTRA_ARGS="$2"
                 shift
             ;;
+            -r|--registry)
+                REGISTRY="$2"
+                shift
+            ;;
             *)
                 break
             ;;
@@ -773,6 +798,7 @@ main() {
     local IMAGES=""
     local IMAGES_LIST=""
     local EXTRA_ARGS=""
+    local REGISTRY=$REGISTRY_DEFAULT
 
     parse_command_line "$@"
 
@@ -865,6 +891,9 @@ main() {
         ;;
         26)
             set_images_list
+        ;;
+        27)
+            generate_image_yaml
         ;;
     esac
 }
