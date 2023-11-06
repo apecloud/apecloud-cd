@@ -150,7 +150,7 @@ jobs:
 
       - name: generate image yaml
         run: |
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/generate_image.sh \
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
             --type 27 \
             --images "${{ inputs.IMG }}:${{ needs.release-image.outputs.tag-name }}" \
             --registry "${{ env.DOCKER_REGISTRY_URL }}"
