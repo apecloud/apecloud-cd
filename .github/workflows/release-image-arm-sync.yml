@@ -161,6 +161,7 @@ jobs:
           auth_file: ${{ github.workspace }}/apecloud-cd/.github/actions/image-sync-auth.yml
           images_file: ./image_sync_yaml.yml
           proc: 6
+          retries: 5
         env:
           DOCKER_USER: ${{ env.DOCKER_USER }}
           DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
