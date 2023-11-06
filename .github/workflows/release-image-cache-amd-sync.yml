@@ -1,13 +1,8 @@
-name: Releae Image On Arm
+name: Releae Image Cache On Amd And Sync To Aliyun
 
 on:
   workflow_call:
     inputs:
-      MAKE_OPS:
-        description: "The ops name of makefile (default: push-image)"
-        type: string
-        required: false
-        default: 'push-image'
       MAKE_OPS_PRE:
         description: "The pre ops name of makefile (e.g. generate)"
         type: string
@@ -28,16 +23,11 @@ on:
         type: string
         required: false
         default: 'linux/amd64,linux/arm64'
-      BUILDX_ENABLED:
-        description: "buildx enable (default: true)"
-        type: string
-        required: false
-        default: 'true'
       BUILDX_ARGS:
-        description: "buildx args (default: --sbom=false --provenance=false)"
+        description: "buildx args "
         type: string
         required: false
-        default: '--sbom=false --provenance=false'
+        default: ''
       GO_VERSION:
         description: "Install the specify version of GO"
         type: string
@@ -48,6 +38,21 @@ on:
         type: boolean
         required: false
         default: false
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      CONTEXT:
+        description: "Build's context is the set of files located in the specified PATH or URL (default: .)"
+        type: string
+        required: false
+        default: '.'
+      DOCKERFILE_PATH:
+        description: "Path to the Dockerfile (default: ./Dockerfile)"
+        type: string
+        required: false
+        default: './Dockerfile'
       REMOVE_PREFIX:
         description: "Enable remove prefix v  (default: true)"
         type: boolean
@@ -70,14 +75,19 @@ env:
 jobs:
   release-image:
     permissions:
-      contents: 'write'
+      contents: 'read'
       id-token: 'write'
-    runs-on: [self-hosted, arm-runner ]
+    runs-on: [self-hosted, amd-runner ]
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: image=moby/buildkit:master
 
       - name: Setup Go specify version
         if: inputs.GO_VERSION
@@ -115,70 +125,48 @@ jobs:
 
       - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
         name: Build and Push to Docker Hub
-        run: |
-          cmd="make ${{ inputs.MAKE_OPS }} "
-          cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
-          cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
-          cmd=$cmd"BUILDX_ARGS=\"${{ inputs.BUILDX_ARGS }}\" "
-          
-          if [[ ! -z "${{ inputs.VERSION }}" ]]; then
-            cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
-          fi
-          
-          if [[ ! -z "${{ inputs.IMG }}" ]]; then
-            cmd=$cmd"IMG=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }} "
-          fi
-          
-          eval "$cmd"
-
-      - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
-        name: Login to Aliyun Registry
-        uses: docker/login-action@v2
+        uses: docker/build-push-action@v5
         with:
-          registry: ${{ env.ALIYUN_REGISTRY_URL }}
-          username: ${{ env.ALIYUN_USER }}
-          password: ${{ env.ALIYUN_PASSWORD }}
+          context: ${{ inputs.CONTEXT }}
+          file: ${{ inputs.DOCKERFILE_PATH }}
+          tags: ${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
+          platforms: ${{ inputs.BUILDX_PLATFORMS }}
+          build-args: ${{ inputs.BUILDX_ARGS }}
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+          sbom: false
 
-      - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
-        name: Build and Push to Aliyun Registry
-        run: |
-          cmd="make ${{ inputs.MAKE_OPS }} "
-          cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
-          cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
-          cmd=$cmd"BUILDX_ARGS=\"${{ inputs.BUILDX_ARGS }}\" "
-          
-          if [[ ! -z "${{ inputs.VERSION }}" ]]; then
-            cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
-          fi
-          
-          if [[ ! -z "${{ inputs.IMG }}" ]]; then
-            cmd=$cmd"IMG=${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }} "
-          fi
-          
-          eval "$cmd"
-
-      - if: ${{ env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
-        name: Login to Aliyun Registry New
-        uses: docker/login-action@v2
+  sync-to-aliyun:
+    runs-on: ubuntu-latest
+    needs: release-image
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
         with:
-          registry: ${{ env.ALIYUN_REGISTRY_URL_NEW }}
-          username: ${{ env.ALIYUN_USER_NEW }}
-          password: ${{ env.ALIYUN_PASSWORD_NEW }}
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.APECD_REF }}
 
-      - if: ${{ env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
-        name: Build and Push to Aliyun Registry New
+      - name: generate image yaml
         run: |
-          cmd="make ${{ inputs.MAKE_OPS }} "
-          cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
-          cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
-          cmd=$cmd"BUILDX_ARGS=\"${{ inputs.BUILDX_ARGS }}\" "
-          
-          if [[ ! -z "${{ inputs.VERSION }}" ]]; then
-            cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
-          fi
-          
-          if [[ ! -z "${{ inputs.IMG }}" ]]; then
-            cmd=$cmd"IMG=${{ env.ALIYUN_REGISTRY_URL_NEW }}/${{ inputs.IMG }} "
-          fi
-          
-          eval "$cmd"
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/generate_image.sh \
+            --type 27 \
+            --images "${{ inputs.IMG }}:${{ needs.release-image.outputs.tag-name }}" \
+            --registry "${{ env.DOCKER_REGISTRY_URL }}"
+
+      - uses: hhyasdf/image-sync-action@v1.1
+        if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
+        with:
+          auth_file: ${{ github.workspace }}/apecloud-cd/.github/actions/image-sync-auth.yml
+          images_file: ./image_sync_yaml.yml
+          proc: 6
+        env:
+          DOCKER_USER: ${{ env.DOCKER_USER }}
+          DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
+          ALIYUN_USER: ${{ env.ALIYUN_USER }}
+          ALIYUN_PASSWORD: ${{ env.ALIYUN_PASSWORD }}
+          ALIYUN_USER_NEW: ${{ env.ALIYUN_USER_NEW }}
+          ALIYUN_PASSWORD_NEW: ${{ env.ALIYUN_PASSWORD_NEW }}
