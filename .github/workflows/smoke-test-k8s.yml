@@ -22,6 +22,9 @@ on:
         description: 'backup type'
         required: true
         default: 's3'
+        type: choice
+          - s3
+          - oss
       CLUSTER_VERSION:
         description: 'k8s cluster version (e.g. 1.26)'
         type: string
@@ -71,6 +74,9 @@ on:
         description: 'backup type'
         required: true
         default: 's3'
+        type: choice
+          - s3
+          - oss
       CLUSTER_VERSION:
         description: 'k8s cluster version (e.g. 1.26)'
         required: false
@@ -110,6 +116,7 @@ jobs:
     uses: ./.github/workflows/terraform-init.yml
     with:
       test-type: ${{ inputs.TEST_TYPE }}
+      config-type: ${{ inputs.CONFIG_TYPE }}
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       cluster-version: ${{ inputs.CLUSTER_VERSION }}
       instance-type: ${{ inputs.INSTANCE_TYPE }}
