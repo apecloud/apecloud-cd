@@ -19,12 +19,10 @@ on:
         required: false
         default: ''
       CONFIG_TYPE:
-        description: 'backup type'
-        required: true
-        default: 's3'
-        type: choice
-          - s3
-          - oss
+        description: 'config type (e.g. s3|oss)'
+        type: string
+        required: false
+        default: ''
       CLUSTER_VERSION:
         description: 'k8s cluster version (e.g. 1.26)'
         type: string
@@ -71,12 +69,10 @@ on:
         required: false
         default: ''
       CONFIG_TYPE:
-        description: 'backup type'
-        required: true
-        default: 's3'
-        type: choice
-          - s3
-          - oss
+        description: 'config type (e.g. s3|oss)'
+        type: string
+        required: false
+        default: ''
       CLUSTER_VERSION:
         description: 'k8s cluster version (e.g. 1.26)'
         required: false
@@ -116,7 +112,6 @@ jobs:
     uses: ./.github/workflows/terraform-init.yml
     with:
       test-type: ${{ inputs.TEST_TYPE }}
-      config-type: ${{ inputs.CONFIG_TYPE }}
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       cluster-version: ${{ inputs.CLUSTER_VERSION }}
       instance-type: ${{ inputs.INSTANCE_TYPE }}
@@ -147,7 +142,7 @@ jobs:
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       test-type: "mysql"
-      config-type: "s3"
+      config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
     secrets: inherit
@@ -159,6 +154,7 @@ jobs:
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       test-type: "postgresql"
+      config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
     secrets: inherit
@@ -170,6 +166,7 @@ jobs:
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       test-type: "redis"
+      config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
     secrets: inherit
@@ -181,6 +178,7 @@ jobs:
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       test-type: "mongodb"
+      config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
     secrets: inherit
@@ -192,6 +190,7 @@ jobs:
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       test-type: "pulsar"
+      config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
     secrets: inherit
@@ -203,6 +202,7 @@ jobs:
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       test-type: "greptimedb"
+      config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
     secrets: inherit
@@ -214,6 +214,7 @@ jobs:
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       test-type: "nebula"
+      config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
     secrets: inherit
@@ -225,6 +226,7 @@ jobs:
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       test-type: "risingwave"
+      config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
     secrets: inherit
@@ -236,6 +238,7 @@ jobs:
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       test-type: "starrocks"
+      config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
     secrets: inherit
