@@ -164,6 +164,7 @@ jobs:
           images_file: ./image_sync_yaml.yml
           proc: 6
           retries: 5
+          version: v1.5.2
         env:
           DOCKER_USER: ${{ env.DOCKER_USER }}
           DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
