@@ -58,6 +58,11 @@ on:
         type: boolean
         required: false
         default: true
+      SPECIFY_CHART:
+        description: "Only package the specify sub dir chart (default: helm)"
+        type: string
+        required: false
+        default: ''
 
 
 env:
@@ -124,10 +129,9 @@ jobs:
           CHARS_DIR="${{ inputs.CHART_DIR }}"
           CHARS_DIR="${CHARS_DIR%/*}"
           
-          args=(--owner "apecloud" \
-            --repo "${{ inputs.CHART_NAME }}" \
-            --charts-dir "$CHARS_DIR" \
-            --release-version ${{ steps.get_version.outputs.VERSION }})
+          args=(--charts-dir "$CHARS_DIR" \
+            --release-version ${{ steps.get_version.outputs.VERSION }} \
+            --specify-chart "${{ inputs.SPECIFY_CHART }}")
           
           "${{ github.workspace }}/apecloud-cd/.github/utils/helm_package.sh" "${args[@]}"
 
