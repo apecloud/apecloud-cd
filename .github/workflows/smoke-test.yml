@@ -14,10 +14,10 @@ on:
         required: false
         default: ''
       config-type:
-        description: 'backup test type name '
+        description: 'config type name (s3 oss)'
         type: string
-        required: true
-        default: 's3'
+        required: false
+        default: ''
       region:
         description: 'k8s region name'
         type: string
