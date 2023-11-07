@@ -63,11 +63,11 @@ jobs:
           path: helm-charts
           token: ${{ env.CR_TOKEN }}
 
-      - name: Checkout block-index Code
+      - name: Checkout kubeblocks-addons Code
         uses: actions/checkout@v4
         with:
-          repository: apecloud/block-index
-          path: block-index
+          repository: apecloud/kubeblocks-addons
+          path: kubeblocks-addons
           token: ${{ env.CR_TOKEN }}
 
       - name: Upload Helm Charts to Jihulab
@@ -77,7 +77,7 @@ jobs:
           bash ${{ github.workspace }}/.github/utils/release_gitlab.sh \
             --type 3 \
             --asset-path ./ \
-            --charts-dir "${{ github.workspace }}/block-index/addons|${{ github.workspace }}/helm-charts/deploy|${{ github.workspace }}/deploy" \
+            --charts-dir "${{ github.workspace }}/kubeblocks-addons/addons" \
             --access-token "${{ env.JIHULAB_ACCESS_TOKEN }}" \
             --access-user "${{ env.JIHULAB_ACCESS_USER }}" \
             --project-id "${{ env.PROJECT_ID }}"

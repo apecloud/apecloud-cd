@@ -210,7 +210,7 @@ filter_charts() {
 
 delete_release_charts() {
     local DELETE_CHARTS_DIR=""
-    for charts_dir in $(echo "deploy|helm-charts/deploy" | sed 's/|/ /g'); do
+    for charts_dir in $(echo "deploy|helm-charts/charts|kubeblocks-addons/addons" | sed 's/|/ /g'); do
         if [[ ! -d "$charts_dir" ]]; then
             echo "not found chart dir $charts_dir"
             continue

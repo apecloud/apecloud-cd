@@ -8,12 +8,9 @@ API_URL=https://jihulab.com/api/v4/projects
 DEFAULT_DELETE_FORCE="false"
 DEFAULT_HELM_CHARTS_PROJECT_ID=85949 # helm-charts
 DEFAULT_ADDONS_PROJECT_ID=150246 # addons
-DEFAULT_PLUGINS_PROJECT_ID=150247 # plugins
-DEFAULT_TOOLS_PROJECT_ID=150248 # tools
 DEFAULT_APPLICATIONS_PROJECT_ID=152630 # applications
-DEFAULT_HELM_CHARTS_LIST="kubeblocks|kubeblocks-cloud|kubechat"
+DEFAULT_HELM_CHARTS_LIST="kubeblocks|kubeblocks-cloud"
 DEFAULT_ADDONS_LIST="[prometheus]"
-DEFAULT_PLUGINS_LIST="load-balancer|ingress|cloud-provider|metalb|csi-|esdk-k8s-plugin|openebs|cert-manager"
 DEFAULT_CHARTS_DIR="../deploy"
 
 show_help() {
@@ -55,12 +52,9 @@ main() {
     local PROJECT_ID_TMP=""
     local HELM_CHARTS_PROJECT_ID=$DEFAULT_HELM_CHARTS_PROJECT_ID
     local ADDONS_PROJECT_ID=$DEFAULT_ADDONS_PROJECT_ID
-    local PLUGINS_PROJECT_ID=$DEFAULT_PLUGINS_PROJECT_ID
-    local TOOLS_PROJECT_ID=$DEFAULT_TOOLS_PROJECT_ID
     local APPLICATIONS_PROJECT_ID=$DEFAULT_APPLICATIONS_PROJECT_ID
     local HELM_CHARTS_LIST=$DEFAULT_HELM_CHARTS_LIST
     local ADDONS_LIST=$DEFAULT_ADDONS_LIST
-    local PLUGINS_LIST=$DEFAULT_PLUGINS_LIST
     local CHARTS_DIR=$DEFAULT_CHARTS_DIR
 
     parse_command_line "$@"
@@ -256,9 +250,8 @@ set_addon_list() {
             continue
         fi
         chart_name=$(cat $chart_file | yq eval '.name' -)
-        chart_name=$(get_upper_lower_name $chart_name)
-        addon_name=${chart_name%*-cluster}
-        if [[ "$chart_name" == *"-cluster" && "$ADDONS_LIST" != *"[$addon_name]"* ]]; then
+        addon_name=$(get_upper_lower_name $chart_name)
+        if [[ "$ADDONS_LIST" != *"[$addon_name]"* ]]; then
             ADDONS_LIST=$ADDONS_LIST"|["$addon_name"]"
         fi
     done
@@ -267,11 +260,7 @@ set_addon_list() {
 get_addons_list() {
     for charts_dir in $(echo "$CHARTS_DIR" | sed 's/|/ /g'); do
         if [[ -d "$charts_dir" ]]; then
-            if [[ "$charts_dir" == *"block-index"* ]]; then
-                set_block_index_addon_list "$charts_dir"
-            else
-                set_addon_list "$charts_dir"
-            fi
+            set_addon_list "$charts_dir"
         else
             echo "not found chart dir $charts_dir"
         fi
@@ -286,19 +275,13 @@ get_project_id() {
     if [[ -n "$PROJECT_ID" ]]; then
         PROJECT_ID_TMP=$(get_upper_lower_name "$PROJECT_ID")
         case $PROJECT_ID_TMP in
-            *kubeblock*)
+            *kubeblocks*)
                 PROJECT_ID_TMP=$HELM_CHARTS_PROJECT_ID
             ;;
-            *addon*)
-                PROJECT_ID_TMP=$HELM_CHARTS_PROJECT_ID
+            *addons*)
+                PROJECT_ID_TMP=$ADDONS_PROJECT_ID
             ;;
-            *plugin*)
-                PROJECT_ID_TMP=$PLUGINS_PROJECT_ID
-            ;;
-            *tool*)
-                PROJECT_ID_TMP=$TOOLS_PROJECT_ID
-            ;;
-            *application*)
+            *applications*)
                 PROJECT_ID_TMP=$APPLICATIONS_PROJECT_ID
             ;;
         esac
@@ -328,7 +311,7 @@ get_project_id() {
     # check addons charts
     for addon_name in $(echo "$ADDONS_LIST" | sed 's/|/ /g'); do
         addon_name=$(echo "$addon_name" | sed 's/^\[//' | sed 's/\]$//')
-        if [[ "$chart_name" == "${addon_name}" || "$chart_name" == "${addon_name}-cluster" ]]; then
+        if [[ "$chart_name" == "${addon_name}" ]]; then
             PROJECT_ID_TMP=$ADDONS_PROJECT_ID
             break
         fi
@@ -336,17 +319,7 @@ get_project_id() {
     if [[ -n "$PROJECT_ID_TMP" ]]; then
         return
     fi
-    # check plugins charts
-#    for plugins in $(echo "$PLUGINS_LIST" | sed 's/|/ /g'); do
-#        if [[ "$chart_name" == *"${plugins}"*  ]]; then
-#            PROJECT_ID_TMP=$PLUGINS_PROJECT_ID
-#            break
-#        fi
-#    done
-#    if [[ -n "$PROJECT_ID_TMP" ]]; then
-#        return
-#    fi
-    # check tools charts
+    # check applications charts
     PROJECT_ID_TMP=$APPLICATIONS_PROJECT_ID
 }
 
@@ -484,7 +457,7 @@ delete_helm_chart() {
     TAG_NAME="$TAG_NAME_TMP"
     get_addons_list
     local DELETE_CHARTS_DIR=""
-    for charts_dir in $(echo "deploy|helm-charts/deploy" | sed 's/|/ /g'); do
+    for charts_dir in $(echo "deploy|helm-charts/charts|kubeblocks-addons/addons" | sed 's/|/ /g'); do
         if [[ ! -d "$charts_dir" ]]; then
             echo "not found chart dir $charts_dir"
             continue
