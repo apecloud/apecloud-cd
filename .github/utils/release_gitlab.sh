@@ -250,9 +250,17 @@ set_addon_list() {
             continue
         fi
         chart_name=$(cat $chart_file | yq eval '.name' -)
-        addon_name=$(get_upper_lower_name $chart_name)
-        if [[ "$ADDONS_LIST" != *"[$addon_name]"* ]]; then
-            ADDONS_LIST=$ADDONS_LIST"|["$addon_name"]"
+        chart_name=$(get_upper_lower_name $chart_name)
+        if [[ "$chart_dir" == *"kubeblocks-addons"* ]]; then
+            addon_name=$chart_name
+            if [[ "$ADDONS_LIST" != *"[$addon_name]"* ]]; then
+                ADDONS_LIST=$ADDONS_LIST"|["$addon_name"]"
+            fi
+        else
+            addon_name=${chart_name%*-cluster}
+            if [[ "$chart_name" == *"-cluster" && "$ADDONS_LIST" != *"[$addon_name]"* ]]; then
+                ADDONS_LIST=$ADDONS_LIST"|["$addon_name"]"
+            fi
         fi
     done
 }
