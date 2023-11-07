@@ -235,7 +235,7 @@ jobs:
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
             --type 3  \
             --asset-path ./ \
-            --charts-dir "${{ github.workspace }}/kubeblocks-addons/addons" \
+            --charts-dir "${{ github.workspace }}/kubeblocks-addons/addons|${{ github.workspace }}/helm-charts/charts|${{ github.workspace }}/deploy" \
             --access-token "${{ env.JIHULAB_ACCESS_TOKEN }}" \
             --access-user "${{ env.JIHULAB_ACCESS_USER }}"\
             --project-id "${{ inputs.PROJECT_ID }}"

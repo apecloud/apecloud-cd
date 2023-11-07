@@ -64,7 +64,7 @@ check_image_exists() {
     tag=${image##*:}
     for i in {1..5}; do
         case $tag in
-            *arm64*|*amd64*)
+            *arm64*|*amd64*|*arm*|*amd*)
                 architecture=$( docker buildx imagetools inspect "$image" |  grep Digest )
             ;;
             *)
@@ -78,7 +78,7 @@ check_image_exists() {
             fi
         else
             case $tag in
-                *arm64*|*amd64*)
+                *arm64*|*amd64*|*arm*|*amd*)
                     echo "$(tput -T xterm setaf 2)$image found $tag architecture$(tput -T xterm sgr0)"
                     break
                 ;;
