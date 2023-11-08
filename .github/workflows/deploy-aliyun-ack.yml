@@ -1,0 +1,124 @@
+name: DEPLOY-ALIYUN-ACK
+
+on:
+  workflow_call:
+    inputs:
+      REGION:
+        description: "The k8s account region (eg: infracreate|beilian)"
+        type: string
+        required: false
+        default: 'infracreate'
+      MAKE_OPS:
+        description: "The ops name of makefile"
+        type: string
+        required: false
+        default: ''
+      MAKE_OPS_PRE:
+        description: "The pre ops name of makefile"
+        type: string
+        required: false
+        default: ''
+      VERSION:
+        description: "The tag name of image"
+        type: string
+        required: false
+        default: ''
+      GO_VERSION:
+        description: "Install the specify version of GO"
+        type: string
+        required: false
+        default: ''
+      GIT_CONFIG:
+        description: "InsteadOf git config global url (default: false)"
+        type: boolean
+        required: false
+        default: false
+      KUBECTL_VERSION:
+        description: "Install the specify version of kubectl (default: latest)"
+        type: string
+        required: false
+        default: 'v1.28.3'
+      REMOVE_PREFIX:
+        description: "Enable remove prefix v  (default: true)"
+        type: boolean
+        required: false
+        default: true
+
+
+env:
+  ACK_KUBECONFIG: ${{ secrets.ACK_KUBECONFIG }}
+  AKC_KUBECONFIG_55: ${{ secrets.ACK_KUBECONFIG_55 }}
+  GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  CONTROLLER_MANAGER_CFG: ${{ secrets.CONTROLLER_MANAGER_CFG }}
+  OPENCONSOLE_CFG: ${{ secrets.OPENCONSOLE_CFG }}
+  DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+
+
+jobs:
+  deploy-aliyun-ack:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-latest
+    outputs:
+      tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go specify version
+        if: inputs.GO_VERSION
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ inputs.GO_VERSION }}
+
+      - uses: azure/setup-kubectl@v3
+        with:
+          version: "${{ inputs.KUBECTL_VERSION }}"
+
+      - name: git config
+        if: inputs.GIT_CONFIG
+        run: |
+          git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GITHUB_TOKEN }}@github.com".insteadof "https://github.com"
+
+      - name: remove v prefix
+        id: get_tag_name
+        shell: bash
+        run: |
+          tag_name="${{ inputs.VERSION }}"
+          if [[ "$tag_name" == "v"* && "${{ inputs.REMOVE_PREFIX }}" == "true" ]]; then
+              tag_name="${tag_name/v/}"
+          fi
+          echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
+
+      - if: ${{ env.ACK_KUBECONFIG != '' && inputs.REGION == 'infracreate' }}
+        name: Configure ACK Context
+        run: |
+          mkdir -p $HOME/.kube
+          touch $HOME/.kube/config
+          echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
+
+      - if: ${{ env.ACK_KUBECONFIG_55 != '' && inputs.REGION == 'beilian' }}
+        name: Configure ACK Context 55
+        run: |
+          mkdir -p $HOME/.kube
+          touch $HOME/.kube/config
+          echo "${{ env.ACK_KUBECONFIG_55 }}" > $HOME/.kube/config
+
+      - name: make pre
+        if: inputs.MAKE_OPS_PRE
+        run: |
+          make ${{ inputs.MAKE_OPS_PRE }}
+
+      - if: ${{ (env.ACK_KUBECONFIG != '' || env.ACK_KUBECONFIG_55 != '') && inputs.REGION != '' }}
+        name: deploy to aliyun ack
+        run: |
+          cmd="make ${{ inputs.MAKE_OPS }} "
+
+          if [[ ! -z "${{ inputs.VERSION }}" ]]; then
+            cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
+          fi
+
+          eval "$cmd"
