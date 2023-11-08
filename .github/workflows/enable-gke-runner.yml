@@ -28,6 +28,11 @@ on:
         type: string
         required: false
         default: 'github-runner'
+      RUNNER_REPLICAS:
+        description: "runner replicas"
+        type: number
+        required: false
+        default: 1
   workflow_dispatch:
     inputs:
       GITHUB_REPO:
@@ -50,6 +55,11 @@ on:
         description: "runner namespace"
         required: false
         default: 'github-runner'
+      RUNNER_REPLICAS:
+        description: "runner replicas"
+        type: number
+        required: false
+        default: 1
 
 
 env:
@@ -97,9 +107,9 @@ jobs:
                       echo "enable runner"
                       if [[ -n "$hautoscalers" ]]; then
                           echo "enable runner autoscaler"
-                          kubectl patch horizontalrunnerautoscalers $runner_name-autoscaler -n ${{ inputs.RUNNER_NAMESPACE }} -p '{"spec":{"minReplicas": 1}}' --type=merge
+                          kubectl patch horizontalrunnerautoscalers $runner_name-autoscaler -n ${{ inputs.RUNNER_NAMESPACE }} -p '{"spec":{"minReplicas": ${{ inputs.RUNNER_REPLICAS }}}}' --type=merge
                       fi
-                      kubectl patch runnerdeployments $runner_name -n ${{ inputs.RUNNER_NAMESPACE }} -p '{"spec":{"replicas": 1}}' --type=merge
+                      kubectl patch runnerdeployments $runner_name -n ${{ inputs.RUNNER_NAMESPACE }} -p '{"spec":{"replicas": ${{ inputs.RUNNER_REPLICAS }}}}' --type=merge
                   else
                       echo "disable runner"
                       if [[ -n "$hautoscalers" ]]; then
