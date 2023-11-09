@@ -18,6 +18,11 @@ on:
         type: string
         required: false
         default: 'main'
+      BOT_TYPE:
+        description: 'the bot type (e.g. release/package)'
+        type: string
+        required: false
+        default: 'release'
   workflow_dispatch:
     inputs:
       RELEASE_VERSION:
@@ -32,10 +37,13 @@ on:
         description: "The ref of apecloud-cd"
         required: false
         default: 'main'
+      BOT_TYPE:
+        description: 'the bot type (e.g. release/package)'
+        required: false
+        default: 'release'
 
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  RELEASE_BOT_WEBHOOK: ${{ secrets.RELEASE_BOT_WEBHOOK }}
 
 jobs:
   get-version:
@@ -44,6 +52,7 @@ jobs:
       RELEASE_VERSION: "${{ inputs.RELEASE_VERSION }}"
       CONTENT: "${{ inputs.CONTENT }}"
       APECD_REF: ${{ inputs.APECD_REF }}
+      BOT_TYPE: ${{ inputs.BOT_TYPE }}
     secrets: inherit
 
   release-message:
@@ -54,6 +63,7 @@ jobs:
       TYPE: "1"
       VERSION: "${{ needs.get-version.outputs.release-version }}"
       APECD_REF: ${{ inputs.APECD_REF }}
+      BOT_TYPE: ${{ inputs.BOT_TYPE }}
     secrets: inherit
 
   release-version:
@@ -77,4 +87,5 @@ jobs:
       TYPE: "2"
       CONTENT: "release ${{ needs.get-version.outputs.release-version }} error"
       APECD_REF: ${{ inputs.APECD_REF }}
+      BOT_TYPE: ${{ inputs.BOT_TYPE }}
     secrets: inherit
