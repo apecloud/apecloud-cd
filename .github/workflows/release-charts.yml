@@ -8,6 +8,11 @@ on:
         type: string
         required: false
         default: ''
+      GITHUB_REF:
+        description: "The github repo ref to release chart"
+        type: string
+        required: false
+        default: 'main'
       MAKE_OPS:
         description: "The ops name of makefile (e.g. bump-chart-ver)"
         type: string
@@ -111,6 +116,7 @@ jobs:
           repository: ${{ inputs.GITHUB_REPO }}
           path: ./
           token: ${{ env.CR_TOKEN }}
+          ref: ${{ inputs.GITHUB_REF }}
 
       - uses: docker/setup-qemu-action@v3
 
