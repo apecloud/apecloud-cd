@@ -16,11 +16,9 @@ Usage: $(basename "$0") <options>
     -gr, --github-repo        Github repo
     -gt, --github-token       Github token
     -v, --version             The release version
-    -bn, --branch-name        The branch name
     -c, --content             The trigger request content
     -bw, --bot-webhook        The bot webhook
     -ru, --run-url            The workflow run url
-    -wn, --workflow-name      The workflows name
     -cv, --current-version    The current release version
 EOF
 }
