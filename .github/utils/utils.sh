@@ -38,6 +38,7 @@ Usage: $(basename "$0") <options>
                                 25) remove runner
                                 26) set images list
                                 27) generate image yaml
+                                28) get release branch
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -625,6 +626,19 @@ EOF
     done
 }
 
+get_release_branch() {
+    if [[ "$BRANCH_NAME" != "main" && "$BRANCH_NAME" != "release-"* ]]; then
+        if [[ "$VERSION" == *"-alpha."* ]]; then
+            BRANCH_NAME="main"
+        else
+            VERSION="${VERSION/v/}"
+            VERSION=$(echo "$VERSION" | awk -F '.' '{print $1"."$2}')
+            BRANCH_NAME="release-${VERSION}"
+        fi
+    fi
+    echo "$BRANCH_NAME"
+}
+
 parse_command_line() {
     while :; do
         case "${1:-}" in
@@ -894,6 +908,9 @@ main() {
         ;;
         27)
             generate_image_yaml
+        ;;
+        28)
+            get_release_branch
         ;;
     esac
 }

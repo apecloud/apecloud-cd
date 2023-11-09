@@ -44,6 +44,7 @@ on:
 
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  CUR_BRANCH: ${{ vars.CURRENT_RELEASE_BRANCH }}
 
 jobs:
   get-version:
@@ -71,14 +72,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout branch ${{ github.ref_name }}
-        if: ${{ inputs.RELEASE_VERSION != '' || vars.CURRENT_RELEASE_BRANCH == '' }}
+        if: ${{ inputs.RELEASE_VERSION != '' || env.CUR_BRANCH == '' }}
         uses: actions/checkout@v4
 
-      - name: checkout branch ${{ vars.CURRENT_RELEASE_BRANCH }}
-        if: ${{ inputs.RELEASE_VERSION == '' && vars.CURRENT_RELEASE_BRANCH != '' }}
+      - name: checkout branch ${{ env.CUR_BRANCH }}
+        if: ${{ inputs.RELEASE_VERSION == '' && env.CUR_BRANCH != '' }}
         uses: actions/checkout@v4
         with:
-          ref: ${{ vars.CURRENT_RELEASE_BRANCH }}
+          ref: ${{ env.CUR_BRANCH }}
 
       - name: push tag
         uses: mathieudutour/github-tag-action@v6.1
