@@ -628,12 +628,12 @@ EOF
 
 get_release_branch() {
     if [[ "$BRANCH_NAME" != "main" && "$BRANCH_NAME" != "release-"* ]]; then
-        if [[ "$VERSION" == *"alpha"* ]]; then
-            BRANCH_NAME=main
+        if [[ "$VERSION" == *"-alpha."* ]]; then
+            BRANCH_NAME="main"
         else
             VERSION="${VERSION/v/}"
             VERSION=$(echo "$VERSION" | awk -F '.' '{print $1"."$2}')
-            BRANCH_NAME=release-${VERSION}
+            BRANCH_NAME="release-${VERSION}"
         fi
     fi
     echo "$BRANCH_NAME"
