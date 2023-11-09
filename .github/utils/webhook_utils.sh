@@ -16,11 +16,10 @@ Usage: $(basename "$0") <options>
     -gr, --github-repo        Github repo
     -gt, --github-token       Github token
     -v, --version             The release version
-    -bn, --branch-name        The branch name
     -c, --content             The trigger request content
     -bw, --bot-webhook        The bot webhook
     -ru, --run-url            The workflow run url
-    -wn, --workflow-name      The workflows name
+    -cv, --current-version    The current release version
 EOF
 }
 
@@ -74,6 +73,10 @@ get_next_available_tag() {
 }
 
 check_release_version(){
+    if [[ -n "$CUR_VERSION" ]]; then
+        VERSION="$CUR_VERSION"
+        return
+    fi
     latest_release_url=$GITHUB_API/repos/$GITHUB_REPO/releases/latest
     latest_version=$(gh_curl -s $latest_release_url | jq -r '.tag_name')
     if [[ -z "$latest_version" || "$latest_version" == "null" ]]; then
@@ -199,6 +202,12 @@ parse_command_line() {
                     shift
                 fi
                 ;;
+            -cv|--current-version)
+                if [[ -n "${2:-}" ]]; then
+                    CUR_VERSION="$2"
+                    shift
+                fi
+                ;;
             *)
                 break
                 ;;
@@ -219,6 +228,7 @@ main() {
     local RELEASE_VERSION=""
     local RUN_URL=""
     local R_SPACE='\u00a0'
+    local CUR_VERSION=""
 
     parse_command_line "$@"
 

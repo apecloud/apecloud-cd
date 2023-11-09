@@ -70,6 +70,10 @@ jobs:
                   cmd="${cmd} --bot-webhook '${{ env.RELEASE_BOT_WEBHOOK }}' "
               fi
           fi
+          
+          if [[ -n "${{ vars.CURRENT_RELEASE_VERSION }}" ]]; then
+              cmd="${cmd} --current-version '${{ vars.CURRENT_RELEASE_VERSION }}' "
+          fi
         
           echo "$cmd"
           RELEASE_VERSION=$(eval "$cmd")
