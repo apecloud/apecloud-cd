@@ -39,6 +39,7 @@ Usage: $(basename "$0") <options>
                                 26) set images list
                                 27) generate image yaml
                                 28) get release branch
+                                29) delete tag
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -181,14 +182,18 @@ check_stable_release() {
     fi
 }
 
+delete_tag() {
+    echo "delete $GITHUB_REPO tag $TAG_NAME"
+    gh_curl -s -X DELETE  $GITHUB_API/repos/$GITHUB_REPO/git/refs/tags/$TAG_NAME
+}
+
 delete_release_version() {
     release_id=$( gh_curl -s $GITHUB_API/repos/$GITHUB_REPO/releases/tags/$TAG_NAME | jq -r '.id' )
     if [[ -n "$release_id" && "$release_id" != "null" ]]; then
         echo "delete $GITHUB_REPO release $TAG_NAME"
         gh_curl -s -X DELETE $GITHUB_API/repos/$GITHUB_REPO/releases/$release_id
     fi
-    echo "delete $GITHUB_REPO tag $TAG_NAME"
-    gh_curl -s -X DELETE  $GITHUB_API/repos/$GITHUB_REPO/git/refs/tags/$TAG_NAME
+    delete_tag
 }
 
 filter_charts() {
@@ -911,6 +916,9 @@ main() {
         ;;
         28)
             get_release_branch
+        ;;
+        29)
+            delete_tag
         ;;
     esac
 }
