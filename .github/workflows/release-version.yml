@@ -23,6 +23,10 @@ on:
         type: string
         required: false
         default: 'release'
+    outputs:
+      release-version:
+        description: "release version"
+        value: "${{ jobs.get-version.outputs.release-version }}"
   workflow_dispatch:
     inputs:
       RELEASE_VERSION:
@@ -41,10 +45,6 @@ on:
         description: 'the bot type (e.g. release/package)'
         required: false
         default: 'release'
-    outputs:
-      release-version:
-        description: "release version"
-        value: ${{ jobs.get-version.outputs.release-version }}
 
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
