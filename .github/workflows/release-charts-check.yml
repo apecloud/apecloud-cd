@@ -63,12 +63,16 @@ on:
         type: string
         required: false
         default: ''
+      K3S_VERSION:
+        description: "The version of K3S (default: v1.26)"
+        type: string
+        required: false
+        default: 'v1.26'
 
 
 env:
   CR_TOKEN: ${{ github.token }}
   HELM_VERSION: v3.13.1
-  K3S_VERSION: v1.24
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   DOCKER_REGISTRY_URL: docker.io
@@ -142,11 +146,11 @@ jobs:
               helm lint .cr-release-packages/$chart
           done
 
-      - name: setup k3s ${{ env.K3S_VERSION }}
+      - name: setup k3s ${{ inputs.K3S_VERSION }}
         if: inputs.CHART_NAME
         uses: nolar/setup-k3d-k3s@v1
         with:
-          version: ${{ env.K3S_VERSION }}
+          version: ${{ inputs.K3S_VERSION }}
           github-token: ${{ env.CR_TOKEN }}
 
       - name: helm validate
