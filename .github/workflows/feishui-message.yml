@@ -23,9 +23,14 @@ on:
         type: string
         required: false
         default: 'main'
+      BOT_TYPE:
+        description: 'the bot type (e.g. release/package)'
+        required: false
+        default: 'release'
 
 env:
   RELEASE_BOT_WEBHOOK: ${{ secrets.RELEASE_BOT_WEBHOOK }}
+  PACKAGE_BOT_WEBHOOK: ${{ secrets.PACKAGE_BOT_WEBHOOK }}
 
 permissions:
   id-token: write
@@ -48,11 +53,20 @@ jobs:
               --github-repo ${{ github.repository }} \
               --run-url $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID "
           
-          if [[ -z "${{ env.RELEASE_BOT_WEBHOOK }}" ]]; then
-              echo "Please set github secrets 'RELEASE_BOT_WEBHOOK'"
-              exit 1
+          if [[ "${{ inputs.BOT_TYPE }}" == "package" ]]; then
+              if [[ -z "${{ env.PACKAGE_BOT_WEBHOOK }}" ]]; then
+                  echo "Please set github secrets 'PACKAGE_BOT_WEBHOOK'"
+                  exit 1
+              else
+                  cmd="${cmd} --bot-webhook '${{ env.PACKAGE_BOT_WEBHOOK }}' "
+              fi
           else
-              cmd="${cmd} --bot-webhook '${{ env.RELEASE_BOT_WEBHOOK }}' "
+              if [[ -z "${{ env.RELEASE_BOT_WEBHOOK }}" ]]; then
+                  echo "Please set github secrets 'RELEASE_BOT_WEBHOOK'"
+                  exit 1
+              else
+                  cmd="${cmd} --bot-webhook '${{ env.RELEASE_BOT_WEBHOOK }}' "
+              fi
           fi
           
           if [[ -n "${{ inputs.CONTENT }}" ]]; then
