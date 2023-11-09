@@ -85,6 +85,17 @@ jobs:
                   --github-token ${{ env.GITHUB_TOKEN }}
           done
 
+      - name: delete github kubeblocks-addons tag
+        if: ${{ always() }}
+        run: |
+          for release in $(echo "${{ steps.get_delete_version.outputs.RELEASE_VERSION }}" | sed 's/|/ /g'); do
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+                  --type 29 \
+                  --github-repo apecloud/kubeblocks-addons \
+                  --tag-name $release \
+                  --github-token ${{ env.GITHUB_TOKEN }}
+          done
+
       - name: delete Jihulab kbcli release
         if: ${{ always() }}
         run: |
