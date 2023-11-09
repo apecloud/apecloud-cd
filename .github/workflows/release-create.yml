@@ -8,6 +8,11 @@ on:
         type: string
         required: false
         default: 'main'
+      BOT_TYPE:
+        description: 'the bot type (e.g. release/package)'
+        type: string
+        required: false
+        default: 'release'
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -65,4 +70,5 @@ jobs:
       TYPE: "2"
       CONTENT: "create release ${{ needs.create-release.outputs.rel-version }} error"
       APECD_REF: ${{ inputs.APECD_REF }}
+      BOT_TYPE: ${{ inputs.BOT_TYPE }}
     secrets: inherit

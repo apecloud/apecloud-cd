@@ -18,6 +18,11 @@ on:
         type: string
         required: false
         default: 'main'
+      BOT_TYPE:
+        description: 'the bot type (e.g. release/package)'
+        type: string
+        required: false
+        default: 'release'
     outputs:
       release-version:
         description: "test result"
@@ -26,6 +31,7 @@ on:
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   RELEASE_BOT_WEBHOOK: ${{ secrets.RELEASE_BOT_WEBHOOK }}
+  PACKAGE_BOT_WEBHOOK: ${{ secrets.PACKAGE_BOT_WEBHOOK }}
 
 jobs:
   get-version:
@@ -55,9 +61,16 @@ jobs:
               cmd="${cmd} --version '${{ inputs.RELEASE_VERSION }}' "
           fi
           
-          if [[ -n "${{ env.RELEASE_BOT_WEBHOOK }}" ]]; then
-              cmd="${cmd} --bot-webhook '${{ env.RELEASE_BOT_WEBHOOK }}' "
+          if [[ "${{ inputs.BOT_TYPE }}" == "package" ]]; then
+              if [[ -n "${{ env.PACKAGE_BOT_WEBHOOK }}" ]]; then
+                  cmd="${cmd} --bot-webhook '${{ env.PACKAGE_BOT_WEBHOOK }}' "
+              fi
+          else
+              if [[ -n "${{ env.RELEASE_BOT_WEBHOOK }}" ]]; then
+                  cmd="${cmd} --bot-webhook '${{ env.RELEASE_BOT_WEBHOOK }}' "
+              fi
           fi
+        
           echo "$cmd"
           RELEASE_VERSION=$(eval "$cmd")
           echo release-version=$RELEASE_VERSION >> $GITHUB_OUTPUT
