@@ -32,6 +32,7 @@ env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   RELEASE_BOT_WEBHOOK: ${{ secrets.RELEASE_BOT_WEBHOOK }}
   PACKAGE_BOT_WEBHOOK: ${{ secrets.PACKAGE_BOT_WEBHOOK }}
+  CUR_VERSION: ${{ vars.CURRENT_RELEASE_VERSION }}
 
 jobs:
   get-version:
@@ -71,8 +72,8 @@ jobs:
               fi
           fi
           
-          if [[ -n "${{ vars.CURRENT_RELEASE_VERSION }}" ]]; then
-              cmd="${cmd} --current-version '${{ vars.CURRENT_RELEASE_VERSION }}' "
+          if [[ -n "${{ env.CUR_VERSION }}" ]]; then
+              cmd="${cmd} --current-version '${{ env.CUR_VERSION }}' "
           fi
         
           echo "$cmd"

@@ -1,0 +1,51 @@
+name: Release Branch
+
+on:
+  workflow_call:
+    inputs:
+      RELEASE_VERSION:
+        description: 'The version of release'
+        type: string
+        required: false
+        default: ''
+      RELEASE_BRANCH:
+        description: 'The branch of release'
+        type: string
+        required: false
+        default: ''
+      APECD_REF:
+        description: "The ref of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+    outputs:
+      release-branch:
+        description: "release branch"
+        value: ${{ jobs.get-release-branch.outputs.release-branch }}
+
+env:
+  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  get-release-branch:
+    runs-on: ubuntu-latest
+    outputs:
+      release-branch: ${{ steps.get_release_branch.outputs.release-branch }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: get release branch
+        id: get_release_branch
+        run: |
+          cmd="bash apecloud-cd/.github/utils/utils.sh --type 28 \
+              --version ${{ inputs.RELEASE_VERSION }} \
+              --branch-name ${{ inputs.RELEASE_BRANCH }}"
+          
+          echo "$cmd"
+          RELEASE_BRANCH=$(eval "$cmd")
+          echo release-branch=$RELEASE_BRANCH >> $GITHUB_OUTPUT
