@@ -71,11 +71,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout branch ${{ github.ref_name }}
-        if: ${{ inputs.RELEASE_VERSION != "" || vars.CURRENT_RELEASE_BRANCH == '' }}
+        if: ${{ inputs.RELEASE_VERSION != '' || vars.CURRENT_RELEASE_BRANCH == '' }}
         uses: actions/checkout@v4
 
       - name: checkout branch ${{ vars.CURRENT_RELEASE_BRANCH }}
-        if: ${{ inputs.RELEASE_VERSION == "" && vars.CURRENT_RELEASE_BRANCH != '' }}
+        if: ${{ inputs.RELEASE_VERSION == '' && vars.CURRENT_RELEASE_BRANCH != '' }}
         uses: actions/checkout@v4
         with:
           ref: ${{ vars.CURRENT_RELEASE_BRANCH }}
