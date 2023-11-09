@@ -3,11 +3,11 @@ name: DEPLOY-ALIYUN-ACK
 on:
   workflow_call:
     inputs:
-      REGION:
-        description: "The k8s account region (eg: infracreate|beilian)"
+      KUBECONFIG_NUM:
+        description: "The number of ACK KUBECONFIG secret"
         type: string
         required: false
-        default: 'infracreate'
+        default: ''
       MAKE_OPS:
         description: "The ops name of makefile"
         type: string
@@ -47,7 +47,11 @@ on:
 
 env:
   ACK_KUBECONFIG: ${{ secrets.ACK_KUBECONFIG }}
-  AKC_KUBECONFIG_55: ${{ secrets.ACK_KUBECONFIG_55 }}
+  ACK_KUBECONFIG_1: ${{ secrets.ACK_KUBECONFIG_1 }}
+  ACK_KUBECONFIG_2: ${{ secrets.ACK_KUBECONFIG_2 }}
+  ACK_KUBECONFIG_3: ${{ secrets.ACK_KUBECONFIG_3 }}
+  ACK_KUBECONFIG_4: ${{ secrets.ACK_KUBECONFIG_4 }}
+  ACK_KUBECONFIG_5: ${{ secrets.ACK_KUBECONFIG_5 }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   CONTROLLER_MANAGER_CFG: ${{ secrets.CONTROLLER_MANAGER_CFG }}
@@ -93,27 +97,39 @@ jobs:
           fi
           echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
 
-      - if: ${{ env.ACK_KUBECONFIG != '' && inputs.REGION == 'infracreate' }}
-        name: Configure ACK Context
+      - name: Configure ACK Context ${{ inputs.KUBECONFIG_NUM }}
         run: |
           mkdir -p $HOME/.kube
           touch $HOME/.kube/config
-          echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
-
-      - if: ${{ env.ACK_KUBECONFIG_55 != '' && inputs.REGION == 'beilian' }}
-        name: Configure ACK Context 55
-        run: |
-          mkdir -p $HOME/.kube
-          touch $HOME/.kube/config
-          echo "${{ env.ACK_KUBECONFIG_55 }}" > $HOME/.kube/config
+          KUBECONFIG_NUM="${{ inputs.KUBECONFIG_NUM }}"
+          case "$KUBECONFIG_NUM" in
+              1)
+                  echo '${{ env.ACK_KUBECONFIG_1 }}' > $HOME/.kube/config
+              ;;
+              2)
+                  echo '${{ env.ACK_KUBECONFIG_2 }}' > $HOME/.kube/config
+              ;;
+              3)
+                  echo '${{ env.ACK_KUBECONFIG_3 }}' > $HOME/.kube/config
+              ;;
+              4)
+                  echo '${{ env.ACK_KUBECONFIG_4 }}' > $HOME/.kube/config
+              ;;
+              5)
+                  echo '${{ env.ACK_KUBECONFIG_5 }}' > $HOME/.kube/config
+              ;;
+              *)
+                  echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
+              ;;
+          esac
 
       - name: make pre
         if: inputs.MAKE_OPS_PRE
         run: |
           make ${{ inputs.MAKE_OPS_PRE }}
 
-      - if: ${{ (env.ACK_KUBECONFIG != '' || env.ACK_KUBECONFIG_55 != '') && inputs.REGION != '' }}
-        name: deploy to aliyun ack
+      - name: deploy to aliyun ack
+        if: inputs.MAKE_OPS
         run: |
           cmd="make ${{ inputs.MAKE_OPS }} "
 
