@@ -632,16 +632,24 @@ EOF
 }
 
 get_release_branch() {
-    if [[ "$BRANCH_NAME" != "main" && "$BRANCH_NAME" != "release-"* ]]; then
-        if [[ "$VERSION" == *"-alpha."* ]]; then
-            BRANCH_NAME="main"
+    BRANCH_NAME_TMP=""
+    if [[ "$BRANCH_NAME" == "main" || "$BRANCH_NAME" == "release-"* ]]; then
+        BRANCH_NAME_TMP="$BRANCH_NAME"
+    else
+        beta_tag="v"*"."*"."*"-beta."*
+        rc_tag="v"*"."*"."*"-rc."*
+        stable_tag="v"*"."*"."*
+        not_stable_tag="v"*"."*"."*"-"*
+        check_ret=$( eval "[[ ($VERSION == $stable_tag && $VERSION != $not_stable_tag) || $VERSION == $beta_tag || $VERSION == $rc_tag  ]] && echo true" )
+        if [[ "$check_ret" == "true" ]]; then
+            VERSION_TMP="${VERSION/v/}"
+            VERSION_TMP=$(echo "$VERSION_TMP" | awk -F '.' '{print $1"."$2}')
+            BRANCH_NAME_TMP="release-${VERSION_TMP}"
         else
-            VERSION="${VERSION/v/}"
-            VERSION=$(echo "$VERSION" | awk -F '.' '{print $1"."$2}')
-            BRANCH_NAME="release-${VERSION}"
+            BRANCH_NAME_TMP="main"
         fi
     fi
-    echo "$BRANCH_NAME"
+    echo "$BRANCH_NAME_TMP"
 }
 
 parse_command_line() {
