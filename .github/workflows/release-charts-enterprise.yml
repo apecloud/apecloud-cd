@@ -1,0 +1,245 @@
+name: RELEASE-CHART
+
+on:
+  workflow_call:
+    inputs:
+      GITHUB_REPO:
+        description: "The github repo to release chart"
+        type: string
+        required: false
+        default: ''
+      GITHUB_REF:
+        description: "The github repo ref to release chart"
+        type: string
+        required: false
+        default: 'main'
+      MAKE_OPS:
+        description: "The ops name of makefile (e.g. bump-chart-ver)"
+        type: string
+        required: false
+        default: ''
+      VERSION:
+        description: "The version of helm chart (e.g. v0.4.0)"
+        type: string
+        required: false
+        default: ''
+      CHART_NAME:
+        description: "The package(repo) name of helm chart (e.g. kubeblocks)"
+        type: string
+        required: false
+        default: ''
+      CHART_DIR:
+        description: "The package dir of helm chart (default: deploy)"
+        type: string
+        required: false
+        default: 'deploy'
+      HELM_SET:
+        description: "The install args of helm chart (e.g. prometheus.enabled=true)"
+        type: string
+        required: false
+        default: ''
+      DEP_REPO:
+        description: "The dependency of helm chart (e.g. helm repo add grafana https://grafana.github.io/helm-charts)"
+        type: string
+        required: false
+        default: ''
+      PUSH_ENABLE:
+        description: "Enable push helm chart"
+        type: boolean
+        required: false
+        default: true
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      CHECK_ENABLE:
+        description: "Enable check docker images"
+        type: boolean
+        required: false
+        default: true
+      REMOVE_PREFIX:
+        description: "Enable remove prefix v  (default: true)"
+        type: boolean
+        required: false
+        default: true
+      SPECIFY_CHART:
+        description: "Only package the specify sub dir chart (default: helm)"
+        type: string
+        required: false
+        default: ''
+      K3S_VERSION:
+        description: "The version of K3S (default: v1.26)"
+        type: string
+        required: false
+        default: 'v1.26'
+
+
+env:
+  CR_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  HELM_VERSION: v3.13.1
+  JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
+  JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  DOCKER_REGISTRY_URL: docker.io
+  PROJECT_ID: 165897
+
+jobs:
+  release-chart:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Checkout Code
+        if: ${{ inputs.GITHUB_REPO == '' }}
+        uses: actions/checkout@v4
+
+      - name: Checkout ${{ inputs.GITHUB_REPO }} Code
+        if: ${{ inputs.GITHUB_REPO != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.GITHUB_REPO }}
+          path: ./
+          token: ${{ env.CR_TOKEN }}
+          ref: ${{ inputs.GITHUB_REF }}
+
+      - uses: docker/setup-qemu-action@v3
+
+      - name: Fetch History And Configure Git
+        run: |
+          git fetch --prune --unshallow
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          token: ${{ env.CR_TOKEN }}
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: Update Dependency
+        if: inputs.DEP_REPO
+        run: |
+          bash apecloud-cd/.github/utils/utils.sh --type 13 \
+              --chart-path "${{ inputs.DEP_REPO }}"
+
+      - name: remove v prefix
+        id: get_version
+        shell: bash
+        run: |
+          version="${{ inputs.VERSION }}"
+          if [[ "$version" == "v"*  && "${{ inputs.REMOVE_PREFIX }}" == "true" ]]; then
+              version="${version/v/}"
+          fi
+          echo VERSION=$version >> $GITHUB_OUTPUT
+
+      - name: Bump helm chart version
+        if: inputs.MAKE_OPS
+        run: |
+          make ${{ inputs.MAKE_OPS }} \
+            VERSION="${{ steps.get_version.outputs.VERSION }}"
+
+      - name: Package Helm Chart
+        shell: bash
+        run: |
+          CHARS_DIR="${{ inputs.CHART_DIR }}"
+          CHARS_DIR="${CHARS_DIR%/*}"
+          
+          args=(--charts-dir "$CHARS_DIR" \
+            --release-version ${{ steps.get_version.outputs.VERSION }} \
+            --specify-chart "${{ inputs.SPECIFY_CHART }}")
+          
+          "${{ github.workspace }}/apecloud-cd/.github/utils/helm_package.sh" "${args[@]}"
+
+      - name: helm lint
+        run: |
+          for chart in $(echo "$(ls .cr-release-packages)"); do
+              echo "helm lint $chart"
+              helm lint .cr-release-packages/$chart
+          done
+
+      - name: setup k3s ${{ inputs.K3S_VERSION }}
+        if: inputs.CHART_NAME
+        uses: nolar/setup-k3d-k3s@v1
+        with:
+          version: ${{ inputs.K3S_VERSION }}
+          github-token: ${{ env.CR_TOKEN }}
+
+      - name: helm validate
+        if: inputs.CHART_NAME
+        run: |
+          cp .cr-release-packages/${{ inputs.CHART_NAME }}-${{ steps.get_version.outputs.VERSION }}.tgz ./
+          
+          tar -zxvf ${{ inputs.CHART_NAME }}-${{ steps.get_version.outputs.VERSION }}.tgz
+          
+          helm install ${{ inputs.CHART_NAME }} \
+            ${{ inputs.CHART_NAME }} \
+            --set="${{ inputs.HELM_SET }}"
+          
+          helm template ${{ inputs.CHART_NAME }} ${{ inputs.CHART_NAME }} \
+            --validate  \
+            --set="${{ inputs.HELM_SET }}"
+
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY_URL }}
+          username: ${{ env.DOCKER_USER }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - name: check images
+        if: inputs.CHECK_ENABLE
+        run: |   
+          check_dockerhub="true"
+          if [[ -z "${{ env.DOCKER_USER }}" || -z "${{ env.DOCKER_PASSWORD }}" ]]; then
+              check_dockerhub="false"
+          fi
+          
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/helm_image_check.sh \
+              .cr-release-packages "${{ inputs.CHART_NAME }}" "${check_dockerhub}"
+
+      - name: Checkout helm-charts-enterprise Code
+        if: inputs.PUSH_ENABLE
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/helm-charts-enterprise
+          path: helm-charts-enterprise
+          token: ${{ env.CR_TOKEN }}
+
+      - name: Upload Helm Charts to Jihulab
+        if: inputs.PUSH_ENABLE
+        run: |
+          ls .cr-release-packages
+          cd .cr-release-packages
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
+            --type 3  \
+            --asset-path ./ \
+            --access-token "${{ env.JIHULAB_ACCESS_TOKEN }}" \
+            --access-user "${{ env.JIHULAB_ACCESS_USER }}"\
+            --project-id "${{ env.PROJECT_ID }}"
+
+      - name: Fetch helm-charts-enterprise History And Configure Git
+        if: inputs.PUSH_ENABLE
+        run: |
+          cd helm-charts-enterprise
+          git fetch --prune --unshallow
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Upload and Index Helm Charts
+        if: inputs.PUSH_ENABLE
+        shell: bash
+        run: |
+          cd helm-charts-enterprise
+          args=(--owner "apecloud" --repo "helm-charts-enterprise")
+          
+          "${{ github.workspace }}/apecloud-cd/.github/utils/helm_release.sh" "${args[@]}"
