@@ -33,11 +33,6 @@ on:
         type: string
         required: false
         default: ''
-      GOOGLE_REGISTRY_URL:
-        description: "The GOOGLE REGISTRY URL to use building/pushing image targets (e.g. us-east1-docker.pkg.dev)"
-        type: string
-        required: false
-        default: ''
       GIT_CONFIG:
         description: "InsteadOf git config global url (default: false)"
         type: boolean
@@ -88,20 +83,14 @@ env:
   DOCKER_REGISTRY_URL: docker.io
   ALIYUN_REGISTRY_URL: registry.cn-hangzhou.aliyuncs.com
   ALIYUN_REGISTRY_URL_NEW: infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com
-  GOOGLE_REGISTRY_URL: us-east1-docker.pkg.dev
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
   ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
   ALIYUN_USER_NEW: ${{ secrets.ALIYUN_USER_NEW }}
   ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
-  GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-  GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  CONTROLLER_MANAGER_CFG: ${{ secrets.CONTROLLER_MANAGER_CFG }}
-  OPENCONSOLE_CFG: ${{ secrets.OPENCONSOLE_CFG }}
-  CONSOLE_PROXY_CFG: ${{ secrets.CONSOLE_PROXY_CFG }}
 
 jobs:
   release-image:
