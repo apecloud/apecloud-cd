@@ -58,6 +58,12 @@ on:
         type: string
         required: false
         default: 'main'
+      ENABLE_SUBMODULE:
+        description: "Enable checkout submodule  (default: false)"
+        type: boolean
+        required: false
+        default: false
+
 
 env:
   DOCKER_REGISTRY_URL: docker.io
@@ -82,7 +88,15 @@ jobs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
     steps:
       - name: Checkout Code
+        if: ${{ ! inputs.ENABLE_SUBMODULE }}
         uses: actions/checkout@v4
+
+      - name: Checkout Code With Submodule
+        if: inputs.ENABLE_SUBMODULE
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          token: ${{ env.GITHUB_TOKEN }}
 
       - name: Setup Go specify version
         if: inputs.GO_VERSION
