@@ -75,7 +75,12 @@ package_chart() {
             package_flag=0
             for i in {1..10}; do
                 echo "helm package "${args[@]}" --version $release_version --dependency-update"
-                ret_msg=$(helm package "${args[@]}" --version $release_version --dependency-update)
+                ret_msg=""
+                if [[ -z "$release_version" ]]; then
+                    ret_msg=$(helm package "${args[@]}" --dependency-update)
+                else
+                    ret_msg=$(helm package "${args[@]}" --version $release_version --dependency-update)
+                fi
                 echo "return message:$ret_msg"
                 if [[ "$ret_msg" == *"Successfully packaged"* ]]; then
                     echo "$(tput -T xterm setaf 2)$ret_msg$(tput -T xterm sgr0)"
