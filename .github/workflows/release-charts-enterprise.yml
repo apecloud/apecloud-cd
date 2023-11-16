@@ -152,10 +152,18 @@ jobs:
         run: |
           CHARS_DIR="${{ inputs.CHART_DIR }}"
           CHARS_DIR="${CHARS_DIR%/*}"
+          args=()
+          if [[ -n "$CHARS_DIR" ]]; then
+              args+=(--charts-dir "$CHARS_DIR" )
+          fi
           
-          args=(--charts-dir "$CHARS_DIR" \
-            --release-version ${{ steps.get_version.outputs.VERSION }} \
-            --specify-chart "${{ inputs.SPECIFY_CHART }}")
+          if [[ -n "${{ steps.get_version.outputs.VERSION }}" ]]; then
+              args+=(--release-version "${{ steps.get_version.outputs.VERSION }}" )
+          fi
+          
+          if [[ -n "${{ inputs.SPECIFY_CHART }}" ]]; then
+              args+=(--specify-chart "${{ inputs.SPECIFY_CHART }}" )
+          fi
           
           "${{ github.workspace }}/apecloud-cd/.github/utils/helm_package.sh" "${args[@]}"
 
