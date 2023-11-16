@@ -32,8 +32,8 @@ jobs:
 
           
           bash ${{ github.workspace }}/.github/utils/skopeo_sync_aliyun_to_aliyun_new.sh \
-              "${{ secrets.ALIYUN_USER }}" \
-              '${{ secrets.ALIYUN_PASSWORD }}' \
+              "${{ secrets.ALIYUN_REGISTRY_USER }}" \
+              '${{ secrets.ALIYUN_REGISTRY_PASSWORD }}' \
               "${{ secrets.ALIYUN_USER_NEW }}" \
               "${{ secrets.ALIYUN_PASSWORD_NEW }}" \
               ${{ github.workspace }}/.github/utils/images-list.txt \

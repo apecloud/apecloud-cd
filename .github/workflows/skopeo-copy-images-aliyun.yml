@@ -31,8 +31,8 @@ jobs:
           fi
           
           bash ${{ github.workspace }}/.github/utils/skopeo_copy_to_aliyun.sh \
-              "${{ secrets.ALIYUN_USER }}" \
-              "${{ secrets.ALIYUN_PASSWORD }}" \
+              "${{ secrets.ALIYUN_REGISTRY_USER }}" \
+              "${{ secrets.ALIYUN_REGISTRY_PASSWORD }}" \
               ${{ github.workspace }}/.github/utils/images-list.txt \
               "${{ github.event.inputs.registry }}"
           
