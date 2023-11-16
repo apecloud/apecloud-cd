@@ -308,7 +308,7 @@ get_project_id() {
     fi
     # check kubeblocks charts
     for helm_charts in $(echo "$HELM_CHARTS_LIST" | sed 's/|/ /g'); do
-        if [[ "$chart_name" == "$helm_charts"* ]]; then
+        if [[ "$chart_name" == "$helm_charts" ]]; then
             PROJECT_ID_TMP=$HELM_CHARTS_PROJECT_ID
             break
         fi
