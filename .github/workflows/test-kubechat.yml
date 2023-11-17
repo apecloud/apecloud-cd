@@ -69,7 +69,7 @@ jobs:
     name: test ${{ inputs.test-type-name }}
     runs-on: ubuntu-latest
     outputs:
-      test-result: ${{ steps.test_kubechat.outputs.test-result }}
+      test-result: ${{ steps.test_result.outputs.test-result }}
     steps:
       - name: checkout testinfra
         uses: actions/checkout@v4
@@ -133,6 +133,7 @@ jobs:
         run: |
           file_log="$(date +%Y-%m-%d-%T)".log
           touch ${file_log}
+          echo 'FILE_LOG='${file_log} >> $GITHUB_ENV
           
           echo "k8s-cluster-name:${{ inputs.k8s-cluster-name }}"
           cmd="bash .github/utils/kubechat-test.sh "
@@ -162,14 +163,6 @@ jobs:
           fi
           echo "$cmd"
           eval "$cmd" | tee -a ${file_log}
-          
-          test_ret="$( grep "【FAILED】" ${file_log}|| true )"
-          if [[ -n "$test_ret" ]]; then
-              echo test-result=[FAILED] >> $GITHUB_OUTPUT
-              exit 1
-          else
-              echo test-result=[PASSED] >> $GITHUB_OUTPUT
-          fi
 
       - name: checkout customsuites code
         if: ${{ inputs.test-type != '0' }}
@@ -190,14 +183,18 @@ jobs:
         run: |
           file_log="$(date +%Y-%m-%d-%T)".log
           touch ${file_log}
+          echo 'FILE_LOG='${file_log} >> $GITHUB_ENV
           cd customsuites
           pip3 install -r requirements.txt
           python3 infratest.py --type 7 | tee -a ${file_log}
-          
-          test_ret="$( grep "【FAILED】" ${file_log}|| true )"
-          if [[ -n "$test_ret" ]]; then
-              echo test-result=[FAILED] >> $GITHUB_OUTPUT
-              exit 1
-          else
-              echo test-result=[PASSED] >> $GITHUB_OUTPUT
-          fi
+
+        - name: return kubechat test result
+          id: test_result
+          run: |
+            test_ret="$( grep "【FAILED】" ${FILE_LOG} || true )"
+            if [[ -n "$test_ret" ]]; then
+                echo test-result=[FAILED] >> $GITHUB_OUTPUT
+                exit 1
+            else
+                echo test-result=[PASSED] >> $GITHUB_OUTPUT
+            fi

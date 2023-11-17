@@ -137,7 +137,7 @@ jobs:
               --zone ${{ inputs.region }} \
               --project ${{ vars.GOOGLE_PROJECT }}
 
-      - name: run kbcli test
+      - name: run test ${{ inputs.test-type-name }}
         id: kbcli_test
         run: |
           file_log="$(date +%Y-%m-%d-%T)".log

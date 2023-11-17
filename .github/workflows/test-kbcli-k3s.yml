@@ -80,7 +80,7 @@ jobs:
           github-token: ${{ env.GITHUB_TOKEN }}
           k3d-args: --no-lb --k3s-node-label topology.hostpath.csi/node=k3d-${{ env.K3D_NAME }}-server-0@server:0
 
-      - name: run kbcli test
+      - name: run test ${{ inputs.test-type-name }}
         id: kbcli_test_k3s
         run: |
           file_log_install="$(date +%Y-%m-%d-%T)".log
