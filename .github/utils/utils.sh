@@ -41,6 +41,7 @@ Usage: $(basename "$0") <options>
                                 28) get release branch
                                 29) delete tag
                                 30) delete actions cache
+                                31) check release version
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -658,6 +659,23 @@ delete_actions_cache() {
     gh actions-cache delete --repo $GITHUB_REPO $TAG_NAME --confirm
 }
 
+check_release_version(){
+    if [[ "$TAG_NAME" == "latest" ]]; then
+        echo "$TAG_NAME"
+        return
+    fi
+    release_list=$( gh release list --repo $GITHUB_REPO --limit 100 )
+    for tag in $( echo "$release_list"); do
+        if [[ "$tag" == "$TAG_NAME" ]]; then
+            echo "$TAG_NAME"
+            break
+        elif [[ "$tag" == "v$TAG_NAME" ]]; then
+            echo "v$TAG_NAME"
+            break
+        fi
+    done
+}
+
 parse_command_line() {
     while :; do
         case "${1:-}" in
@@ -936,6 +954,9 @@ main() {
         ;;
         30)
             delete_actions_cache
+        ;;
+        31)
+            check_release_version
         ;;
     esac
 }
