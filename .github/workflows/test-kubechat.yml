@@ -189,9 +189,10 @@ jobs:
           python3 infratest.py --type 7 | tee -a ${file_log}
 
       - name: return kubechat test result
+        if: ${{ always() }}
         id: test_result
         run: |
-          test_ret="$( grep "【FAILED】" ${FILE_LOG} || true )"
+          test_ret="$( egrep "【FAILED】|Traceback" ${FILE_LOG} || true )"
           if [[ -n "$test_ret" ]]; then
               echo test-result=[FAILED] >> $GITHUB_OUTPUT
               exit 1
