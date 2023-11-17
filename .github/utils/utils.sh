@@ -40,6 +40,7 @@ Usage: $(basename "$0") <options>
                                 27) generate image yaml
                                 28) get release branch
                                 29) delete tag
+                                30) delete actions cache
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -652,6 +653,11 @@ get_release_branch() {
     echo "$BRANCH_NAME_TMP"
 }
 
+delete_actions_cache() {
+    gh extension install actions/gh-actions-cache --force
+    gh actions-cache delete --repo $GITHUB_REPO $TAG_NAME --confirm
+}
+
 parse_command_line() {
     while :; do
         case "${1:-}" in
@@ -927,6 +933,9 @@ main() {
         ;;
         29)
             delete_tag
+        ;;
+        30)
+            delete_actions_cache
         ;;
     esac
 }

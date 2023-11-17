@@ -61,7 +61,7 @@ jobs:
     name: test ${{ inputs.test-type-name }}
     runs-on: [ self-hosted, k3d-runner ]
     outputs:
-      test-result: ${{ steps.kbcli_test_k3s.outputs.test-result }}
+      test-result: ${{ steps.test_result.outputs.test-result }}
       runner-name: ${{ steps.get_runner_name.outputs.runner-name }}
     steps:
       - name: checkout testinfra
@@ -115,8 +115,12 @@ jobs:
               --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
               --region "${{ env.REGION }}" \
               --random-suffix "${RANDOM_SUFFIX}" | tee -a ${file_log}
-          
-          test_ret="$( grep "【FAILED】" ${file_log}|| true )"
+
+      - name: return kbcli test result
+        if: ${{ always() }}
+        id: test_result
+        run: |
+          test_ret="$( grep "【FAILED】" ${FILE_LOG}|| true )"
           if [[ -n "$test_ret" ]]; then
               echo test-result=[FAILED] >> $GITHUB_OUTPUT
               exit 1
