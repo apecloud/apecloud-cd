@@ -42,7 +42,7 @@ on:
         description: 'k8s region name'
         type: string
         required: false
-        default: 'cn-northwest-1'
+        default: ''
       k8s-cluster-name:
         description: 'k8s cluster name'
         type: string
@@ -158,16 +158,44 @@ jobs:
           echo 'S3_PATH='${S3_PATH} >> $GITHUB_ENV
           
           echo "k8s-cluster-name:${{ inputs.k8s-cluster-name }}"
-          bash .github/utils/kbcli-test.sh \
-              --type "${{ inputs.test-type }}" \
-              --test-mode "${{ inputs.test-mode }}" \
-              --kubeblocks-version "${KB_VERSION}" \
-              --previous-version "${PREVIOUS_VERSION}" \
-              --random-suffix "${{ inputs.random-suffix }}" \
-              --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
-              --region "${{ inputs.region }}" \
-              --cloud-provider "${{ inputs.cloud-provider }}" \
-              --cluster-name "${{ inputs.k8s-cluster-name }}" | tee -a ${file_log}
+          cmd="bash .github/utils/kbcli-test.sh "
+          cmd="${cmd} --type '${{ inputs.test-type }}' "
+          
+          if [[ -n "${KB_VERSION}" ]]; then
+              cmd="${cmd} --kubeblocks-version '${KB_VERSION}' "
+          fi
+          
+          if [[ -n "${PREVIOUS_VERSION}" ]]; then
+              cmd="${cmd} --previous-version '${PREVIOUS_VERSION}' "
+          fi
+          
+          if [[ -n "${{ inputs.random-suffix }}" ]]; then
+              cmd="${cmd} --random-suffix '${{ inputs.random-suffix }}' "
+          fi
+          
+          if [[ -n "${{ inputs.region }}" ]]; then
+              cmd="${cmd} --region '${{ inputs.region }}' "
+          fi
+          
+          if [[ -n "${{ inputs.cloud-provider }}" ]]; then
+              cmd="${cmd} --cloud-provider  '${{ inputs.cloud-provider }}' "
+          fi
+          
+          if [[ -n "${{ inputs.test-mode }}" ]]; then
+              cmd="${cmd} --test-mode '${{ inputs.test-mode }}' "
+          fi
+          
+          if [[ -n "${{ inputs.k8s-cluster-name }}" ]]; then
+              cmd="${cmd} --cluster-name '${{ inputs.k8s-cluster-name }}' "
+          fi
+          
+          if [[ -n "${{ env.AWS_ACCESS_KEY_ID }}" && -n "${{ env.AWS_SECRET_ACCESS_KEY }}" ]]; then
+              cmd="${cmd} --args '${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}' "
+          else
+              cmd="${cmd} --args '${{ inputs.test-args }}' "
+          fi
+          echo "$cmd"
+          eval "$cmd" | tee -a ${file_log}
           
           RANDOM_SUFFIX=""
           if [[ "${{ inputs.test-type }}" == "0" ]]; then

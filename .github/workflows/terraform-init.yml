@@ -27,7 +27,7 @@ on:
         description: 'k8s region name'
         type: string
         required: false
-        default: 'cn-northwest-1'
+        default: ''
       cluster-name:
         description: 'k8s cluster name'
         type: string
@@ -55,6 +55,16 @@ on:
         default: ""
       kb-version:
         description: 'kubeblocks release version'
+        type: string
+        required: false
+        default: ''
+      enable-spot:
+        description: 'enable spot node'
+        type: string
+        required: false
+        default: ''
+      disk-size:
+        description: 'disk size'
         type: string
         required: false
         default: ''
@@ -156,10 +166,10 @@ jobs:
                   fi
               fi
               echo "NODE_TYPE:$NODE_TYPE"
-          elif [[ "${{ inputs.test-mode }}" == "fault" ]]; then
-              if [[ -z "$COUNTS" ]]; then
-                  COUNTS=3
-              fi
+          elif [[ "${{ inputs.test-mode }}" == "fault" && -z "$COUNTS" ]]; then
+              COUNTS=3
+          elif [[ "${{ inputs.test-mode }}" == "kubechat" && -z "$COUNTS" ]]; then
+              COUNTS=0
           fi
           
           NODE_SIZE="${{ inputs.node-size }}"
@@ -174,24 +184,49 @@ jobs:
                   NODE_SIZE=4
               elif [[ "${{ inputs.kb-version }}" == "v0.6."* ]]; then
                   NODE_SIZE=17
+              elif [[ "${{ inputs.kb-version }}" == "v0.7."* ]]; then
+                  NODE_SIZE=33
               fi
           elif [[ "${{ inputs.cloud-provider }}" == "gke" && -z "${NODE_SIZE}" && -z "${{ inputs.test-mode }}" ]]; then
               if [[ "${{ inputs.kb-version }}" == "v0.5."* ]]; then
                   NODE_SIZE=2
               elif [[ "${{ inputs.kb-version }}" == "v0.6."* ]]; then
                   NODE_SIZE=6
+              elif [[ "${{ inputs.kb-version }}" == "v0.7."* ]]; then
+                  NODE_SIZE=11
               fi
           fi
           
           cd ${{ steps.get_deploy_path.outputs.deploy-path }}
-          bash run.sh --type 1 \
-              --cluster-version "${{ inputs.cluster-version }}" \
-              --instance-type "${{ inputs.instance-type }}" \
-              --cluster-name "${{ inputs.cluster-name }}" \
-              --cluster-region "${{ inputs.region }}" \
-              --node-size "${NODE_SIZE}" \
-              --node-type "${NODE_TYPE}"
-
+          cmd="bash run.sh --type 1 "
+          cmd="${cmd} --cluster-version '${{ inputs.cluster-version }}' "
+          cmd="${cmd} --instance-type '${{ inputs.instance-type }}' "
+          
+          if [[ -n "${{ inputs.cluster-name }}" ]]; then
+              cmd="${cmd} --cluster-name ${{ inputs.cluster-name }} "
+          fi
+          
+          if [[ -n "${{ inputs.region }}" ]]; then
+              cmd="${cmd} --cluster-region ${{ inputs.region }} "
+          fi
+          
+          if [[ -n "${NODE_SIZE" ]]; then
+              cmd="${cmd} --node-size ${NODE_SIZE} "
+          fi
+          
+          if [[ -n "${{ inputs.cluster-name }}" ]]; then
+              cmd="${cmd} --node-type ${NODE_TYPE} "
+          fi
+          
+          if [[ -n "${{ inputs.enable-spot }}" ]]; then
+              cmd="${cmd} --enable-spot ${{ inputs.enable-spot }} "
+          fi
+          
+          if [[ -n "${{ inputs.disk-size}}" ]]; then
+              cmd="${cmd} --disk-size ${{ inputs.disk-size }} "
+          fi
+          echo "$cmd"
+          eval "$cmd"
           K8S_CLUSTER_NAME=""
           if [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
               K8S_CLUSTER_NAME=$(cat terraform.tfstate | grep "\"EKS\":" | awk 'NR==1{print $2}' | sed 's/,//g;s/\"//g')
@@ -209,3 +244,26 @@ jobs:
           name: ${{ inputs.artifact-name }}
           path: ${{ steps.get_deploy_path.outputs.deploy-path }}
           retention-days: 1
+
+      - name: Setup kubectl
+        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.28.3"
+
+      - name: Setup gcloud
+        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: setup gke-gcloud-auth-plugin
+        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
+        uses: simenandre/setup-gke-gcloud-auth-plugin@v1
+
+      - name: get gke credential
+        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
+        run: |
+          gcloud container clusters get-credentials ${{ steps.terraform_init.outputs.k8s-cluster-name }} \
+              --zone ${{ inputs.region }} \
+              --project ${{ vars.GOOGLE_PROJECT }}
+          
+          kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded-latest.yaml
