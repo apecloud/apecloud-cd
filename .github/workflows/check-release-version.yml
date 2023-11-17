@@ -1,10 +1,11 @@
 name: E2E Test KubeChat
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       VERSION:
         description: 'release version'
+        type: string
         required: true
         default: ''
       APECD_REF:
