@@ -1,0 +1,203 @@
+name: Test KubeChat
+
+on:
+  workflow_call:
+    inputs:
+      cloud-provider:
+        description: 'cloud k8s cluster provider (e.g. eks/gke)'
+        type: string
+        required: false
+        default: 'eks'
+      test-type:
+        description: 'test type name (mysql postgresql redis mongodb pulsar)'
+        type: string
+        required: false
+        default: ''
+      test-type-name:
+        description: 'test type name (1:embedding 2:rerank)'
+        type: string
+        required: false
+        default: ''
+      release-version:
+        description: 'kubechat release version'
+        type: string
+        required: false
+        default: ''
+      region:
+        description: 'k8s region name'
+        type: string
+        required: false
+        default: 'us-central1'
+      k8s-cluster-name:
+        description: 'k8s cluster name'
+        type: string
+        required: false
+        default: ''
+      test-args:
+        description: 'test args'
+        type: string
+        required: false
+        default: ''
+      branch-name:
+        description: 'testinfra branch name'
+        type: string
+        required: false
+        default: 'main'
+      branch-name2:
+        description: 'customsuites branch name'
+        type: string
+        required: false
+        default: 'main'
+    outputs:
+      test-result:
+        description: "test result"
+        value: ${{ jobs.test-kubechat.outputs.test-result }}
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  HELM_VERSION: v3.13.1
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test-kubechat:
+    name: test ${{ inputs.test-type-name }}
+    runs-on: ubuntu-latest
+    outputs:
+      test-result: ${{ steps.test_kubechat.outputs.test-result }}
+    steps:
+      - name: checkout testinfra
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/testinfra
+          ref: ${{ inputs.branch-name }}
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.28.3"
+
+      - uses: aws-actions/setup-sam@v2
+        if: ${{ inputs.cloud-provider == 'eks' }}
+        with:
+          use-installer: true
+
+      - uses: aws-actions/configure-aws-credentials@v2.2.0
+        if: ${{ inputs.cloud-provider == 'eks' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' }}
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "${{ inputs.region }}"
+
+      - if: ${{ inputs.cloud-provider == 'gke' && env.GOOGLE_CREDENTIALS != '' }}
+        id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
+
+      - name: Setup gcloud
+        if: ${{ inputs.cloud-provider == 'gke' }}
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: setup gke-gcloud-auth-plugin
+        if: ${{ inputs.cloud-provider == 'gke' }}
+        uses: simenandre/setup-gke-gcloud-auth-plugin@v1
+
+      - name: get k8s credential
+        if: ${{ inputs.k8s-cluster-name != '' && inputs.region != '' }}
+        run: |
+          echo "k8s-cluster-name:${{ inputs.k8s-cluster-name }}"
+          if [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
+              gcloud container clusters get-credentials ${{ inputs.k8s-cluster-name }} \
+                  --zone ${{ inputs.region }} \
+                  --project ${{ vars.GOOGLE_PROJECT }}
+          elif [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
+              aws eks update-kubeconfig --region ${{ inputs.region }} \
+                  --name ${{ inputs.k8s-cluster-name }}
+          fi
+
+      - name: run kubechat test
+        if: ${{ inputs.test-type == '0' }}
+        run: |
+          file_log="$(date +%Y-%m-%d-%T)".log
+          touch ${file_log}
+          
+          echo "k8s-cluster-name:${{ inputs.k8s-cluster-name }}"
+          cmd="bash .github/utils/kubechat-test.sh "
+          cmd="${cmd} --type '${{ inputs.test-type }}' "
+          IMAGE_TAG=${{ inputs.release-version }}
+          if [[ "$IMAGE_TAG" != "v"* ]]; then
+              IMAGE_TAG="v$IMAGE_TAG"
+          fi
+          if [[ -n "${{ inputs.release-version }}" ]]; then
+              cmd="${cmd} --release-version '${{ inputs.release-version }}' "
+          fi
+          
+          if [[ -n "${{ inputs.region }}" ]]; then
+              cmd="${cmd} --region '${{ inputs.region }}' "
+          fi
+          
+          if [[ -n "${{ inputs.cloud-provider }}" ]]; then
+              cmd="${cmd} --cloud-provider  '${{ inputs.cloud-provider }}' "
+          fi
+          
+          if [[ -n "${{ inputs.k8s-cluster-name }}" ]]; then
+              cmd="${cmd} --cluster-name '${{ inputs.k8s-cluster-name }}' "
+          fi
+          
+          if [[ -n "${{ inputs.test-args }}" ]]; then
+              cmd="${cmd} --args '${{ inputs.test-args }}' "
+          fi
+          echo "$cmd"
+          eval "$cmd" | tee -a ${file_log}
+          
+          test_ret="$( grep "【FAILED】" ${file_log}|| true )"
+          if [[ -n "$test_ret" ]]; then
+              echo test-result=[FAILED] >> $GITHUB_OUTPUT
+              exit 1
+          else
+              echo test-result=[PASSED] >> $GITHUB_OUTPUT
+          fi
+
+      - name: checkout customsuites
+        if: ${{ inputs.test-type != '0' }}
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/customsuites
+          ref: ${{ inputs.branch-name2 }}
+          path: ./customsuites
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: run kubechat test
+        if: ${{ inputs.test-type != '0' }}
+        run: |
+          echo "port-forwarding KubeChat service..."
+          nohup kubectl port-forward service/kubechat --namespace kubechat 8000:8000 &
+
+      - name: run kubechat test
+        if: ${{ inputs.test-type != '0' }}
+        run: |
+          file_log="$(date +%Y-%m-%d-%T)".log
+          touch ${file_log}
+          cd customsuites
+          python3 infratest.py --type 7 | tee -a ${file_log}
+          
+          test_ret="$( grep "【FAILED】" ${file_log}|| true )"
+          if [[ -n "$test_ret" ]]; then
+              echo test-result=[FAILED] >> $GITHUB_OUTPUT
+              exit 1
+          else
+              echo test-result=[PASSED] >> $GITHUB_OUTPUT
+          fi

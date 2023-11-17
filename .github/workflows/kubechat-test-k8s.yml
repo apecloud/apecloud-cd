@@ -1,0 +1,302 @@
+name: KubeChat Test on K8S
+
+on:
+  workflow_call:
+    inputs:
+      CLOUD_PROVIDER:
+        description: 'cloud k8s cluster provider (e.g. eks/gke)'
+        type: string
+        required: false
+        default: 'gke'
+      KB_VERSION:
+        description: 'kubeblocks release version'
+        type: string
+        required: false
+        default: 'latest'
+      KUBECHAT_VERSION:
+        description: 'KubeChat release version'
+        type: string
+        required: false
+        default: 'v0.1.4-alpha.3'
+      CLUSTER_VERSION:
+        description: 'k8s cluster version (e.g. 1.26)'
+        type: string
+        required: false
+        default: '1.26'
+      REGION:
+        description: 'k8s region name'
+        type: string
+        required: false
+        default: 'us-central1'
+      NODE_TYPE:
+        description: 'node instance types (e.g. g2-standard-8/12/16/32)'
+        type: string
+        required: false
+        default: 'g2-standard-8'
+      NODE_SIZE:
+        description: 'node size'
+        type: string
+        required: false
+        default: '1'
+      BRANCH_NAME:
+        description: 'testinfra repo branch name'
+        type: string
+        required: false
+        default: 'main'
+      BRANCH_NAME2:
+        description: 'customsuites repo branch name'
+        type: string
+        required: false
+        default: 'main'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+  workflow_dispatch:
+    inputs:
+      CLOUD_PROVIDER:
+        description: 'cloud k8s cluster provider (e.g. eks/gke)'
+        required: false
+        default: 'gke'
+      KB_VERSION:
+        description: 'kubeblocks release version'
+        required: false
+        default: 'latest'
+      KUBECHAT_VERSION:
+        description: 'KubeChat release version'
+        required: false
+        default: 'v0.1.4-alpha.2'
+      CLUSTER_VERSION:
+        description: 'k8s cluster version (e.g. 1.26)'
+        required: false
+        default: '1.26'
+      REGION:
+        description: 'k8s region name'
+        required: false
+        default: 'us-central1'
+      NODE_TYPE:
+        description: 'node instance types (e.g. g2-standard-8/12/16/32)'
+        required: false
+        default: 'g2-standard-8'
+      NODE_SIZE:
+        description: 'node size'
+        required: false
+        default: '1'
+      BRANCH_NAME:
+        description: 'testinfra repo branch name'
+        required: false
+        default: 'main'
+      BRANCH_NAME2:
+        description: 'customsuites repo branch name'
+        type: string
+        required: false
+        default: 'main'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        required: false
+        default: 'main'
+
+
+run-name: KubeChat:${{ inputs.KUBECHAT_VERSION }} ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform-init-k8s:
+    uses: ./.github/workflows/terraform-init.yml
+    with:
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      cluster-version: ${{ inputs.CLUSTER_VERSION }}
+      node-type: ${{ inputs.NODE_TYPE }}
+      node-size: ${{ inputs.NODE_SIZE }}
+      region: ${{ inputs.REGION }}
+      enable-spot: "false"
+      test-mode: "kubechat"
+    secrets: inherit
+
+  install-kubeblocks:
+    if: ${{ needs.terraform-init-k8s.result == 'success' }}
+    needs: terraform-init-k8s
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "0"
+      test-type-name: "install"
+      test-args: "--check-addon false --namespace kubechat --random-namespace false ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+    secrets: inherit
+
+  create-postgresql:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "2"
+      test-type-name: "postgresql"
+      test-args: "--cluster-name postgresql --replicas 2 --limit-cpu 0.5 --limit-memory 0.5 --storage 20 --cluster-version postgresql-12.14.1 --namespace kubechat --only-cluster true --test-mode kubechat ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+    secrets: inherit
+
+  create-redis:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "5"
+      test-type-name: "redis"
+      test-args: "--cluster-name redis --replicas 2 --limit-cpu 0.5 --limit-memory 0.5 --storage 20 --namespace kubechat --only-cluster true --test-mode kubechat ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+    secrets: inherit
+
+  create-qdrant:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "10"
+      test-type-name: "qdrant"
+      test-args: "--cluster-name qdrant --replicas 1 --limit-cpu 1 --limit-memory 1 --storage 20 --namespace kubechat --only-cluster true ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+    secrets: inherit
+
+  create-elasticsearch:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "25"
+      test-type-name: "elasticsearch"
+      test-args: "--cluster-name elasticsearch --replicas 1 --limit-cpu 1 --limit-memory 1 --storage 20 --namespace kubechat --only-cluster true ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+    secrets: inherit
+
+  create-vllm-baichuan:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "26"
+      test-type-name: "vllm-baichuan"
+      test-args: "--cluster-name baichuan-7b --replicas 1 --limit-cpu 1 --limit-memory 1 --storage 20 --cluster-version vllm-baichuan-7b --namespace kubechat --only-cluster true ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+    secrets: inherit
+
+  create-vllm-vicuna:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() }}
+    needs: [ terraform-init-k8s, install-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "26"
+      test-type-name: "vllm-vicuna"
+      test-args: "--cluster-name vicuna-7b --replicas 1 --limit-cpu 1 --limit-memory 1 --storage 20 --cluster-version vllm-vicuna-7b --namespace kubechat --only-cluster true ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+    secrets: inherit
+
+  install-kubechat:
+    needs: [ create-postgresql, create-redis, create-qdrant, create-elasticsearch, create-vllm-baichuan, create-vllm-vicuna ]
+    uses: ./.github/workflows/test-kubechat.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KUBECHAT_VERSION }}"
+      test-type: "0"
+      test-type-name: "install-kubechat"
+      test-args: "${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      branch-name2: ${{ inputs.BRANCH_NAME2 }}
+    secrets: inherit
+
+  test-kubechat:
+    needs: [ install-kubechat ]
+    uses: ./.github/workflows/test-kubechat.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KUBECHAT_VERSION }}"
+      test-type: "1"
+      test-type-name: "test-kubechat"
+      test-args: "${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      branch-name2: ${{ inputs.BRANCH_NAME2 }}
+    secrets: inherit
+
+  send-message:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    needs: [ install-kubeblocks, create-postgresql, create-redis, create-qdrant, create-elasticsearch, create-vllm-baichuan, create-vllm-vicuna, install-kubechat, test-kubechat ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: send message
+        id: get_trigger_mode
+        run: |
+          TEST_RESULT="install|${{ needs.install-kubeblocks.outputs.test-result }}"
+          TEST_RESULT="${TEST_RESULT}##postgresql|${{ needs.create-postgresql.outputs.test-result }}"
+          TEST_RESULT="${TEST_RESULT}##redis|${{ needs.create-redis.outputs.test-result }}"
+          TEST_RESULT="${TEST_RESULT}##qdrant|${{ needs.create-qdrant.outputs.test-result }}"
+          TEST_RESULT="${TEST_RESULT}##elasticsearch|${{ needs.create-elasticsearch.outputs.test-result }}"
+          TEST_RESULT="${TEST_RESULT}##vllm-baichuan|${{ needs.create-vllm-baichuan.outputs.test-result }}"
+          TEST_RESULT="${TEST_RESULT}##vllm-vicuna|${{ needs.create-vllm-vicuna.outputs.test-result }}"
+          TEST_RESULT="${TEST_RESULT}##install-kubechat|${{ needs.install-kubechat.outputs.test-result }}"
+          
+          TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
+              --github-repo "${{ github.repository }}" \
+              --test-result "${TEST_RESULT}" \
+              --run-id "$GITHUB_RUN_ID" )
+          
+          date_ret=$(date +%Y-%m-%d-%T)
+          test_title="[${{ inputs.KUBECHAT_VERSION }}] Test KubeChat on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }} [${date_ret}]"
+          python3 .github/utils/send_mesage.py \
+              --url ${{ vars.TEST_BOT_WEBHOOK }} \
+              --title "$test_title" \
+              --result "$TEST_RESULT"
+
+  terraform-destroy-k8s:
+    if: ${{ always() }}
+    needs: [ terraform-init-k8s, send-message ]
+    uses: ./.github/workflows/terraform-destroy.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      region: ${{ inputs.REGION }}
+    secrets: inherit
