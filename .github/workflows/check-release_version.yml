@@ -1,0 +1,49 @@
+name: E2E Test KubeChat
+
+on:
+  workflow_dispatch:
+    inputs:
+      VERSION:
+        description: 'release version'
+        required: true
+        default: ''
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+    outputs:
+      release-version:
+        description: "release version"
+        value: "${{ jobs.check-release-version.outputs.release-version }}"
+
+env:
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  check-release-version:
+    runs-on: ubuntu-latest
+    outputs:
+      release-version: ${{ steps.get_release_version.outputs.release-version }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: check release version
+        id: get_release_version
+        run: |
+          RELEASE_VERSION=`bash apecloud-cd/.github/utils/utils.sh \
+              --type 31 \
+              --github-repo "${{ github.repository }}" \
+              --tag-name "${{ inputs.VERSION }}"`
+          if [[ -z "$RELEASE_VERSION" ]]; then
+              echo "release version ${{ inputs.VERSION }} not exists"
+              exit 1
+          else
+              echo $RELEASE_VERSION
+              echo release-version=$RELEASE_VERSION >> $GITHUB_OUTPUT
+          fi
