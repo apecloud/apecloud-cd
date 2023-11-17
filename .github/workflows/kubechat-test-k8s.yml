@@ -3,21 +3,21 @@ name: KubeChat Test on K8S
 on:
   workflow_call:
     inputs:
+      KUBECHAT_VERSION:
+        description: 'KubeChat release version'
+        type: string
+        required: false
+        default: 'v0.1.4-alpha.9'
+      KUBEBLOCKS_VERSION:
+        description: 'kubeblocks release version'
+        type: string
+        required: false
+        default: 'latest'
       CLOUD_PROVIDER:
         description: 'cloud k8s cluster provider (e.g. eks/gke)'
         type: string
         required: false
         default: 'gke'
-      KB_VERSION:
-        description: 'kubeblocks release version'
-        type: string
-        required: false
-        default: 'latest'
-      KUBECHAT_VERSION:
-        description: 'KubeChat release version'
-        type: string
-        required: false
-        default: 'v0.1.4-alpha.3'
       CLUSTER_VERSION:
         description: 'k8s cluster version (e.g. 1.26)'
         type: string
@@ -55,18 +55,18 @@ on:
         default: 'main'
   workflow_dispatch:
     inputs:
+      KUBECHAT_VERSION:
+        description: 'KubeChat release version'
+        required: false
+        default: 'v0.1.4-alpha.9'
+      KUBEBLOCKS_VERSION:
+        description: 'kubeblocks release version'
+        required: false
+        default: 'latest'
       CLOUD_PROVIDER:
         description: 'cloud k8s cluster provider (e.g. eks/gke)'
         required: false
         default: 'gke'
-      KB_VERSION:
-        description: 'kubeblocks release version'
-        required: false
-        default: 'latest'
-      KUBECHAT_VERSION:
-        description: 'KubeChat release version'
-        required: false
-        default: 'v0.1.4-alpha.2'
       CLUSTER_VERSION:
         description: 'k8s cluster version (e.g. 1.26)'
         required: false
@@ -128,7 +128,7 @@ jobs:
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
-      release-version: "${{ inputs.KB_VERSION }}"
+      release-version: "${{ inputs.KUBEBLOCKS_VERSION }}"
       test-type: "0"
       test-type-name: "install"
       test-args: "--check-addon false --namespace kubechat --random-namespace false ${{ inputs.ARGS }}"
@@ -143,7 +143,7 @@ jobs:
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
-      release-version: "${{ inputs.KB_VERSION }}"
+      release-version: "${{ inputs.KUBEBLOCKS_VERSION }}"
       test-type: "2"
       test-type-name: "postgresql"
       test-args: "--cluster-name postgresql --replicas 2 --limit-cpu 0.5 --limit-memory 0.5 --storage 20 --cluster-version postgresql-12.14.1 --namespace kubechat --only-cluster true --test-mode kubechat ${{ inputs.ARGS }}"
@@ -158,7 +158,7 @@ jobs:
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
-      release-version: "${{ inputs.KB_VERSION }}"
+      release-version: "${{ inputs.KUBEBLOCKS_VERSION }}"
       test-type: "5"
       test-type-name: "redis"
       test-args: "--cluster-name redis --replicas 2 --limit-cpu 0.5 --limit-memory 0.5 --storage 20 --namespace kubechat --only-cluster true --test-mode kubechat ${{ inputs.ARGS }}"
@@ -173,7 +173,7 @@ jobs:
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
-      release-version: "${{ inputs.KB_VERSION }}"
+      release-version: "${{ inputs.KUBEBLOCKS_VERSION }}"
       test-type: "10"
       test-type-name: "qdrant"
       test-args: "--cluster-name qdrant --replicas 1 --limit-cpu 1 --limit-memory 1 --storage 20 --namespace kubechat --only-cluster true ${{ inputs.ARGS }}"
@@ -188,7 +188,7 @@ jobs:
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
-      release-version: "${{ inputs.KB_VERSION }}"
+      release-version: "${{ inputs.KUBEBLOCKS_VERSION }}"
       test-type: "25"
       test-type-name: "elasticsearch"
       test-args: "--cluster-name elasticsearch --replicas 1 --limit-cpu 1 --limit-memory 1 --storage 20 --namespace kubechat --only-cluster true ${{ inputs.ARGS }}"
@@ -203,7 +203,7 @@ jobs:
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
-      release-version: "${{ inputs.KB_VERSION }}"
+      release-version: "${{ inputs.KUBEBLOCKS_VERSION }}"
       test-type: "26"
       test-type-name: "vllm-baichuan"
       test-args: "--cluster-name baichuan-7b --replicas 1 --limit-cpu 1 --limit-memory 1 --storage 20 --cluster-version vllm-baichuan-7b --namespace kubechat --only-cluster true ${{ inputs.ARGS }}"
@@ -218,7 +218,7 @@ jobs:
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
-      release-version: "${{ inputs.KB_VERSION }}"
+      release-version: "${{ inputs.KUBEBLOCKS_VERSION }}"
       test-type: "26"
       test-type-name: "vllm-vicuna"
       test-args: "--cluster-name vicuna-7b --replicas 1 --limit-cpu 1 --limit-memory 1 --storage 20 --cluster-version vllm-vicuna-7b --namespace kubechat --only-cluster true ${{ inputs.ARGS }}"
