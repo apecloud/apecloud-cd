@@ -1,7 +1,7 @@
 name: Delete Actions Cache
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       CACHE_KEY:
         description: "The cache key to delete"
