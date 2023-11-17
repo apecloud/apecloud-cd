@@ -128,7 +128,7 @@ jobs:
                   --name ${{ inputs.k8s-cluster-name }}
           fi
 
-      - name: run kubechat test
+      - name: deploy kubechat
         if: ${{ inputs.test-type == '0' }}
         run: |
           file_log="$(date +%Y-%m-%d-%T)".log
@@ -171,7 +171,7 @@ jobs:
               echo test-result=[PASSED] >> $GITHUB_OUTPUT
           fi
 
-      - name: checkout customsuites
+      - name: checkout customsuites code
         if: ${{ inputs.test-type != '0' }}
         uses: actions/checkout@v4
         with:
@@ -180,10 +180,9 @@ jobs:
           path: ./customsuites
           token: ${{ env.GITHUB_TOKEN }}
 
-      - name: run kubechat test
+      - name: port-forward KubeChat Service
         if: ${{ inputs.test-type != '0' }}
         run: |
-          echo "port-forwarding KubeChat service..."
           nohup kubectl port-forward service/kubechat --namespace kubechat 8000:8000 &
 
       - name: run kubechat test
@@ -192,6 +191,7 @@ jobs:
           file_log="$(date +%Y-%m-%d-%T)".log
           touch ${file_log}
           cd customsuites
+          pip3 install -r requirements.txt
           python3 infratest.py --type 7 | tee -a ${file_log}
           
           test_ret="$( grep "【FAILED】" ${file_log}|| true )"

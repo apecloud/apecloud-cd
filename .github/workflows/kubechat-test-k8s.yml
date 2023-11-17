@@ -227,7 +227,7 @@ jobs:
     secrets: inherit
 
   deploy-kubechat:
-    needs: [ create-postgresql, create-redis, create-qdrant, create-elasticsearch, create-vllm-baichuan, create-vllm-vicuna ]
+    needs: [ terraform-init-k8s, create-postgresql, create-redis, create-qdrant, create-elasticsearch, create-vllm-baichuan, create-vllm-vicuna ]
     uses: ./.github/workflows/test-kubechat.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -238,11 +238,10 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      branch-name2: ${{ inputs.BRANCH_NAME2 }}
     secrets: inherit
 
   test-kubechat:
-    needs: [ deploy-kubechat ]
+    needs: [ terraform-init-k8s, deploy-kubechat ]
     uses: ./.github/workflows/test-kubechat.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -252,7 +251,6 @@ jobs:
       test-type-name: "test-kubechat"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
-      branch-name: ${{ inputs.BRANCH_NAME }}
       branch-name2: ${{ inputs.BRANCH_NAME2 }}
     secrets: inherit
 
