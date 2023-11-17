@@ -188,13 +188,13 @@ jobs:
           pip3 install -r requirements.txt
           python3 infratest.py --type 7 | tee -a ${file_log}
 
-        - name: return kubechat test result
-          id: test_result
-          run: |
-            test_ret="$( grep "【FAILED】" ${FILE_LOG} || true )"
-            if [[ -n "$test_ret" ]]; then
-                echo test-result=[FAILED] >> $GITHUB_OUTPUT
-                exit 1
-            else
-                echo test-result=[PASSED] >> $GITHUB_OUTPUT
-            fi
+      - name: return kubechat test result
+        id: test_result
+        run: |
+          test_ret="$( grep "【FAILED】" ${FILE_LOG} || true )"
+          if [[ -n "$test_ret" ]]; then
+              echo test-result=[FAILED] >> $GITHUB_OUTPUT
+              exit 1
+          else
+              echo test-result=[PASSED] >> $GITHUB_OUTPUT
+          fi
