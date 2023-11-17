@@ -89,7 +89,14 @@ jobs:
     outputs:
       k8s-cluster-name: ${{ steps.terraform_init.outputs.k8s-cluster-name }}
     steps:
-      - uses: actions/checkout@v4
+      - name: checkout cloud-provider
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/cloud-provider
+          ref: "apecd-deploy"
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.4.6
@@ -121,14 +128,6 @@ jobs:
           fi
           echo "deploy-path:"$DEPLOY_PATH
           echo deploy-path=${DEPLOY_PATH} >> $GITHUB_OUTPUT
-
-      - name: checkout cloud-provider
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/cloud-provider
-          ref: "apecd-deploy"
-          path: ./
-          token: ${{ env.GITHUB_TOKEN }}
 
       - name: terraform init k8s
         id: terraform_init
@@ -210,7 +209,7 @@ jobs:
               cmd="${cmd} --cluster-region ${{ inputs.region }} "
           fi
           
-          if [[ -n "${NODE_SIZE" ]]; then
+          if [[ -n "${NODE_SIZE}" ]]; then
               cmd="${cmd} --node-size ${NODE_SIZE} "
           fi
           
@@ -235,7 +234,7 @@ jobs:
           fi
           echo "k8s-cluster-name:${K8S_CLUSTER_NAME}"
           echo k8s-cluster-name=${K8S_CLUSTER_NAME} >> $GITHUB_OUTPUT
-      
+
       - name: upload artifact
         uses: actions/upload-artifact@v3
         if: ${{ always() }}
