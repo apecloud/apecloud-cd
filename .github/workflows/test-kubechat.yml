@@ -163,6 +163,11 @@ jobs:
           fi
           echo "$cmd"
           eval "$cmd" | tee -a ${file_log}
+          
+          test_ret="$( egrep "【FAILED】" ${file_log} || true )"
+          if [[ -n "$test_ret" ]]; then
+              exit 1
+          fi
 
       - name: checkout customsuites code
         if: ${{ inputs.test-type != '0' }}
@@ -187,6 +192,11 @@ jobs:
           cd customsuites
           pip3 install -r requirements.txt
           python3 infratest.py --type 7 | tee -a ${file_log}
+          
+          test_ret="$( egrep "【FAILED】|Traceback" ${file_log} || true )"
+          if [[ -n "$test_ret" ]]; then
+              exit 1
+          fi
 
       - name: return kubechat test result
         if: ${{ always() }}
@@ -195,7 +205,6 @@ jobs:
           test_ret="$( egrep "【FAILED】|Traceback" ${FILE_LOG} || true )"
           if [[ -n "$test_ret" ]]; then
               echo test-result=[FAILED] >> $GITHUB_OUTPUT
-              exit 1
           else
               echo test-result=[PASSED] >> $GITHUB_OUTPUT
           fi

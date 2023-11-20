@@ -83,7 +83,7 @@ jobs:
     name: test ${{ inputs.test-type-name }}
     runs-on: ubuntu-latest
     outputs:
-      test-result: ${{ steps.test_result.outputs.test-result }}
+      test-result: ${{ steps.kbcli_test.outputs.test-result }}
       random-suffix: ${{ steps.kbcli_test.outputs.random-suffix }}
     steps:
       - name: checkout testinfra
@@ -204,12 +204,8 @@ jobs:
               RANDOM_SUFFIX=${RANDOM_SUFFIX%"[RANDOM_SUFFIX]"*}
           fi
           echo random-suffix=$RANDOM_SUFFIX >> $GITHUB_OUTPUT
-
-      - name: return kbcli test result
-        if: ${{ always() }}
-        id: test_result
-        run: |
-          test_ret="$( grep "【FAILED】" ${FILE_LOG}|| true )"
+          
+          test_ret="$( grep "【FAILED】" ${file_log} || true )"
           if [[ -n "$test_ret" ]]; then
               echo test-result=[FAILED] >> $GITHUB_OUTPUT
               exit 1
