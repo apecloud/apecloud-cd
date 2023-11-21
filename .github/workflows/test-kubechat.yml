@@ -49,6 +49,9 @@ on:
         required: false
         default: 'main'
     outputs:
+      deploy-result:
+        description: "deploy result"
+        value: ${{ jobs.test-kubechat.outputs.deploy-result }}
       test-result:
         description: "test result"
         value: ${{ jobs.test-kubechat.outputs.test-result }}
@@ -69,7 +72,8 @@ jobs:
     name: test ${{ inputs.test-type-name }}
     runs-on: ubuntu-latest
     outputs:
-      test-result: ${{ steps.test_result.outputs.test-result }}
+      deploy-result: ${{ steps.deploy_kubechat.outputs.deploy-result }}
+      test-result: ${{ steps.kubechat_test.outputs.test-result }}
     steps:
       - name: checkout testinfra
         uses: actions/checkout@v4
@@ -129,6 +133,7 @@ jobs:
           fi
 
       - name: deploy kubechat
+        id: deploy_kubechat
         if: ${{ inputs.test-type == '0' }}
         run: |
           file_log="$(date +%Y-%m-%d-%T)".log
@@ -166,10 +171,10 @@ jobs:
           
           test_ret="$( egrep "【FAILED】" ${file_log} || true )"
           if [[ -n "$test_ret" ]]; then
-              echo test-result=[FAILED] >> $GITHUB_OUTPUT
+              echo deploy-result=[FAILED] >> $GITHUB_OUTPUT
               exit 1
           else
-              echo test-result=[PASSED] >> $GITHUB_OUTPUT
+              echo deploy-result=[PASSED] >> $GITHUB_OUTPUT
           fi
 
       - name: checkout customsuites code
@@ -188,6 +193,7 @@ jobs:
 
       - name: run kubechat test
         if: ${{ inputs.test-type != '0' }}
+        id: kubechat_test
         run: |
           file_log="$(date +%Y-%m-%d-%T)".log
           touch ${file_log}
@@ -205,7 +211,6 @@ jobs:
           fi
 
       - name: return kubechat test result
-        if: ${{ always() }}
         id: test_result
         run: |
           test_ret="$( egrep "【FAILED】|Traceback" ${FILE_LOG} || true )"

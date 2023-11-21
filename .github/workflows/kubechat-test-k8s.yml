@@ -275,7 +275,7 @@ jobs:
           TEST_RESULT="${TEST_RESULT}##elasticsearch|${{ needs.create-elasticsearch.outputs.test-result }}"
           TEST_RESULT="${TEST_RESULT}##vllm-baichuan|${{ needs.create-vllm-baichuan.outputs.test-result }}"
           TEST_RESULT="${TEST_RESULT}##vllm-vicuna|${{ needs.create-vllm-vicuna.outputs.test-result }}"
-          TEST_RESULT="${TEST_RESULT}##deploy-kubechat|${{ needs.deploy-kubechat.outputs.test-result }}"
+          TEST_RESULT="${TEST_RESULT}##deploy-kubechat|${{ needs.deploy-kubechat.outputs.deploy-result }}"
           TEST_RESULT="${TEST_RESULT}##test-kubechat|${{ needs.test-kubechat.outputs.test-result }}"
           
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
