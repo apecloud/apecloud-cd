@@ -166,7 +166,10 @@ jobs:
           
           test_ret="$( egrep "【FAILED】" ${file_log} || true )"
           if [[ -n "$test_ret" ]]; then
+              echo test-result=[FAILED] >> $GITHUB_OUTPUT
               exit 1
+          else
+              echo test-result=[PASSED] >> $GITHUB_OUTPUT
           fi
 
       - name: checkout customsuites code
@@ -195,7 +198,10 @@ jobs:
           
           test_ret="$( egrep "【FAILED】|Traceback" ${file_log} || true )"
           if [[ -n "$test_ret" ]]; then
+              echo test-result=[FAILED] >> $GITHUB_OUTPUT
               exit 1
+          else
+              echo test-result=[PASSED] >> $GITHUB_OUTPUT
           fi
 
       - name: return kubechat test result
@@ -205,6 +211,7 @@ jobs:
           test_ret="$( egrep "【FAILED】|Traceback" ${FILE_LOG} || true )"
           if [[ -n "$test_ret" ]]; then
               echo test-result=[FAILED] >> $GITHUB_OUTPUT
+              exit 1
           else
               echo test-result=[PASSED] >> $GITHUB_OUTPUT
           fi
