@@ -58,6 +58,16 @@ on:
         type: boolean
         required: false
         default: false
+      PYTHON_VERSION:
+        description: "Install the specify version of Python"
+        type: string
+        required: false
+        default: ''
+      POETRY_VERSION:
+        description: "Install the specify version of Poetry"
+        type: string
+        required: false
+        default: ''
 
 
 env:
@@ -98,6 +108,18 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ${{ inputs.GO_VERSION }}
+
+      - name: Setup Python specify version
+        if: inputs.PYTHON_VERSION
+        uses: actions/setup-python@v4
+        with:
+          python-version: "${{ inputs.PYTHON_VERSION }}"
+
+      - name: Setup Poetry specify version
+        if: inputs.POETRY_VERSION
+        uses: Gr1N/setup-poetry@v8
+        with:
+          poetry-version: "${{ inputs.POETRY_VERSION }}"
 
       - name: git config
         if: inputs.GIT_CONFIG
