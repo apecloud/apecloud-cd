@@ -66,7 +66,7 @@ permissions:
 
 jobs:
   cloud-test-k3s:
-    name: test ${{ inputs.test-type-name }}
+    name: run ${{ inputs.test-type-name }}
     runs-on: ubuntu-latest
     outputs:
       test-result: ${{ steps.test_result.outputs.test-result }}
