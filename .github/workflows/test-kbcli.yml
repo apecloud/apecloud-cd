@@ -58,6 +58,11 @@ on:
         type: string
         required: false
         default: ''
+      cluster-test-type:
+        description: 'cluster test type'
+        type: string
+        required: false
+        default: ''
     outputs:
       test-result:
         description: "test result"
@@ -187,6 +192,10 @@ jobs:
           
           if [[ -n "${{ inputs.k8s-cluster-name }}" ]]; then
               cmd="${cmd} --cluster-name '${{ inputs.k8s-cluster-name }}' "
+          fi
+          
+          if [[ -n "${{ inputs.cluster-test-type }}" ]]; then
+              cmd="${cmd} --test-type '${{ inputs.cluster-test-type }}' "
           fi
           
           if [[ -n "${{ env.AWS_ACCESS_KEY_ID }}" && -n "${{ env.AWS_SECRET_ACCESS_KEY }}" ]]; then

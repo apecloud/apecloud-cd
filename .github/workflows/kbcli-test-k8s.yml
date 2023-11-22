@@ -147,6 +147,7 @@ jobs:
       test-args: "--config-s3 true --upgrade true ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
+      cluster-test-type: "${{ inputs.TEST_TYPE }}"
     secrets: inherit
 
   test-apecloud-mysql:
