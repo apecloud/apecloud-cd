@@ -1,0 +1,230 @@
+name: Test ApeCoud On Amd K3S
+
+on:
+  workflow_call:
+    inputs:
+      release-version:
+        description: 'apecloud release version'
+        type: string
+        required: false
+        default: 'latest'
+      kubeblocks-version:
+        description: 'kubeblocks release version'
+        type: string
+        required: false
+        default: 'latest'
+      test-type:
+        description: 'test type'
+        type: string
+        required: false
+        default: ''
+      test-type-name:
+        description: 'test type name'
+        type: string
+        required: false
+        default: ''
+      test-args:
+        description: 'test args'
+        type: string
+        required: false
+        default: ''
+      k3s-version:
+        description: 'k3s cluster version (e.g. 1.26)'
+        type: string
+        required: false
+        default: '1.26'
+      testinfra-branch:
+        description: 'testinfra branch name'
+        type: string
+        required: false
+        default: 'main'
+      apecloud-branch:
+        description: 'apecloud branch name'
+        type: string
+        required: false
+        default: 'main'
+      e2etest-branch:
+        description: 'e2etest branch name'
+        type: string
+        required: false
+        default: 'main'
+    outputs:
+      kubeblocks-result:
+        description: "install kubeblocks result"
+        value: "${{ jobs.apecloud-test-k3s.outputs.kubeblocks-result }}"
+      postgresql-result:
+        description: "create postgresql result"
+        value: "${{ jobs.apecloud-test-k3s.outputs.postgresql-result }}"
+      apecloud-server-result:
+        description: "run apecloud server result"
+        value: "${{ jobs.apecloud-test-k3s.outputs.apecloud-server-result }}"
+      e2e-test-result:
+        description: "e2e test result"
+        value: "${{ jobs.apecloud-test-k3s.e2e-test-result }}"
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  CLOUD_CN_ENV: ${{ secrets.CLOUD_CN_ENV }}
+  HELM_VERSION: v3.13.1
+  K3D_NAME: default
+  REGION: us-central1
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  apecloud-test-k3s:
+    name: test ${{ inputs.test-type-name }}
+    runs-on: [ self-hosted, k3d-runner ]
+    outputs:
+      kubeblocks-result: ${{ steps.install_kubeblocks.outputs.kubeblocks-result }}
+      postgresql-result: ${{ steps.create_postgresql.outputs.postgresql-result }}
+      apecloud-server-result: ${{ steps.run_apecloud_server.outputs.apecloud-server-result }}
+      e2e-test-result: ${{ steps.run_e2e_test.outputs.e2e-test-result }}
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.19"
+
+      - name: checkout testinfra
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/testinfra
+          ref: ${{ inputs.testinfra-branch }}
+          path: testinfra
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: setup k3d k3s
+        uses: apecloud/setup-k3d-k3s@v1
+        with:
+          k3d-name: "${{ env.K3D_NAME }}"
+          version: "v${{ inputs.k3s-version }}"
+          github-token: ${{ env.GITHUB_TOKEN }}
+          k3d-args: --no-lb --k3s-node-label topology.hostpath.csi/node=k3d-${{ env.K3D_NAME }}-server-0@server:0
+
+      - name: install kubbelocks
+        id: install_kubeblocks
+        run: |
+          cd testinfra
+          file_log_kubeblocks="$(date +%Y-%m-%d-%T)".log
+          touch ${file_log_kubeblocks}
+          
+          KB_VERSION=$( bash .github/utils/get_kb_latest_version.sh "${{ inputs.kubeblocks-version }}" )
+          echo KUBEBLOCKS_VERSION=${KB_VERSION} >> $GITHUB_ENV
+          
+          bash .github/utils/kbcli-test.sh \
+              --type "0" \
+              --kubeblocks-version "${KB_VERSION}" \
+              --cloud-provider "k3s" \
+              --args "--check-addon false --namespace kubeblocks-cloud --random-namespace false --upgrade true ${{ inputs.test-args }} " \
+              --region "${{ env.REGION }}" | tee -a ${file_log_kubeblocks}
+          
+          test_ret="$( grep "【FAILED】" ${file_log_kubeblocks} || true )"
+          if [[ -n "$test_ret" ]]; then
+              echo kubeblocks-result=[FAILED] >> $GITHUB_OUTPUT
+              exit 1
+          else
+              echo kubeblocks-result=[PASSED] >> $GITHUB_OUTPUT
+          fi
+
+      - name: create postgresql
+        id: create_postgresql
+        run: |
+          cd testinfra
+          file_log_postgresql="$(date +%Y-%m-%d-%T)".log
+          touch ${file_log_postgresql}
+          
+          bash .github/utils/kbcli-test.sh \
+              --type "2" \
+              --kubeblocks-version "${KUBEBLOCKS_VERSION}" \
+              --args "--cluster-name apecloud-pg --replicas 1 --limit-cpu 1 --limit-memory 1 --storage 40 --cluster-version postgresql-14.8.0 --namespace kubeblocks-cloud --only-cluster true --test-mode kubeblockscloud ${{ inputs.test-args }} " \
+              --region "${{ env.REGION }}" | tee -a ${file_log_postgresql}
+          
+          test_ret="$( grep "【FAILED】" ${file_log_postgresql} || true )"
+          if [[ -n "$test_ret" ]]; then
+              echo postgresql-result=[FAILED] >> $GITHUB_OUTPUT
+              exit 1
+          else
+              echo postgresql-result=[PASSED] >> $GITHUB_OUTPUT
+          fi
+          
+          echo "port-forward apecloud-pg-postgresql Service"
+          nohup kubectl port-forward services/apecloud-pg-postgresql -n kubeblocks-cloud 5432:5432 &
+
+      - name: Checkout apecloud Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud
+          path: apecloud
+          ref: ${{ inputs.apecloud-branch }}
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: run apecloud server
+        id: run_apecloud_server
+        run: |
+          cd apecloud/apiserver
+          touch ./cn.env
+          echo "${{ env.CLOUD_CN_ENV }}" > ./cn.env
+          while IFS='=' read -r name value
+          do
+              if [[ ! $name =~ ^\# && -n $name ]]; then
+                  export $name=$value
+              fi
+          done < ./cn.env
+          echo "DSN:"$DSN
+          go mod tidy
+          nohup make run > ./make_run.log 2>&1 &
+          times=1
+          test_ret=0
+          while true; do
+              if [[ $times -gt 300 ]]; then
+                  break
+              fi
+              run_ret="$( grep "Listen and Server on 0.0.0.0:8080" ./make_run.log || true )"
+              if [[ -n "$run_ret" ]]; then
+                  echo "run apecloud server success"
+                  test_ret=1
+                  break
+              fi
+              times=$(( $times + 1 ))
+              sleep 1
+              echo "checking apecloud server..."
+          done
+          if [[ "$test_ret" == "0" ]]; then
+              echo apecloud-server-result=[FAILED] >> $GITHUB_OUTPUT
+              exit 1
+          else
+              echo apecloud-server-result=[PASSED] >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.21"
+
+      - name: Checkout e2etest Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/e2etest
+          path: e2etest
+          ref: ${{ inputs.e2etest-branch }}
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: run e2e test
+        id: run_e2e_test
+        run: |
+          cd e2etest
+          file_log="$(date +%Y-%m-%d-%T)".log
+          touch ${file_log}
+          
+          make test-e2e-apecloud | tee -a ${file_log}
+          
+          test_ret="$( grep "FAIL!" ${file_log} || true )"
+          if [[ -n "$test_ret" ]]; then
+              echo e2e-test-result=[FAILED] >> $GITHUB_OUTPUT
+              exit 1
+          else
+              echo e2e-test-result=[PASSED] >> $GITHUB_OUTPUT
+          fi
