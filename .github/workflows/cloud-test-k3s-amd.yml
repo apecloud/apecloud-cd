@@ -1,4 +1,4 @@
-name: ApeCloud E2E Test on Amd K3S
+name: Cloud E2E Test on Amd K3S
 
 on:
   workflow_call:
@@ -97,12 +97,12 @@ permissions:
   contents: read
 
 jobs:
-  cloud-e2e-test-k3s:
+  e2e-test:
     uses: ./.github/workflows/test-cloud-k3s-amd.yml
     with:
       release-version: ${{ inputs.APECLOUD_VERSION }}
       kubeblocks-version: ${{ inputs.KUBEBLOCKS_VERSION }}
-      test-type-name: "cloud-e2e-test"
+      test-type-name: "e2e-test"
       test-args: ${{ inputs.ARGS }}
       k3s-version: ${{ inputs.K3S_VERSION }}
       testinfra-branch: ${{ inputs.TESTINFRA_BRANCH }}
@@ -113,7 +113,7 @@ jobs:
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: [ cloud-e2e-test-k3s ]
+    needs: [ e2e-test ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -124,10 +124,7 @@ jobs:
       - name: send message
         id: get_trigger_mode
         run: |
-          TEST_RESULT="kubeblocks|${{ needs.cloud-e2e-test-k3s.outputs.kubeblocks-result }}"
-          TEST_RESULT="${TEST_RESULT}##postgresql|${{ needs.cloud-e2e-test-k3s.outputs.postgresql-result }}"
-          TEST_RESULT="${TEST_RESULT}##apecloud-server|${{ needs.cloud-e2e-test-k3s.outputs.apecloud-server-result }}"
-          TEST_RESULT="${TEST_RESULT}##e2e-test|${{ needs.cloud-e2e-test-k3s.outputs.e2e-test-result }}"
+          TEST_RESULT="e2e-test|${{ needs.e2e-test.outputs.test-result }}"
           
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
               --github-repo "${{ github.repository }}" \
