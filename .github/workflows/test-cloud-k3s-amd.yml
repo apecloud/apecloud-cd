@@ -51,7 +51,7 @@ on:
     outputs:
       test-result:
         description: "e2e test result"
-        value: "${{ jobs.cloud-test-k3s.test-result }}"
+        value: "${{ jobs.cloud-test-k3s.outputs.test-result }}"
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
