@@ -95,6 +95,7 @@ jobs:
 
       - name: install kubbelocks
         run: |
+          echo E2E_TEST_RESULT=0 >> $GITHUB_ENV
           cd testinfra
           KB_VERSION=$( bash .github/utils/get_kb_latest_version.sh "${{ inputs.kubeblocks-version }}" )
           echo KUBEBLOCKS_VERSION=${KB_VERSION} >> $GITHUB_ENV
@@ -174,15 +175,16 @@ jobs:
         run: |
           cd e2etest
           make test-e2e-apecloud
+          echo E2E_TEST_RESULT=1 >> $GITHUB_ENV
 
       - name: return cloud e2e test result
         id: test_result
         if: ${{ always() }}
         run: |
-          if [[ steps.run_e2e_test.status == 'failure' || steps.run_e2e_test.status == 'cancelled' ]]; then
-              echo test-result=[FAILED] >> $GITHUB_OUTPUT
-          else
+          if [[ "${E2E_TEST_RESULT}" == '1' ]]; then
               echo test-result=[PASSED] >> $GITHUB_OUTPUT
+          else
+              echo test-result=[FAILED] >> $GITHUB_OUTPUT
           fi
           
           echo runner-name=${RUNNER_NAME} >> $GITHUB_OUTPUT
