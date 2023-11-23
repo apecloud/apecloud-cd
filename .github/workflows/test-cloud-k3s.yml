@@ -188,7 +188,7 @@ jobs:
         id: test_result
         if: ${{ always() }}
         run: |
-          if [[ steps.run_e2e_test.conclusion == 'failure' || steps.run_e2e_test.conclusion == 'cancelled' ]]; then
+          if [[ steps.run_e2e_test.result == 'failure' || steps.run_e2e_test.result == 'cancelled' ]]; then
               echo test-result=[FAILED] >> $GITHUB_OUTPUT
           else
               echo test-result=[PASSED] >> $GITHUB_OUTPUT
