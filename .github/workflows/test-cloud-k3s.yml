@@ -166,6 +166,15 @@ jobs:
               echo "checking cloud server..."
           done
 
+      - name: initial postgresql configuration
+        run: |
+          cd testinfra
+          bash .github/utils/kbcli-test.sh \
+              --type "2" \
+              --kubeblocks-version "${KUBEBLOCKS_VERSION}" \
+              --args "--cluster-name apecloud-pg --replicas 1 --limit-cpu 1 --limit-memory 1 --storage 40 --cluster-version postgresql-14.8.0 --namespace kubeblocks-cloud --only-cluster true --test-mode apecloud ${{ inputs.test-args }} " \
+              --region "${{ env.REGION }}"
+
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
