@@ -153,7 +153,7 @@ jobs:
           nohup make run > ./make_run.log 2>&1 &
           times=1
           while true; do
-              if [[ $times -gt 300 ]]; then
+              if [[ $times -gt 600 ]]; then
                   break
               fi
               run_ret="$( grep "Listen and Server on 0.0.0.0:8080" ./make_run.log || true )"
