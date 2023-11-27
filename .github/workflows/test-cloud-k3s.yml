@@ -140,6 +140,7 @@ jobs:
       - name: run cloud server
         run: |
           cd apecloud/apiserver
+          go mod tidy
           touch ./cn.env
           echo "${{ env.CLOUD_CN_ENV }}" > ./cn.env
           while IFS='=' read -r name value
@@ -149,7 +150,6 @@ jobs:
               fi
           done < ./cn.env
           echo "DSN:"$DSN
-          go mod tidy
           nohup make run > ./make_run.log 2>&1 &
           times=1
           while true; do
