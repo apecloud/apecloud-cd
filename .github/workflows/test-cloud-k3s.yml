@@ -142,10 +142,12 @@ jobs:
           go mod tidy
           touch ./cn.env
           echo "${{ env.CLOUD_CN_ENV }}" > ./cn.env
-          nohup make run > ./make_run.log 2>&1 &
+          echo -e "while IFS='=' read -r name value\ndo\n  if [[ ! \$name =~ ^# && -n \$name ]]; then\n    export \$name=\"\$value\"\n  fi\ndone < ./cn.env\necho \$DSN\nnohup make run > ./make_run.log 2>&1 &" > script.sh
+          chmod +x script.sh
+          ./script.sh
           times=1
           while true; do
-              if [[ $times -gt 600 ]]; then
+              if [[ $times -gt 300 ]]; then
                   break
               fi
               run_ret="$( grep "Listen and Server on 0.0.0.0:8080" ./make_run.log || true )"
