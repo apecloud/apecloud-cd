@@ -142,12 +142,6 @@ jobs:
           go mod tidy
           touch ./cn.env
           echo "${{ env.CLOUD_CN_ENV }}" > ./cn.env
-          while IFS='=' read -r name value; do
-            if [[ ! $name =~ ^\# && -n $name ]]; then
-              export $name="$value"
-            fi
-          done < ./cn.env
-          echo $DSN
           nohup make run > ./make_run.log 2>&1 &
           times=1
           while true; do
