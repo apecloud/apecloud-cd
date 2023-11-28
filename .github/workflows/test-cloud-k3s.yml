@@ -143,6 +143,8 @@ jobs:
           go mod tidy
           touch ./cn.env
           echo "${{ env.CLOUD_CN_ENV }}" > ./cn.env
+          cat << EOF > run.sh
+          #!/bin/bash
           while IFS='=' read -r name value
           do
               if [[ ! $name =~ ^\# && -n $name ]]; then
@@ -151,6 +153,9 @@ jobs:
           done < ./cn.env
           echo "DSN:"$DSN
           nohup make run > ./make_run.log 2>&1 &
+          EOF
+          chmod +x run.sh
+          ./run.sh
           times=1
           while true; do
               if [[ $times -gt 600 ]]; then
