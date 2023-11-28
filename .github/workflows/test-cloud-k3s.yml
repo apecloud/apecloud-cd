@@ -136,26 +136,19 @@ jobs:
           path: apecloud
           ref: ${{ inputs.apecloud-branch }}
           token: ${{ env.GITHUB_TOKEN }}
-
       - name: run cloud server
         run: |
           cd apecloud/apiserver
           go mod tidy
           touch ./cn.env
           echo "${{ env.CLOUD_CN_ENV }}" > ./cn.env
-          cat << EOF > run.sh
-          #!/bin/bash
-          while IFS='=' read -r name value
-          do
-              if [[ ! $name =~ ^\# && -n $name ]]; then
-                  export $name=$value
-              fi
+          while IFS='=' read -r name value; do
+            if [[ ! $name =~ ^\# && -n $name ]]; then
+              export $name="$value"
+            fi
           done < ./cn.env
-          echo "DSN:"$DSN
+          echo $DSN
           nohup make run > ./make_run.log 2>&1 &
-          EOF
-          chmod +x run.sh
-          ./run.sh
           times=1
           while true; do
               if [[ $times -gt 600 ]]; then
