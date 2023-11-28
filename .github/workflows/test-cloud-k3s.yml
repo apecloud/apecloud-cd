@@ -147,6 +147,8 @@ jobs:
           ./script.sh
           times=1
           while true; do
+              tail -n 1 ./make_run.log
+              grep "Listen and Server on 0.0.0.0:8080" ./make_run.log
               if [[ $times -gt 300 ]]; then
                   break
               fi
