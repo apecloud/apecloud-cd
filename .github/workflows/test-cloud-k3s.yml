@@ -84,7 +84,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: "1.19"
+          go-version: "1.21"
 
       - name: checkout testinfra
         uses: actions/checkout@v4
@@ -172,11 +172,6 @@ jobs:
               --kubeblocks-version "${KUBEBLOCKS_VERSION}" \
               --args "--cluster-name apecloud-pg --replicas 1 --limit-cpu 1 --limit-memory 1 --storage 40 --cluster-version postgresql-14.8.0 --namespace kubeblocks-cloud --only-cluster true --test-mode apecloud ${{ inputs.test-args }} " \
               --region "${{ env.REGION }}"
-
-      - name: Setup Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: "1.21"
 
       - name: Checkout e2etest Code
         uses: actions/checkout@v4
