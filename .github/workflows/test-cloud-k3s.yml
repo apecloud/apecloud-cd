@@ -118,7 +118,7 @@ jobs:
 
       - name: create postgresql
         run: |
-          cd testinfra
+          cd testinfra/test/kbcli
           
           bash .github/utils/kbcli-test.sh \
               --type "2" \
@@ -165,7 +165,7 @@ jobs:
           cat ./make_run.log
       - name: initial postgresql configuration
         run: |
-          cd testinfra
+          cd testinfra/test/kbcli
           bash .github/utils/kbcli-test.sh \
               --type "2" \
               --kubeblocks-version "${KUBEBLOCKS_VERSION}" \
