@@ -127,21 +127,18 @@ jobs:
           path: apecloud
           ref: ${{ inputs.apecloud-branch }}
           token: ${{ env.GITHUB_TOKEN }}
-
       - name: run cloud server
         run: |
           cd apecloud/apiserver
+          export GOPROXY=http://goproxy.cn 
+          go mod tidy
           touch ./cn.env
           echo "${{ env.CLOUD_CN_ENV }}" > ./cn.env
-          while IFS='=' read -r name value
-          do
-              if [[ ! $name =~ ^\# && -n $name ]]; then
-                  export $name=$value
-              fi
-          done < ./cn.env
-          echo "DSN:"$DSN
-          go mod tidy
-          nohup make run > ./make_run.log 2>&1 &
+          echo -e "while IFS='=' read -r name value\ndo\n  if [[ ! \$name =~ ^# && -n \$name ]]; then\n    export \$name=\"\$value\"\n  fi\ndone < ./cn.env\necho \$DSN\nnohup make run > ./make_run.log 2>&1 &" > script.sh
+          echo "chmod +x script.sh"
+          chmod +x script.sh
+          echo "./script.sh"
+          ./script.sh
           times=1
           while true; do
               if [[ $times -gt 300 ]]; then
@@ -156,6 +153,15 @@ jobs:
               sleep 1
               echo "checking cloud server..."
           done
+          cat ./make_run.log
+      - name: initial postgresql configuration
+        run: |
+          cd testinfra
+          bash .github/utils/kbcli-test.sh \
+              --type "2" \
+              --kubeblocks-version "${KUBEBLOCKS_VERSION}" \
+              --args "--cluster-name apecloud-pg --replicas 1 --limit-cpu 1 --limit-memory 1 --storage 40 --cluster-version postgresql-14.8.0 --namespace kubeblocks-cloud --only-cluster true --test-mode apecloud ${{ inputs.test-args }} " \
+              --region "${{ env.REGION }}"
 
       - name: Setup Go
         uses: actions/setup-go@v3
