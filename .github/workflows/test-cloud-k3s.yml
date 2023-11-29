@@ -136,6 +136,7 @@ jobs:
           path: apecloud
           ref: ${{ inputs.apecloud-branch }}
           token: ${{ env.GITHUB_TOKEN }}
+
       - name: run cloud server
         run: |
           cd apecloud/apiserver
@@ -163,6 +164,7 @@ jobs:
               echo "checking cloud server..."
           done
           cat ./make_run.log
+
       - name: initial postgresql configuration
         run: |
           cd testinfra/test/kbcli
