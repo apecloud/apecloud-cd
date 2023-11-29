@@ -33,11 +33,6 @@ on:
         type: string
         required: false
         default: ''
-      DEP_CHART_DIR:
-        description: "The dir of helm chart dependency package"
-        type: string
-        required: false
-        default: ''
       PUSH_ENABLE:
         description: "Enable push helm chart"
         type: boolean
