@@ -163,7 +163,6 @@ jobs:
               sleep 1
               echo "checking cloud server..."
           done
-          cat ./make_run.log
 
       - name: initial postgresql configuration
         run: |
