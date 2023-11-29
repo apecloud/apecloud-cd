@@ -144,12 +144,12 @@ jobs:
           touch ./cn.env
           echo "${{ env.CLOUD_CN_ENV }}" > ./cn.env
           echo -e "while IFS='=' read -r name value\ndo\n  if [[ ! \$name =~ ^# && -n \$name ]]; then\n    export \$name=\"\$value\"\n  fi\ndone < ./cn.env\necho \$DSN\nnohup make run > ./make_run.log 2>&1 &" > script.sh
+          echo "chmod +x script.sh"
           chmod +x script.sh
+          echo "./script.sh"
           ./script.sh
           times=1
           while true; do
-              tail -n 1 ./make_run.log
-              grep "Listen and Server on 0.0.0.0:8080" ./make_run.log
               if [[ $times -gt 300 ]]; then
                   break
               fi
