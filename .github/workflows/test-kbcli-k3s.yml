@@ -98,7 +98,7 @@ jobs:
               --kubeblocks-version "${KB_VERSION}" \
               --previous-version "${PREVIOUS_VERSION}" \
               --cloud-provider "k3s" \
-              --args "${{ inputs.test-args }} --enable-csi-hostpath-drive false --config-s3 true --check-addon false --upgrade true --enable-addon kubebench --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
+              --args "${{ inputs.test-args }} --enable-csi-hostpath-driver false --config-s3 true --check-addon false --upgrade true --enable-addon kubebench --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
               --region "${{ env.REGION }}" | tee -a ${file_log_install}
           
           RANDOM_SUFFIX=""
