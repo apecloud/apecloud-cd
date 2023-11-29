@@ -243,7 +243,9 @@ jobs:
       - name: copy dependency chart
         if: ${{ inputs.DEP_CHART_DIR && inputs.PUSH_ENABLE }}
         run: |
-          cp ${{ inputs.DEP_CHART_DIR }}/* .cr-release-packages
+          if [[ -d "${{ inputs.DEP_CHART_DIR }}" ]]; then
+              cp ${{ inputs.DEP_CHART_DIR }}/* .cr-release-packages
+          fi
 
       - name: Upload Helm Charts to Jihulab
         if: inputs.PUSH_ENABLE
