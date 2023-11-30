@@ -163,6 +163,7 @@ jobs:
               sleep 1
               echo "checking cloud server..."
           done
+          AUTH0_ID_TOKEN=${AUTH0_ID_TOKEN} >> $GITHUB_ENV
 
       - name: initial postgresql configuration
         run: |
@@ -175,8 +176,7 @@ jobs:
 
       - name: curl cloud server api
         run: |
-          echo $AUTH0_ID_TOKEN
-          curl -X GET "http://127.0.0.1:8080/api/v1/user" -H  "accept: application/json" -H  "authorization:Bearer  $AUTH0_ID_TOKEN"
+          curl -X GET "http://127.0.0.1:8080/api/v1/user" -H  "accept: application/json" -H  "authorization:Bearer  ${AUTH0_ID_TOKEN}"
 
       - name: Checkout e2etest Code
         uses: actions/checkout@v4
