@@ -144,7 +144,6 @@ jobs:
           go mod tidy
           touch ./cn.env
           echo "${{ env.CLOUD_CN_ENV }}" > ./cn.env
-          cat ./cn.env
           while IFS='=' read -r name value; do
                if [[ ! $name =~ ^\# && -n $name ]]; then
                    export $name="$value"
@@ -167,7 +166,6 @@ jobs:
               sleep 1
               echo "checking cloud server..."
           done
-          cat ./make_run.log
           AUTH0_ID_TOKEN=${AUTH0_ID_TOKEN} >> $GITHUB_ENV
 
       - name: initial postgresql configuration
