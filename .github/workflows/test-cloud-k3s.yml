@@ -144,13 +144,15 @@ jobs:
           go mod tidy
           touch ./cn.env
           echo "${{ env.CLOUD_CN_ENV }}" > ./cn.env
-          echo "${AUTH0_ID_TOKEN}"
-          echo -e "while IFS='=' read -r name value\ndo\n  if [[ ! \$name =~ ^# && -n \$name ]]; then\n    export \$name=\"\$value\"\n  fi\ndone < ./cn.env\necho \$DSN\nnohup make run > ./make_run.log 2>&1 &" > script.sh
-          echo "chmod +x script.sh"
-          chmod +x script.sh
-          echo "./script.sh"
-          ./script.sh
-          echo "${AUTH0_ID_TOKEN}"
+          cat ./cn.env
+          while IFS='=' read -r name value; do
+               if [[ ! $name =~ ^\# && -n $name ]]; then
+                   export $name="$value"
+               fi
+          done < ./cn.env
+          echo $DSN
+          echo $AUTH0_ID_TOKEN
+          nohup make run > ./make_run.log 2>&1 &
           times=1
           while true; do
               if [[ $times -gt 300 ]]; then
@@ -165,6 +167,7 @@ jobs:
               sleep 1
               echo "checking cloud server..."
           done
+          cat ./make_run.log
           AUTH0_ID_TOKEN=${AUTH0_ID_TOKEN} >> $GITHUB_ENV
 
       - name: initial postgresql configuration
