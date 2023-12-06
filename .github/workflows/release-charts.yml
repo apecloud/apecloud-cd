@@ -83,6 +83,11 @@ on:
         type: string
         required: false
         default: 'v1.26'
+      MAKE_OPS_POST:
+        description: "The post ops name of makefile"
+        type: string
+        required: false
+        default: ''
 
 
 env:
@@ -189,6 +194,11 @@ jobs:
         with:
           version: ${{ inputs.K3S_VERSION }}
           github-token: ${{ env.CR_TOKEN }}
+
+      - name: make post
+        if: inputs.MAKE_OPS_POST
+        run: |
+          make ${{ inputs.MAKE_OPS_POST }}
 
       - name: helm validate
         if: inputs.CHART_NAME
