@@ -78,6 +78,11 @@ on:
         type: string
         required: false
         default: ''
+      GO_VERSION:
+        description: "Install the specify version of GO"
+        type: string
+        required: false
+        default: ''
 
 
 env:
@@ -100,6 +105,12 @@ jobs:
         uses: azure/setup-helm@v3
         with:
           version: ${{ env.HELM_VERSION }}
+
+      - name: Setup Go specify version
+        if: inputs.GO_VERSION
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ inputs.GO_VERSION }}
 
       - name: Checkout Code
         if: ${{ inputs.GITHUB_REPO == '' }}
