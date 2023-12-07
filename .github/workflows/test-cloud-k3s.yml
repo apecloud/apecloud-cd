@@ -17,7 +17,7 @@ on:
         description: 'test type'
         type: string
         required: false
-        default: ''
+        default: '0'
       test-type-name:
         description: 'test type name'
         type: string
@@ -38,27 +38,27 @@ on:
         type: string
         required: false
         default: 'main'
-      apecloud-branch:
-        description: 'apecloud branch name'
-        type: string
-        required: false
-        default: 'main'
       e2etest-branch:
         description: 'e2etest branch name'
         type: string
         required: false
         default: 'main'
     outputs:
+      deploy-result:
+        description: "deploy result"
+        value: ${{ jobs.cloud-test-k3s.outputs.deploy-result }}
       test-result:
         description: "e2e test result"
         value: "${{ jobs.cloud-test-k3s.outputs.test-result }}"
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  CLOUD_CN_ENV: ${{ secrets.CLOUD_CN_ENV }}
   HELM_VERSION: v3.13.1
   K3D_NAME: default
   REGION: us-central1
+  AUTH0_ID_TOKEN: ${{ secrets.AUTH0_ID_TOKEN }}
+  CLOUD_VALUES: ${{ secrets.CLOUD_VALUES }}
+  DSN: "postgres://kubeblockscloud:kubeblockscloudhk2143232@localhost:5432/kubeblockscloud?sslmode=disable"
 
 permissions:
   id-token: write
@@ -69,6 +69,7 @@ jobs:
     name: run ${{ inputs.test-type-name }}
     runs-on: ubuntu-latest
     outputs:
+      deploy-result: ${{ steps.deploy_cloud.outputs.deploy-result }}
       test-result: ${{ steps.test_result.outputs.test-result }}
     steps:
       - name: Setup kubectl
@@ -129,44 +130,35 @@ jobs:
           echo "port-forward apecloud-pg-postgresql Service"
           nohup kubectl port-forward services/apecloud-pg-postgresql -n kubeblocks-cloud 5432:5432 &
 
-      - name: Checkout apecloud Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud
-          path: apecloud
-          ref: ${{ inputs.apecloud-branch }}
-          token: ${{ env.GITHUB_TOKEN }}
-
-      - name: run cloud server
+      - name: deploy cloud
+        id: deploy_cloud
         run: |
-          cd apecloud/apiserver
-          export GOPROXY=http://goproxy.cn 
-          go mod tidy
-          touch ./cn.env
-          echo "${{ env.CLOUD_CN_ENV }}" > ./cn.env
-          while IFS='=' read -r name value; do
-               if [[ ! $name =~ ^\# && -n $name ]]; then
-                   export $name="$value"
-               fi
-          done < ./cn.env
-          echo $DSN
-          echo $AUTH0_ID_TOKEN
-          nohup make run > ./make_run.log 2>&1 &
-          times=1
-          while true; do
-              if [[ $times -gt 300 ]]; then
-                  break
-              fi
-              run_ret="$( grep "Listen and Server on 0.0.0.0:8080" ./make_run.log || true )"
-              if [[ -n "$run_ret" ]]; then
-                  echo "run cloud server success"
-                  break
-              fi
-              times=$(( $times + 1 ))
-              sleep 1
-              echo "checking cloud server..."
-          done
-          AUTH0_ID_TOKEN=${AUTH0_ID_TOKEN} >> $GITHUB_ENV
+          cd testinfra
+          file_log="$(date +%Y-%m-%d-%T)".log
+          touch ${file_log}
+          
+          cmd="bash .github/utils/cloud-test.sh "
+          cmd="${cmd} --type '${{ inputs.test-type }}' "
+          if [[ -n "${{ inputs.release-version }}" ]]; then
+              cmd="${cmd} --release-version '${{ inputs.release-version }}' "
+          fi
+          
+          if [[ -n "${{ inputs.test-args }}" ]]; then
+              cmd="${cmd} --args '${{ inputs.test-args }}' "
+          fi
+          echo "$cmd"
+          eval "$cmd" | tee -a ${file_log}
+          
+          test_ret="$( egrep "【FAILED】" ${file_log} || true )"
+          if [[ -n "$test_ret" ]]; then
+              echo deploy-result=[FAILED] >> $GITHUB_OUTPUT
+              exit 1
+          else
+              echo deploy-result=[PASSED] >> $GITHUB_OUTPUT
+          fi
+          
+          echo "port-forward apiserver Service"
+          nohup kubectl port-forward services/apiserver -n kb-cloud 8080:8080 &
 
       - name: initial postgresql configuration
         run: |

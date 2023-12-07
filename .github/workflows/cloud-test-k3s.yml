@@ -7,7 +7,7 @@ on:
         description: 'ApeCloud release version'
         type: string
         required: false
-        default: 'v0.1.6'
+        default: 'v0.3.5'
       KUBEBLOCKS_VERSION:
         description: 'kubeblocks release version'
         type: string
@@ -18,11 +18,6 @@ on:
         type: string
         required: false
         default: '1.26'
-      APECLOUD_BRANCH:
-        description: 'apecloud branch name'
-        type: string
-        required: false
-        default: 'main'
       TESTINFRA_BRANCH:
         description: 'testinfra branch name'
         type: string
@@ -49,7 +44,7 @@ on:
         description: 'ApeCloud release version'
         type: string
         required: false
-        default: 'v0.1.6'
+        default: 'v0.3.5'
       KUBEBLOCKS_VERSION:
         description: 'kubeblocks release version'
         type: string
@@ -60,11 +55,6 @@ on:
         type: string
         required: false
         default: '1.26'
-      APECLOUD_BRANCH:
-        description: 'apecloud branch name'
-        type: string
-        required: false
-        default: 'main'
       TESTINFRA_BRANCH:
         description: 'testinfra branch name'
         type: string
@@ -102,11 +92,11 @@ jobs:
     with:
       release-version: ${{ inputs.APECLOUD_VERSION }}
       kubeblocks-version: ${{ inputs.KUBEBLOCKS_VERSION }}
+      test-type: "0"
       test-type-name: "e2e-test"
       test-args: ${{ inputs.ARGS }}
       k3s-version: ${{ inputs.K3S_VERSION }}
       testinfra-branch: ${{ inputs.TESTINFRA_BRANCH }}
-      apecloud-branch: ${{ inputs.APECLOUD_BRANCH }}
       e2etest-branch: ${{ inputs.E2ETEST_BRANCH }}
     secrets: inherit
 
@@ -124,7 +114,8 @@ jobs:
       - name: send message
         id: get_trigger_mode
         run: |
-          TEST_RESULT="e2e-test|${{ needs.e2e-test.outputs.test-result }}"
+          TEST_RESULT="deploy-cloud|${{ needs.e2e-test.outputs.deploy-result }}"
+          TEST_RESULT="${TEST_RESULT}##e2e-test|${{ needs.e2e-test.outputs.test-result }}"
           
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
               --github-repo "${{ github.repository }}" \
