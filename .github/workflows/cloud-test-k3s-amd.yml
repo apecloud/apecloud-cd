@@ -7,7 +7,7 @@ on:
         description: 'ApeCloud release version'
         type: string
         required: false
-        default: 'v0.1.6'
+        default: 'v0.3.5'
       KUBEBLOCKS_VERSION:
         description: 'kubeblocks release version'
         type: string
@@ -49,7 +49,7 @@ on:
         description: 'ApeCloud release version'
         type: string
         required: false
-        default: 'v0.1.6'
+        default: 'v0.3.5'
       KUBEBLOCKS_VERSION:
         description: 'kubeblocks release version'
         type: string
@@ -111,6 +111,7 @@ jobs:
     with:
       release-version: ${{ inputs.APECLOUD_VERSION }}
       kubeblocks-version: ${{ inputs.KUBEBLOCKS_VERSION }}
+      test-type: "0"
       test-type-name: "e2e-test"
       test-args: ${{ inputs.ARGS }}
       k3s-version: ${{ inputs.K3S_VERSION }}
