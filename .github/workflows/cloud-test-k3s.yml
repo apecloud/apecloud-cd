@@ -18,11 +18,6 @@ on:
         type: string
         required: false
         default: '1.26'
-      APECLOUD_BRANCH:
-        description: 'apecloud branch name'
-        type: string
-        required: false
-        default: 'main'
       TESTINFRA_BRANCH:
         description: 'testinfra branch name'
         type: string
@@ -60,11 +55,6 @@ on:
         type: string
         required: false
         default: '1.26'
-      APECLOUD_BRANCH:
-        description: 'apecloud branch name'
-        type: string
-        required: false
-        default: 'main'
       TESTINFRA_BRANCH:
         description: 'testinfra branch name'
         type: string
@@ -107,7 +97,6 @@ jobs:
       test-args: ${{ inputs.ARGS }}
       k3s-version: ${{ inputs.K3S_VERSION }}
       testinfra-branch: ${{ inputs.TESTINFRA_BRANCH }}
-      apecloud-branch: ${{ inputs.APECLOUD_BRANCH }}
       e2etest-branch: ${{ inputs.E2ETEST_BRANCH }}
     secrets: inherit
 
