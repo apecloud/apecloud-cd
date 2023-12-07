@@ -133,7 +133,7 @@ jobs:
           file_log="$(date +%Y-%m-%d-%T)".log
           touch ${file_log}
           
-          cmd="bash .github/utils/kubechat-test.sh "
+          cmd="bash .github/utils/cloud-test.sh "
           cmd="${cmd} --type '${{ inputs.test-type }}' "
           if [[ -n "${{ inputs.release-version }}" ]]; then
               cmd="${cmd} --release-version '${{ inputs.release-version }}' "
