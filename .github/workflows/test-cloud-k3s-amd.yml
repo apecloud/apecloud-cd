@@ -122,6 +122,7 @@ jobs:
       - name: deploy cloud
         id: deploy_cloud
         run: |
+          cd testinfra
           file_log="$(date +%Y-%m-%d-%T)".log
           touch ${file_log}
           
