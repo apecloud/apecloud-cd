@@ -58,6 +58,7 @@ env:
   REGION: us-central1
   AUTH0_ID_TOKEN: ${{ secrets.AUTH0_ID_TOKEN }}
   CLOUD_VALUES: ${{ secrets.CLOUD_VALUES }}
+  DSN: "postgres://kubeblockscloud:kubeblockscloudhk2143232@localhost:5432/kubeblockscloud?sslmode=disable"
 
 permissions:
   id-token: write
