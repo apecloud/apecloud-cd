@@ -134,7 +134,8 @@ jobs:
       - name: send message
         id: get_trigger_mode
         run: |
-          TEST_RESULT="e2e-test|${{ needs.e2e-test.outputs.test-result }}"
+          TEST_RESULT="deploy-cloud|${{ needs.e2e-test.outputs.deploy-result }}"
+          TEST_RESULT="${TEST_RESULT}##e2e-test|${{ needs.e2e-test.outputs.test-result }}"
           
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
               --github-repo "${{ github.repository }}" \

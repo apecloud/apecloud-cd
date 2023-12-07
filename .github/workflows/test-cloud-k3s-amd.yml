@@ -148,6 +148,9 @@ jobs:
           else
               echo deploy-result=[PASSED] >> $GITHUB_OUTPUT
           fi
+          
+          echo "port-forward apiserver Service"
+          nohup kubectl port-forward services/apiserver -n kb-cloud 8080:8080 &
 
       - name: initial postgresql configuration
         run: |
