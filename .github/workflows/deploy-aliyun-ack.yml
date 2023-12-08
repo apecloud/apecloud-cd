@@ -3,8 +3,8 @@ name: DEPLOY-ALIYUN-ACK
 on:
   workflow_call:
     inputs:
-      KUBECONFIG_NUM:
-        description: "The number of ACK KUBECONFIG secret"
+      CLOUD_ENV_NAME:
+        description: "The cloud env name of deploy "
         type: string
         required: false
         default: ''
@@ -46,24 +46,17 @@ on:
 
 
 env:
-  ACK_KUBECONFIG: ${{ secrets.ACK_KUBECONFIG }}
-  ACK_KUBECONFIG_1: ${{ secrets.ACK_KUBECONFIG_1 }}
-  ACK_KUBECONFIG_2: ${{ secrets.ACK_KUBECONFIG_2 }}
-  ACK_KUBECONFIG_3: ${{ secrets.ACK_KUBECONFIG_3 }}
-  ACK_KUBECONFIG_4: ${{ secrets.ACK_KUBECONFIG_4 }}
-  ACK_KUBECONFIG_5: ${{ secrets.ACK_KUBECONFIG_5 }}
+  ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
+  ACK_KUBECONFIG_PROD: ${{ secrets.ACK_KUBECONFIG_PROD }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   CONTROLLER_MANAGER_CFG: ${{ secrets.CONTROLLER_MANAGER_CFG }}
   OPENCONSOLE_CFG: ${{ secrets.OPENCONSOLE_CFG }}
   DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
-  CLOUD_VALUES: ${{ secrets.CLOUD_VALUES }}
-  CLOUD_VALUES_1: ${{ secrets.CLOUD_VALUES_1 }}
-  CLOUD_VALUES_2: ${{ secrets.CLOUD_VALUES_2 }}
-  CLOUD_VALUES_3: ${{ secrets.CLOUD_VALUES_3 }}
-  CLOUD_VALUES_4: ${{ secrets.CLOUD_VALUES_4 }}
-  CLOUD_VALUES_5: ${{ secrets.CLOUD_VALUES_5 }}
+  CLOUD_VALUES_DEV: ${{ secrets.CLOUD_VALUES_DEV }}
+  CLOUD_VALUES_PROD: ${{ secrets.CLOUD_VALUES_PROD }}
+  CLOUD_ENV_NAME: ${{ inputs.CLOUD_ENV_NAME }}
 
 
 jobs:
@@ -103,26 +96,18 @@ jobs:
           fi
           echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
 
-      - name: Configure ACK Context ${{ inputs.KUBECONFIG_NUM }}
+      - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
         run: |
           mkdir -p $HOME/.kube
           touch $HOME/.kube/config
-          KUBECONFIG_NUM="${{ inputs.KUBECONFIG_NUM }}"
-          case "$KUBECONFIG_NUM" in
-              1)
-                  echo '${{ env.ACK_KUBECONFIG_1 }}' > $HOME/.kube/config
+          CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
+          echo 'CLOUD_ENV_NAME='${CLOUD_ENV_NAME} >> $GITHUB_ENV
+          case "$CLOUD_ENV_NAME" in
+              dev)
+                  echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
               ;;
-              2)
-                  echo '${{ env.ACK_KUBECONFIG_2 }}' > $HOME/.kube/config
-              ;;
-              3)
-                  echo '${{ env.ACK_KUBECONFIG_3 }}' > $HOME/.kube/config
-              ;;
-              4)
-                  echo '${{ env.ACK_KUBECONFIG_4 }}' > $HOME/.kube/config
-              ;;
-              5)
-                  echo '${{ env.ACK_KUBECONFIG_5 }}' > $HOME/.kube/config
+              prod)
+                  echo '${{ env.ACK_KUBECONFIG_PROD }}' > $HOME/.kube/config
               ;;
               *)
                   echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
