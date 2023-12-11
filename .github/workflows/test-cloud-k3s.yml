@@ -43,6 +43,11 @@ on:
         type: string
         required: false
         default: 'main'
+      apecloud-branch:
+        description: 'apecloud branch name'
+        type: string
+        required: false
+        default: 'main'
     outputs:
       deploy-result:
         description: "deploy result"
