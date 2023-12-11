@@ -171,6 +171,7 @@ jobs:
               sleep 1
               echo "checking cloud server..."
           done
+          echo $ADMIN_ACCOUNT_TASK_MANAFGER
           cat ./make_run.log
 
       - name: initial postgresql configuration
