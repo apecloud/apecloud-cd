@@ -156,6 +156,7 @@ jobs:
                fi
           done < ./cn.env
           echo $DSN
+          echo ADMIN_ACCOUNT_TASK_MANAFGER=${ADMIN_ACCOUNT_TASK_MANAFGER} >> $GITHUB_ENV
           nohup make run > ./make_run.log 2>&1 &
           times=1
           while true; do
@@ -171,7 +172,6 @@ jobs:
               sleep 1
               echo "checking cloud server..."
           done
-          echo $ADMIN_ACCOUNT_TASK_MANAFGER
           cat ./make_run.log
 
       - name: initial postgresql configuration
