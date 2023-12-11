@@ -130,35 +130,42 @@ jobs:
           echo "port-forward apecloud-pg-postgresql Service"
           nohup kubectl port-forward services/apecloud-pg-postgresql -n kubeblocks-cloud 5432:5432 &
 
-      - name: deploy cloud
-        id: deploy_cloud
+      - name: Checkout apecloud Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud
+          path: apecloud
+          ref: ${{ inputs.apecloud-branch }}
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: run cloud server
         run: |
-          cd testinfra
-          file_log="$(date +%Y-%m-%d-%T)".log
-          touch ${file_log}
-          
-          cmd="bash .github/utils/cloud-test.sh "
-          cmd="${cmd} --type '${{ inputs.test-type }}' "
-          if [[ -n "${{ inputs.release-version }}" ]]; then
-              cmd="${cmd} --release-version '${{ inputs.release-version }}' "
-          fi
-          
-          if [[ -n "${{ inputs.test-args }}" ]]; then
-              cmd="${cmd} --args '${{ inputs.test-args }}' "
-          fi
-          echo "$cmd"
-          eval "$cmd" | tee -a ${file_log}
-          
-          test_ret="$( egrep "【FAILED】" ${file_log} || true )"
-          if [[ -n "$test_ret" ]]; then
-              echo deploy-result=[FAILED] >> $GITHUB_OUTPUT
-              exit 1
-          else
-              echo deploy-result=[PASSED] >> $GITHUB_OUTPUT
-          fi
-          
-          echo "port-forward apiserver Service"
-          nohup kubectl port-forward services/apiserver -n kb-cloud 8080:8080 &
+          cd apecloud/apiserver
+          export GOPROXY=http://goproxy.cn 
+          go mod tidy
+          touch ./cn.env
+          echo "${{ env.CLOUD_CN_ENV }}" > ./cn.env
+          while IFS='=' read -r name value; do
+               if [[ ! $name =~ ^\# && -n $name ]]; then
+                   export $name="$value"
+               fi
+          done < ./cn.env
+          echo $DSN
+          nohup make run > ./make_run.log 2>&1 &
+          times=1
+          while true; do
+              if [[ $times -gt 300 ]]; then
+                  break
+              fi
+              run_ret="$( grep "Listen and Server on 0.0.0.0:8080" ./make_run.log || true )"
+              if [[ -n "$run_ret" ]]; then
+                  echo "run cloud server success"
+                  break
+              fi
+              times=$(( $times + 1 ))
+              sleep 1
+              echo "checking cloud server..."
+          done
 
       - name: initial postgresql configuration
         run: |
