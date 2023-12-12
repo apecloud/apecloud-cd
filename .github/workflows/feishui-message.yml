@@ -24,10 +24,15 @@ on:
         required: false
         default: 'main'
       BOT_TYPE:
-        description: 'the bot type (e.g. release/package)'
+        description: 'The bot type (e.g. release/package)'
         type: string
         required: false
         default: 'release'
+      WAIT_TIME:
+        description: 'Then wait time of send message'
+        type: number
+        required: false
+        default: 0
 
 env:
   RELEASE_BOT_WEBHOOK: ${{ secrets.RELEASE_BOT_WEBHOOK }}
@@ -50,6 +55,8 @@ jobs:
 
       - name: send message
         run: |
+          sleep ${{ inputs.WAIT_TIME }}
+          
           cmd="bash apecloud-cd/.github/utils/webhook_utils.sh --type ${{ inputs.TYPE }} \
               --github-repo ${{ github.repository }} \
               --run-url $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID "

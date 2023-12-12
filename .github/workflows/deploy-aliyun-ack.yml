@@ -43,6 +43,11 @@ on:
         type: boolean
         required: false
         default: true
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
 
 
 env:
@@ -58,6 +63,7 @@ env:
   CLOUD_VALUES_PROD: ${{ secrets.CLOUD_VALUES_PROD }}
   CLOUD_ENV_NAME: ${{ inputs.CLOUD_ENV_NAME }}
   RELEASE_VERSION: ${{ inputs.VERSION }}
+  DEPLOY_RESULT: 0
 
 
 jobs:
@@ -68,6 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
+      content-result: ${{ steps.deploy_result.outputs.content_result }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -130,3 +137,29 @@ jobs:
           fi
 
           eval "$cmd"
+          deploy_ret=$?
+          if [[ $deploy_ret -eq 0 ]]; then
+              echo DEPLOY_RESULT=1 >> $GITHUB_ENV
+          fi
+
+      - name: deploy result
+        if: ${{ always() }}
+        id: deploy_result
+        run: |
+          CONTENT="error"
+          if [[ "${DEPLOY_RESULT}" == "1" ]]; then
+              CONTENT="success"
+          fi
+          echo 'content_result='$CONTENT >> $GITHUB_OUTPUT
+
+  send-message:
+    needs: [ deploy-aliyun-ack ]
+    if: ${{ always() }}
+    uses: ./.github/workflows/feishui-message.yml
+    with:
+      TYPE: "2"
+      CONTENT: "deploy release ${{ needs.deploy-aliyun-ack.outputs.tag-name }} ${{ needs.deploy-aliyun-ack.outputs.content-result }}"
+      APECD_REF: ${{ inputs.APECD_REF }}
+      BOT_TYPE: ${{ inputs.BOT_TYPE }}
+      WAIT_TIME: 60
+    secrets: inherit
