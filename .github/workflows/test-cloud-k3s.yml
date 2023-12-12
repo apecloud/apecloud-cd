@@ -156,7 +156,6 @@ jobs:
                fi
           done < ./cn.env
           echo $DSN
-          echo $ADMIN_ACCOUNT_TASK_MANAFGER
           nohup make run > ./make_run.log 2>&1 &
           times=1
           while true; do
