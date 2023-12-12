@@ -68,7 +68,7 @@ jobs:
       id-token: 'write'
     runs-on: ubuntu-latest
     outputs:
-      tag-name: ${{ steps.get_tag_name.outputs.TAG_NAME }}
+      tag-name: ${{ steps.get_tag_name.outputs.tag_name }}
       cloud-env-name: ${{ steps.cloud_env.outputs.cloud_env_name }}
       content-result: ${{ steps.deploy_result.outputs.content_result }}
     steps:
@@ -98,7 +98,7 @@ jobs:
           if [[ "$tag_name" == "v"* && "${{ inputs.REMOVE_PREFIX }}" == "true" ]]; then
               tag_name="${tag_name/v/}"
           fi
-          echo TAG_NAME=$tag_name >> $GITHUB_OUTPUT
+          echo tag_name=$tag_name >> $GITHUB_OUTPUT
 
       - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
         id: cloud_env
@@ -131,7 +131,7 @@ jobs:
           cmd="make ${{ inputs.MAKE_OPS }} "
 
           if [[ ! -z "${{ inputs.VERSION }}" ]]; then
-            cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG_NAME }} "
+            cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.tag_name }} "
           fi
 
           eval "$cmd"
