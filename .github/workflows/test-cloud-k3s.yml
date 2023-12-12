@@ -119,7 +119,7 @@ jobs:
               --type "0" \
               --kubeblocks-version "${KB_VERSION}" \
               --cloud-provider "k3s" \
-              --args "--check-addon false --namespace kubeblocks-cloud --random-namespace false --upgrade true ${{ inputs.test-args }} " \
+              --args "--config-s3 true --check-addon false --namespace kubeblocks-cloud --random-namespace false --upgrade true ${{ inputs.test-args }} " \
               --region "${{ env.REGION }}"
 
       - name: create postgresql
