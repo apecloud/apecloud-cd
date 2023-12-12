@@ -62,8 +62,8 @@ env:
   K3D_NAME: default
   REGION: us-central1
   AUTH0_ID_TOKEN: ${{ secrets.AUTH0_ID_TOKEN }}
-  CLOUD_VALUES: ${{ secrets.CLOUD_VALUES }}
   DSN: "postgres://kubeblockscloud:kubeblockscloudhk2143232@localhost:5432/kubeblockscloud?sslmode=disable"
+  CLOUD_CN_ENV: ${{ secrets.CLOUD_CN_ENV }}
 
 permissions:
   id-token: write
