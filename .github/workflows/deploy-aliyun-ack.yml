@@ -43,11 +43,6 @@ on:
         type: boolean
         required: false
         default: true
-      APECD_REF:
-        description: "The branch name of apecloud-cd"
-        type: string
-        required: false
-        default: 'main'
 
 
 env:
@@ -73,7 +68,8 @@ jobs:
       id-token: 'write'
     runs-on: ubuntu-latest
     outputs:
-      tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
+      tag-name: ${{ steps.get_tag_name.outputs.TAG_NAME }}
+      cloud-env-name: ${{ steps.cloud_env.outputs.cloud_env_name }}
       content-result: ${{ steps.deploy_result.outputs.content_result }}
     steps:
       - name: Checkout Code
@@ -102,14 +98,16 @@ jobs:
           if [[ "$tag_name" == "v"* && "${{ inputs.REMOVE_PREFIX }}" == "true" ]]; then
               tag_name="${tag_name/v/}"
           fi
-          echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
+          echo TAG_NAME=$tag_name >> $GITHUB_OUTPUT
 
       - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
+        id: cloud_env
         run: |
           mkdir -p $HOME/.kube
           touch $HOME/.kube/config
           CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
           echo 'CLOUD_ENV_NAME='${CLOUD_ENV_NAME} >> $GITHUB_ENV
+          echo 'cloud_env_name='${CLOUD_ENV_NAME} >> $GITHUB_OUTPUT
           case "$CLOUD_ENV_NAME" in
               dev)
                   echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
@@ -133,7 +131,7 @@ jobs:
           cmd="make ${{ inputs.MAKE_OPS }} "
 
           if [[ ! -z "${{ inputs.VERSION }}" ]]; then
-            cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
+            cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG_NAME }} "
           fi
 
           eval "$cmd"
@@ -158,8 +156,6 @@ jobs:
     uses: ./.github/workflows/feishui-message.yml
     with:
       TYPE: "2"
-      CONTENT: "deploy release ${{ needs.deploy-aliyun-ack.outputs.tag-name }} ${{ needs.deploy-aliyun-ack.outputs.content-result }}"
-      APECD_REF: ${{ inputs.APECD_REF }}
-      BOT_TYPE: ${{ inputs.BOT_TYPE }}
+      CONTENT: "deploy ${{ needs.deploy-aliyun-ack.outputs.cloud-env-name }} release ${{ needs.deploy-aliyun-ack.outputs.tag-name }} ${{ needs.deploy-aliyun-ack.outputs.content-result }}"
       WAIT_TIME: 60
     secrets: inherit
