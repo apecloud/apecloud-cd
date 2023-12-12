@@ -57,6 +57,7 @@ env:
   CLOUD_VALUES_DEV: ${{ secrets.CLOUD_VALUES_DEV }}
   CLOUD_VALUES_PROD: ${{ secrets.CLOUD_VALUES_PROD }}
   CLOUD_ENV_NAME: ${{ inputs.CLOUD_ENV_NAME }}
+  RELEASE_VERSION: ${{ inputs.VERSION }}
 
 
 jobs:
