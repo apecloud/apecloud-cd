@@ -146,7 +146,6 @@ jobs:
       - name: run cloud server
         run: |
           cd apecloud/apiserver
-          export GOPROXY=http://goproxy.cn 
           go mod tidy
           touch ./cn.env
           echo "${{ env.CLOUD_CN_ENV }}" > ./cn.env
