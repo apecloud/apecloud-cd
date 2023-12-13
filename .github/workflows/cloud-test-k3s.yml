@@ -1,4 +1,4 @@
-name: Cloud E2E Test on K3S
+name: Cloud E2E Test on K3S GCP
 
 on:
   workflow_call:
@@ -97,8 +97,17 @@ permissions:
   contents: read
 
 jobs:
+  enable-gke-runner:
+    uses: ./.github/workflows/enable-gke-runner.yml
+    with:
+      GITHUB_REPO: "${{ github.repository }}"
+      RUNNER_NAMESPACE: "default"
+      RUNNER_LABEL: "k3d-runner"
+    secrets: inherit
+
   e2e-test:
-    uses: ./.github/workflows/test-cloud-k3s.yml
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-cloud-k3s-amd.yml
     with:
       release-version: ${{ inputs.APECLOUD_VERSION }}
       kubeblocks-version: ${{ inputs.KUBEBLOCKS_VERSION }}
@@ -140,3 +149,14 @@ jobs:
               --url ${{ vars.TEST_BOT_WEBHOOK }} \
               --title "$test_title" \
               --result "$TEST_RESULT"
+
+  disable-gke-runner:
+    if: ${{ always() }}
+    needs: [ enable-gke-runner, send-message ]
+    uses: ./.github/workflows/enable-gke-runner.yml
+    with:
+      GITHUB_REPO: "${{ github.repository }}"
+      RUNNER_NAMESPACE: "default"
+      RUNNER_LABEL: "k3d-runner"
+      ENABLE: "disable"
+    secrets: inherit
