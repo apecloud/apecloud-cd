@@ -1,4 +1,4 @@
-name: Cloud E2E Test on GCP K3S
+name: Cloud E2E Test on K3S GCP
 
 on:
   workflow_call:
