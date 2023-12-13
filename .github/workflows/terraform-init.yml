@@ -213,7 +213,7 @@ jobs:
               cmd="${cmd} --node-size ${NODE_SIZE} "
           fi
           
-          if [[ -n "${{ inputs.cluster-name }}" ]]; then
+          if [[ -n "${NODE_TYPE}" ]]; then
               cmd="${cmd} --node-type ${NODE_TYPE} "
           fi
           
