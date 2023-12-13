@@ -72,21 +72,12 @@ permissions:
 jobs:
   cloud-test-k3s:
     name: run ${{ inputs.test-type-name }}
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, k3d-runner ]
     outputs:
       deploy-result: ${{ steps.deploy_cloud.outputs.deploy-result }}
       test-result: ${{ steps.test_result.outputs.test-result }}
+      runner-name: ${{ steps.test_result.outputs.runner-name }}
     steps:
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: "v1.28.3"
-
-      - name: Install Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: ${{ env.HELM_VERSION }}
-
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
@@ -146,6 +137,7 @@ jobs:
       - name: run cloud server
         run: |
           cd apecloud/apiserver
+          export GOPROXY=http://goproxy.cn 
           go mod tidy
           touch ./cn.env
           echo "${{ env.CLOUD_CN_ENV }}" > ./cn.env
@@ -209,3 +201,24 @@ jobs:
           else
               echo test-result=[FAILED] >> $GITHUB_OUTPUT
           fi
+          
+          echo runner-name=${RUNNER_NAME} >> $GITHUB_OUTPUT
+
+  remove-runner:
+    name: remove ${{ inputs.test-type-name }} runner
+    needs: [ cloud-test-k3s ]
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+
+      - name: remove runner
+        run: |
+          bash .github/utils/utils.sh --type 25 \
+              --github-token "${{ env.GITHUB_TOKEN }}" \
+              --github-repo "${{ github.repository }}" \
+              --runner-name ${{ needs.cloud-test-k3s.outputs.runner-name }}

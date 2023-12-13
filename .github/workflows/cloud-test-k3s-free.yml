@@ -98,7 +98,7 @@ permissions:
 
 jobs:
   e2e-test:
-    uses: ./.github/workflows/test-cloud-k3s.yml
+    uses: ./.github/workflows/test-cloud-k3s-free.yml
     with:
       release-version: ${{ inputs.APECLOUD_VERSION }}
       kubeblocks-version: ${{ inputs.KUBEBLOCKS_VERSION }}

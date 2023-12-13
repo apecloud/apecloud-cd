@@ -107,7 +107,7 @@ jobs:
 
   e2e-test:
     needs: [ enable-gke-runner ]
-    uses: ./.github/workflows/test-cloud-k3s-amd.yml
+    uses: ./.github/workflows/test-cloud-k3s.yml
     with:
       release-version: ${{ inputs.APECLOUD_VERSION }}
       kubeblocks-version: ${{ inputs.KUBEBLOCKS_VERSION }}
