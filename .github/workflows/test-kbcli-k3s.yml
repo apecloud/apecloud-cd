@@ -17,7 +17,7 @@ on:
         description: 'testinfra branch name'
         type: string
         required: false
-        default: 'upgrade'
+        default: 'main'
       test-type:
         description: 'test type (0:install 1:mysql 2:postgresql 5:redis 6:mongodb)'
         type: string
