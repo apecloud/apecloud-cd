@@ -208,9 +208,9 @@ jobs:
           
           RANDOM_SUFFIX=""
           if [[ "${{ inputs.test-type }}" == "0" ]]; then
-              RANDOM_SUFFIX="$( grep "[RANDOM_SUFFIX]" ${file_log}|| true )"
-              RANDOM_SUFFIX=${RANDOM_SUFFIX#*"[RANDOM_SUFFIX]"}      
-              RANDOM_SUFFIX=${RANDOM_SUFFIX%"[RANDOM_SUFFIX]"*}
+              RANDOM_SUFFIX="$( grep "[RANDOM-SUFFIX]" ${file_log}|| true )"
+              RANDOM_SUFFIX=${RANDOM_SUFFIX#*"[RANDOM-SUFFIX]"}      
+              RANDOM_SUFFIX=${RANDOM_SUFFIX%"[RANDOM-SUFFIX]"*}
           fi
           echo random-suffix=$RANDOM_SUFFIX >> $GITHUB_OUTPUT
           
