@@ -27,7 +27,7 @@ on:
         description: 'testinfra branch name'
         type: string
         required: false
-        default: 'upgrade'
+        default: 'main'
       ARGS:
         description: "Test args"
         type: string
@@ -56,7 +56,7 @@ on:
       BRANCH_NAME:
         description: 'testinfra branch name'
         required: false
-        default: 'upgrade'
+        default: 'main'
       ARGS:
         description: "Test args"
         required: false
