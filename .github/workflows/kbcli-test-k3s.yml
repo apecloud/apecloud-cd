@@ -525,8 +525,151 @@ jobs:
           repository: apecloud/apecloud-cd
           path: ./
 
+      - name: send pre message
+        if: inputs.KB_PRE_VERSION
+        run: |
+          TEST_RESULT=""
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"apecloud-mysql"* ]]; then
+              TEST_RESULT="${TEST_RESULT}##apecloud-mysql|${{ needs.test-apecloud-mysql.outputs.pre-test-result }}"
+          fi
+          
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"postgresql"* ]]; then
+              TEST_RESULT="${TEST_RESULT}##postgresql|${{ needs.test-postgresql.outputs.pre-test-result }}"
+          fi
+          
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"redis"* ]]; then
+              TEST_RESULT="${TEST_RESULT}##redis|${{ needs.test-redis.outputs.pre-test-result }}"
+          fi
+          
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mongodb"* ]]; then
+              TEST_RESULT="${TEST_RESULT}##mongodb|${{ needs.test-mongodb.outputs.pre-test-result }}"
+          fi
+          
+          if [[ "${{ inputs.KB_PRE_VERSION }}" != "v0.5."* ]]; then
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"kafka"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##kafka|${{ needs.test-kafka.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"pulsar"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##pulsar|${{ needs.test-pulsar.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mysqlscale"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##mysqlscale|${{ needs.test-mysqlscale.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"weaviate"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##weaviate|${{ needs.test-weaviate.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"qdrant"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##qdrant|${{ needs.test-qdrant.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"smarte"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##smartengine|${{ needs.test-smartengine.outputs.pre-test-result }}"
+              fi
+          fi
+          
+          if [[ "${{ inputs.KB_PRE_VERSION }}" != "v0.5."* && "${{ inputs.KB_PRE_VERSION }}" != "v0.6."* ]]; then
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"greptimedb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##greptimedb|${{ needs.test-greptimedb.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"nebula"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##nebula|${{ needs.test-nebula.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"risingwave"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##risingwave|${{ needs.test-risingwave.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"starrocks"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##starrocks|${{ needs.test-starrocks.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"etcd"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##etcd|${{ needs.test-etcd.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"foxlake"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##foxlake|${{ needs.test-foxlake.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oracle-mysql"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##oracle-mysql|${{ needs.test-oracle-mysql.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"asmysql"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##asmysql|${{ needs.test-asmysql.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"openldap"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##openldap|${{ needs.test-openldap.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"milvus"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##milvus|${{ needs.test-milvus.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"clickhouse"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##clickhouse|${{ needs.test-clickhouse.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"pika"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##pika|${{ needs.test-pika.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"opensearch"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##opensearch|${{ needs.test-opensearch.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"elasticsearch"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##elasticsearch|${{ needs.test-elasticsearch.outputs.pre-test-result }}"
+              fi
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"tdengine"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##tdengine|${{ needs.test-tdengine.outputs.pre-test-result }}"
+              fi   
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"vllm"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##vllm|${{ needs.test-vllm.outputs.pre-test-result }}"
+              fi    
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"orioledb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##orioledb|${{ needs.test-orioledb.outputs.pre-test-result }}"
+              fi  
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"official-pg"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##official-pg|${{ needs.test-official-pg.outputs.pre-test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"ggml"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##ggml|${{ needs.test-ggml.outputs.pre-test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"zookeeper"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##zookeeper|${{ needs.test-zookeeper.outputs.pre-test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mariadb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##mariadb|${{ needs.test-mariadb.outputs.pre-test-result }}"
+              fi 
+          fi
+          
+          TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
+              --github-repo "${{ github.repository }}" \
+              --pre-test-result "${TEST_RESULT}" \
+              --run-id "$GITHUB_RUN_ID" )
+          
+          date_ret=$(date +%Y-%m-%d-%T)
+          test_title="[${{ inputs.KB_PRE_VERSION }}] Pre Test KBCLI on k3s:${{ inputs.CLUSTER_VERSION }} [${date_ret}]"
+          python3 .github/utils/send_mesage.py \
+              --url ${{ vars.TEST_BOT_WEBHOOK }} \
+              --title "$test_title" \
+              --result "$TEST_RESULT"
+
       - name: send message
-        id: get_trigger_mode
         run: |
           TEST_RESULT=""
           if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"apecloud-mysql"* ]]; then
