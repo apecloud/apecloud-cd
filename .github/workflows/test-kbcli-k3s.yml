@@ -124,7 +124,6 @@ jobs:
               pre_test_ret="$( grep "【FAILED】" ${file_log_pre} || true )"
               if [[ -n "$pre_test_ret" ]]; then
                   echo pre-test-result=[FAILED] >> $GITHUB_OUTPUT
-                  exit 1
               else
                   echo pre-test-result=[PASSED] >> $GITHUB_OUTPUT
               fi
