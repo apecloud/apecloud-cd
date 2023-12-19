@@ -308,18 +308,9 @@ set_runs_jobs() {
     jobs_url=$2
     for test_ret in `echo "$TEST_RESULT" | sed 's/##/ /g'`; do
         test_type=${test_ret%|*}
-        case $test_type in
-            install|playground)
-                if [[ "$jobs_name" == *"$test_type"* ]]; then
-                    TEST_RET=$TEST_RET"##$test_ret|$jobs_url"
-                fi
-            ;;
-            *)
-                if [[ "$jobs_name" == *"$test_type" ]]; then
-                    TEST_RET=$TEST_RET"##$test_ret|$jobs_url"
-                fi
-            ;;
-        esac
+        if [[ "$jobs_name" == *"$test_type" ]]; then
+            TEST_RET=$TEST_RET"##$test_ret|$jobs_url"
+        fi
     done
 }
 

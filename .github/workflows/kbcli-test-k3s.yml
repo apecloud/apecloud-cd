@@ -1,4 +1,4 @@
-name: KBCLI Test on K3S
+name: Kbcli Test on K3S
 
 on:
   workflow_call:
@@ -14,7 +14,11 @@ on:
         required: false
         default: ''
       TEST_TYPE:
-        description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|weaviate|qdrant|smartengine|mysqlscale|greptimedb|nebula|risingwave|starrocks|etcd|foxlake|oracle-mysql|asmysql|openldap|milvus|clickhouse|pika|opensearch|elasticsearch|tdengine|vllm|orioledb|official-pg|ggml|zookeeper|mariadb)'
+        description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|
+        weaviate|qdrant|smartengine|mysqlscale|greptimedb|nebula|risingwave|starrocks|etcd|
+        foxlake|oracle-mysql|asmysql|openldap|milvus|clickhouse|pika|opensearch|elasticsearch|
+        tdengine|vllm|orioledb|official-pg|ggml|zookeeper|mariadb|tidb|xinference|oracle|
+        opengauss)'
         type: string
         required: false
         default: ''
@@ -514,10 +518,71 @@ jobs:
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
     secrets: inherit
 
+  test-tidb:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tidb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "34"
+      test-type-name: "tidb"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-xinference:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'xinference')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "35"
+      test-type-name: "xinference"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-oracle:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oracle')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "36"
+      test-type-name: "oracle"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-opengauss:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oracle')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "37"
+      test-type-name: "opengauss"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: [ test-apecloud-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar, test-mysqlscale, test-weaviate, test-qdrant, test-smartengine, test-greptimedb, test-nebula, test-risingwave, test-starrocks, test-etcd, test-foxlake, test-oracle-mysql, test-asmysql, test-openldap, test-milvus, test-clickhouse, test-pika, test-opensearch, test-elasticsearch, test-vllm, test-tdengine, test-orioledb, test-official-pg, test-ggml, test-zookeeper, test-mariadb ]
+    needs: [ test-apecloud-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar,
+             test-mysqlscale, test-weaviate, test-qdrant, test-smartengine, test-greptimedb, test-nebula,
+             test-risingwave, test-starrocks, test-etcd, test-foxlake, test-oracle-mysql, test-asmysql,
+             test-openldap, test-milvus, test-clickhouse, test-pika, test-opensearch, test-elasticsearch,
+             test-vllm, test-tdengine, test-orioledb, test-official-pg, test-ggml, test-zookeeper,
+             test-mariadb, test-tidb, test-xinference, test-oracle, test-opengauss ]
     steps:
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -656,6 +721,24 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##mariadb|${{ needs.test-mariadb.outputs.pre-test-result }}"
               fi 
           fi
+          
+          if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* ]]; then
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"tidb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##tidb|${{ needs.test-tidb.outputs.pre-test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"xinference"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##xinference|${{ needs.test-xinference.outputs.pre-test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oracle"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##oracle|${{ needs.test-oracle.outputs.pre-test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"opengauss"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##opengauss|${{ needs.test-opengauss.outputs.pre-test-result }}"
+              fi 
+          fi 
           
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
               --github-repo "${{ github.repository }}" \
@@ -799,6 +882,24 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##mariadb|${{ needs.test-mariadb.outputs.test-result }}"
               fi 
           fi
+          
+          if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* ]]; then
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"tidb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##tidb|${{ needs.test-tidb.outputs.test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"xinference"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##xinference|${{ needs.test-xinference.outputs.test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oracle"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##oracle|${{ needs.test-oracle.outputs.test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"opengauss"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##opengauss|${{ needs.test-opengauss.outputs.test-result }}"
+              fi 
+          fi 
           
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
               --github-repo "${{ github.repository }}" \
