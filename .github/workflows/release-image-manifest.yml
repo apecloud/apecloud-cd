@@ -18,7 +18,7 @@ on:
         type: boolean
         required: false
         default: true
-  workflow_display:
+  workflow_dispatch:
     inputs:
       IMG:
         description: "The URL to use building/pushing image targets (e.g. apecloud/kubeblocks)"
