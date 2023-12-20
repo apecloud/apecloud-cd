@@ -1,4 +1,4 @@
-name: RELEASE-IMAGE-MANIFEST
+name: Release Image Manifest
 
 on:
   workflow_call:
@@ -35,6 +35,9 @@ on:
         type: boolean
         required: false
         default: true
+
+run-name:  Release Image Manifest ${{ inputs.IMG }}:${{ inputs.VERSION }}
+
 
 env:
   DOCKER_REGISTRY_URL: docker.io
