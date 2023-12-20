@@ -104,7 +104,7 @@ on:
         required: false
         default: ''
 
-run-name: kbcli:${{ inputs.KB_VERSION }} ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} ${{ inputs.TEST_TYPE }}
+run-name: kbcli:${{ inputs.KB_PRE_VERSION }} to ${{ inputs.KB_VERSION }} ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} ${{ inputs.TEST_TYPE }}
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}

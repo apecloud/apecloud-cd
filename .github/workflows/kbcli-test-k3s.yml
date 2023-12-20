@@ -68,7 +68,7 @@ on:
         required: false
         default: ''
 
-run-name: kbcli:${{ inputs.KB_VERSION }} k3s:${{ inputs.CLUSTER_VERSION }} ${{ inputs.TEST_TYPE }}
+run-name: kbcli:${{ inputs.KB_PRE_VERSION }} to ${{ inputs.KB_VERSION }} k3s:${{ inputs.CLUSTER_VERSION }} ${{ inputs.TEST_TYPE }}
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
