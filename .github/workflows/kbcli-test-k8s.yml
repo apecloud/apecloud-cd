@@ -72,7 +72,10 @@ on:
         required: false
         default: ''
       TEST_TYPE:
-        description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|weaviate|qdrant|smartengine|mysqlscale|greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|oracle-mysql|asmysql|openldap|polardbx|milvus|clickhouse|pika|opensearch|elasticsearch|tdengine|vllm|orioledb|official-pg|ggml|zookeeper|mariadb|tidb|xinference|oracle|opengauss|influxdb)'
+        description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|weaviate|
+        qdrant|smartengine|mysqlscale|greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|
+        oracle-mysql|asmysql|openldap|polardbx|milvus|clickhouse|pika|opensearch|elasticsearch|tdengine|
+        vllm|orioledb|official-pg|ggml|zookeeper|mariadb|tidb|xinference|oracle|opengauss|influxdb)'
         type: string
         required: false
         default: ''
@@ -136,7 +139,7 @@ jobs:
       kb-version: "${{ inputs.KB_VERSION }}"
     secrets: inherit
 
-  install-kubeblocks:
+  test-kubeblocks:
     if: ${{ needs.terraform-init-k8s.result == 'success' }}
     needs: terraform-init-k8s
     uses: ./.github/workflows/kbcli-pre-test-k8s.yml
@@ -153,7 +156,7 @@ jobs:
 
   test-apecloud-mysql:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'apecloud-mysql')) }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -165,12 +168,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-postgresql:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgresql')) }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -182,12 +185,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-redis:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis')) }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -199,12 +202,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-mongodb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb')) }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -216,12 +219,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-kafka:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'kafka')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -233,12 +236,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-pulsar:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pulsar')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -250,12 +253,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-mysqlscale:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mysqlscale')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -267,12 +270,12 @@ jobs:
       test-args: "--enable-proxy true ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-weaviate:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'weaviate')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -284,12 +287,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-qdrant:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'qdrant')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -301,12 +304,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-smartengine:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'smartengine')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -318,12 +321,12 @@ jobs:
       test-args: "--smartengine true ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-greptimedb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'greptimedb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -335,12 +338,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-nebula:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'nebula')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -352,12 +355,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-risingwave:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'risingwave')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -369,12 +372,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-starrocks:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -386,12 +389,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-etcd:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'etcd')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -403,12 +406,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-oceanbase:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oceanbase')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -420,12 +423,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-foxlake:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'foxlake')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -437,12 +440,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-orioledb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'orioledb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -454,12 +457,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-oracle-mysql:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oracle-mysql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -471,12 +474,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-official-pg:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'official-pg')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -488,12 +491,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-asmysql:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'asmysql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -505,12 +508,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-openldap:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'openldap')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -522,12 +525,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-polardbx:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'polardbx')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -539,12 +542,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-opensearch:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'opensearch')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -556,12 +559,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-elasticsearch:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'elasticsearch')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -573,12 +576,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-vllm:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'vllm')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -590,12 +593,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-tdengine:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tdengine')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -607,12 +610,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-milvus:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'milvus')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -624,12 +627,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-clickhouse:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'clickhouse')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -641,12 +644,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-pika:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pika')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -658,12 +661,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-ggml:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'ggml')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -675,12 +678,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-zookeeper:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'zookeeper')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -692,12 +695,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-mariadb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mariadb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -709,12 +712,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-tidb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tidb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -726,12 +729,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-xinference:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'xinference')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -743,12 +746,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-oracle:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oracle')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -760,12 +763,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-opengauss:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'opengauss')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -777,12 +780,12 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   test-influxdb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'influxdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
+    needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -794,13 +797,13 @@ jobs:
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: [ test-playground, install-kubeblocks, test-apecloud-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar, test-mysqlscale, test-weaviate, test-qdrant, test-smartengine, test-greptimedb, test-nebula, test-risingwave, test-starrocks, test-etcd, test-oceanbase, test-foxlake, test-oracle-mysql, test-asmysql, test-openldap, test-polardbx, test-tdengine, test-milvus, test-clickhouse, test-pika, test-opensearch, test-elasticsearch, test-vllm, test-orioledb, test-official-pg, test-ggml, test-zookeeper, test-mariadb , test-tidb, test-xinference, test-oracle , test-opengauss, test-influxdb ]
+    needs: [ test-playground, test-kubeblocks, test-apecloud-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar, test-mysqlscale, test-weaviate, test-qdrant, test-smartengine, test-greptimedb, test-nebula, test-risingwave, test-starrocks, test-etcd, test-oceanbase, test-foxlake, test-oracle-mysql, test-asmysql, test-openldap, test-polardbx, test-tdengine, test-milvus, test-clickhouse, test-pika, test-opensearch, test-elasticsearch, test-vllm, test-orioledb, test-official-pg, test-ggml, test-zookeeper, test-mariadb , test-tidb, test-xinference, test-oracle , test-opengauss, test-influxdb ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -811,7 +814,7 @@ jobs:
       - name: send message
         id: get_trigger_mode
         run: |
-          TEST_RESULT="playground|${{ needs.test-playground.outputs.test-result }}##install|${{ needs.install-kubeblocks.outputs.test-result }}"
+          TEST_RESULT="playground|${{ needs.test-playground.outputs.test-result }}##install-kubeblocks|${{ needs.test-kubeblocks.outputs.test-result }}"
           if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"apecloud-mysql"* ]]; then
               TEST_RESULT="${TEST_RESULT}##apecloud-mysql|${{ needs.test-apecloud-mysql.outputs.test-result }}"
           fi

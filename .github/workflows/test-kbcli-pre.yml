@@ -70,7 +70,7 @@ permissions:
 
 jobs:
   kbcli-test-pre:
-    name: test ${{ inputs.test-type-name }}
+    name: ${{ inputs.test-type-name }}
     runs-on: ubuntu-latest
     outputs:
       test-result: ${{ steps.kbcli_test.outputs.test-result }}
