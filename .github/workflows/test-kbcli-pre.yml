@@ -1,4 +1,4 @@
-name: TEST-KBCLI
+name: Kbcli Pre Test
 
 on:
   workflow_call:
@@ -13,16 +13,6 @@ on:
         type: string
         required: false
         default: 'latest'
-      previous-version:
-        description: 'kubeblocks previous version of upgrade'
-        type: string
-        required: false
-        default: ''
-      branch-name:
-        description: 'testinfra branch name'
-        type: string
-        required: false
-        default: 'main'
       test-type:
         description: 'test type (0:install 1:mysql 2:postgresql 5:redis 6:mongodb)'
         type: string
@@ -53,23 +43,18 @@ on:
         type: string
         required: false
         default: ''
-      test-mode:
-        description: 'test mode'
+      branch-name:
+        description: 'testinfra branch name'
         type: string
         required: false
-        default: ''
-      cluster-test-type:
-        description: 'cluster test type'
-        type: string
-        required: false
-        default: ''
+        default: 'main'
     outputs:
       test-result:
         description: "test result"
-        value: ${{ jobs.kbcli-test.outputs.test-result }}
+        value: ${{ jobs.kbcli-test-pre.outputs.test-result }}
       random-suffix:
         description: "random suffix"
-        value: ${{ jobs.kbcli-test.outputs.random-suffix }}
+        value: ${{ jobs.kbcli-test-pre.outputs.random-suffix }}
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -84,8 +69,8 @@ permissions:
   contents: read
 
 jobs:
-  kbcli-test:
-    name: test ${{ inputs.test-type-name }}
+  kbcli-test-pre:
+    name: ${{ inputs.test-type-name }}
     runs-on: ubuntu-latest
     outputs:
       test-result: ${{ steps.kbcli_test.outputs.test-result }}
@@ -153,9 +138,6 @@ jobs:
           KB_VERSION=$( bash .github/utils/get_kb_latest_version.sh \
               ${{ inputs.release-version }} )
           
-          PREVIOUS_VERSION="${{ inputs.previous-version }}"
-          PREVIOUS_VERSION="${PREVIOUS_VERSION/v/}"
-          
           S3_PATH=$( bash ${{ github.workspace }}/.github/utils/utils.sh \
               --type 2 --test-type ${{ inputs.test-type-name }} \
               --kubeblocks-version ${KB_VERSION} )
@@ -163,15 +145,11 @@ jobs:
           echo 'S3_PATH='${S3_PATH} >> $GITHUB_ENV
           
           echo "k8s-cluster-name:${{ inputs.k8s-cluster-name }}"
-          cmd="bash .github/utils/kbcli-test.sh "
+          cmd="bash .github/utils/kbcli-pre-test.sh "
           cmd="${cmd} --type '${{ inputs.test-type }}' "
           
           if [[ -n "${KB_VERSION}" ]]; then
               cmd="${cmd} --kubeblocks-version '${KB_VERSION}' "
-          fi
-          
-          if [[ -n "${PREVIOUS_VERSION}" ]]; then
-              cmd="${cmd} --previous-version '${PREVIOUS_VERSION}' "
           fi
           
           if [[ -n "${{ inputs.random-suffix }}" ]]; then
@@ -186,16 +164,8 @@ jobs:
               cmd="${cmd} --cloud-provider  '${{ inputs.cloud-provider }}' "
           fi
           
-          if [[ -n "${{ inputs.test-mode }}" ]]; then
-              cmd="${cmd} --test-mode '${{ inputs.test-mode }}' "
-          fi
-          
           if [[ -n "${{ inputs.k8s-cluster-name }}" ]]; then
               cmd="${cmd} --cluster-name '${{ inputs.k8s-cluster-name }}' "
-          fi
-          
-          if [[ -n "${{ inputs.cluster-test-type }}" ]]; then
-              cmd="${cmd} --test-type '${{ inputs.cluster-test-type }}' "
           fi
           
           if [[ -n "${{ env.AWS_ACCESS_KEY_ID }}" && -n "${{ env.AWS_SECRET_ACCESS_KEY }}" ]]; then
@@ -208,13 +178,9 @@ jobs:
           
           RANDOM_SUFFIX=""
           if [[ "${{ inputs.test-type }}" == "0" ]]; then
-              if [[ -n "${{ inputs.random-suffix }}" ]]; then
-                  RANDOM_SUFFIX="${{ inputs.random-suffix }}"
-              else
-                  RANDOM_SUFFIX="$( grep "[RANDOM-SUFFIX]" ${file_log}|| true )"
-                  RANDOM_SUFFIX=${RANDOM_SUFFIX#*"[RANDOM-SUFFIX]"}      
-                  RANDOM_SUFFIX=${RANDOM_SUFFIX%"[RANDOM-SUFFIX]"*}
-              fi
+              RANDOM_SUFFIX="$( grep "[RANDOM-SUFFIX]" ${file_log}|| true )"
+              RANDOM_SUFFIX=${RANDOM_SUFFIX#*"[RANDOM-SUFFIX]"}      
+              RANDOM_SUFFIX=${RANDOM_SUFFIX%"[RANDOM-SUFFIX]"*}
           fi
           echo random-suffix=$RANDOM_SUFFIX >> $GITHUB_OUTPUT
           
