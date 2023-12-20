@@ -18,6 +18,23 @@ on:
         type: boolean
         required: false
         default: true
+  workflow_display:
+    inputs:
+      IMG:
+        description: "The URL to use building/pushing image targets (e.g. apecloud/kubeblocks)"
+        type: string
+        required: false
+        default: ''
+      VERSION:
+        description: "The tag name of image (default: latest)"
+        type: string
+        required: false
+        default: ''
+      REMOVE_PREFIX:
+        description: "Enable remove prefix v  (default: true)"
+        type: boolean
+        required: false
+        default: true
 
 env:
   DOCKER_REGISTRY_URL: docker.io
