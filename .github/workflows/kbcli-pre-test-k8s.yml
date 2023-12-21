@@ -24,7 +24,10 @@ on:
         required: false
         default: 'main'
       test-type:
-        description: 'test type (0:install 1:mysql 2:postgresql 5:redis 6:mongodb)'
+        description: 'test type (apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|weaviate|qdrant|
+        smartengine|mysqlscale|greptimedb|nebula|risingwave|starrocks|etcd|foxlake|omysql|asmysql|
+        openldap|milvus|clickhouse|pika|opensearch|elasticsearch|tdengine|vllm|orioledb|official-pg|ggml|
+        zookeeper|mariadb|tidb|xinference|oracle|opengauss|influxdb|flink)'
         type: string
         required: false
         default: '0'
@@ -363,7 +366,7 @@ jobs:
     secrets: inherit
 
   oracle-mysql-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'oracle-mysql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'omysql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -682,6 +685,22 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
+  flink-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'flink')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "39"
+      test-type-name: "flink-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
   send-message:
     if: ${{ inputs.previous-version && always() }}
     runs-on: ubuntu-latest
@@ -693,7 +712,7 @@ jobs:
              tdengine-pre, milvus-pre, clickhouse-pre, pika-pre, opensearch-pre,
              elasticsearch-pre, vllm-pre, orioledb-pre, official-pg-pre, ggml-pre,
              zookeeper-pre, mariadb-pre , tidb-pre, xinference-pre, oracle-pre, 
-             opengauss-pre, influxdb-pre ]
+             opengauss-pre, influxdb-pre, flink-pre ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -775,7 +794,7 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##foxlake-pre|${{ needs.foxlake-pre.outputs.test-result }}"
               fi
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"oracle-mysql"* ]]; then
+              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"omysql"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##oracle-mysql-pre|${{ needs.oracle-mysql-pre.outputs.test-result }}"
               fi
             
@@ -858,6 +877,10 @@ jobs:
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"influxdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##influxdb-pre|${{ needs.influxdb-pre.outputs.test-result }}"
+              fi  
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"flink"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##flink-pre|${{ needs.flink-pre.outputs.test-result }}"
               fi  
           fi
           
