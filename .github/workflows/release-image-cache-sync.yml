@@ -176,7 +176,8 @@ jobs:
           file: ${{ inputs.DOCKERFILE_PATH }}
           tags: ${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
-          build-args: "GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} ${{ inputs.BUILDX_ARGS }}"
+          build-args: `"GITHUB_TOKEN=${{ env.GITHUB_TOKEN }}"
+          ${{ inputs.BUILDX_ARGS }}`
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -191,7 +192,7 @@ jobs:
           file: ${{ inputs.DOCKERFILE_PATH }}
           tags: ${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
-          build-args: ${{ inputs.BUILDX_ARGS }}
+          build-args: `${{ inputs.BUILDX_ARGS }}`
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
