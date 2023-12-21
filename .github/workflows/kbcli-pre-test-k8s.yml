@@ -94,7 +94,7 @@ jobs:
     secrets: inherit
 
   smartengine-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'smartengine')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'smartengine')) && ! contains(inputs.release-version, 'v0.5.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -110,7 +110,7 @@ jobs:
     secrets: inherit
 
   mysqlscale-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mysqlscale')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mysqlscale')) && ! contains(inputs.release-version, 'v0.5.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -174,7 +174,7 @@ jobs:
     secrets: inherit
 
   kafka-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'kafka')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'kafka')) && ! contains(inputs.release-version, 'v0.5.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -190,7 +190,7 @@ jobs:
     secrets: inherit
 
   pulsar-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'pulsar')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'pulsar')) && ! contains(inputs.release-version, 'v0.5.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -206,7 +206,7 @@ jobs:
     secrets: inherit
 
   weaviate-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'weaviate')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'weaviate')) && ! contains(inputs.release-version, 'v0.5.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -222,7 +222,7 @@ jobs:
     secrets: inherit
 
   qdrant-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'qdrant')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'qdrant')) && ! contains(inputs.release-version, 'v0.5.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -238,7 +238,7 @@ jobs:
     secrets: inherit
 
   greptimedb-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'greptimedb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'greptimedb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -254,7 +254,7 @@ jobs:
     secrets: inherit
 
   nebula-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'nebula')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'nebula')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -270,7 +270,7 @@ jobs:
     secrets: inherit
 
   risingwave-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'risingwave')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'risingwave')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -286,7 +286,7 @@ jobs:
     secrets: inherit
 
   starrocks-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'starrocks')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'starrocks')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -302,7 +302,7 @@ jobs:
     secrets: inherit
 
   etcd-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'etcd')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'etcd')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -318,7 +318,7 @@ jobs:
     secrets: inherit
 
   oceanbase-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'oceanbase')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'oceanbase')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -334,7 +334,7 @@ jobs:
     secrets: inherit
 
   foxlake-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'foxlake')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'foxlake')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -350,7 +350,7 @@ jobs:
     secrets: inherit
 
   orioledb-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'orioledb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'orioledb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -366,7 +366,7 @@ jobs:
     secrets: inherit
 
   oracle-mysql-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'omysql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'omysql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -382,7 +382,7 @@ jobs:
     secrets: inherit
 
   official-pg-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'official-pg')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'official-pg')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -398,7 +398,7 @@ jobs:
     secrets: inherit
 
   asmysql-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'asmysql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'asmysql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -414,7 +414,7 @@ jobs:
     secrets: inherit
 
   openldap-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'openldap')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'openldap')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -430,7 +430,7 @@ jobs:
     secrets: inherit
 
   polardbx-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'polardbx')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'polardbx')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -446,7 +446,7 @@ jobs:
     secrets: inherit
 
   opensearch-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'opensearch')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'opensearch')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -462,7 +462,7 @@ jobs:
     secrets: inherit
 
   elasticsearch-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'elasticsearch')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'elasticsearch')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -478,7 +478,7 @@ jobs:
     secrets: inherit
 
   vllm-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'vllm')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'vllm')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -494,7 +494,7 @@ jobs:
     secrets: inherit
 
   tdengine-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'tdengine')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'tdengine')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -510,7 +510,7 @@ jobs:
     secrets: inherit
 
   milvus-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'milvus')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'milvus')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -526,7 +526,7 @@ jobs:
     secrets: inherit
 
   clickhouse-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'clickhouse')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'clickhouse')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -542,7 +542,7 @@ jobs:
     secrets: inherit
 
   pika-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'pika')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'pika')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -558,7 +558,7 @@ jobs:
     secrets: inherit
 
   ggml-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'ggml')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'ggml')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -574,7 +574,7 @@ jobs:
     secrets: inherit
 
   zookeeper-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'zookeeper')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'zookeeper')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -590,7 +590,7 @@ jobs:
     secrets: inherit
 
   mariadb-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mariadb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mariadb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -606,7 +606,7 @@ jobs:
     secrets: inherit
 
   tidb-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'tidb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'tidb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -622,7 +622,7 @@ jobs:
     secrets: inherit
 
   xinference-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'xinference')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'xinference')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -638,7 +638,7 @@ jobs:
     secrets: inherit
 
   oracle-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'oracle')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'oracle')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -654,7 +654,7 @@ jobs:
     secrets: inherit
 
   opengauss-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'opengauss')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'opengauss')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -670,7 +670,7 @@ jobs:
     secrets: inherit
 
   influxdb-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'influxdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'influxdb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -686,7 +686,7 @@ jobs:
     secrets: inherit
 
   flink-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'flink')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'flink')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -739,7 +739,7 @@ jobs:
               TEST_RESULT="${TEST_RESULT}##mongodb-pre|${{ needs.mongodb-pre.outputs.test-result }}"
           fi
           
-          if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* ]]; then
+          if [[ "${{ inputs.release-version }}" != "v0.5."* ]]; then
               if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"kafka"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##kafka-pre|${{ needs.kafka-pre.outputs.test-result }}"
               fi
@@ -765,7 +765,7 @@ jobs:
               fi
           fi
           
-          if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* ]]; then
+          if [[ "${{ inputs.release-version }}" != "v0.5."* && "${{ inputs.release-version }}" != "v0.6."* ]]; then
               if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"greptimedb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##greptimedb-pre|${{ needs.greptimedb-pre.outputs.test-result }}"
               fi
@@ -859,7 +859,7 @@ jobs:
               fi 
           fi
           
-          if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* ]]; then
+          if [[ "${{ inputs.release-version }}" != "v0.5."* && "${{ inputs.release-version }}" != "v0.6."* && "${{ inputs.release-version }}" != "v0.7."* ]]; then
               if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"tidb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##tidb-pre|${{ needs.tidb-pre.outputs.test-result }}"
               fi 
@@ -890,7 +890,7 @@ jobs:
               --run-id "$GITHUB_RUN_ID" )
           
           date_ret=$(date +%Y-%m-%d-%T)
-          test_title="[${{ inputs.KB_VERSION }}] Pre Test KBCLI on ${{ inputs.cloud-provider }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
+          test_title="[${{ inputs.release-version }}] Pre Test KBCLI on ${{ inputs.cloud-provider }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
           if [[ -n "${{ inputs.previous-version }}" ]]; then
               test_title="[${{ inputs.previous-version }}] upgrade to "$test_title
           fi 
