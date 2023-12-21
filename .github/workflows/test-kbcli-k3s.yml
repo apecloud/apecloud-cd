@@ -87,12 +87,6 @@ jobs:
       - name: run test ${{ inputs.test-type-name }}
         id: kbcli_test_k3s
         run: |
-          file_log_pre_install="$(date +%Y-%m-%d-%T)".log
-          file_log_install="$(date +%Y-%m-%d-%T)".log
-          file_log_pre="$(date +%Y-%m-%d-%T)".log
-          file_log="$(date +%Y-%m-%d-%T)".log
-          touch ${file_log_pre_install} ${file_log_install} ${file_log_pre} ${file_log}
-          
           KB_VERSION=$( bash .github/utils/get_kb_latest_version.sh \
               ${{ inputs.release-version }} )
           
@@ -101,34 +95,42 @@ jobs:
           
           rand_suffix=""
           if [[ -n "${PREVIOUS_VERSION}" ]]; then
+              file_log_pre_install="$(date +%Y-%m-%d-%T)".log
+              touch ${file_log_pre_install}
               bash .github/utils/kbcli-pre-test.sh \
                   --type "0" \
                   --kubeblocks-version "${PREVIOUS_VERSION}" \
                   --cloud-provider "k3s" \
                   --args "${{ inputs.test-args }} --enable-csi-hostpath-driver false --enable-addon kubebench --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }} " \
                   --region "${{ env.REGION }}" | tee -a ${file_log_pre_install}
-          
+              
               rand_suffix_tmp="$( grep "[RANDOM-SUFFIX]" ${file_log_pre_install} || true )"
               if [[ -n "$rand_suffix_tmp" && "$rand_suffix_tmp" == *"[RANDOM-SUFFIX]"* ]]; then
                   rand_suffix=${rand_suffix_tmp#*"[RANDOM-SUFFIX]"}      
                   rand_suffix=${rand_suffix%"[RANDOM-SUFFIX]"*}
               fi
+              rm -rf ${file_log_pre_install}
           
+              file_log_pre="$(date +%Y-%m-%d-%T)".log
+              touch ${file_log_pre}
               bash .github/utils/kbcli-pre-test.sh \
                   --type "${{ inputs.test-type }}" \
                   --kubeblocks-version "${PREVIOUS_VERSION}" \
                   --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
                   --region "${{ env.REGION }}" \
                   --random-suffix "${rand_suffix}" | tee -a ${file_log_pre}
-          
+
               pre_test_ret="$( grep "【FAILED】" ${file_log_pre} || true )"
               if [[ -n "$pre_test_ret" ]]; then
                   echo pre-test-result=[FAILED] >> $GITHUB_OUTPUT
               else
                   echo pre-test-result=[PASSED] >> $GITHUB_OUTPUT
               fi
+              rm -rf ${file_log_pre}        
           fi
           
+          file_log_install="$(date +%Y-%m-%d-%T)".log
+          touch ${file_log_install}
           bash .github/utils/kbcli-test.sh \
               --type "0" \
               --kubeblocks-version "${KB_VERSION}" \
@@ -136,7 +138,10 @@ jobs:
               --args "${{ inputs.test-args }} --enable-csi-hostpath-driver false --config-s3 true --check-addon false --upgrade true --enable-addon kubebench --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
               --region "${{ env.REGION }}" \
               --random-suffix "${rand_suffix}" | tee -a ${file_log_install}
+          rm -rf ${file_log_install} 
           
+          file_log="$(date +%Y-%m-%d-%T)".log
+          touch  ${file_log}
           bash .github/utils/kbcli-test.sh \
               --type "${{ inputs.test-type }}" \
               --kubeblocks-version "${KB_VERSION}" \
