@@ -183,7 +183,7 @@ jobs:
           provenance: false
           sbom: false
 
-      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && ! inputs.ARGS_TOKEN  }}
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && ! inputs.ARGS_TOKEN }}
         name: Build and Push to Docker Hub
         uses: docker/build-push-action@v5
         with:
