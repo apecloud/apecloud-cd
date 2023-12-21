@@ -78,6 +78,11 @@ on:
         type: boolean
         required: false
         default: false
+      ARGS_TOKEN:
+        description: "Enable set GITHUB_TOKEN to ARGS  (default: false)"
+        type: boolean
+        required: false
+        default: false
 
 env:
   DOCKER_REGISTRY_URL: docker.io
@@ -163,7 +168,7 @@ jobs:
           username: ${{ env.DOCKER_USER }}
           password: ${{ env.DOCKER_PASSWORD }}
 
-      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && inputs.BUILDX_ARGS == '' }}
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && "${{ inputs.ARGS_TOKEN }}" == "true" }}
         name: Build and Push to Docker Hub
         uses: docker/build-push-action@v5
         with:
@@ -171,14 +176,14 @@ jobs:
           file: ${{ inputs.DOCKERFILE_PATH }}
           tags: ${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
-          build-args: "GITHUB_TOKEN=${{ env.GITHUB_TOKEN }}"
+          build-args: "GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} ${{ inputs.BUILDX_ARGS }}"
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
           sbom: false
 
-      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && inputs.BUILDX_ARGS != '' }}
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && && "${{ inputs.ARGS_TOKEN }}" == "false" }}
         name: Build and Push to Docker Hub
         uses: docker/build-push-action@v5
         with:
