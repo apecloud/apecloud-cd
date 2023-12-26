@@ -125,7 +125,7 @@ get_release_version() {
         echo "$VERSION"
         return
     fi
-    if [[ "$CONTENT" == "do"*"release" ]]; then
+    if [[ "$CONTENT" == "do"*"release"* ]]; then
         release_next_available_tag
     else
         usage_message
