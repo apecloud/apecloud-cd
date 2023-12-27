@@ -105,10 +105,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ env.CUR_BRANCH }}
+          fetch-depth: 0
 
       - name: checkout branch ${{ github.ref_name }}
         if: ${{ inputs.RELEASE_VERSION != '' || env.CUR_BRANCH == '' }}
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: get release commit
         id: get_release_commit
