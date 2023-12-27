@@ -75,21 +75,20 @@ jobs:
     needs: [ get-version, release-message ]
     runs-on: ubuntu-latest
     steps:
-      - name: checkout branch ${{ github.ref_name }}
-        if: ${{ inputs.RELEASE_VERSION != '' || env.CUR_BRANCH == '' }}
-        uses: actions/checkout@v4
-
-      - name: checkout branch ${{ env.CUR_BRANCH }}
-        if: ${{ inputs.RELEASE_VERSION == '' && env.CUR_BRANCH != '' }}
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.CUR_BRANCH }}
+      - name: get release branch
+        run: |
+          RELEASE_BRANCH="${{ github.ref_name }}"
+          if [[ -n "${{ env.CUR_BRANCH }}" && -z "${{ inputs.RELEASE_VERSION }}" ]]; then
+              RELEASE_BRANCH="${{ env.CUR_BRANCH }}"
+          fi
+          echo 'RELEASE_BRANCH='${RELEASE_BRANCH} >> $GITHUB_ENV
 
       - name: push tag
         uses: mathieudutour/github-tag-action@v6.1
         with:
           custom_tag: ${{ needs.get-version.outputs.release-version }}
           github_token: ${{ env.GH_TOKEN }}
+          release_branches: ${{ env.RELEASE_BRANCH }}
           tag_prefix: ""
 
   send-message:

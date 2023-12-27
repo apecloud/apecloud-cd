@@ -13,6 +13,7 @@ Usage: $(basename "$0") <options>
                                 1) release message
                                 2) send message
                                 3) get release version
+                                4) get kbcli branch
     -gr, --github-repo        Github repo
     -gt, --github-token       Github token
     -v, --version             The release version
@@ -132,6 +133,21 @@ get_release_version() {
     fi
 }
 
+get_kbcli_branch() {
+    kbcli_branch="main"
+    kbcli_flag=0
+    for content in $(echo "$CONTENT"); do
+        if [[ $kbcli_flag -eq 1 ]]; then
+            kbcli_branch="$content"
+            break
+        fi
+        if [[ "$content" == "kbcli" ]]; then
+            kbcli_flag=1
+        fi
+    done
+    echo "$kbcli_branch"
+}
+
 cover_space() {
     CONTENT_TMP=$(echo "$CONTENT" | tr '[:upper:]' '[:lower:]')
     CONTENT=${CONTENT// /${R_SPACE}}
@@ -242,6 +258,9 @@ main() {
         ;;
         3)
             get_release_version
+        ;;
+        4)
+            get_kbcli_branch
         ;;
     esac
 }
