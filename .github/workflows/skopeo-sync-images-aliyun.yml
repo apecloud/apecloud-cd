@@ -36,7 +36,8 @@ jobs:
               "${{ secrets.ALIYUN_REGISTRY_USER }}" \
               "${{ secrets.ALIYUN_REGISTRY_PASSWORD }}" \
               ${{ github.workspace }}/.github/utils/images-list.txt \
-              "${{ github.event.inputs.registry }}"
+              "${{ inputs.registry }}" \
+              '${{ secrets.ECR_PASSWORD }}'
           
           bash ${{ github.workspace }}/.github/utils/skopeo_sync_to_aliyun_new.sh \
               "${{ secrets.DOCKER_USER }}" \
@@ -44,4 +45,5 @@ jobs:
               "${{ secrets.ALIYUN_USER_NEW }}" \
               "${{ secrets.ALIYUN_PASSWORD_NEW }}" \
               ${{ github.workspace }}/.github/utils/images-list.txt \
-              "${{ github.event.inputs.registry }}"
+              "${{ inputs.registry }}" \
+              '${{ secrets.ECR_PASSWORD }}'

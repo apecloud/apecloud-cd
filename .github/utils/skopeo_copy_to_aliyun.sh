@@ -4,6 +4,8 @@ ALIYUN_USERNAME=$1
 ALIYUN_PASSWORD=$2
 FILE_NAME=$3
 REGISTRY=$4
+ECR_PASSWORD=$5
+ECR_USER=AWS
 
 if [[ -z "$REGISTRY" ]]; then
     REGISTRY=docker.io
@@ -15,12 +17,23 @@ do
     skopeo_msg="skopeo copy $REGISTRY/$image to registry.cn-hangzhou.aliyuncs.com/apecloud/$image_name"
     echo "$skopeo_msg"
     skopeo_flag=0
+    ret_msg=""
     for i in {1..10}; do
-        ret_msg=$(skopeo copy --all \
-            --dest-username "$ALIYUN_USERNAME" \
-            --dest-password "$ALIYUN_PASSWORD" \
-            docker://$REGISTRY/$image \
-            docker://registry.cn-hangzhou.aliyuncs.com/apecloud/$image_name)
+        if [[ "${REGISTRY}" == *"ecr"* ]]; then
+            ret_msg=$(skopeo copy --all \
+                --dest-username "$ALIYUN_USERNAME" \
+                --dest-password "$ALIYUN_PASSWORD" \
+                --src-username "$ECR_USER" \
+                --src-password "$ECR_PASSWORD" \
+                docker://$REGISTRY/$image \
+                docker://registry.cn-hangzhou.aliyuncs.com/apecloud/$image_name)
+        else
+            ret_msg=$(skopeo copy --all \
+                --dest-username "$ALIYUN_USERNAME" \
+                --dest-password "$ALIYUN_PASSWORD" \
+                docker://$REGISTRY/$image \
+                docker://registry.cn-hangzhou.aliyuncs.com/apecloud/$image_name)
+        fi
         echo "return message:$ret_msg"
         if [[ "$ret_msg" == *"Storing list signatures"* || "$ret_msg" == *"Skipping"* ]]; then
             echo "$(tput -T xterm setaf 2)$skopeo_msg success$(tput -T xterm sgr0)"

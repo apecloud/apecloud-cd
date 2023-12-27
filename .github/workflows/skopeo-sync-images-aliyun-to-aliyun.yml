@@ -37,4 +37,4 @@ jobs:
               "${{ secrets.ALIYUN_USER_NEW }}" \
               "${{ secrets.ALIYUN_PASSWORD_NEW }}" \
               ${{ github.workspace }}/.github/utils/images-list.txt \
-              "${{ github.event.inputs.registry }}"
+              "${{ inputs.registry }}"
