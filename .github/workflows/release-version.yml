@@ -117,10 +117,11 @@ jobs:
               RELEASE_VERSION="${{ needs.get-version.outputs.release-version }}"
               cd apiserver
               for i in {1..300}; do
-                  go get -u github.com/apecloud/kbcli@${RELEASE_VERSION}-cloud
-                  go_ret=$?
-                  if [[ $go_ret -eq 0 ]]; then
+                  rep_tag=$(curl -s "https://api.github.com/repos/apecloud/kbcli/git/refs/tags/${RELEASE_VERSION}-cloud")
+                  tag_ref="$(echo "$rep_tag" | jq -r '.ref')"
+                  if [[ "$tag_ref" == *"${RELEASE_VERSION}-cloud"*  ]]; then
                       echo "kbcli tag check done"
+                      go get -u github.com/apecloud/kbcli@${RELEASE_VERSION}-cloud
                       break
                   fi
                   sleep 1
