@@ -95,7 +95,7 @@ jobs:
         with:
           custom_tag: ${{ needs.get-version.outputs.release-version }}
           github_token: ${{ env.GH_TOKEN }}
-          release_branches: ${{ env.RELEASE_BRANCH }}
+          commit_sha: ${{ env.RELEASE_COMMIT }}
           tag_prefix: ""
 
   send-message:
