@@ -114,6 +114,7 @@ jobs:
         id: get_release_commit
         run: |
           if [[ "${{ github.repository }}" == "apecloud/apecloud" && "${{ inputs.CONTENT }}" == *"kbcli"*  ]]; then
+              COMMIT_SHA="$(git rev-parse HEAD)"
               RELEASE_VERSION="${{ needs.get-version.outputs.release-version }}"
               cd apiserver
               for i in {1..300}; do
@@ -127,7 +128,7 @@ jobs:
                   sleep 1
                   echo "kbcli tag checking.."
               done
-              FILE_CHANGES=`git diff --name-only ${{ github.sha }}`
+              FILE_CHANGES=`git diff --name-only ${COMMIT_SHA}`
               if [[ ! -z "$FILE_CHANGES" ]]; then
                   echo $FILE_CHANGES
                   git config --local user.name "$GITHUB_ACTOR"
