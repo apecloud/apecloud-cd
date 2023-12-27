@@ -34,4 +34,5 @@ jobs:
               "${{ secrets.DOCKER_REGISTRY_USER }}" \
               '${{ secrets.DOCKER_REGISTRY_PASSWORD }}' \
               ${{ github.workspace }}/.github/utils/images-list.txt \
-              "${{ github.event.inputs.registry }}"
+              "${{ inputs.registry }}" \
+              '${{ secrets.ECR_PASSWORD }}'

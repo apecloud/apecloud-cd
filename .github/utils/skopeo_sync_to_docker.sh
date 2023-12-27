@@ -4,6 +4,8 @@ DOCKER_USERNAME=$1
 DOCKER_PASSWORD=$2
 FILE_NAME=$3
 REGISTRY=$4
+ECR_PASSWORD=$5
+ECR_USER=AWS
 
 if [[ -z "$REGISTRY" ]]; then
     REGISTRY=docker.io
@@ -14,16 +16,29 @@ do
     skopeo_msg="skopeo sync $REGISTRY/$image to docker.io/apecloud"
     echo "$skopeo_msg"
     skopeo_flag=0
+    ret_msg=""
     for i in {1..10}; do
-        ret_msg=$(skopeo sync --all \
-            --src-username "$DOCKER_USERNAME" \
-            --src-password "$DOCKER_PASSWORD" \
-            --dest-username "$DOCKER_USERNAME" \
-            --dest-password "$DOCKER_PASSWORD" \
-            --src docker \
-            --dest docker \
-            $REGISTRY/$image \
-            docker.io/apecloud)
+        if [[ "${REGISTRY}" == *"ecr"* ]]; then
+            ret_msg=$(skopeo sync --all \
+                --src-username "$ECR_USER" \
+                --src-password "$ECR_PASSWORD" \
+                --dest-username "$ALIYUN_USERNAME" \
+                --dest-password "$ALIYUN_PASSWORD" \
+                --src docker \
+                --dest docker \
+                $REGISTRY/$image \
+                docker.io/apecloud)
+        else
+            ret_msg=$(skopeo sync --all \
+                --src-username "$DOCKER_USERNAME" \
+                --src-password "$DOCKER_PASSWORD" \
+                --dest-username "$DOCKER_USERNAME" \
+                --dest-password "$DOCKER_PASSWORD" \
+                --src docker \
+                --dest docker \
+                $REGISTRY/$image \
+                docker.io/apecloud)
+        fi
         echo "return message:$ret_msg"
         if [[ "$ret_msg" == *"Storing list signatures"* || "$ret_msg" == *"Skipping"* ]]; then
             echo "$(tput -T xterm setaf 2)$skopeo_msg success$(tput -T xterm sgr0)"
