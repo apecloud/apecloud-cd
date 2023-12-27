@@ -1,0 +1,50 @@
+name: Release Kbcli Tag
+
+on:
+  workflow_call:
+    inputs:
+      VERSION:
+        description: "The release version"
+        type: string
+        required: false
+        default: ''
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  get-kbcli-branch:
+    runs-on: ubuntu-latest
+    outputs:
+      kbcli-branch: ${{ steps.get_kbcli_branch.outputs.kbcli-branch }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: get kbcli branch
+        id: get_kbcli_branch
+        run: |
+          cmd="bash apecloud-cd/.github/utils/webhook_utils.sh --type 4 --content '${{ inputs.CONTENT }}' "
+          echo "$cmd"
+          KBCLI_BRANCH=$(eval "$cmd")
+          echo kbcli-branch=$KBCLI_BRANCH >> $GITHUB_OUTPUT
+
+  release-kbcli-tag:
+    needs: [ get-kbcli-branch ]
+    uses: ./.github/workflows/trigger-workflow.yml
+    with:
+      VERSION: "${{ inputs.VERSION }}"
+      GITHUB_REPO: "apecloud/kbcli"
+      BRANCH_NAME: "${{ needs.get-kbcli-branch.outputs.kbcli-branch }}"
+      WORKFLOW_ID: "release-tag.yaml"
+      APECD_REF: ${{ inputs.APECD_REF }}
+    secrets: inherit
