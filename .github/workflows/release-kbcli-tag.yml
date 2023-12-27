@@ -13,6 +13,11 @@ on:
         type: string
         required: false
         default: 'main'
+      CONTENT:
+        description: 'the request content'
+        type: string
+        required: false
+        default: ''
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
