@@ -79,6 +79,6 @@ jobs:
           echo "$cmd"
           RELEASE_VERSION=$(eval "$cmd")
           echo release-version=$RELEASE_VERSION >> $GITHUB_OUTPUT
-          if [[ -z "${RELEASE_VERSION}" ]]; then
+          if [[ -z "${RELEASE_VERSION}" || "${RELEASE_VERSION}" ==  *"code"*"data"*"msg"* ]]; then
               exit 1
           fi
