@@ -127,13 +127,15 @@ jobs:
                   if [[ "$tag_ref" == *"${RELEASE_VERSION}-cloud"*  ]]; then
                       echo "kbcli tag check done"
                       go get -u github.com/apecloud/kbcli@${RELEASE_VERSION}-cloud
+                      cd ${{ github.workspace }}/sentry
+                      go get -u github.com/apecloud/kbcli@${RELEASE_VERSION}-cloud
+                      cd ${{ github.workspace }}
+                      make module
                       break
                   fi
                   sleep 1
                   echo "kbcli tag checking.."
               done
-              cd ${{ github.workspace }}
-              make module
               FILE_CHANGES=`git diff --name-only ${COMMIT_SHA}`
               if [[ ! -z "$FILE_CHANGES" ]]; then
                   echo $FILE_CHANGES
