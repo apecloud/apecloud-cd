@@ -119,13 +119,14 @@ jobs:
         run: |
           if [[ "${{ github.repository }}" == "apecloud/apecloud" && "${{ inputs.CONTENT }}" == *"kbcli"*  ]]; then
               COMMIT_SHA="$(git rev-parse HEAD)"
+              RELEASE_VERSION="${{ needs.get-version.outputs.release-version }}"
               cd apiserver
               for i in {1..300}; do
-                  rep_tag=$(curl -s "https://api.github.com/repos/apecloud/kbcli/git/refs/tags/${{ needs.get-version.outputs.release-version }}-cloud")
+                  rep_tag=$(curl -s "https://api.github.com/repos/apecloud/kbcli/git/refs/tags/${RELEASE_VERSION}-cloud")
                   tag_ref="$(echo "$rep_tag" | jq -r '.ref')"
-                  if [[ "$tag_ref" == *"${{ needs.get-version.outputs.release-version }}-cloud"*  ]]; then
+                  if [[ "$tag_ref" == *"${RELEASE_VERSION}-cloud"*  ]]; then
                       echo "kbcli tag check done"
-                      go get -u github.com/apecloud/kbcli@${{ needs.get-version.outputs.release-version }}-cloud
+                      go get -u github.com/apecloud/kbcli@${RELEASE_VERSION}-cloud
                       break
                   fi
                   sleep 1
@@ -136,7 +137,7 @@ jobs:
                   echo $FILE_CHANGES
                   git config --local user.name "$GITHUB_ACTOR"
                   git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
-                  git commit -a -m "chore: auto upgrade kbcli version to ${{ needs.get-version.outputs.release-version }}-cloud"
+                  git commit -a -m "chore: auto upgrade kbcli version to ${RELEASE_VERSION}-cloud"
               fi
               echo file_changes=$FILE_CHANGES >> $GITHUB_OUTPUT
           fi
@@ -153,7 +154,7 @@ jobs:
       - name: auto create pr head new branch
         if: ${{ github.repository == 'apecloud/apecloud' && github.ref_name == 'main' && steps.get_release_commit.outputs.file_changes && contains(inputs.CONTENT, 'kbcli')  }}
         run: |
-          gh pr create --head "support/auto-upgrade-kbcli-${{ env.RELEASE_COMMIT }}" --title "chore: auto upgrade kbcli version to ${RELEASE_VERSION}-cloud" --body ""
+          gh pr create --head "support/auto-upgrade-kbcli-${{ env.RELEASE_COMMIT }}" --title "chore: auto upgrade kbcli version to ${{ needs.get-version.outputs.release-version }}-cloud" --body ""
 
       - name: push cloud gomod changes
         uses: ad-m/github-push-action@master
