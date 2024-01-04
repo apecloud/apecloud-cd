@@ -119,14 +119,13 @@ jobs:
         run: |
           if [[ "${{ github.repository }}" == "apecloud/apecloud" && "${{ inputs.CONTENT }}" == *"kbcli"*  ]]; then
               COMMIT_SHA="$(git rev-parse HEAD)"
-              RELEASE_VERSION="${{ needs.get-version.outputs.release-version }}"
               cd apiserver
               for i in {1..300}; do
-                  rep_tag=$(curl -s "https://api.github.com/repos/apecloud/kbcli/git/refs/tags/${RELEASE_VERSION}-cloud")
+                  rep_tag=$(curl -s "https://api.github.com/repos/apecloud/kbcli/git/refs/tags/${{ needs.get-version.outputs.release-version }}-cloud")
                   tag_ref="$(echo "$rep_tag" | jq -r '.ref')"
-                  if [[ "$tag_ref" == *"${RELEASE_VERSION}-cloud"*  ]]; then
+                  if [[ "$tag_ref" == *"${{ needs.get-version.outputs.release-version }}-cloud"*  ]]; then
                       echo "kbcli tag check done"
-                      go get -u github.com/apecloud/kbcli@${RELEASE_VERSION}-cloud
+                      go get -u github.com/apecloud/kbcli@${{ needs.get-version.outputs.release-version }}-cloud
                       break
                   fi
                   sleep 1
@@ -137,7 +136,7 @@ jobs:
                   echo $FILE_CHANGES
                   git config --local user.name "$GITHUB_ACTOR"
                   git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
-                  git commit -a -m "chore: auto upgrade kbcli version to ${RELEASE_VERSION}-cloud"
+                  git commit -a -m "chore: auto upgrade kbcli version to ${{ needs.get-version.outputs.release-version }}-cloud"
               fi
               echo file_changes=$FILE_CHANGES >> $GITHUB_OUTPUT
           fi
