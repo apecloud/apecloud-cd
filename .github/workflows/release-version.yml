@@ -132,6 +132,8 @@ jobs:
                   sleep 1
                   echo "kbcli tag checking.."
               done
+              cd ${{ github.workspace }}
+              make module
               FILE_CHANGES=`git diff --name-only ${COMMIT_SHA}`
               if [[ ! -z "$FILE_CHANGES" ]]; then
                   echo $FILE_CHANGES
