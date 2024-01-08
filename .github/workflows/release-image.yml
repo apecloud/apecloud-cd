@@ -233,7 +233,7 @@ jobs:
           fi
           
           if [[ ! -z "${{ inputs.IMAGE_NAME }}" ]]; then
-            cmd=$cmd" \"IMAGE_NAME=${{ inputs.IMAGE_NAME }}\" "
+            cmd=$cmd"IMAGE_NAME=${{ inputs.IMAGE_NAME }} "
           fi
           
           eval "$cmd"
@@ -279,7 +279,7 @@ jobs:
           fi
           
           if [[ ! -z "${{ inputs.IMAGE_NAME }}" ]]; then
-            cmd=$cmd" \"IMAGE_NAME=${{ inputs.IMAGE_NAME }}\" "
+            cmd=$cmd"IMAGE_NAME=${{ inputs.IMAGE_NAME }} "
           fi
           
           eval "$cmd"
@@ -325,7 +325,7 @@ jobs:
           fi
           
           if [[ ! -z "${{ inputs.IMAGE_NAME }}" ]]; then
-            cmd=$cmd" \"IMAGE_NAME=${{ inputs.IMAGE_NAME }}\" "
+            cmd=$cmd"IMAGE_NAME=${{ inputs.IMAGE_NAME }} "
           fi
           
           eval "$cmd"
@@ -381,7 +381,7 @@ jobs:
           fi
           
           if [[ ! -z "${{ inputs.IMAGE_NAME }}" ]]; then
-            cmd=$cmd" \"IMAGE_NAME=${{ inputs.IMAGE_NAME }}\" "
+            cmd=$cmd"IMAGE_NAME=${{ inputs.IMAGE_NAME }} "
           fi
           
           eval "$cmd"
