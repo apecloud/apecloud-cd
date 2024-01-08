@@ -98,6 +98,11 @@ on:
         type: boolean
         required: false
         default: false
+      IMAGE_NAME:
+        description: "specify image name"
+        type: string
+        required: false
+        default: ""
 
 env:
   DOCKER_REGISTRY_URL: docker.io
@@ -361,6 +366,10 @@ jobs:
           
           if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
             cmd=$cmd" \"${{ inputs.MAKE_ARGS }}\" "
+          fi
+          
+          if [[ ! -z "${{ inputs.IMAGE_NAME }}" ]]; then
+            cmd=$cmd" \"IMAGE_NAME=${{ inputs.IMAGE_NAME }}\" "
           fi
           
           eval "$cmd"
