@@ -93,6 +93,11 @@ on:
         type: string
         required: false
         default: ''
+      ARGS_TOKEN:
+        description: "Enable set GITHUB_TOKEN to ARGS  (default: false)"
+        type: boolean
+        required: false
+        default: false
 
 env:
   DOCKER_REGISTRY_URL: docker.io
@@ -196,7 +201,11 @@ jobs:
           cmd="make ${{ inputs.MAKE_OPS }} "
           cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
-          cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
+          if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
+              cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
+          else
+              cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
+          fi
           
           if [[ ! -z "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
               cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }}\" "
@@ -232,7 +241,11 @@ jobs:
           cmd="make ${{ inputs.MAKE_OPS }} "
           cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
-          cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
+          if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
+              cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
+          else
+              cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
+          fi
           
           if [[ ! -z "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
               cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }}\" "
@@ -268,7 +281,11 @@ jobs:
           cmd="make ${{ inputs.MAKE_OPS }} "
           cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
-          cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
+          if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
+              cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
+          else
+              cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
+          fi
           
           if [[ ! -z "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
               cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }}\" "
@@ -314,7 +331,11 @@ jobs:
           cmd="make ${{ inputs.MAKE_OPS }} "
           cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
-          cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
+          if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
+              cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
+          else
+              cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
+          fi
           
           if [[ ! -z "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
               cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }}\" "
