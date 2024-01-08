@@ -201,14 +201,16 @@ jobs:
           cmd="make ${{ inputs.MAKE_OPS }} "
           cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
-          if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
-              cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
-          else
-              cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
-          fi
+          cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
           
           if [[ ! -z "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
-              cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }}\" "
+              if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
+                  cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
+              else
+                  cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }}\" "
+              fi
+          elif [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
+              cmd=$cmd"EXTRA_BUILD_ARGS=\"--build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
           fi
           
           if [[ ! -z "${{ inputs.VERSION }}" ]]; then
@@ -241,14 +243,16 @@ jobs:
           cmd="make ${{ inputs.MAKE_OPS }} "
           cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
-          if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
-              cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
-          else
-              cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
-          fi
+          cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
           
           if [[ ! -z "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
-              cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }}\" "
+              if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
+                  cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
+              else
+                  cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }}\" "
+              fi
+          elif [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
+              cmd=$cmd"EXTRA_BUILD_ARGS=\"--build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
           fi
           
           if [[ ! -z "${{ inputs.VERSION }}" ]]; then
@@ -281,14 +285,16 @@ jobs:
           cmd="make ${{ inputs.MAKE_OPS }} "
           cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
-          if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
-              cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
-          else
-              cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
-          fi
+          cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
           
           if [[ ! -z "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
-              cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }}\" "
+              if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
+                  cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
+              else
+                  cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }}\" "
+              fi
+          elif [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
+              cmd=$cmd"EXTRA_BUILD_ARGS=\"--build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
           fi
           
           if [[ ! -z "${{ inputs.VERSION }}" ]]; then
@@ -331,14 +337,16 @@ jobs:
           cmd="make ${{ inputs.MAKE_OPS }} "
           cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
-          if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
-              cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
-          else
-              cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
-          fi
+          cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
           
           if [[ ! -z "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
-              cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }}\" "
+              if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
+                  cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
+              else
+                  cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }}\" "
+              fi
+          elif [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
+              cmd=$cmd"EXTRA_BUILD_ARGS=\"--build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
           fi
           
           if [[ ! -z "${{ inputs.VERSION }}" ]]; then
