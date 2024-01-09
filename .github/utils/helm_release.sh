@@ -70,14 +70,15 @@ release_charts() {
             tag_name=${chart_name%*.tgz}
             release_id=$( gh_curl -s $GITHUB_API/repos/$GITHUB_REPO/releases/tags/$tag_name | jq -r '.id' )
             if [[ -z "$release_id" || "$release_id" == "null" ]]; then
-                echo "checking chart release $tag_name..."
+                echo "$(tput -T xterm setaf 3)"checking chart release $tag_name..."$(tput -T xterm sgr0)"
                 cr upload "${args[@]}"
                 check_flag=1
                 break
             fi
         done
         if [[ $check_flag -eq 0 ]]; then
-            echo "$(tput -T xterm setaf 1)Releasing charts Successfully$(tput -T xterm sgr0)"
+            echo "$(tput -T xterm setaf 2)Releasing charts Successfully$(tput -T xterm sgr0)"
+            break
         fi
         sleep 1
     done
