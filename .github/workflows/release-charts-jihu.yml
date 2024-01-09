@@ -1,4 +1,4 @@
-name: RELEASE-CHART
+name: Release Chart Jihu
 
 on:
   workflow_call:
@@ -23,28 +23,13 @@ on:
         type: string
         required: false
         default: ''
-      CHART_NAME:
-        description: "The package(repo) name of helm chart (e.g. kubeblocks)"
-        type: string
-        required: false
-        default: ''
       CHART_DIR:
         description: "The package dir of helm chart (default: deploy)"
         type: string
         required: false
         default: 'deploy'
-      HELM_SET:
-        description: "The install args of helm chart (e.g. prometheus.enabled=true)"
-        type: string
-        required: false
-        default: ''
       DEP_REPO:
         description: "The dependency of helm chart (e.g. helm repo add grafana https://grafana.github.io/helm-charts)"
-        type: string
-        required: false
-        default: ''
-      DEP_CHART_DIR:
-        description: "The dir of helm chart dependency package"
         type: string
         required: false
         default: ''
@@ -58,11 +43,6 @@ on:
         type: string
         required: false
         default: 'main'
-      CHECK_ENABLE:
-        description: "Enable check docker images"
-        type: boolean
-        required: false
-        default: true
       REMOVE_PREFIX:
         description: "Enable remove prefix v  (default: true)"
         type: boolean
@@ -78,11 +58,6 @@ on:
         type: string
         required: false
         default: ''
-      K3S_VERSION:
-        description: "The version of K3S (default: v1.26)"
-        type: string
-        required: false
-        default: 'v1.26'
       MAKE_OPS_POST:
         description: "The post ops name of makefile"
         type: string
@@ -93,11 +68,6 @@ on:
         type: string
         required: false
         default: ''
-      ENABLE_JIHU:
-        description: "Enable upload to jihu chart"
-        type: boolean
-        required: false
-        default: true
 
 
 env:
@@ -105,9 +75,6 @@ env:
   HELM_VERSION: v3.13.1
   JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
   JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
-  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
-  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
-  DOCKER_REGISTRY_URL: docker.io
 
 jobs:
   release-chart:
@@ -138,8 +105,6 @@ jobs:
           path: ./
           token: ${{ env.CR_TOKEN }}
           ref: ${{ inputs.GITHUB_REF }}
-
-      - uses: docker/setup-qemu-action@v3
 
       - name: Fetch History And Configure Git
         run: |
@@ -204,51 +169,10 @@ jobs:
               helm lint .cr-release-packages/$chart
           done
 
-      - name: setup k3s ${{ inputs.K3S_VERSION }}
-        if: inputs.CHART_NAME
-        uses: nolar/setup-k3d-k3s@v1
-        with:
-          version: ${{ inputs.K3S_VERSION }}
-          github-token: ${{ env.CR_TOKEN }}
-
       - name: make post
         if: inputs.MAKE_OPS_POST
         run: |
           make ${{ inputs.MAKE_OPS_POST }}
-
-      - name: helm validate
-        if: inputs.CHART_NAME
-        run: |
-          cp .cr-release-packages/${{ inputs.CHART_NAME }}-${{ steps.get_version.outputs.VERSION }}.tgz ./
-          
-          tar -zxvf ${{ inputs.CHART_NAME }}-${{ steps.get_version.outputs.VERSION }}.tgz
-          
-          helm install ${{ inputs.CHART_NAME }} \
-            ${{ inputs.CHART_NAME }} \
-            --set="${{ inputs.HELM_SET }}"
-          
-          helm template ${{ inputs.CHART_NAME }} ${{ inputs.CHART_NAME }} \
-            --validate  \
-            --set="${{ inputs.HELM_SET }}"
-
-      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
-        name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.DOCKER_REGISTRY_URL }}
-          username: ${{ env.DOCKER_USER }}
-          password: ${{ env.DOCKER_PASSWORD }}
-
-      - name: check images
-        if: inputs.CHECK_ENABLE
-        run: |   
-          check_dockerhub="true"
-          if [[ -z "${{ env.DOCKER_USER }}" || -z "${{ env.DOCKER_PASSWORD }}" ]]; then
-              check_dockerhub="false"
-          fi
-          
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/helm_image_check.sh \
-              .cr-release-packages "${{ inputs.CHART_NAME }}" "${check_dockerhub}"
 
       - name: Checkout helm-charts Code
         if: inputs.PUSH_ENABLE
@@ -266,15 +190,8 @@ jobs:
           path: kubeblocks-addons
           token: ${{ env.CR_TOKEN }}
 
-      - name: copy dependency chart
-        if: ${{ inputs.DEP_CHART_DIR && inputs.PUSH_ENABLE }}
-        run: |
-          if [[ -d "${{ inputs.DEP_CHART_DIR }}" ]]; then
-              cp ${{ inputs.DEP_CHART_DIR }}/* .cr-release-packages
-          fi
-
       - name: Upload Helm Charts to Jihulab
-        if: ${{ inputs.PUSH_ENABLE && inputs.ENABLE_JIHU }}
+        if: inputs.PUSH_ENABLE
         run: |
           ls .cr-release-packages
           cd .cr-release-packages
@@ -285,20 +202,3 @@ jobs:
             --access-token "${{ env.JIHULAB_ACCESS_TOKEN }}" \
             --access-user "${{ env.JIHULAB_ACCESS_USER }}"\
             --project-id "${{ inputs.PROJECT_ID }}"
-
-      - name: Fetch helm-charts History And Configure Git
-        if: inputs.PUSH_ENABLE
-        run: |
-          cd helm-charts
-          git fetch --prune --unshallow
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
-      - name: Upload and Index Helm Charts
-        if: inputs.PUSH_ENABLE
-        shell: bash
-        run: |
-          cd helm-charts
-          args=(--owner "apecloud" --repo "helm-charts")
-          
-          "${{ github.workspace }}/apecloud-cd/.github/utils/helm_release.sh" "${args[@]}"
