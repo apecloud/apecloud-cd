@@ -56,6 +56,41 @@ delete_release_charts() {
     echo "$charts_files" | filter_charts
 }
 
+release_charts() {
+    local args=( -o "$owner" -r "$repo" -c "$(git rev-parse HEAD)" -t $CR_TOKEN --make-release-latest false --skip-existing )
+
+    echo "Releasing charts..."
+    cr upload "${args[@]}"
+
+    charts_files=$( ls -1 ./*.tgz )
+    check_flag=0
+    for i in {1..10}; do
+        check_flag=0
+        for chart_name in $(echo "$charts_files");do
+            tag_name=${chart_name%*.tgz}
+            release_id=$( gh_curl -s $GITHUB_API/repos/$GITHUB_REPO/releases/tags/$tag_name | jq -r '.id' )
+            if [[ -z "$release_id" || "$release_id" == "null" ]]; then
+                echo "checking chart release $tag_name..."
+                cr upload "${args[@]}"
+                check_flag=1
+                break
+            fi
+        done
+        if [[ $check_flag -eq 0 ]]; then
+            echo "$(tput -T xterm setaf 1)Releasing charts Successfully$(tput -T xterm sgr0)"
+        fi
+        sleep 1
+    done
+}
+
+update_index() {
+    local args=(-o "$owner" -r "$repo" -t $CR_TOKEN --push)
+
+    echo 'Updating charts repo index...'
+    cr index "${args[@]}"
+}
+
+
 main() {
     local version="$DEFAULT_CHART_RELEASER_VERSION"
     local owner=""
@@ -131,20 +166,6 @@ parse_command_line() {
         arch=$(uname -m)
         install_dir="$RUNNER_TOOL_CACHE/cr/$version/$arch"
     fi
-}
-
-release_charts() {
-    local args=( -o "$owner" -r "$repo" -c "$(git rev-parse HEAD)" -t $CR_TOKEN --make-release-latest false --skip-existing )
-
-    echo "Releasing charts..."
-    cr upload "${args[@]}"
-}
-
-update_index() {
-    local args=(-o "$owner" -r "$repo" -t $CR_TOKEN --push)
-
-    echo 'Updating charts repo index...'
-    cr index "${args[@]}"
 }
 
 main "$@"
