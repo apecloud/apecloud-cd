@@ -57,9 +57,6 @@ delete_release_charts() {
     echo "$charts_files" | filter_charts
 }
 
-check_release_charts() {
-}
-
 release_charts() {
     local args=( -o "$owner" -r "$repo" -c "$(git rev-parse HEAD)" -t $CR_TOKEN --make-release-latest false --skip-existing )
 
