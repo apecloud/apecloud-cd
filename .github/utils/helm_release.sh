@@ -73,7 +73,7 @@ main() {
 
     if [ -d ../.cr-release-packages ]; then
         delete_release_charts
-        sleep 5
+
         mv ../.cr-release-packages .
         mv ../.cr-index .
         release_charts
