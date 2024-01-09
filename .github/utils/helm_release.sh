@@ -6,7 +6,7 @@ set -o pipefail
 
 DEFAULT_CHART_RELEASER_VERSION=v1.6.1
 GITHUB_API="https://api.github.com"
-DELETE_CHARTS_DIR="../.cr-release-packages"
+DELETE_CHARTS_DIR=".cr-release-packages"
 DEFAULT_GITHUB_REPO="apecloud/helm-charts"
 
 show_help() {
@@ -62,7 +62,7 @@ release_charts() {
     echo "Releasing charts..."
     cr upload "${args[@]}"
 
-    charts_files=$( ls -1 ./*.tgz )
+    charts_files=$( ls -1 $DELETE_CHARTS_DIR )
     check_flag=0
     for i in {1..10}; do
         check_flag=0
@@ -107,10 +107,9 @@ main() {
     export PATH="$install_dir:$PATH"
 
     if [ -d ../.cr-release-packages ]; then
-        delete_release_charts
-
         mv ../.cr-release-packages .
         mv ../.cr-index .
+        delete_release_charts
         release_charts
         update_index
     fi
