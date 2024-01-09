@@ -5,6 +5,9 @@ set -o nounset
 set -o pipefail
 
 DEFAULT_CHART_RELEASER_VERSION=v1.6.0
+GITHUB_API="https://api.github.com"
+DELETE_CHARTS_DIR=".cr-release-packages"
+DEFAULT_GITHUB_REPO="apecloud/helm-charts"
 
 show_help() {
 cat << EOF
@@ -15,14 +18,54 @@ Usage: $(basename "$0") <options>
     -o, --owner              The repo owner
     -r, --repo               The repo name
     -n, --install-dir        The Path to install the cr tool
+    -gt, --github-token      Github token
+    -gr, --github-repo       Github repo
 EOF
+}
+
+gh_curl() {
+    if [[ -z "$GITHUB_TOKEN" ]]; then
+        curl -H "Accept: application/vnd.github.v3.raw" \
+            $@
+    else
+        curl -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3.raw" \
+            $@
+    fi
+}
+
+delete_release_version() {
+    release_id=$( gh_curl -s $GITHUB_API/repos/$GITHUB_REPO/releases/tags/$TAG_NAME | jq -r '.id' )
+    if [[ -n "$release_id" && "$release_id" != "null" ]]; then
+        echo "delete $GITHUB_REPO release $TAG_NAME"
+        gh_curl -s -X DELETE $GITHUB_API/repos/$GITHUB_REPO/releases/$release_id
+    fi
+    echo "delete $GITHUB_REPO tag $TAG_NAME"
+    gh_curl -s -X DELETE  $GITHUB_API/repos/$GITHUB_REPO/git/refs/tags/$TAG_NAME
+}
+
+filter_charts() {
+    while read -r chart_name; do
+        echo "delete chart $chart_name"
+        TAG_NAME=${chart_name%*.tgz}
+        delete_release_version &
+    done
+    wait
+}
+
+delete_release_charts() {
+    charts_files=$( ls -1 $DELETE_CHARTS_DIR )
+    echo "$charts_files" | filter_charts
 }
 
 main() {
     local version="$DEFAULT_CHART_RELEASER_VERSION"
-    local owner=
-    local repo=
-    local install_dir=
+    local owner=""
+    local repo=""
+    local install_dir=""
+    local GITHUB_REPO="$DEFAULT_GITHUB_REPO"
+    local GITHUB_TOKEN=""
+    local TAG_NAME=""
 
     parse_command_line "$@"
 
@@ -32,6 +75,7 @@ main() {
     export PATH="$install_dir:$PATH"
 
     if [ -d ../.cr-release-packages ]; then
+        delete_release_charts
         mv ../.cr-release-packages .
         mv ../.cr-index .
 
@@ -83,6 +127,18 @@ parse_command_line() {
                     shift
                 fi
                 ;;
+            -gt|--github-token)
+                if [[ -n "${2:-}" ]]; then
+                    GITHUB_TOKEN="$2"
+                    shift
+                fi
+            ;;
+            -gr|--github-repo)
+                if [[ -n "${2:-}" ]]; then
+                    GITHUB_REPO="$2"
+                    shift
+                fi
+            ;;
             *)
                 break
                 ;;
