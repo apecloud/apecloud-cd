@@ -45,7 +45,6 @@ delete_release_version() {
 
 filter_charts() {
     while read -r chart_name; do
-        echo "delete chart $chart_name"
         TAG_NAME=${chart_name%*.tgz}
         delete_release_version &
     done
@@ -74,8 +73,7 @@ main() {
 
     if [ -d ../.cr-release-packages ]; then
         delete_release_charts
-
-        ls ../.cr-release-packages
+        sleep 5
         mv ../.cr-release-packages .
         mv ../.cr-index .
         release_charts
