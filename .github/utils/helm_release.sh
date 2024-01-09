@@ -78,6 +78,7 @@ release_charts() {
         done
         if [[ $check_flag -eq 0 ]]; then
             echo "$(tput -T xterm setaf 1)Releasing charts Successfully$(tput -T xterm sgr0)"
+            break
         fi
         sleep 1
     done
