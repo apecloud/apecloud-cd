@@ -18,20 +18,23 @@ Usage: $(basename "$0") <options>
     -o, --owner              The repo owner
     -r, --repo               The repo name
     -n, --install-dir        The Path to install the cr tool
-    -gt, --github-token      Github token
     -gr, --github-repo       Github repo
 EOF
 }
 
 gh_curl() {
-    if [[ -z "$GITHUB_TOKEN" ]]; then
+    if [[ -z "$CR_TOKEN" ]]; then
         curl -H "Accept: application/vnd.github.v3.raw" \
             $@
     else
-        curl -H "Authorization: token $GITHUB_TOKEN" \
+        curl -H "Authorization: token $CR_TOKEN" \
             -H "Accept: application/vnd.github.v3.raw" \
             $@
     fi
+}
+
+gh_release_create() {
+    gh release create $TAG_NAME --repo $GITHUB_REPO --title $TAG_NAME --prerelease --generate-notes
 }
 
 delete_release_version() {
@@ -64,7 +67,6 @@ main() {
     local repo=""
     local install_dir=""
     local GITHUB_REPO="$DEFAULT_GITHUB_REPO"
-    local GITHUB_TOKEN=""
     local TAG_NAME=""
 
     parse_command_line "$@"
@@ -127,12 +129,6 @@ parse_command_line() {
                     shift
                 fi
                 ;;
-            -gt|--github-token)
-                if [[ -n "${2:-}" ]]; then
-                    GITHUB_TOKEN="$2"
-                    shift
-                fi
-            ;;
             -gr|--github-repo)
                 if [[ -n "${2:-}" ]]; then
                     GITHUB_REPO="$2"
@@ -167,7 +163,7 @@ parse_command_line() {
 }
 
 release_charts() {
-    local args=( -o "$owner" -r "$repo" -c "$(git rev-parse HEAD)" -t $CR_TOKEN --skip-existing )
+    local args=( -o "$owner" -r "$repo" -c "$(git rev-parse HEAD)" -t $CR_TOKEN)
 
     echo 'Releasing charts...'
     cr upload "${args[@]}"
