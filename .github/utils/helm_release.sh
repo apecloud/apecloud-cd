@@ -6,7 +6,7 @@ set -o pipefail
 
 DEFAULT_CHART_RELEASER_VERSION=v1.6.0
 GITHUB_API="https://api.github.com"
-DELETE_CHARTS_DIR=".cr-release-packages"
+DELETE_CHARTS_DIR="../.cr-release-packages"
 DEFAULT_GITHUB_REPO="apecloud/helm-charts"
 
 show_help() {
