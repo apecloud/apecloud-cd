@@ -33,10 +33,6 @@ gh_curl() {
     fi
 }
 
-gh_release_create() {
-    gh release create $TAG_NAME --repo $GITHUB_REPO --title $TAG_NAME --prerelease --generate-notes
-}
-
 delete_release_version() {
     release_id=$( gh_curl -s $GITHUB_API/repos/$GITHUB_REPO/releases/tags/$TAG_NAME | jq -r '.id' )
     if [[ -n "$release_id" && "$release_id" != "null" ]]; then
@@ -53,7 +49,6 @@ filter_charts() {
         TAG_NAME=${chart_name%*.tgz}
         delete_release_version &
     done
-    wait
 }
 
 delete_release_charts() {
@@ -78,9 +73,9 @@ main() {
 
     if [ -d ../.cr-release-packages ]; then
         delete_release_charts
+        wait
         mv ../.cr-release-packages .
         mv ../.cr-index .
-        sleep 10
         release_charts
         update_index
     fi
@@ -163,9 +158,9 @@ parse_command_line() {
 }
 
 release_charts() {
-    local args=( -o "$owner" -r "$repo" -c "$(git rev-parse HEAD)" -t $CR_TOKEN)
+    local args=( -o "$owner" -r "$repo" -c "$(git rev-parse HEAD)" -t $CR_TOKEN --make-release-latest false --skip-existing )
 
-    echo "Releasing charts... $args"
+    echo "Releasing charts..."
     cr upload "${args[@]}"
 }
 
