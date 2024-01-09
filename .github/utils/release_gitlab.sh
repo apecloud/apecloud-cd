@@ -375,7 +375,7 @@ release_helm() {
         if [[ -z "$PROJECT_ID_TMP" ]]; then
             continue
         fi
-        sleep 5
+        sleep 10
         request_url=$API_URL/$PROJECT_ID_TMP/packages/helm/api/$CHANNEL/charts
         upload_chart $request_type $request_url $chart
     done
