@@ -269,6 +269,6 @@ jobs:
         shell: bash
         run: |
           cd helm-charts-enterprise
-          args=(--owner "apecloud" --repo "helm-charts-enterprise")
+          args=(--owner "apecloud" --repo "helm-charts-enterprise" --github-token "${{ env.CR_TOKEN }}")
           
           "${{ github.workspace }}/apecloud-cd/.github/utils/helm_release.sh" "${args[@]}"
