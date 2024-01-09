@@ -4,7 +4,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-DEFAULT_CHART_RELEASER_VERSION=v1.6.0
+DEFAULT_CHART_RELEASER_VERSION=v1.6.1
 GITHUB_API="https://api.github.com"
 DELETE_CHARTS_DIR="../.cr-release-packages"
 DEFAULT_GITHUB_REPO="apecloud/helm-charts"
@@ -80,7 +80,7 @@ main() {
         delete_release_charts
         mv ../.cr-release-packages .
         mv ../.cr-index .
-
+        sleep 10
         release_charts
         update_index
     fi
@@ -165,7 +165,7 @@ parse_command_line() {
 release_charts() {
     local args=( -o "$owner" -r "$repo" -c "$(git rev-parse HEAD)" -t $CR_TOKEN)
 
-    echo 'Releasing charts...'
+    echo "Releasing charts... $args"
     cr upload "${args[@]}"
 }
 
