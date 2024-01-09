@@ -78,6 +78,7 @@ env:
 
 jobs:
   release-chart:
+    name: ${{ inputs.CHART_DIR }} ${{ inputs.SPECIFY_CHART }}
     permissions:
       contents: write
     runs-on: ubuntu-latest
