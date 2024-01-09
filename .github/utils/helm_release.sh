@@ -49,6 +49,7 @@ filter_charts() {
         TAG_NAME=${chart_name%*.tgz}
         delete_release_version &
     done
+    wait
 }
 
 delete_release_charts() {
@@ -73,7 +74,8 @@ main() {
 
     if [ -d ../.cr-release-packages ]; then
         delete_release_charts
-        wait
+
+        ls ../.cr-release-packages
         mv ../.cr-release-packages .
         mv ../.cr-index .
         release_charts
@@ -92,30 +94,18 @@ parse_command_line() {
                 if [[ -n "${2:-}" ]]; then
                     version="$2"
                     shift
-                else
-                    echo "ERROR: '-v|--version' cannot be empty." >&2
-                    show_help
-                    exit 1
                 fi
                 ;;
             -o|--owner)
                 if [[ -n "${2:-}" ]]; then
                     owner="$2"
                     shift
-                else
-                    echo "ERROR: '--owner' cannot be empty." >&2
-                    show_help
-                    exit 1
                 fi
                 ;;
             -r|--repo)
                 if [[ -n "${2:-}" ]]; then
                     repo="$2"
                     shift
-                else
-                    echo "ERROR: '--repo' cannot be empty." >&2
-                    show_help
-                    exit 1
                 fi
                 ;;
             -n|--install-dir)
@@ -137,18 +127,6 @@ parse_command_line() {
 
         shift
     done
-
-    if [[ -z "$owner" ]]; then
-        echo "ERROR: '-o|--owner' is required." >&2
-        show_help
-        exit 1
-    fi
-
-    if [[ -z "$repo" ]]; then
-        echo "ERROR: '-r|--repo' is required." >&2
-        show_help
-        exit 1
-    fi
 
     if [[ -z "$install_dir" ]]; then
         local arch
