@@ -753,7 +753,7 @@ jobs:
               fi 
           fi
           
-          if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* ]]; then
+          if [[ "${{ inputs.KB_PRE_VERSION }}" != "v0.5."* && "${{ inputs.KB_PRE_VERSION }}" != "v0.6."* && "${{ inputs.KB_PRE_VERSION }}" != "v0.7."* ]]; then
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"tidb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##tidb|${{ needs.test-tidb.outputs.pre-test-result }}"
               fi 
