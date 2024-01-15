@@ -77,7 +77,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: setup k3d k3s
-        uses: apecloud/setup-k3d-k3s@v1
+        uses: apecloud-inc/setup-k3d-k3s@v1
         with:
           k3d-name: "${{ env.K3D_NAME }}"
           version: "v${{ inputs.k3s-version }}"
