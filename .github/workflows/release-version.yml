@@ -130,7 +130,7 @@ jobs:
                       cd ${{ github.workspace }}/sentry
                       go get -u github.com/apecloud/kbcli@${RELEASE_VERSION}-cloud
                       cd ${{ github.workspace }}
-                      make module
+                      make module TARGETS="apiserver prompt sentry task-manager"
                       break
                   fi
                   sleep 1
