@@ -1,4 +1,4 @@
-name: Release chart Enterprise
+name: Release Enterprise Charts
 
 on:
   workflow_call:
@@ -83,6 +83,11 @@ on:
         type: string
         required: false
         default: ''
+      ENABLE_JIHU:
+        description: "Enable upload to jihu chart"
+        type: boolean
+        required: false
+        default: true
 
 
 env:
@@ -97,6 +102,7 @@ env:
 
 jobs:
   release-chart:
+    name: ${{ inputs.CHART_DIR }} ${{ inputs.CHART_NAME }} ${{ inputs.SPECIFY_CHART }}
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -245,7 +251,7 @@ jobs:
           token: ${{ env.CR_TOKEN }}
 
       - name: Upload Helm Charts to Jihulab
-        if: inputs.PUSH_ENABLE
+        if: ${{ inputs.PUSH_ENABLE && inputs.ENABLE_JIHU }}
         run: |
           ls .cr-release-packages
           cd .cr-release-packages
