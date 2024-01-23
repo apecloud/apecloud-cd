@@ -18,10 +18,6 @@ on:
         type: string
         required: false
         default: ''
-    outputs:
-      kubeblocks-pkg-version:
-        description: "kubeblocks pkg version"
-        value: ${{ jobs.get-kbcli-branch.outputs.kubeblocks-pkg-version }}
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -31,7 +27,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       kbcli-branch: ${{ steps.get_kbcli_branch.outputs.kbcli-branch }}
-      kubeblocks-pkg-version: ${{ steps.get_kubeblocks_version.outputs.kubeblocks-pkg-version }}
     steps:
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -47,19 +42,6 @@ jobs:
           echo "$cmd"
           KBCLI_BRANCH=$(eval "$cmd")
           echo kbcli-branch=$KBCLI_BRANCH >> $GITHUB_OUTPUT
-
-      - name: Checkout kbcli Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/kbcli
-          path: kbcli
-          ref: ${{ steps.get_kbcli_branch.outputs.kbcli-branch }}
-
-      - name: get kbcli gomod kubeblocks pkg version
-        id: get_kubeblocks_version
-        run: |
-          KUBEBLOCKS_PKG_VERSION=$(cat kbcli/go.mod | grep "github.com/apecloud/kubeblocks" | awk 'NR==1{print $2}')
-          echo kubeblocks-pkg-version=$KUBEBLOCKS_PKG_VERSION >> $GITHUB_OUTPUT
 
   release-kbcli-tag:
     needs: [ get-kbcli-branch ]
