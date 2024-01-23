@@ -132,7 +132,7 @@ jobs:
                       cd ${{ github.workspace }}/sentry
                       go get -u github.com/apecloud/kbcli@${RELEASE_VERSION}-cloud
                       CLOUD_TARGETS="apiserver prompt sentry task-manager"
-                      if [[ "$KUBEBLOCKS_PKG_VERSION" != "$CLOUD_KB_PKG_VERSION" ]]; then
+                      if [[ -n "$KUBEBLOCKS_PKG_VERSION" && "$KUBEBLOCKS_PKG_VERSION" != "$CLOUD_KB_PKG_VERSION" ]]; then
                           for cloud_target in $(echo "$CLOUD_TARGETS"); do
                               echo "cloud target:"$cloud_target
                               cd ${{ github.workspace }}/$cloud_target
