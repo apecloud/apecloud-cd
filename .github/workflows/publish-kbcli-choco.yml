@@ -41,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: apecloud/chocolatey-packages
+          repository: apecloud-inc/chocolatey-packages
           path: chocolatey
           token: ${{ env.GITHUB_TOKEN }}
       - name: Chocolately version
