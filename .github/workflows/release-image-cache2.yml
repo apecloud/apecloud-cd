@@ -1,0 +1,308 @@
+name: Release Image Cache2
+
+on:
+  workflow_call:
+    inputs:
+      MAKE_OPS_PRE:
+        description: "The pre ops name of makefile (e.g. generate)"
+        type: string
+        required: false
+        default: ''
+      IMG:
+        description: "The URL to use building/pushing image targets (e.g. apecloud/kubeblocks)"
+        type: string
+        required: false
+        default: ''
+      VERSION:
+        description: "The tag name of image (default: latest)"
+        type: string
+        required: false
+        default: ''
+      BUILDX_PLATFORMS:
+        description: "buildx platforms (default: linux/amd64,linux/arm64)"
+        type: string
+        required: false
+        default: 'linux/amd64,linux/arm64'
+      BUILDX_ARGS:
+        description: "buildx args "
+        type: string
+        required: false
+        default: ''
+      GO_VERSION:
+        description: "Install the specify version of GO"
+        type: string
+        required: false
+        default: ''
+      GOOGLE_REGISTRY_URL:
+        description: "The GOOGLE REGISTRY URL to use building/pushing image targets (e.g. us-east1-docker.pkg.dev)"
+        type: string
+        required: false
+        default: ''
+      GIT_CONFIG:
+        description: "InsteadOf git config global url (default: false)"
+        type: boolean
+        required: false
+        default: false
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      SYNC_ENABLE:
+        description: "Enable sync images"
+        type: boolean
+        required: false
+        default: true
+      CONTEXT:
+        description: "Build's context is the set of files located in the specified PATH or URL (default: .)"
+        type: string
+        required: false
+        default: '.'
+      DOCKERFILE_PATH:
+        description: "Path to the Dockerfile (default: ./Dockerfile)"
+        type: string
+        required: false
+        default: './Dockerfile'
+      REMOVE_PREFIX:
+        description: "Enable remove prefix v  (default: true)"
+        type: boolean
+        required: false
+        default: true
+      PYTHON_VERSION:
+        description: "Install the specify version of Python"
+        type: string
+        required: false
+        default: ''
+      POETRY_VERSION:
+        description: "Install the specify version of Poetry"
+        type: string
+        required: false
+        default: ''
+      ENABLE_SUBMODULE:
+        description: "Enable checkout submodule  (default: false)"
+        type: boolean
+        required: false
+        default: false
+      GITHUB_REPO:
+        description: "The github repo to release chart"
+        type: string
+        required: false
+        default: ''
+      GITHUB_REF:
+        description: "The github repo ref to release chart"
+        type: string
+        required: false
+        default: 'main'
+
+env:
+  DOCKER_REGISTRY_URL: docker.io
+  ALIYUN_REGISTRY_URL: registry.cn-hangzhou.aliyuncs.com
+  ALIYUN_REGISTRY_URL_NEW: infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com
+  GOOGLE_REGISTRY_URL: us-east1-docker.pkg.dev
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+  ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
+  ALIYUN_USER_NEW: ${{ secrets.ALIYUN_USER_NEW }}
+  ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
+  GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+  GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  release-image:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-latest
+    outputs:
+      tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
+    steps:
+      - name: Checkout Code
+        if: ${{ ! inputs.ENABLE_SUBMODULE }}
+        uses: actions/checkout@v4
+
+      - name: Checkout Code With Submodule
+        if: inputs.ENABLE_SUBMODULE
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: Checkout ${{ inputs.GITHUB_REPO }} Code
+        if: ${{ inputs.GITHUB_REPO != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.GITHUB_REPO }}
+          ref: ${{ inputs.GITHUB_REF }}
+          path: ./${{ inputs.GITHUB_REPO }}
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: copy apecloud addons
+        if: ${{ contains(inputs.GITHUB_REPO, 'addons') }}
+        run: |
+          addons_dir="./${{ inputs.GITHUB_REPO }}/addons"
+          if [[ -d "$addons_dir" && -d ./addons ]]; then
+              cp -r $addons_dir/* ./addons
+          fi
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: image=moby/buildkit:master
+
+      - name: Setup Go specify version
+        if: inputs.GO_VERSION
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ inputs.GO_VERSION }}
+
+      - name: Setup Python specify version
+        if: inputs.PYTHON_VERSION
+        uses: actions/setup-python@v4
+        with:
+          python-version: "${{ inputs.PYTHON_VERSION }}"
+
+      - name: Setup Poetry specify version
+        if: inputs.POETRY_VERSION
+        uses: Gr1N/setup-poetry@v8
+        with:
+          poetry-version: "${{ inputs.POETRY_VERSION }}"
+
+      - name: Setup Python specify version
+        if: inputs.PYTHON_VERSION
+        uses: actions/setup-python@v4
+        with:
+          python-version: "${{ inputs.PYTHON_VERSION }}"
+
+      - name: Setup Poetry specify version
+        if: inputs.POETRY_VERSION
+        uses: Gr1N/setup-poetry@v8
+        with:
+          poetry-version: "${{ inputs.POETRY_VERSION }}"
+
+      - name: git config
+        if: inputs.GIT_CONFIG
+        run: |
+          git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GITHUB_TOKEN }}@github.com".insteadof "https://github.com"
+
+      - name: make pre
+        if: inputs.MAKE_OPS_PRE
+        run: |
+          make ${{ inputs.MAKE_OPS_PRE }}
+
+      - name: remove v prefix
+        id: get_tag_name
+        shell: bash
+        run: |
+          tag_name="${{ inputs.VERSION }}"
+          if [[ "$tag_name" == "v"*  && "${{ inputs.REMOVE_PREFIX }}" == "true" ]]; then
+              tag_name="${tag_name/v/}"
+          fi
+          echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
+
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY_URL }}
+          username: ${{ env.DOCKER_USER }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
+        name: Build and Push to Docker Hub
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ inputs.CONTEXT }}
+          file: ${{ inputs.DOCKERFILE_PATH }}
+          tags: ${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
+          platforms: ${{ inputs.BUILDX_PLATFORMS }}
+          build-args: ${{ inputs.BUILDX_ARGS }}
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+          sbom: false
+
+      - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
+        name: Login to Aliyun Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.ALIYUN_REGISTRY_URL }}
+          username: ${{ env.ALIYUN_USER }}
+          password: ${{ env.ALIYUN_PASSWORD }}
+
+      - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
+        name: Build and Push to Aliyun Registry
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ inputs.CONTEXT }}
+          file: ${{ inputs.DOCKERFILE_PATH }}
+          tags: ${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
+          platforms: ${{ inputs.BUILDX_PLATFORMS }}
+          build-args: ${{ inputs.BUILDX_ARGS }}
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+          sbom: false
+
+      - if: ${{ env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
+        name: Login to Aliyun Registry New
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.ALIYUN_REGISTRY_URL_NEW }}
+          username: ${{ env.ALIYUN_USER_NEW }}
+          password: ${{ env.ALIYUN_PASSWORD_NEW }}
+
+      - if: ${{ env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
+        name: Build and Push to Aliyun Registry New
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ inputs.CONTEXT }}
+          file: ${{ inputs.DOCKERFILE_PATH }}
+          tags: ${{ env.ALIYUN_REGISTRY_URL_NEW }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
+          platforms: ${{ inputs.BUILDX_PLATFORMS }}
+          build-args: ${{ inputs.BUILDX_ARGS }}
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+          sbom: false
+
+      - if: ${{ env.GOOGLE_CREDENTIALS != '' }}
+        id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
+
+      - if: ${{ env.GOOGLE_CREDENTIALS != '' && env.GOOGLE_SERVICE_ACCOUNT != ''  }}
+        name: Build and Push to Google Registry
+        run: |
+          GOOGLE_REGISTRY_URL=${{ inputs.GOOGLE_REGISTRY_URL }}
+          if [ -z "$GOOGLE_REGISTRY_URL" ]; then
+              GOOGLE_REGISTRY_URL=${{ env.GOOGLE_REGISTRY_URL }}
+          fi
+          
+          gcloud auth activate-service-account \
+             ${{ env.GOOGLE_SERVICE_ACCOUNT }} \
+             --key-file=${{ steps.auth.outputs.credentials_file_path }}
+          
+          gcloud auth configure-docker $GOOGLE_REGISTRY_URL
+
+      - if: ${{ env.GOOGLE_CREDENTIALS != '' && env.GOOGLE_SERVICE_ACCOUNT != ''  }}
+        name: Build and Push to Google Registry
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ inputs.CONTEXT }}
+          file: ${{ inputs.DOCKERFILE_PATH }}
+          tags: ${GOOGLE_REGISTRY_URL}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
+          platforms: ${{ inputs.BUILDX_PLATFORMS }}
+          build-args: ${{ inputs.BUILDX_ARGS }}
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+          sbom: false
