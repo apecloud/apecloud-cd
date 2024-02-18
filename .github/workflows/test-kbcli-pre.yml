@@ -171,9 +171,17 @@ jobs:
           fi
           
           if [[ -n "${{ env.AWS_ACCESS_KEY_ID }}" && -n "${{ env.AWS_SECRET_ACCESS_KEY }}" ]]; then
-              cmd="${cmd} --args '${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}' "
+              if [[ "${KB_VERSION}" != "0.5."* && "${KB_VERSION}" != "0.6."* && "${KB_VERSION}" != "0.7."* && "${KB_VERSION}" != "0.8."* && -n "${{ env.JIHULAB_ACCESS_TOKEN }}" ]]; then
+                  cmd="${cmd} --args '${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }} --jihulab-token ${{ env.JIHULAB_ACCESS_TOKEN }}' "
+              else
+                  cmd="${cmd} --args '${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}' "
+              fi
           else
-              cmd="${cmd} --args '${{ inputs.test-args }}' "
+              if [[ "${KB_VERSION}" != "0.5."* && "${KB_VERSION}" != "0.6."* && "${KB_VERSION}" != "0.7."* && "${KB_VERSION}" != "0.8."* && -n "${{ env.JIHULAB_ACCESS_TOKEN }}" ]]; then
+                  cmd="${cmd} --args '${{ inputs.test-args }} --jihulab-token ${{ env.JIHULAB_ACCESS_TOKEN }}' "
+              else
+                  cmd="${cmd} --args '${{ inputs.test-args }}' "
+              fi
           fi
           echo "$cmd"
           eval "$cmd" | tee -a ${file_log}

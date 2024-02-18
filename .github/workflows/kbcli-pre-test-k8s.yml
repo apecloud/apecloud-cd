@@ -27,7 +27,8 @@ on:
         description: 'test type (apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|weaviate|qdrant|
         smartengine|mysqlscale|greptimedb|nebula|risingwave|starrocks|etcd|foxlake|omysql|asmysql|
         openldap|milvus|clickhouse|pika|opensearch|elasticsearch|tdengine|vllm|orioledb|official-pg|ggml|
-        zookeeper|mariadb|tidb|xinference|oracle|opengauss|influxdb|flink)'
+        zookeeper|mariadb|tidb|xinference|oracle|opengauss|influxdb|flink|solr|doris|halo|mogdb|
+        oceanbase-ent|starrocks-ent|yashandb)'
         type: string
         required: false
         default: '0'
@@ -701,6 +702,118 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
+  solr-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'solr')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "40"
+      test-type-name: "solr-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  doris-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'doris')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "41"
+      test-type-name: "doris-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  halo-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'halo')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "42"
+      test-type-name: "halo-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  mogdb-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mogdb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "43"
+      test-type-name: "mogdb-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  oceanbase-ent-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'oceanbase-ent')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "44"
+      test-type-name: "oceanbase-ent-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  starrocks-ent-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'starrocks-ent')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "45"
+      test-type-name: "starrocks-ent-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  yashandb-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'yashandb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "47"
+      test-type-name: "yashandb-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
   send-message:
     if: ${{ inputs.previous-version && always() }}
     runs-on: ubuntu-latest
@@ -712,7 +825,8 @@ jobs:
              tdengine-pre, milvus-pre, clickhouse-pre, pika-pre, opensearch-pre,
              elasticsearch-pre, vllm-pre, orioledb-pre, official-pg-pre, ggml-pre,
              zookeeper-pre, mariadb-pre , tidb-pre, xinference-pre, oracle-pre, 
-             opengauss-pre, influxdb-pre, flink-pre ]
+             opengauss-pre, influxdb-pre, flink-pre, solr-pre, doris-pre, halo-pre,
+             mogdb-pre, oceanbase-ent-pre, starrocks-ent-pre, yashandb-pre]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -882,6 +996,35 @@ jobs:
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"flink"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##flink-pre|${{ needs.flink-pre.outputs.test-result }}"
               fi  
+          fi
+          
+          if [[ "${{ inputs.release-version }}" != "v0.5."* && "${{ inputs.release-version }}" != "v0.6."* && "${{ inputs.release-version }}" != "v0.7."* && "${{ inputs.release-version }}" != "v0.8."* ]]; then
+              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"solr"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##solr-pre|${{ needs.solr-pre.outputs.test-result }}"
+              fi 
+              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"doris"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##doris-pre|${{ needs.doris-pre.outputs.test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"halo"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##halo-pre|${{ needs.halo-pre.outputs.test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mogdb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##mogdb-pre|${{ needs.mogdb-pre.outputs.test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oceanbase-ent"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##oceanbase-ent-pre|${{ needs.oceanbase-ent-pre.outputs.test-result }}"
+              fi  
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"starrocks-ent"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##starrocks-ent-pre|${{ needs.starrocks-ent-pre.outputs.test-result }}"
+              fi  
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"yashandb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##yashandb-pre|${{ needs.yashandb-pre.outputs.test-result }}"
+              fi 
           fi
           
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
