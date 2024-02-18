@@ -54,6 +54,7 @@ env:
   HELM_VERSION: v3.13.1
   K3D_NAME: default
   REGION: us-central1
+  JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
 
 permissions:
   id-token: write
@@ -113,12 +114,21 @@ jobs:
           
               file_log_pre="$(date +%Y-%m-%d-%T)".log
               touch ${file_log_pre}
-              bash .github/utils/kbcli-pre-test.sh \
-                  --type "${{ inputs.test-type }}" \
-                  --kubeblocks-version "${PREVIOUS_VERSION}" \
-                  --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
-                  --region "${{ env.REGION }}" \
-                  --random-suffix "${rand_suffix}" | tee -a ${file_log_pre}
+              if [[ "${PREVIOUS_VERSION}" != "0.5."* && "${PREVIOUS_VERSION}" != "0.6."* && "${PREVIOUS_VERSION}" != "0.7."* && "${PREVIOUS_VERSION}" != "0.8."* && -n "${{ env.JIHULAB_ACCESS_TOKEN }}" ]]; then
+                  bash .github/utils/kbcli-pre-test.sh \
+                      --type "${{ inputs.test-type }}" \
+                      --kubeblocks-version "${PREVIOUS_VERSION}" \
+                      --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }} --jihulab-token ${{ env.JIHULAB_ACCESS_TOKEN }} " \
+                      --region "${{ env.REGION }}" \
+                      --random-suffix "${rand_suffix}" | tee -a ${file_log_pre}
+              else
+                  bash .github/utils/kbcli-pre-test.sh \
+                      --type "${{ inputs.test-type }}" \
+                      --kubeblocks-version "${PREVIOUS_VERSION}" \
+                      --args "${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
+                      --region "${{ env.REGION }}" \
+                      --random-suffix "${rand_suffix}" | tee -a ${file_log_pre}
+              fi
 
               pre_test_ret="$( grep "【FAILED】" ${file_log_pre} || true )"
               if [[ -n "$pre_test_ret" ]]; then
@@ -131,13 +141,23 @@ jobs:
           
           file_log_install="$(date +%Y-%m-%d-%T)".log
           touch ${file_log_install}
-          bash .github/utils/kbcli-test.sh \
-              --type "0" \
-              --kubeblocks-version "${KB_VERSION}" \
-              --cloud-provider "k3s" \
-              --args "${{ inputs.test-args }} --enable-csi-hostpath-driver false --config-s3 true --check-addon false --upgrade true --enable-addon kubebench --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
-              --region "${{ env.REGION }}" \
-              --random-suffix "${rand_suffix}" | tee -a ${file_log_install}
+          if [[ "${KB_VERSION}" != "0.5."* && "${KB_VERSION}" != "0.6."* && "${KB_VERSION}" != "0.7."* && "${KB_VERSION}" != "0.8."* && -n "${{ env.JIHULAB_ACCESS_TOKEN }}" ]]; then
+              bash .github/utils/kbcli-test.sh \
+                  --type "0" \
+                  --kubeblocks-version "${KB_VERSION}" \
+                  --cloud-provider "k3s" \
+                  --args "${{ inputs.test-args }} --enable-csi-hostpath-driver false --config-s3 true --check-addon false --upgrade true --enable-addon kubebench --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }} --jihulab-token ${{ env.JIHULAB_ACCESS_TOKEN }} " \
+                  --region "${{ env.REGION }}" \
+                  --random-suffix "${rand_suffix}" | tee -a ${file_log_install}
+          else
+              bash .github/utils/kbcli-test.sh \
+                  --type "0" \
+                  --kubeblocks-version "${KB_VERSION}" \
+                  --cloud-provider "k3s" \
+                  --args "${{ inputs.test-args }} --enable-csi-hostpath-driver false --config-s3 true --check-addon false --upgrade true --enable-addon kubebench --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}" \
+                  --region "${{ env.REGION }}" \
+                  --random-suffix "${rand_suffix}" | tee -a ${file_log_install}
+          fi
           rm -rf ${file_log_install} 
           
           file_log="$(date +%Y-%m-%d-%T)".log

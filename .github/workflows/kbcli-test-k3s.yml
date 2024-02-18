@@ -17,7 +17,8 @@ on:
         description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|weaviate|qdrant|
         smartengine|mysqlscale|greptimedb|nebula|risingwave|starrocks|etcd|foxlake|omysql|asmysql|
         openldap|milvus|clickhouse|pika|opensearch|elasticsearch|tdengine|vllm|orioledb|official-pg|ggml|
-        zookeeper|mariadb|tidb|xinference|oracle|opengauss|influxdb|flink|yashandb)'
+        zookeeper|mariadb|tidb|xinference|oracle|opengauss|influxdb|flink|solr|doris|halo|mogdb|
+        starrocks-ent|yashandb)'
         type: string
         required: false
         default: ''
@@ -51,7 +52,8 @@ on:
         description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|weaviate|qdrant|
         smartengine|mysqlscale|greptimedb|nebula|risingwave|starrocks|etcd|foxlake|omysql|asmysql|
         openldap|milvus|clickhouse|pika|opensearch|elasticsearch|tdengine|vllm|orioledb|official-pg|ggml|
-        zookeeper|mariadb|tidb|xinference|oracle|opengauss|influxdb|flink|yashandb)'
+        zookeeper|mariadb|tidb|xinference|oracle|opengauss|influxdb|flink|solr|doris|halo|mogdb|
+        starrocks-ent|yashandb)'
         type: string
         required: false
         default: ''
@@ -604,8 +606,78 @@ jobs:
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
     secrets: inherit
 
+  test-solr:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'solr')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.')  }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "40"
+      test-type-name: "solr"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-doris:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'doris')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.')  }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "41"
+      test-type-name: "doris"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-halo:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'halo')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.')  }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "42"
+      test-type-name: "halo"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-mogdb:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mogdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.')  }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "43"
+      test-type-name: "mogdb"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-starrocks-ent:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks-ent')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.')  }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "45"
+      test-type-name: "starrocks-ent"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
   test-yashandb:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'yashandb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'yashandb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ enable-gke-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
@@ -627,7 +699,7 @@ jobs:
              test-openldap, test-milvus, test-clickhouse, test-pika, test-opensearch, test-elasticsearch,
              test-vllm, test-tdengine, test-orioledb, test-official-pg, test-ggml, test-zookeeper,
              test-mariadb, test-tidb, test-xinference, test-oracle, test-opengauss, test-influxdb,
-             test-flink, test-yashandb]
+             test-flink, test-solr, test-doris, test-halo, test-mogdb, test-starrocks-ent, test-yashandb]
     steps:
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -794,8 +866,28 @@ jobs:
           fi 
           
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* ]]; then
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"solr"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##solr|${{ needs.test-solr.outputs.pre-test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"doris"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##doris|${{ needs.test-doris.outputs.pre-test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"halo"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##halo|${{ needs.test-halo.outputs.pre-test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mogdb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##mogdb|${{ needs.test-mogdb.outputs.pre-test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"starrocks-ent"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##starrocks-ent|${{ needs.test-starrocks-ent.outputs.pre-test-result }}"
+              fi 
+          
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"yashandb"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##yashandb|${{ needs.test-yashandb.outputs.test-result }}"
+                  TEST_RESULT="${TEST_RESULT}##yashandb|${{ needs.test-yashandb.outputs.pre-test-result }}"
               fi 
           fi 
           
@@ -969,6 +1061,26 @@ jobs:
           fi 
           
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* ]]; then
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"solr"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##solr|${{ needs.test-solr.outputs.test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"doris"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##doris|${{ needs.test-doris.outputs.test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"halo"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##halo|${{ needs.test-halo.outputs.test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mogdb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##mogdb|${{ needs.test-mogdb.outputs.test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"starrocks-ent"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##starrocks-ent|${{ needs.test-starrocks-ent.outputs.test-result }}"
+              fi 
+          
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"yashandb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##yashandb|${{ needs.test-yashandb.outputs.test-result }}"
               fi 
