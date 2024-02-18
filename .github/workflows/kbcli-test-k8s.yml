@@ -22,7 +22,7 @@ on:
         description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|weaviate|
         qdrant|smartengine|mysqlscale|greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|
         omysql|asmysql|openldap|polardbx|milvus|clickhouse|pika|opensearch|elasticsearch|tdengine|
-        vllm|orioledb|official-pg|ggml|zookeeper|mariadb|tidb|xinference|oracle|opengauss|influxdb|flink)'
+        vllm|orioledb|official-pg|ggml|zookeeper|mariadb|tidb|xinference|oracle|opengauss|influxdb|flink|yashandb)'
         type: string
         required: false
         default: ''
@@ -75,7 +75,7 @@ on:
         description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|weaviate|
         qdrant|smartengine|mysqlscale|greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|
         omysql|asmysql|openldap|polardbx|milvus|clickhouse|pika|opensearch|elasticsearch|tdengine|
-        vllm|orioledb|official-pg|ggml|zookeeper|mariadb|tidb|xinference|oracle|opengauss|influxdb|flink)'
+        vllm|orioledb|official-pg|ggml|zookeeper|mariadb|tidb|xinference|oracle|opengauss|influxdb|flink|yashandb)'
         type: string
         required: false
         default: ''
@@ -817,6 +817,23 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-yashandb:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'yashandb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "47"
+      test-type-name: "yashandb"
+      test-args: "${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
@@ -827,7 +844,7 @@ jobs:
              test-openldap, test-polardbx, test-tdengine, test-milvus, test-clickhouse,
              test-pika, test-opensearch, test-elasticsearch, test-vllm, test-orioledb,
              test-official-pg, test-ggml, test-zookeeper, test-mariadb , test-tidb,
-             test-xinference, test-oracle , test-opengauss, test-influxdb, test-flink ]
+             test-xinference, test-oracle , test-opengauss, test-influxdb, test-flink, test-yashandb ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -999,6 +1016,12 @@ jobs:
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"flink"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##flink|${{ needs.test-flink.outputs.test-result }}"
               fi  
+          fi 
+          
+          if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* ]]; then
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"yashandb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##yashandb|${{ needs.test-yashandb.outputs.test-result }}"
+              fi 
           fi 
           
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
