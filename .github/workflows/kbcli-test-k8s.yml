@@ -1,62 +1,6 @@
 name: Kbcli Test on K8S
 
 on:
-  workflow_call:
-    inputs:
-      CLOUD_PROVIDER:
-        description: 'cloud k8s cluster provider (e.g. eks/gke)'
-        type: string
-        required: false
-        default: 'eks'
-      KB_VERSION:
-        description: 'kubeblocks release version'
-        type: string
-        required: false
-        default: 'latest'
-      KB_PRE_VERSION:
-        description: 'kubeblocks previous version of upgrade'
-        type: string
-        required: false
-        default: ''
-      TEST_TYPE:
-        description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|weaviate|
-        qdrant|smartengine|mysqlscale|greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|
-        omysql|asmysql|openldap|polardbx|milvus|clickhouse|pika|opensearch|elasticsearch|tdengine|
-        vllm|orioledb|official-pg|ggml|zookeeper|mariadb|tidb|xinference|oracle|opengauss|influxdb|
-        flink|solr|doris|halo|mogdb|oceanbase-ent|starrocks-ent|yashandb)'
-        type: string
-        required: false
-        default: ''
-      CLUSTER_VERSION:
-        description: 'k8s cluster version (e.g. 1.26)'
-        type: string
-        required: false
-        default: '1.26'
-      REGION:
-        description: 'k8s region name'
-        type: string
-        required: false
-        default: 'cn-northwest-1'
-      INSTANCE_TYPE:
-        description: 'node instance types (e.g. amd64/arm64)'
-        type: string
-        required: false
-        default: 'amd64'
-      BRANCH_NAME:
-        description: 'testinfra branch name'
-        type: string
-        required: false
-        default: 'main'
-      APECD_REF:
-        description: "The branch name of apecloud-cd"
-        type: string
-        required: false
-        default: 'main'
-      ARGS:
-        description: "Test args"
-        type: string
-        required: false
-        default: ''
   workflow_dispatch:
     inputs:
       CLOUD_PROVIDER:
@@ -73,11 +17,10 @@ on:
         required: false
         default: ''
       TEST_TYPE:
-        description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|weaviate|
-        qdrant|smartengine|mysqlscale|greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|
-        omysql|asmysql|openldap|polardbx|milvus|clickhouse|pika|opensearch|elasticsearch|tdengine|
-        vllm|orioledb|official-pg|ggml|zookeeper|mariadb|tidb|xinference|oracle|opengauss|influxdb|
-        flink|solr|doris|halo|mogdb|oceanbase-ent|starrocks-ent|yashandb)'
+        description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|mysqlscale|weaviate|qdrant|smartengine|
+        greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|orioledb|oracle-mysql|official-pg|asmysql|openldap|
+        polardbx|opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
+        oracle|opengauss|influxdb|flink|solr|doris|halo|mogdb|oceanbase-ent|starrocks-ent|apecloud-postgresql|yashandb)'
         type: string
         required: false
         default: ''
@@ -103,6 +46,58 @@ on:
         default: 'main'
       ARGS:
         description: "Test args"
+        required: false
+        default: ''
+  workflow_call:
+    inputs:
+      CLOUD_PROVIDER:
+        description: 'cloud k8s cluster provider'
+        type: string
+        required: false
+        default: 'eks'
+      KB_VERSION:
+        description: 'kubeblocks release version'
+        type: string
+        required: false
+        default: 'latest'
+      KB_PRE_VERSION:
+        description: 'kubeblocks previous version of upgrade'
+        type: string
+        required: false
+        default: ''
+      TEST_TYPE:
+        description: 'test type'
+        type: string
+        required: false
+        default: ''
+      CLUSTER_VERSION:
+        description: 'k8s cluster version'
+        type: string
+        required: false
+        default: '1.26'
+      REGION:
+        description: 'k8s region name'
+        type: string
+        required: false
+        default: 'cn-northwest-1'
+      INSTANCE_TYPE:
+        description: 'node instance types'
+        type: string
+        required: false
+        default: 'amd64'
+      BRANCH_NAME:
+        description: 'testinfra branch name'
+        type: string
+        required: false
+        default: 'main'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      ARGS:
+        description: "Test args"
+        type: string
         required: false
         default: ''
 
