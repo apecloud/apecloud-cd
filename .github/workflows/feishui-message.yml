@@ -43,7 +43,7 @@ permissions:
   contents: read
 
 jobs:
-  sned-message:
+  send-message:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout apecloud-cd Code

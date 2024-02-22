@@ -266,7 +266,7 @@ jobs:
     secrets: inherit
 
   test-starrocks:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks|') || endsWith(inputs.TEST_TYPE, 'starrocks')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ enable-gke-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
@@ -546,7 +546,7 @@ jobs:
     secrets: inherit
 
   test-oracle:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oracle')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oracle|') || endsWith(inputs.TEST_TYPE, 'oracle')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
     needs: [ enable-gke-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
@@ -761,7 +761,7 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##risingwave|${{ needs.test-risingwave.outputs.pre-test-result }}"
               fi
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"starrocks"* ]]; then
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"starrocks|"* || "${{ inputs.TEST_TYPE }}" == *"starrocks" ]]; then
                   TEST_RESULT="${TEST_RESULT}##starrocks|${{ needs.test-starrocks.outputs.pre-test-result }}"
               fi
           
@@ -843,7 +843,7 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##xinference|${{ needs.test-xinference.outputs.pre-test-result }}"
               fi 
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oracle"* ]]; then
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oracle|"* || "${{ inputs.TEST_TYPE }}" == *"oracle" ]]; then
                   TEST_RESULT="${TEST_RESULT}##oracle|${{ needs.test-oracle.outputs.pre-test-result }}"
               fi 
           

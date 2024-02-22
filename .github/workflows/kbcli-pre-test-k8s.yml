@@ -24,11 +24,10 @@ on:
         required: false
         default: 'main'
       test-type:
-        description: 'test type (apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|weaviate|qdrant|
-        smartengine|mysqlscale|greptimedb|nebula|risingwave|starrocks|etcd|foxlake|omysql|asmysql|
-        openldap|milvus|clickhouse|pika|opensearch|elasticsearch|tdengine|vllm|orioledb|official-pg|ggml|
-        zookeeper|mariadb|tidb|xinference|oracle|opengauss|influxdb|flink|solr|doris|halo|mogdb|
-        oceanbase-ent|starrocks-ent|yashandb)'
+        description: 'test type (apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|mysqlscale|weaviate|qdrant|smartengine|
+        greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|orioledb|oracle-mysql|official-pg|asmysql|openldap|
+        polardbx|opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
+        oracle|opengauss|influxdb|flink|solr|doris|halo|mogdb|oceanbase-ent|starrocks-ent|apecloud-postgresql|yashandb)'
         type: string
         required: false
         default: '0'
@@ -287,7 +286,7 @@ jobs:
     secrets: inherit
 
   starrocks-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'starrocks')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'starrocks|') || endsWith(inputs.TEST_TYPE, 'starrocks')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -319,7 +318,7 @@ jobs:
     secrets: inherit
 
   oceanbase-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'oceanbase')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'oceanbase|') || endsWith(inputs.TEST_TYPE, 'oceanbase')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -367,7 +366,7 @@ jobs:
     secrets: inherit
 
   oracle-mysql-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'omysql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'oracle-mysql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -639,7 +638,7 @@ jobs:
     secrets: inherit
 
   oracle-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'oracle')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'oracle|') || endsWith(inputs.TEST_TYPE, 'oracle')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -892,7 +891,7 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##risingwave-pre|${{ needs.risingwave-pre.outputs.test-result }}"
               fi
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"starrocks"* ]]; then
+              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"starrocks|"* || "${{ inputs.TEST_TYPE }}" == *"starrocks" ]]; then
                   TEST_RESULT="${TEST_RESULT}##starrocks-pre|${{ needs.starrocks-pre.outputs.test-result }}"
               fi
           
@@ -900,7 +899,7 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##etcd-pre|${{ needs.etcd-pre.outputs.test-result }}"
               fi
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"oceanbase"* ]]; then
+              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"oceanbase|"* || "${{ inputs.TEST_TYPE }}" == *"oceanbase" ]]; then
                   TEST_RESULT="${TEST_RESULT}##oceanbase-pre|${{ needs.oceanbase-pre.outputs.test-result }}"
               fi
              
@@ -908,7 +907,7 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##foxlake-pre|${{ needs.foxlake-pre.outputs.test-result }}"
               fi
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"omysql"* ]]; then
+              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"oracle-mysql"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##oracle-mysql-pre|${{ needs.oracle-mysql-pre.outputs.test-result }}"
               fi
             
@@ -981,7 +980,7 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##xinference-pre|${{ needs.xinference-pre.outputs.test-result }}"
               fi 
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oracle"* ]]; then
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oracle|"* || "${{ inputs.TEST_TYPE }}" == *"oracle" ]]; then
                   TEST_RESULT="${TEST_RESULT}##oracle-pre|${{ needs.oracle-pre.outputs.test-result }}"
               fi 
           
