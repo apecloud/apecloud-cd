@@ -16,7 +16,7 @@ on:
         description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|mysqlscale|weaviate|qdrant|smartengine|
         greptimedb|nebula|risingwave|starrocks|etcd|foxlake|orioledb|oracle-mysql|official-pg|asmysql|openldap|
         opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
-        oracle|opengauss|influxdb|flink|solr|doris|halo|mogdb|starrocks-ent|apecloud-postgresql|yashandb)'
+        oracle|opengauss|influxdb|flink|solr|doris|halo|mogdb|starrocks-ent|apecloud-postgresql|yashandb|polardbx)'
         type: string
         required: false
         default: ''
@@ -685,6 +685,20 @@ jobs:
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
     secrets: inherit
 
+  test-polardbx:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'polardbx')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "23"
+      test-type-name: "polardbx"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
@@ -694,7 +708,8 @@ jobs:
              test-openldap, test-milvus, test-clickhouse, test-pika, test-opensearch, test-elasticsearch,
              test-vllm, test-tdengine, test-orioledb, test-official-pg, test-ggml, test-zookeeper,
              test-mariadb, test-tidb, test-xinference, test-oracle, test-opengauss, test-influxdb,
-             test-flink, test-solr, test-doris, test-halo, test-mogdb, test-starrocks-ent, test-yashandb]
+             test-flink, test-solr, test-doris, test-halo, test-mogdb, test-starrocks-ent, test-yashandb,
+             test-polardbx ]
     steps:
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -883,6 +898,10 @@ jobs:
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"yashandb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##yashandb|${{ needs.test-yashandb.outputs.pre-test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"polardbx"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##polardbx|${{ needs.test-polardbx.outputs.pre-test-result }}"
               fi 
           fi 
           
@@ -1078,6 +1097,10 @@ jobs:
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"yashandb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##yashandb|${{ needs.test-yashandb.outputs.test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"polardbx"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##polardbx|${{ needs.test-polardbx.outputs.test-result }}"
               fi 
           fi 
           
