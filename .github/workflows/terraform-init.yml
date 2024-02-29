@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       cloud-provider:
-        description: 'cloud k8s cluster provider (e.g. eks/gke)'
+        description: 'cloud k8s cluster provider (e.g. eks/gke/aks)'
         type: string
         required: false
         default: 'eks'
@@ -78,6 +78,7 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
 permissions:
   id-token: write
@@ -115,6 +116,11 @@ jobs:
         with:
           credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
 
+      - if: ${{ inputs.cloud-provider == 'aks' && env.AZURE_CREDENTIALS != '' }}
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS }}
+
       - name: get deploy path
         id: get_deploy_path
         run: |
@@ -125,6 +131,8 @@ jobs:
               DEPLOY_PATH="./aws/eks-default-vpc"
           elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
               DEPLOY_PATH="./gcp/gke-cicd"
+          elif [[ "${{ inputs.cloud-provider }}" == "aks" ]]; then
+              DEPLOY_PATH="./gcp/aks-cicd"
           fi
           echo "deploy-path:"$DEPLOY_PATH
           echo deploy-path=${DEPLOY_PATH} >> $GITHUB_OUTPUT
@@ -172,19 +180,21 @@ jobs:
           fi
           
           NODE_SIZE="${{ inputs.node-size }}"
-          if [[ "${{ inputs.cloud-provider }}" == "eks" && -n "${COUNTS}" && -z "${NODE_SIZE}" ]]; then
+          if [[ ("${{ inputs.cloud-provider }}" == "eks" || "${{ inputs.cloud-provider }}" == "aks" ) && -n "${COUNTS}" && -z "${NODE_SIZE}" ]]; then
               NODE_SIZE="$(( $COUNTS * 2 ))"
           elif [[ "${{ inputs.cloud-provider }}" == "gke" && -n "${COUNTS}" && -z "${NODE_SIZE}" ]]; then
               NODE_SIZE="$(( $COUNTS / 4 + 1 ))"
           fi
           
-          if [[ "${{ inputs.cloud-provider }}" == "eks" && -z "${NODE_SIZE}" && -z "${{ inputs.test-mode }}" ]]; then
+          if [[ ("${{ inputs.cloud-provider }}" == "eks" || "${{ inputs.cloud-provider }}" == "aks" ) && -z "${NODE_SIZE}" && -z "${{ inputs.test-mode }}" ]]; then
               if [[ "${{ inputs.kb-version }}" == "v0.5."* ]]; then
                   NODE_SIZE=4
               elif [[ "${{ inputs.kb-version }}" == "v0.6."* ]]; then
                   NODE_SIZE=17
               elif [[ "${{ inputs.kb-version }}" == "v0.7."* ]]; then
                   NODE_SIZE=33
+              elif [[ "${{ inputs.kb-version }}" == "v0.8."* ]]; then
+                  NODE_SIZE=35
               fi
           elif [[ "${{ inputs.cloud-provider }}" == "gke" && -z "${NODE_SIZE}" && -z "${{ inputs.test-mode }}" ]]; then
               if [[ "${{ inputs.kb-version }}" == "v0.5."* ]]; then
@@ -193,6 +203,8 @@ jobs:
                   NODE_SIZE=6
               elif [[ "${{ inputs.kb-version }}" == "v0.7."* ]]; then
                   NODE_SIZE=11
+              elif [[ "${{ inputs.kb-version }}" == "v0.8."* ]]; then
+                  NODE_SIZE=12
               fi
           fi
           
@@ -226,12 +238,7 @@ jobs:
           fi
           echo "$cmd"
           eval "$cmd"
-          K8S_CLUSTER_NAME=""
-          if [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
-              K8S_CLUSTER_NAME=$(cat terraform.tfstate | grep "\"EKS\":" | awk 'NR==1{print $2}' | sed 's/,//g;s/\"//g')
-          elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
-              K8S_CLUSTER_NAME=$(cat terraform.tfstate | grep "\"cluster\":" | awk 'NR==1{print $2}' | sed 's/,//g;s/\"//g')
-          fi
+          K8S_CLUSTER_NAME="$(cat terraform.tfstate | yq eval '.outputs.cluster_name.value' -)"
           echo "k8s-cluster-name:${K8S_CLUSTER_NAME}"
           echo k8s-cluster-name=${K8S_CLUSTER_NAME} >> $GITHUB_OUTPUT
 
