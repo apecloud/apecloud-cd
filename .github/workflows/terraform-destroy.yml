@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       cloud-provider:
-        description: 'cloud k8s cluster provider (e.g. eks/gke)'
+        description: 'cloud k8s cluster provider (e.g. eks/gke/aks)'
         type: string
         required: false
         default: 'eks'
@@ -24,6 +24,7 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
 permissions:
   id-token: write
@@ -52,6 +53,11 @@ jobs:
         with:
           credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
 
+      - if: ${{ inputs.cloud-provider == 'aks' && env.AZURE_CREDENTIALS != '' }}
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS }}
+
       - name: get deploy path
         id: get_deploy_path
         run: |
@@ -60,6 +66,8 @@ jobs:
               DEPLOY_PATH="./aws/eks-default-vpc"
           elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
               DEPLOY_PATH="./gcp/gke-cicd"
+          elif [[ "${{ inputs.cloud-provider }}" == "aks" ]]; then
+              DEPLOY_PATH="./gcp/aks-cicd"
           fi
           echo "deploy-path:"$DEPLOY_PATH
           echo deploy-path=${DEPLOY_PATH} >> $GITHUB_OUTPUT

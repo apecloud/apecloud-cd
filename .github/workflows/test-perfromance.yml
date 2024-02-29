@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       cloud-provider:
-        description: 'cloud k8s cluster provider (e.g. eks/gke)'
+        description: 'cloud k8s cluster provider (e.g. eks/gke/aks)'
         type: string
         required: false
         default: 'eks'
@@ -107,6 +107,7 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
   HELM_VERSION: v3.13.1
 
 
@@ -174,6 +175,17 @@ jobs:
           gcloud container clusters get-credentials ${{ inputs.k8s-cluster-name }} \
               --zone ${{ inputs.region }} \
               --project ${{ vars.GOOGLE_PROJECT }}
+
+      - if: ${{ inputs.cloud-provider == 'aks' && env.AZURE_CREDENTIALS != '' }}
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS }}
+
+      - if: ${{ inputs.cloud-provider == 'aks' && env.AZURE_CREDENTIALS != '' }}
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: '${{ inputs.k8s-cluster-name }}-group'
+          cluster-name: '${{ inputs.k8s-cluster-name }}'
 
       - name: run perfromance test
         id: perfromance_test
