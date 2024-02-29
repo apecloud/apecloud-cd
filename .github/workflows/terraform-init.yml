@@ -132,7 +132,7 @@ jobs:
           elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
               DEPLOY_PATH="./gcp/gke-cicd"
           elif [[ "${{ inputs.cloud-provider }}" == "aks" ]]; then
-              DEPLOY_PATH="./gcp/aks-cicd"
+              DEPLOY_PATH="./azure/aks-cicd"
           fi
           echo "deploy-path:"$DEPLOY_PATH
           echo deploy-path=${DEPLOY_PATH} >> $GITHUB_OUTPUT
