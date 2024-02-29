@@ -237,7 +237,7 @@ jobs:
               cmd="${cmd} --disk-size ${{ inputs.disk-size }} "
           fi
           
-          if [[ "${{ inputs.cloud-provider }}" == "aks" && -z "${{ env.AZURE_CREDENTIALS }}" ]]; then
+          if [[ "${{ inputs.cloud-provider }}" == "aks" && -n "${{ env.AZURE_CREDENTIALS }}" ]]; then
               APP_ID="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientId' -)"
               APP_PASSWORD="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientSecret' -)"
               if [[ -n "${APP_ID}" ]]; then
