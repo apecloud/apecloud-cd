@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       cloud-provider:
-        description: 'cloud k8s cluster provider (e.g. eks/gke)'
+        description: 'cloud k8s cluster provider (e.g. eks/gke/aks)'
         type: string
         required: false
         default: 'eks'

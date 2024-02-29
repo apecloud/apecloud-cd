@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       CLOUD_PROVIDER:
-        description: 'cloud k8s cluster provider (e.g. eks/gke)'
+        description: 'cloud k8s cluster provider (e.g. eks/gke/aks)'
         required: false
         default: 'eks'
       KB_VERSION:
