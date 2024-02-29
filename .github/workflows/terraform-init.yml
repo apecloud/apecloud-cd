@@ -236,6 +236,19 @@ jobs:
           if [[ -n "${{ inputs.disk-size}}" ]]; then
               cmd="${cmd} --disk-size ${{ inputs.disk-size }} "
           fi
+          
+          if [[ "${{ inputs.cloud-provider }}" == "aks" && -n "${{ env.AZURE_CREDENTIALS }}" ]]; then
+              APP_ID="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientId' -)"
+              APP_PASSWORD="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientSecret' -)"
+              if [[ -n "${APP_ID}" ]]; then
+                  cmd="${cmd} --app-id ${APP_ID} "
+              fi
+              
+              if [[ -n "${APP_PASSWORD}" ]]; then
+                  cmd="${cmd} --app-password ${APP_PASSWORD} "
+              fi
+          fi
+          
           echo "$cmd"
           eval "$cmd"
           K8S_CLUSTER_NAME="$(cat terraform.tfstate | yq eval '.outputs.cluster_name.value' -)"
