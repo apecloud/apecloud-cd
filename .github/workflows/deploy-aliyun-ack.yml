@@ -56,6 +56,7 @@ env:
   DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   CLOUD_VALUES_DEV: ${{ secrets.CLOUD_VALUES_DEV }}
   CLOUD_VALUES_PROD: ${{ secrets.CLOUD_VALUES_PROD }}
+  CLOUD_VALUES_INTL_PROD: ${{ secrets.CLOUD_VALUES_INTL_PROD }}
   CLOUD_ENV_NAME: ${{ inputs.CLOUD_ENV_NAME }}
   RELEASE_VERSION: ${{ inputs.VERSION }}
   DEPLOY_RESULT: 0
@@ -114,6 +115,9 @@ jobs:
               ;;
               prod)
                   echo '${{ env.ACK_KUBECONFIG_PROD }}' > $HOME/.kube/config
+              ;;
+              intl_prod)
+                  echo '${{ env.ACK_KUBECONFIG_INTL_PROD }}' > $HOME/.kube/config
               ;;
               *)
                   echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
