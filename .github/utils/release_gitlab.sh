@@ -10,7 +10,7 @@ DEFAULT_HELM_CHARTS_PROJECT_ID=85949 # helm-charts
 DEFAULT_ADDONS_PROJECT_ID=150246 # addons
 DEFAULT_APPLICATIONS_PROJECT_ID=152630 # applications
 DEFAULT_HELM_CHARTS_LIST="kubeblocks|kubeblocks-cloud"
-DEFAULT_ADDONS_LIST=""
+DEFAULT_ADDONS_LIST="[oceanbase]|[starrocks]"
 DEFAULT_CHARTS_DIR="../deploy"
 
 show_help() {
