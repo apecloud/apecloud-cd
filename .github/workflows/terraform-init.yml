@@ -1,10 +1,11 @@
 name: Terrafrom Init
 
 on:
+  push:
   workflow_call:
     inputs:
       cloud-provider:
-        description: 'cloud k8s cluster provider (e.g. eks/gke/aks)'
+        description: 'cloud k8s cluster provider (e.g. eks/gke/aks/aks-cn)'
         type: string
         required: false
         default: 'eks'
@@ -79,6 +80,7 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
   AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_CREDENTIALS_CN: ${{ secrets.AZURE_CREDENTIALS_CN }}
 
 permissions:
   id-token: write
@@ -121,168 +123,184 @@ jobs:
         with:
           creds: ${{ env.AZURE_CREDENTIALS }}
 
-      - name: get deploy path
-        id: get_deploy_path
-        run: |
-          DEPLOY_PATH=""
-          if [[ "${{ inputs.cloud-provider }}" == "eks" && "${{ inputs.test-mode }}" == "performance" ]]; then
-              DEPLOY_PATH="./aws/eks-default-vpc-multinode"
-          elif [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
-              DEPLOY_PATH="./aws/eks-default-vpc"
-          elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
-              DEPLOY_PATH="./gcp/gke-cicd"
-          elif [[ "${{ inputs.cloud-provider }}" == "aks" ]]; then
-              DEPLOY_PATH="./azure/aks-cicd"
-          fi
-          echo "deploy-path:"$DEPLOY_PATH
-          echo deploy-path=${DEPLOY_PATH} >> $GITHUB_OUTPUT
-
-      - name: terraform init k8s
-        id: terraform_init
-        run: |
-          COUNTS=""
-          if [[ -n "${{ inputs.test-type }}" ]]; then
-              COUNTS=$(echo "${{ inputs.test-type }}" | grep -o "|" | wc -l)
-              COUNTS=$(( $COUNTS + 1 ))
-          fi
-          NODE_TYPE="${{ inputs.node-type }}"
-          if [[ "${{ inputs.test-mode }}" == "smoke" ]]; then
-              if [[ -z "$COUNTS" ]]; then
-                  if [[ "${{ inputs.kb-version }}" == "v0.5."* ]]; then
-                      COUNTS=3
-                  elif [[ "${{ inputs.kb-version }}" == "v0.6."* ]]; then
-                      COUNTS=4
-                  else
-                      COUNTS=6
-                  fi
-              elif [[ $COUNTS -gt 1 ]]; then
-                  COUNTS=$(( $COUNTS - 1 ))
-              fi
-              
-              if [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
-                  if [[ "${{ inputs.instance-type }}" == "arm64" ]]; then
-                      NODE_TYPE="t4g.medium"
-                  else
-                      NODE_TYPE="t3a.medium"
-                  fi
-              elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
-                  if [[ "${{ inputs.instance-type }}" == "arm64" ]]; then
-                      NODE_TYPE=t2a-standard-2
-                  else
-                      NODE_TYPE="e2-standard-2"
-                  fi
-              fi
-              echo "NODE_TYPE:$NODE_TYPE"
-          elif [[ "${{ inputs.test-mode }}" == "fault" && -z "$COUNTS" ]]; then
-              COUNTS=3
-          elif [[ "${{ inputs.test-mode }}" == "kubechat" && -z "$COUNTS" ]]; then
-              COUNTS=0
-          fi
-          
-          NODE_SIZE="${{ inputs.node-size }}"
-          if [[ ("${{ inputs.cloud-provider }}" == "eks" || "${{ inputs.cloud-provider }}" == "aks" ) && -n "${COUNTS}" && -z "${NODE_SIZE}" ]]; then
-              NODE_SIZE="$(( $COUNTS * 2 ))"
-          elif [[ "${{ inputs.cloud-provider }}" == "gke" && -n "${COUNTS}" && -z "${NODE_SIZE}" ]]; then
-              NODE_SIZE="$(( $COUNTS / 4 + 1 ))"
-          fi
-          
-          if [[ ("${{ inputs.cloud-provider }}" == "eks" || "${{ inputs.cloud-provider }}" == "aks" ) && -z "${NODE_SIZE}" && -z "${{ inputs.test-mode }}" ]]; then
-              if [[ "${{ inputs.kb-version }}" == "v0.5."* ]]; then
-                  NODE_SIZE=4
-              elif [[ "${{ inputs.kb-version }}" == "v0.6."* ]]; then
-                  NODE_SIZE=17
-              elif [[ "${{ inputs.kb-version }}" == "v0.7."* ]]; then
-                  NODE_SIZE=33
-              elif [[ "${{ inputs.kb-version }}" == "v0.8."* ]]; then
-                  NODE_SIZE=35
-              fi
-          elif [[ "${{ inputs.cloud-provider }}" == "gke" && -z "${NODE_SIZE}" && -z "${{ inputs.test-mode }}" ]]; then
-              if [[ "${{ inputs.kb-version }}" == "v0.5."* ]]; then
-                  NODE_SIZE=2
-              elif [[ "${{ inputs.kb-version }}" == "v0.6."* ]]; then
-                  NODE_SIZE=6
-              elif [[ "${{ inputs.kb-version }}" == "v0.7."* ]]; then
-                  NODE_SIZE=11
-              elif [[ "${{ inputs.kb-version }}" == "v0.8."* ]]; then
-                  NODE_SIZE=12
-              fi
-          fi
-          
-          cd ${{ steps.get_deploy_path.outputs.deploy-path }}
-          cmd="bash run.sh --type 1 "
-          cmd="${cmd} --cluster-version '${{ inputs.cluster-version }}' "
-          cmd="${cmd} --instance-type '${{ inputs.instance-type }}' "
-          
-          if [[ -n "${{ inputs.cluster-name }}" ]]; then
-              cmd="${cmd} --cluster-name ${{ inputs.cluster-name }} "
-          fi
-          
-          if [[ -n "${{ inputs.region }}" ]]; then
-              cmd="${cmd} --cluster-region ${{ inputs.region }} "
-          fi
-          
-          if [[ -n "${NODE_SIZE}" ]]; then
-              cmd="${cmd} --node-size ${NODE_SIZE} "
-          fi
-          
-          if [[ -n "${NODE_TYPE}" ]]; then
-              cmd="${cmd} --node-type ${NODE_TYPE} "
-          fi
-          
-          if [[ -n "${{ inputs.enable-spot }}" ]]; then
-              cmd="${cmd} --enable-spot ${{ inputs.enable-spot }} "
-          fi
-          
-          if [[ -n "${{ inputs.disk-size}}" ]]; then
-              cmd="${cmd} --disk-size ${{ inputs.disk-size }} "
-          fi
-          
-          if [[ "${{ inputs.cloud-provider }}" == "aks" && -n "${{ env.AZURE_CREDENTIALS }}" ]]; then
-              APP_ID="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientId' -)"
-              APP_PASSWORD="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientSecret' -)"
-              if [[ -n "${APP_ID}" ]]; then
-                  cmd="${cmd} --app-id ${APP_ID} "
-              fi
-              
-              if [[ -n "${APP_PASSWORD}" ]]; then
-                  cmd="${cmd} --app-password ${APP_PASSWORD} "
-              fi
-          fi
-          
-          echo "$cmd"
-          eval "$cmd"
-          K8S_CLUSTER_NAME="$(cat terraform.tfstate | yq eval '.outputs.cluster_name.value' -)"
-          echo "k8s-cluster-name:${K8S_CLUSTER_NAME}"
-          echo k8s-cluster-name=${K8S_CLUSTER_NAME} >> $GITHUB_OUTPUT
-
-      - name: upload artifact
-        uses: actions/upload-artifact@v3
-        if: ${{ always() }}
+      - if: ${{ env.AZURE_CREDENTIALS_CN != '' }}
+        uses: azure/login@v1
         with:
-          if-no-files-found: error
-          name: ${{ inputs.artifact-name }}
-          path: ${{ steps.get_deploy_path.outputs.deploy-path }}
-          retention-days: 1
+          creds: ${{ env.AZURE_CREDENTIALS_CN }}
+          environment: azurechinacloud
 
-      - name: Setup kubectl
-        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
-        uses: azure/setup-kubectl@v3
-        with:
-          version: "v1.28.3"
-
-      - name: Setup gcloud
-        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
-        uses: google-github-actions/setup-gcloud@v1
-
-      - name: setup gke-gcloud-auth-plugin
-        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
-        uses: simenandre/setup-gke-gcloud-auth-plugin@v1
-
-      - name: get gke credential
-        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
-        run: |
-          gcloud container clusters get-credentials ${{ steps.terraform_init.outputs.k8s-cluster-name }} \
-              --zone ${{ inputs.region }} \
-              --project ${{ vars.GOOGLE_PROJECT }}
-          
-          kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded-latest.yaml
+#      - name: get deploy path
+#        id: get_deploy_path
+#        run: |
+#          DEPLOY_PATH=""
+#          if [[ "${{ inputs.cloud-provider }}" == "eks" && "${{ inputs.test-mode }}" == "performance" ]]; then
+#              DEPLOY_PATH="./aws/eks-default-vpc-multinode"
+#          elif [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
+#              DEPLOY_PATH="./aws/eks-default-vpc"
+#          elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
+#              DEPLOY_PATH="./gcp/gke-cicd"
+#          elif [[ "${{ inputs.cloud-provider }}" == "aks" || "${{ inputs.cloud-provider }}" == "aks-cn" ]]; then
+#              DEPLOY_PATH="./azure/aks-cicd"
+#          fi
+#          echo "deploy-path:"$DEPLOY_PATH
+#          echo deploy-path=${DEPLOY_PATH} >> $GITHUB_OUTPUT
+#
+#      - name: terraform init k8s
+#        id: terraform_init
+#        run: |
+#          COUNTS=""
+#          if [[ -n "${{ inputs.test-type }}" ]]; then
+#              COUNTS=$(echo "${{ inputs.test-type }}" | grep -o "|" | wc -l)
+#              COUNTS=$(( $COUNTS + 1 ))
+#          fi
+#          NODE_TYPE="${{ inputs.node-type }}"
+#          if [[ "${{ inputs.test-mode }}" == "smoke" ]]; then
+#              if [[ -z "$COUNTS" ]]; then
+#                  if [[ "${{ inputs.kb-version }}" == "v0.5."* ]]; then
+#                      COUNTS=3
+#                  elif [[ "${{ inputs.kb-version }}" == "v0.6."* ]]; then
+#                      COUNTS=4
+#                  else
+#                      COUNTS=6
+#                  fi
+#              elif [[ $COUNTS -gt 1 ]]; then
+#                  COUNTS=$(( $COUNTS - 1 ))
+#              fi
+#
+#              if [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
+#                  if [[ "${{ inputs.instance-type }}" == "arm64" ]]; then
+#                      NODE_TYPE="t4g.medium"
+#                  else
+#                      NODE_TYPE="t3a.medium"
+#                  fi
+#              elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
+#                  if [[ "${{ inputs.instance-type }}" == "arm64" ]]; then
+#                      NODE_TYPE=t2a-standard-2
+#                  else
+#                      NODE_TYPE="e2-standard-2"
+#                  fi
+#              fi
+#              echo "NODE_TYPE:$NODE_TYPE"
+#          elif [[ "${{ inputs.test-mode }}" == "fault" && -z "$COUNTS" ]]; then
+#              COUNTS=3
+#          elif [[ "${{ inputs.test-mode }}" == "kubechat" && -z "$COUNTS" ]]; then
+#              COUNTS=0
+#          fi
+#
+#          NODE_SIZE="${{ inputs.node-size }}"
+#          if [[ ("${{ inputs.cloud-provider }}" == "eks" || "${{ inputs.cloud-provider }}" == "aks" || "${{ inputs.cloud-provider }}" == "aks-cn" ) && -n "${COUNTS}" && -z "${NODE_SIZE}" ]]; then
+#              NODE_SIZE="$(( $COUNTS * 2 ))"
+#          elif [[ "${{ inputs.cloud-provider }}" == "gke" && -n "${COUNTS}" && -z "${NODE_SIZE}" ]]; then
+#              NODE_SIZE="$(( $COUNTS / 4 + 1 ))"
+#          fi
+#
+#          if [[ ("${{ inputs.cloud-provider }}" == "eks" || "${{ inputs.cloud-provider }}" == "aks" || "${{ inputs.cloud-provider }}" == "aks-cn" ) && -z "${NODE_SIZE}" && -z "${{ inputs.test-mode }}" ]]; then
+#              if [[ "${{ inputs.kb-version }}" == "v0.5."* ]]; then
+#                  NODE_SIZE=4
+#              elif [[ "${{ inputs.kb-version }}" == "v0.6."* ]]; then
+#                  NODE_SIZE=17
+#              elif [[ "${{ inputs.kb-version }}" == "v0.7."* ]]; then
+#                  NODE_SIZE=33
+#              elif [[ "${{ inputs.kb-version }}" == "v0.8."* ]]; then
+#                  NODE_SIZE=35
+#              fi
+#          elif [[ "${{ inputs.cloud-provider }}" == "gke" && -z "${NODE_SIZE}" && -z "${{ inputs.test-mode }}" ]]; then
+#              if [[ "${{ inputs.kb-version }}" == "v0.5."* ]]; then
+#                  NODE_SIZE=2
+#              elif [[ "${{ inputs.kb-version }}" == "v0.6."* ]]; then
+#                  NODE_SIZE=6
+#              elif [[ "${{ inputs.kb-version }}" == "v0.7."* ]]; then
+#                  NODE_SIZE=11
+#              elif [[ "${{ inputs.kb-version }}" == "v0.8."* ]]; then
+#                  NODE_SIZE=12
+#              fi
+#          fi
+#
+#          cd ${{ steps.get_deploy_path.outputs.deploy-path }}
+#          cmd="bash run.sh --type 1 "
+#          cmd="${cmd} --cluster-version '${{ inputs.cluster-version }}' "
+#          cmd="${cmd} --instance-type '${{ inputs.instance-type }}' "
+#
+#          if [[ -n "${{ inputs.cluster-name }}" ]]; then
+#              cmd="${cmd} --cluster-name ${{ inputs.cluster-name }} "
+#          fi
+#
+#          if [[ -n "${{ inputs.region }}" ]]; then
+#              cmd="${cmd} --cluster-region ${{ inputs.region }} "
+#          fi
+#
+#          if [[ -n "${NODE_SIZE}" ]]; then
+#              cmd="${cmd} --node-size ${NODE_SIZE} "
+#          fi
+#
+#          if [[ -n "${NODE_TYPE}" ]]; then
+#              cmd="${cmd} --node-type ${NODE_TYPE} "
+#          fi
+#
+#          if [[ -n "${{ inputs.enable-spot }}" ]]; then
+#              cmd="${cmd} --enable-spot ${{ inputs.enable-spot }} "
+#          fi
+#
+#          if [[ -n "${{ inputs.disk-size}}" ]]; then
+#              cmd="${cmd} --disk-size ${{ inputs.disk-size }} "
+#          fi
+#
+#          if [[ "${{ inputs.cloud-provider }}" == "aks" && -n "${{ env.AZURE_CREDENTIALS }}" ]]; then
+#              APP_ID="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientId' -)"
+#              APP_PASSWORD="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientSecret' -)"
+#              if [[ -n "${APP_ID}" ]]; then
+#                  cmd="${cmd} --app-id ${APP_ID} "
+#              fi
+#
+#              if [[ -n "${APP_PASSWORD}" ]]; then
+#                  cmd="${cmd} --app-password ${APP_PASSWORD} "
+#              fi
+#          elif [[ "${{ inputs.cloud-provider }}" == "aks-cn" && -n "${{ env.AZURE_CREDENTIALS_CN }}" ]]; then
+#              APP_ID="$( echo "${{ env.AZURE_CREDENTIALS_CN }}" | yq eval '.clientId' -)"
+#              APP_PASSWORD="$( echo "${{ env.AZURE_CREDENTIALS_CN }}" | yq eval '.clientSecret' -)"
+#              if [[ -n "${APP_ID}" ]]; then
+#                  cmd="${cmd} --app-id ${APP_ID} "
+#              fi
+#
+#              if [[ -n "${APP_PASSWORD}" ]]; then
+#                  cmd="${cmd} --app-password ${APP_PASSWORD} "
+#              fi
+#          fi
+#
+#          echo "$cmd"
+#          eval "$cmd"
+#          K8S_CLUSTER_NAME="$(cat terraform.tfstate | yq eval '.outputs.cluster_name.value' -)"
+#          echo "k8s-cluster-name:${K8S_CLUSTER_NAME}"
+#          echo k8s-cluster-name=${K8S_CLUSTER_NAME} >> $GITHUB_OUTPUT
+#
+#      - name: upload artifact
+#        uses: actions/upload-artifact@v3
+#        if: ${{ always() }}
+#        with:
+#          if-no-files-found: error
+#          name: ${{ inputs.artifact-name }}
+#          path: ${{ steps.get_deploy_path.outputs.deploy-path }}
+#          retention-days: 1
+#
+#      - name: Setup kubectl
+#        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
+#        uses: azure/setup-kubectl@v3
+#        with:
+#          version: "v1.28.3"
+#
+#      - name: Setup gcloud
+#        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
+#        uses: google-github-actions/setup-gcloud@v1
+#
+#      - name: setup gke-gcloud-auth-plugin
+#        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
+#        uses: simenandre/setup-gke-gcloud-auth-plugin@v1
+#
+#      - name: get gke credential
+#        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
+#        run: |
+#          gcloud container clusters get-credentials ${{ steps.terraform_init.outputs.k8s-cluster-name }} \
+#              --zone ${{ inputs.region }} \
+#              --project ${{ vars.GOOGLE_PROJECT }}
+#
+#          kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded-latest.yaml
