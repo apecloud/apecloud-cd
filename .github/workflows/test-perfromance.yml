@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       cloud-provider:
-        description: 'cloud k8s cluster provider (e.g. eks/gke/aks)'
+        description: 'cloud k8s cluster provider (e.g. eks/gke/aks/aks-cn)'
         type: string
         required: false
         default: 'eks'
@@ -108,6 +108,7 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
   AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_CREDENTIALS_CN: ${{ secrets.AZURE_CREDENTIALS_CN }}
   HELM_VERSION: v3.13.1
 
 
@@ -181,7 +182,13 @@ jobs:
         with:
           creds: ${{ env.AZURE_CREDENTIALS }}
 
-      - if: ${{ inputs.cloud-provider == 'aks' && env.AZURE_CREDENTIALS != '' }}
+      - if: ${{ inputs.cloud-provider == 'aks-cn' && env.AZURE_CREDENTIALS_CN != '' }}
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS_CN }}
+          environment: azurechinacloud
+
+      - if: ${{ (inputs.cloud-provider == 'aks' && env.AZURE_CREDENTIALS != '') || (inputs.cloud-provider == 'aks-cn' && env.AZURE_CREDENTIALS_CN != '') }}
         uses: azure/aks-set-context@v3
         with:
           resource-group: '${{ inputs.k8s-cluster-name }}-group'
