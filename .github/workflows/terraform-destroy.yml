@@ -73,8 +73,10 @@ jobs:
               DEPLOY_PATH="./aws/eks-default-vpc"
           elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
               DEPLOY_PATH="./gcp/gke-cicd"
-          elif [[ "${{ inputs.cloud-provider }}" == "aks" || "${{ inputs.cloud-provider }}" == "aks-cn" ]]; then
+          elif [[ "${{ inputs.cloud-provider }}" == "aks" ]]; then
               DEPLOY_PATH="./azure/aks-cicd"
+          elif [[ "${{ inputs.cloud-provider }}" == "aks-cn" ]]; then
+              DEPLOY_PATH="./azure/aks-cn-cicd"
           fi
           echo "deploy-path:"$DEPLOY_PATH
           echo deploy-path=${DEPLOY_PATH} >> $GITHUB_OUTPUT
