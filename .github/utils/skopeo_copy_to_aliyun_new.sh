@@ -27,6 +27,14 @@ do
                 --src-password "$ECR_PASSWORD" \
                 docker://$REGISTRY/$image \
                 docker://infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/$image_name)
+        elif [[ "${REGISTRY}" == *"docker.io"*  ]]; then
+            ret_msg=$(skopeo copy --all \
+                --dest-username "$ALIYUN_USERNAME" \
+                --dest-password "$ALIYUN_PASSWORD" \
+                --src-username "${DOCKER_USER}" \
+                --src-password "${DOCKER_PASSWORD}" \
+                docker://$REGISTRY/$image \
+                docker://infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/$image_name)
         else
             ret_msg=$(skopeo copy --all \
                 --dest-username "$ALIYUN_USERNAME" \

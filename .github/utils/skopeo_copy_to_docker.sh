@@ -27,12 +27,20 @@ do
                 --src-password "$ECR_PASSWORD" \
                 docker://$REGISTRY/$image \
                 docker://docker.io/apecloud/$image_name)
+        elif [[ "${REGISTRY}" == *"docker.io"*  ]]; then
+            ret_msg=$(skopeo copy --all \
+                --dest-username "$ALIYUN_USERNAME" \
+                --dest-password "$ALIYUN_PASSWORD" \
+                --src-username "${DOCKER_USER}" \
+                --src-password "${DOCKER_PASSWORD}" \
+                docker://$REGISTRY/$image \
+                docker://docker.io/apecloud/$image_name)
         else
-          ret_msg=$( skopeo copy --all \
-              --dest-username "$DOCKER_USERNAME" \
-              --dest-password "$DOCKER_PASSWORD" \
-              docker://$REGISTRY/$image \
-              docker://docker.io/apecloud/$image_name)
+            ret_msg=$( skopeo copy --all \
+                --dest-username "$DOCKER_USERNAME" \
+                --dest-password "$DOCKER_PASSWORD" \
+                docker://$REGISTRY/$image \
+                docker://docker.io/apecloud/$image_name)
         fi
         echo "return message:$ret_msg"
         if [[ "$ret_msg" == *"Storing list signatures"* || "$ret_msg" == *"Skipping"* ]]; then
