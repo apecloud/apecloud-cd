@@ -19,7 +19,7 @@ do
     skopeo_flag=0
     ret_msg=""
     for i in {1..10}; do
-        if [[ "${REGISTRY}" == *"ecr"*  ]]; then
+        if [[ "${REGISTRY}" == *"ecr"* ]]; then
             ret_msg=$(skopeo copy --all \
                 --dest-username "$ALIYUN_USERNAME" \
                 --dest-password "$ALIYUN_PASSWORD" \
@@ -27,7 +27,7 @@ do
                 --src-password "$ECR_PASSWORD" \
                 docker://$REGISTRY/$image \
                 docker://registry.cn-hangzhou.aliyuncs.com/apecloud/$image_name)
-        elif [[ "${REGISTRY}" == *"docker.io"*  ]]; then
+        elif [[ "${REGISTRY}" == *"docker.io"* ]]; then
             ret_msg=$(skopeo copy --all \
                 --dest-username "$ALIYUN_USERNAME" \
                 --dest-password "$ALIYUN_PASSWORD" \
