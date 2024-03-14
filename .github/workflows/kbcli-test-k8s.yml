@@ -1227,6 +1227,10 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##starrocks-ent|${{ needs.test-starrocks-ent.outputs.test-result }}"
               fi 
           
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"apecloud-postgresql"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##apecloud-postgresql|${{ needs.test-apecloud-postgresql.outputs.test-result }}"
+              fi 
+          
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"yashandb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##yashandb|${{ needs.test-yashandb.outputs.test-result }}"
               fi 
