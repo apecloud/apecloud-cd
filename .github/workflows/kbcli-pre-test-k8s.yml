@@ -27,7 +27,8 @@ on:
         description: 'test type (apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|mysqlscale|weaviate|qdrant|smartengine|
         greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|orioledb|oracle-mysql|official-pg|asmysql|openldap|
         polardbx|opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
-        oracle|opengauss|influxdb|flink|solr|doris|halo|mogdb|oceanbase-ent|starrocks-ent|apecloud-postgresql|yashandb)'
+        oracle|opengauss|influxdb|flink|solr|doris|halo|mogdb|oceanbase-ent|starrocks-ent|apecloud-postgresql|yashandb|
+        redis-cluster|camellia-redis-proxy|pulsar-nodeport)'
         type: string
         required: false
         default: '0'
@@ -126,7 +127,7 @@ jobs:
     secrets: inherit
 
   postgresql-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'postgresql')) }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -142,7 +143,7 @@ jobs:
     secrets: inherit
 
   redis-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'redis')) }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -190,7 +191,7 @@ jobs:
     secrets: inherit
 
   pulsar-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'pulsar')) && ! contains(inputs.release-version, 'v0.5.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'pulsar|') || endsWith(inputs.TEST_TYPE, 'pulsar')) && ! contains(inputs.release-version, 'v0.5.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -750,7 +751,7 @@ jobs:
     secrets: inherit
 
   mogdb-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mogdb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mogdb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -797,6 +798,22 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
+  apecloud-postgresql-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'apecloud-postgresql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "46"
+      test-type-name: "apecloud-postgresql-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
   yashandb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'yashandb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
@@ -807,6 +824,54 @@ jobs:
       release-version: "${{ inputs.previous-version }}"
       test-type: "47"
       test-type-name: "yashandb-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  redis-cluster-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'redis-cluster')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "48"
+      test-type-name: "redis-cluster-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  camellia-redis-proxy-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'camellia-redis-proxy')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "49"
+      test-type-name: "camellia-redis-proxy-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  pulsar-nodeport-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'pulsar-nodeport')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "50"
+      test-type-name: "pulsar-nodeport-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
       branch-name: ${{ inputs.branch-name }}
@@ -825,7 +890,8 @@ jobs:
              elasticsearch-pre, vllm-pre, orioledb-pre, official-pg-pre, ggml-pre,
              zookeeper-pre, mariadb-pre , tidb-pre, xinference-pre, oracle-pre, 
              opengauss-pre, influxdb-pre, flink-pre, solr-pre, doris-pre, halo-pre,
-             mogdb-pre, oceanbase-ent-pre, starrocks-ent-pre, yashandb-pre]
+             mogdb-pre, oceanbase-ent-pre, starrocks-ent-pre, apecloud-postgresql-pre,
+             yashandb-pre, redis-cluster-pre, camellia-redis-proxy-pre, pulsar-nodeport-pre ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -840,11 +906,11 @@ jobs:
               TEST_RESULT="${TEST_RESULT}##apecloud-mysql-pre|${{ needs.apecloud-mysql-pre.outputs.test-result }}"
           fi
           
-          if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"postgresql"* ]]; then
+          if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"postgresql|"* || "${{ inputs.TEST_TYPE }}" == *"postgresql" ]]; then
               TEST_RESULT="${TEST_RESULT}##postgresql-pre|${{ needs.postgresql-pre.outputs.test-result }}"
           fi
           
-          if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"redis"* ]]; then
+          if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"redis|"* || "${{ inputs.TEST_TYPE }}" == *"redis" ]]; then
               TEST_RESULT="${TEST_RESULT}##redis-pre|${{ needs.redis-pre.outputs.test-result }}"
           fi
           
@@ -857,7 +923,7 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##kafka-pre|${{ needs.kafka-pre.outputs.test-result }}"
               fi
               
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"pulsar"* ]]; then
+              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"pulsar|"* || "${{ inputs.TEST_TYPE }}" == *"pulsar" ]]; then
                   TEST_RESULT="${TEST_RESULT}##pulsar-pre|${{ needs.pulsar-pre.outputs.test-result }}"
               fi
               
@@ -995,6 +1061,22 @@ jobs:
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"flink"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##flink-pre|${{ needs.flink-pre.outputs.test-result }}"
               fi  
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mogdb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##mogdb-pre|${{ needs.mogdb-pre.outputs.test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"redis-cluster"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##redis-cluster-pre|${{ needs.redis-cluster-pre.outputs.test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"camellia-redis-proxy"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##camellia-redis-proxy-pre|${{ needs.camellia-redis-proxy-pre.outputs.test-result }}"
+              fi 
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"pulsar-nodeport"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##pulsar-nodeport-pre|${{ needs.pulsar-nodeport-pre.outputs.test-result }}"
+              fi 
           fi
           
           if [[ "${{ inputs.release-version }}" != "v0.5."* && "${{ inputs.release-version }}" != "v0.6."* && "${{ inputs.release-version }}" != "v0.7."* && "${{ inputs.release-version }}" != "v0.8."* ]]; then
@@ -1009,10 +1091,6 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##halo-pre|${{ needs.halo-pre.outputs.test-result }}"
               fi 
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mogdb"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##mogdb-pre|${{ needs.mogdb-pre.outputs.test-result }}"
-              fi 
-          
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oceanbase-ent"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##oceanbase-ent-pre|${{ needs.oceanbase-ent-pre.outputs.test-result }}"
               fi  
@@ -1020,6 +1098,10 @@ jobs:
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"starrocks-ent"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##starrocks-ent-pre|${{ needs.starrocks-ent-pre.outputs.test-result }}"
               fi  
+          
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"apecloud-postgresql"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##apecloud-postgresql-pre|${{ needs.apecloud-postgresql-pre.outputs.test-result }}"
+              fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"yashandb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##yashandb-pre|${{ needs.yashandb-pre.outputs.test-result }}"
