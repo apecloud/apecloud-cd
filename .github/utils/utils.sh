@@ -315,16 +315,18 @@ set_runs_jobs() {
 }
 
 get_test_result() {
-    jobs_url="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=1"
-    jobs_list=$( gh_curl -s $jobs_url )
-    total_count=$( echo "$jobs_list" | jq '.total_count' )
-    for i in $(seq 0 $total_count); do
-        if [[ "$i" == "$total_count" ]]; then
-            break
-        fi
-        jobs_name=$( echo "$jobs_list" | jq ".jobs[$i].name" --raw-output )
-        jobs_url=$( echo "$jobs_list" | jq ".jobs[$i].html_url" --raw-output )
-        set_runs_jobs "$jobs_name" "$jobs_url"
+    for i in {1..2}; do
+        jobs_url="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=$i"
+        jobs_list=$( gh_curl -s $jobs_url )
+        total_count=$( echo "$jobs_list" | jq '.total_count' )
+        for i in $(seq 0 $total_count); do
+            if [[ "$i" == "$total_count" ]]; then
+                break
+            fi
+            jobs_name=$( echo "$jobs_list" | jq ".jobs[$i].name" --raw-output )
+            jobs_url=$( echo "$jobs_list" | jq ".jobs[$i].html_url" --raw-output )
+            set_runs_jobs "$jobs_name" "$jobs_url"
+        done
     done
     echo "$TEST_RET"
 }
@@ -620,6 +622,23 @@ generate_image_yaml() {
 ${REGISTRY}/${image}:
   - "infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/${image_name}"
   - "registry.cn-hangzhou.aliyuncs.com/apecloud/${image_name}"
+EOF
+    done
+}
+
+generate_image_yaml_new() {
+    if [[ -z "$IMAGES" ]]; then
+        echo "images name is empty"
+        return
+    fi
+    image_sync_yaml="./image_sync_yaml_new.yml"
+    rm -f $image_sync_yaml
+    touch $image_sync_yaml
+    for image in `echo "$IMAGES" | sed 's/|/ /g'`; do
+        image_name=${image##*/}
+        tee -a $image_sync_yaml << EOF
+${REGISTRY}/${image}:
+  - "infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/${image_name}"
 EOF
     done
 }
@@ -948,6 +967,9 @@ main() {
         ;;
         31)
             check_release_version
+        ;;
+        32)
+            generate_image_yaml_new
         ;;
     esac
 }

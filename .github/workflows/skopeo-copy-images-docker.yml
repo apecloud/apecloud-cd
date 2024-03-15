@@ -14,6 +14,10 @@ on:
 
 run-name: copy to docker.io:${{ github.event.inputs.images_name }}
 
+env:
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+
 jobs:
   script:
     runs-on: macos-latest

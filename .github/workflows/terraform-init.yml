@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       cloud-provider:
-        description: 'cloud k8s cluster provider (e.g. eks/gke/aks)'
+        description: 'cloud k8s cluster provider (e.g. eks/gke/aks/aks-cn)'
         type: string
         required: false
         default: 'eks'
@@ -79,6 +79,7 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
   AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_CREDENTIALS_CN: ${{ secrets.AZURE_CREDENTIALS_CN }}
 
 permissions:
   id-token: write
@@ -121,6 +122,12 @@ jobs:
         with:
           creds: ${{ env.AZURE_CREDENTIALS }}
 
+      - if: ${{ inputs.cloud-provider == 'aks-cn' && env.AZURE_CREDENTIALS_CN != '' }}
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS_CN }}
+          environment: azurechinacloud
+
       - name: get deploy path
         id: get_deploy_path
         run: |
@@ -133,6 +140,8 @@ jobs:
               DEPLOY_PATH="./gcp/gke-cicd"
           elif [[ "${{ inputs.cloud-provider }}" == "aks" ]]; then
               DEPLOY_PATH="./azure/aks-cicd"
+          elif [[ "${{ inputs.cloud-provider }}" == "aks-cn" ]]; then
+              DEPLOY_PATH="./azure/aks-cn-cicd"
           fi
           echo "deploy-path:"$DEPLOY_PATH
           echo deploy-path=${DEPLOY_PATH} >> $GITHUB_OUTPUT
@@ -180,13 +189,13 @@ jobs:
           fi
           
           NODE_SIZE="${{ inputs.node-size }}"
-          if [[ ("${{ inputs.cloud-provider }}" == "eks" || "${{ inputs.cloud-provider }}" == "aks" ) && -n "${COUNTS}" && -z "${NODE_SIZE}" ]]; then
+          if [[ ("${{ inputs.cloud-provider }}" == "eks" || "${{ inputs.cloud-provider }}" == "aks" || "${{ inputs.cloud-provider }}" == "aks-cn" ) && -n "${COUNTS}" && -z "${NODE_SIZE}" ]]; then
               NODE_SIZE="$(( $COUNTS * 2 ))"
           elif [[ "${{ inputs.cloud-provider }}" == "gke" && -n "${COUNTS}" && -z "${NODE_SIZE}" ]]; then
               NODE_SIZE="$(( $COUNTS / 4 + 1 ))"
           fi
           
-          if [[ ("${{ inputs.cloud-provider }}" == "eks" || "${{ inputs.cloud-provider }}" == "aks" ) && -z "${NODE_SIZE}" && -z "${{ inputs.test-mode }}" ]]; then
+          if [[ ("${{ inputs.cloud-provider }}" == "eks" || "${{ inputs.cloud-provider }}" == "aks" || "${{ inputs.cloud-provider }}" == "aks-cn" ) && -z "${NODE_SIZE}" && -z "${{ inputs.test-mode }}" ]]; then
               if [[ "${{ inputs.kb-version }}" == "v0.5."* ]]; then
                   NODE_SIZE=4
               elif [[ "${{ inputs.kb-version }}" == "v0.6."* ]]; then
@@ -244,6 +253,16 @@ jobs:
                   cmd="${cmd} --app-id ${APP_ID} "
               fi
               
+              if [[ -n "${APP_PASSWORD}" ]]; then
+                  cmd="${cmd} --app-password ${APP_PASSWORD} "
+              fi
+          elif [[ "${{ inputs.cloud-provider }}" == "aks-cn" && -n "${{ env.AZURE_CREDENTIALS_CN }}" ]]; then
+              APP_ID="$( echo "${{ env.AZURE_CREDENTIALS_CN }}" | yq eval '.clientId' -)"
+              APP_PASSWORD="$( echo "${{ env.AZURE_CREDENTIALS_CN }}" | yq eval '.clientSecret' -)"
+              if [[ -n "${APP_ID}" ]]; then
+                  cmd="${cmd} --app-id ${APP_ID} "
+              fi
+          
               if [[ -n "${APP_PASSWORD}" ]]; then
                   cmd="${cmd} --app-password ${APP_PASSWORD} "
               fi
