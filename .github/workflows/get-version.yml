@@ -27,26 +27,31 @@ on:
       release-version:
         description: "test result"
         value: ${{ jobs.get-version.outputs.release-version }}
-      kbcli-branch:
-        description: "kbcli branch"
-        value: ${{ jobs.get-version.outputs.kbcli-branch }}
-      kubeblocks-pkg-version:
-        description: "kubeblocks pkg version"
-        value: ${{ jobs.get-version.outputs.kubeblocks-pkg-version }}
+      release-branch:
+        description: "release branch"
+        value: ${{ jobs.get-version.outputs.release-branch }}
+#      kbcli-branch:
+#        description: "kbcli branch"
+#        value: ${{ jobs.get-version.outputs.kbcli-branch }}
+#      kubeblocks-pkg-version:
+#        description: "kubeblocks pkg version"
+#        value: ${{ jobs.get-version.outputs.kubeblocks-pkg-version }}
 
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   RELEASE_BOT_WEBHOOK: ${{ secrets.RELEASE_BOT_WEBHOOK }}
   PACKAGE_BOT_WEBHOOK: ${{ secrets.PACKAGE_BOT_WEBHOOK }}
   CUR_VERSION: ${{ vars.CURRENT_RELEASE_VERSION }}
+  CUR_BRANCH: ${{ vars.CURRENT_RELEASE_BRANCH }}
 
 jobs:
   get-version:
     runs-on: ubuntu-latest
     outputs:
       release-version: ${{ steps.get_version.outputs.release-version }}
-      kbcli-branch: ${{ steps.get_kbcli_branch.outputs.kbcli-branch }}
-      kubeblocks-pkg-version: ${{ steps.get_kubeblocks_version.outputs.kubeblocks-pkg-version }}
+      release-branch: ${{ steps.get_branch.outputs.release-branch }}
+#      kbcli-branch: ${{ steps.get_kbcli_branch.outputs.kbcli-branch }}
+#      kubeblocks-pkg-version: ${{ steps.get_kubeblocks_version.outputs.kubeblocks-pkg-version }}
     steps:
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -54,6 +59,30 @@ jobs:
           repository: apecloud/apecloud-cd
           path: apecloud-cd
           ref: ${{ inputs.APECD_REF }}
+
+
+
+      - name: checkout branch ${{ env.CUR_BRANCH }}
+        if: ${{ inputs.RELEASE_VERSION == '' && env.CUR_BRANCH != '' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CUR_BRANCH }}
+          fetch-depth: 0
+
+      - name: checkout branch ${{ github.ref_name }}
+        if: ${{ inputs.RELEASE_VERSION != '' || env.CUR_BRANCH == '' }}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: get branch
+        id: get_branch
+        run: |
+          RELEASE_BRANCH="main"
+          if [[ "${{ inputs.RELEASE_VERSION }}" == "" && "${{ env.CUR_BRANCH }}" != "" ]]; then
+              RELEASE_BRANCH="${{ env.CUR_BRANCH }}"
+          fi
+          echo release-branch=$RELEASE_BRANCH >> $GITHUB_OUTPUT
 
       - name: get version
         id: get_version
@@ -91,34 +120,34 @@ jobs:
               exit 1
           fi
 
-      - name: Checkout apecloud-cd Code
-        if: ${{ github.repository == 'apecloud/apecloud' && contains(inputs.CONTENT, 'kbcli') }}
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud-cd
-          path: apecloud-cd
-          ref: ${{ inputs.APECD_REF }}
-
-      - name: get kbcli branch
-        if: ${{ github.repository == 'apecloud/apecloud' && contains(inputs.CONTENT, 'kbcli') }}
-        id: get_kbcli_branch
-        run: |
-          cmd="bash apecloud-cd/.github/utils/webhook_utils.sh --type 4 --content '${{ inputs.CONTENT }}' "
-          echo "$cmd"
-          KBCLI_BRANCH=$(eval "$cmd")
-          echo kbcli-branch=$KBCLI_BRANCH >> $GITHUB_OUTPUT
-
-      - name: Checkout kbcli Code
-        if: ${{ github.repository == 'apecloud/apecloud' && contains(inputs.CONTENT, 'kbcli') }}
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/kbcli
-          path: kbcli
-          ref: ${{ steps.get_kbcli_branch.outputs.kbcli-branch }}
-
-      - name: get kbcli gomod kubeblocks pkg version
-        if: ${{ github.repository == 'apecloud/apecloud' && contains(inputs.CONTENT, 'kbcli') }}
-        id: get_kubeblocks_version
-        run: |
-          KUBEBLOCKS_PKG_VERSION=$(cat kbcli/go.mod | grep "github.com/apecloud/kubeblocks" | awk 'NR==1{print $2}')
-          echo kubeblocks-pkg-version=$KUBEBLOCKS_PKG_VERSION >> $GITHUB_OUTPUT
+#      - name: Checkout apecloud-cd Code
+#        if: ${{ github.repository == 'apecloud/apecloud' && contains(inputs.CONTENT, 'kbcli') }}
+#        uses: actions/checkout@v4
+#        with:
+#          repository: apecloud/apecloud-cd
+#          path: apecloud-cd
+#          ref: ${{ inputs.APECD_REF }}
+#
+#      - name: get kbcli branch
+#        if: ${{ github.repository == 'apecloud/apecloud' && contains(inputs.CONTENT, 'kbcli') }}
+#        id: get_kbcli_branch
+#        run: |
+#          cmd="bash apecloud-cd/.github/utils/webhook_utils.sh --type 4 --content '${{ inputs.CONTENT }}' "
+#          echo "$cmd"
+#          KBCLI_BRANCH=$(eval "$cmd")
+#          echo kbcli-branch=$KBCLI_BRANCH >> $GITHUB_OUTPUT
+#
+#      - name: Checkout kbcli Code
+#        if: ${{ github.repository == 'apecloud/apecloud' && contains(inputs.CONTENT, 'kbcli') }}
+#        uses: actions/checkout@v4
+#        with:
+#          repository: apecloud/kbcli
+#          path: kbcli
+#          ref: ${{ steps.get_kbcli_branch.outputs.kbcli-branch }}
+#
+#      - name: get kbcli gomod kubeblocks pkg version
+#        if: ${{ github.repository == 'apecloud/apecloud' && contains(inputs.CONTENT, 'kbcli') }}
+#        id: get_kubeblocks_version
+#        run: |
+#          KUBEBLOCKS_PKG_VERSION=$(cat kbcli/go.mod | grep "github.com/apecloud/kubeblocks" | awk 'NR==1{print $2}')
+#          echo kubeblocks-pkg-version=$KUBEBLOCKS_PKG_VERSION >> $GITHUB_OUTPUT
