@@ -60,21 +60,6 @@ jobs:
           path: apecloud-cd
           ref: ${{ inputs.APECD_REF }}
 
-
-
-      - name: checkout branch ${{ env.CUR_BRANCH }}
-        if: ${{ inputs.RELEASE_VERSION == '' && env.CUR_BRANCH != '' }}
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.CUR_BRANCH }}
-          fetch-depth: 0
-
-      - name: checkout branch ${{ github.ref_name }}
-        if: ${{ inputs.RELEASE_VERSION != '' || env.CUR_BRANCH == '' }}
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - name: get branch
         id: get_branch
         run: |
