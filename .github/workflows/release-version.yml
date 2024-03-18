@@ -171,8 +171,8 @@ jobs:
 #              fi
 #              echo file_changes=$FILE_CHANGES >> $GITHUB_OUTPUT
 #          fi
-          RELEASE_COMMIT="$(git rev-parse HEAD)"
-          echo 'RELEASE_COMMIT='${RELEASE_COMMIT} >> $GITHUB_ENV
+#          RELEASE_COMMIT="$(git rev-parse HEAD)"
+#          echo 'RELEASE_COMMIT='${RELEASE_COMMIT} >> $GITHUB_ENV
 
 #      - name: push cloud gomod changes to new branch
 #        if: ${{ github.repository == 'apecloud/apecloud' && github.ref_name == 'main' && steps.get_release_commit.outputs.file_changes && contains(inputs.CONTENT, 'kbcli')  }}
