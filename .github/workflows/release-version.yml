@@ -133,6 +133,7 @@ jobs:
         run: |
           RELEASE_COMMIT="$(git rev-parse HEAD)"
           echo 'RELEASE_COMMIT='${RELEASE_COMMIT} >> $GITHUB_ENV
+
 #          if [[ "${{ github.repository }}" == "apecloud/apecloud" && "${{ inputs.CONTENT }}" == *"kbcli"*  ]]; then
 #              COMMIT_SHA="$(git rev-parse HEAD)"
 #              RELEASE_VERSION="${{ needs.get-version.outputs.release-version }}"
