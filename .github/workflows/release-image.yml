@@ -103,6 +103,21 @@ on:
         type: string
         required: false
         default: ""
+      GITHUB_REPO:
+        description: "The github repo to release image"
+        type: string
+        required: false
+        default: ''
+      GITHUB_REF:
+        description: "The github repo ref to release image"
+        type: string
+        required: false
+        default: 'main'
+      GITHUB_PATH:
+        description: "The path to release image"
+        type: string
+        required: false
+        default: ''
 
 env:
   DOCKER_REGISTRY_URL: docker.io
@@ -149,6 +164,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: Checkout ${{ inputs.GITHUB_REPO }} Code
+        if: ${{ inputs.GITHUB_REPO != '' && inputs.GITHUB_PATH != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.GITHUB_REPO }}
+          ref: ${{ inputs.GITHUB_REF }}
+          path: ./${{ inputs.GITHUB_PATH }}
           token: ${{ env.GITHUB_TOKEN }}
 
       - uses: docker/setup-qemu-action@v3
