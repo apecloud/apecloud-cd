@@ -70,17 +70,29 @@ jobs:
       BOT_TYPE: ${{ inputs.BOT_TYPE }}
     secrets: inherit
 
-  release-kbcli-cloud-tag:
+  release-openconsole-version:
     needs: [ get-version ]
-    if: ${{ github.repository == 'apecloud/apecloud' && contains(inputs.CONTENT, 'kbcli') }}
+    if: ${{ github.repository == 'apecloud/apecloud' }}
     uses: ./.github/workflows/trigger-workflow.yml
     with:
-      VERSION: "${{ needs.get-version.outputs.release-version }}-cloud"
-      APECD_REF: ${{ inputs.APECD_REF }}
-      GITHUB_REPO: "apecloud/kbcli"
-      BRANCH_NAME: "${{ needs.get-version.outputs.kbcli-branch }}"
-      WORKFLOW_ID: "release-tag.yaml"
+      GITHUB_REPO: "apecloud/openconsole"
+      VERSION: "${{ needs.get-version.outputs.release-version }}"
+      BRANCH_NAME: "${{ needs.get-version.outputs.release-branch }}"
+      WORKFLOW_ID: "release-version.yml"
+      APECD_REF: "${{ inputs.APECD_REF }}"
     secrets: inherit
+
+#  release-kbcli-cloud-tag:
+#    needs: [ get-version ]
+#    if: ${{ github.repository == 'apecloud/apecloud' && contains(inputs.CONTENT, 'kbcli') }}
+#    uses: ./.github/workflows/trigger-workflow.yml
+#    with:
+#      VERSION: "${{ needs.get-version.outputs.release-version }}-cloud"
+#      APECD_REF: ${{ inputs.APECD_REF }}
+#      GITHUB_REPO: "apecloud/kbcli"
+#      BRANCH_NAME: "${{ needs.get-version.outputs.kbcli-branch }}"
+#      WORKFLOW_ID: "release-tag.yaml"
+#    secrets: inherit
 
   release-message:
     if: ${{ needs.get-version.result == 'success' }}
@@ -119,65 +131,68 @@ jobs:
       - name: get release commit
         id: get_release_commit
         run: |
-          if [[ "${{ github.repository }}" == "apecloud/apecloud" && "${{ inputs.CONTENT }}" == *"kbcli"*  ]]; then
-              COMMIT_SHA="$(git rev-parse HEAD)"
-              RELEASE_VERSION="${{ needs.get-version.outputs.release-version }}"
-              KUBEBLOCKS_PKG_VERSION="${{ needs.get-version.outputs.kubeblocks-pkg-version }}"
-              cd apiserver
-              CLOUD_KB_PKG_VERSION=$(cat go.mod | grep "github.com/apecloud/kubeblocks" | awk 'NR==1{print $2}')
-              for i in {1..300}; do
-                  rep_tag=$(curl -s "https://api.github.com/repos/apecloud/kbcli/git/refs/tags/${RELEASE_VERSION}-cloud")
-                  tag_ref="$(echo "$rep_tag" | jq -r '.ref')"
-                  if [[ "$tag_ref" == *"${RELEASE_VERSION}-cloud"*  ]]; then
-                      echo "kbcli tag check done"
-                      go get -u github.com/apecloud/kbcli@${RELEASE_VERSION}-cloud
-                      cd ${{ github.workspace }}/sentry
-                      go get -u github.com/apecloud/kbcli@${RELEASE_VERSION}-cloud
-                      CLOUD_TARGETS="apiserver prompt sentry task-manager"
-                      if [[ -n "$KUBEBLOCKS_PKG_VERSION" && "$KUBEBLOCKS_PKG_VERSION" != "$CLOUD_KB_PKG_VERSION" ]]; then
-                          for cloud_target in $(echo "$CLOUD_TARGETS"); do
-                              echo "cloud target:"$cloud_target
-                              cd ${{ github.workspace }}/$cloud_target
-                              go get -u github.com/apecloud/kubeblocks@${KUBEBLOCKS_PKG_VERSION}
-                          done
-                      fi
-                      cd ${{ github.workspace }}
-                      make module TARGETS="$CLOUD_TARGETS"
-                      break
-                  fi
-                  sleep 1
-                  echo "kbcli tag checking.."
-              done
-              FILE_CHANGES=`git diff --name-only ${COMMIT_SHA}`
-              if [[ ! -z "$FILE_CHANGES" ]]; then
-                  echo $FILE_CHANGES
-                  git config --local user.name "$GITHUB_ACTOR"
-                  git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
-                  git commit -a -m "chore: auto upgrade kbcli version to ${RELEASE_VERSION}-cloud"
-              fi
-              echo file_changes=$FILE_CHANGES >> $GITHUB_OUTPUT
-          fi
           RELEASE_COMMIT="$(git rev-parse HEAD)"
           echo 'RELEASE_COMMIT='${RELEASE_COMMIT} >> $GITHUB_ENV
 
-      - name: push cloud gomod changes to new branch
-        if: ${{ github.repository == 'apecloud/apecloud' && github.ref_name == 'main' && steps.get_release_commit.outputs.file_changes && contains(inputs.CONTENT, 'kbcli')  }}
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ env.GH_TOKEN }}
-          branch: support/auto-upgrade-kbcli-${{ env.RELEASE_COMMIT }}
+#          if [[ "${{ github.repository }}" == "apecloud/apecloud" && "${{ inputs.CONTENT }}" == *"kbcli"*  ]]; then
+#              COMMIT_SHA="$(git rev-parse HEAD)"
+#              RELEASE_VERSION="${{ needs.get-version.outputs.release-version }}"
+#              KUBEBLOCKS_PKG_VERSION="${{ needs.get-version.outputs.kubeblocks-pkg-version }}"
+#              cd apiserver
+#              CLOUD_KB_PKG_VERSION=$(cat go.mod | grep "github.com/apecloud/kubeblocks" | awk 'NR==1{print $2}')
+#              for i in {1..300}; do
+#                  rep_tag=$(curl -s "https://api.github.com/repos/apecloud/kbcli/git/refs/tags/${RELEASE_VERSION}-cloud")
+#                  tag_ref="$(echo "$rep_tag" | jq -r '.ref')"
+#                  if [[ "$tag_ref" == *"${RELEASE_VERSION}-cloud"*  ]]; then
+#                      echo "kbcli tag check done"
+#                      go get -u github.com/apecloud/kbcli@${RELEASE_VERSION}-cloud
+#                      cd ${{ github.workspace }}/sentry
+#                      go get -u github.com/apecloud/kbcli@${RELEASE_VERSION}-cloud
+#                      CLOUD_TARGETS="apiserver prompt sentry task-manager"
+#                      if [[ -n "$KUBEBLOCKS_PKG_VERSION" && "$KUBEBLOCKS_PKG_VERSION" != "$CLOUD_KB_PKG_VERSION" ]]; then
+#                          for cloud_target in $(echo "$CLOUD_TARGETS"); do
+#                              echo "cloud target:"$cloud_target
+#                              cd ${{ github.workspace }}/$cloud_target
+#                              go get -u github.com/apecloud/kubeblocks@${KUBEBLOCKS_PKG_VERSION}
+#                          done
+#                      fi
+#                      cd ${{ github.workspace }}
+#                      make module TARGETS="$CLOUD_TARGETS"
+#                      break
+#                  fi
+#                  sleep 1
+#                  echo "kbcli tag checking.."
+#              done
+#              FILE_CHANGES=`git diff --name-only ${COMMIT_SHA}`
+#              if [[ ! -z "$FILE_CHANGES" ]]; then
+#                  echo $FILE_CHANGES
+#                  git config --local user.name "$GITHUB_ACTOR"
+#                  git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
+#                  git commit -a -m "chore: auto upgrade kbcli version to ${RELEASE_VERSION}-cloud"
+#              fi
+#              echo file_changes=$FILE_CHANGES >> $GITHUB_OUTPUT
+#          fi
+#          RELEASE_COMMIT="$(git rev-parse HEAD)"
+#          echo 'RELEASE_COMMIT='${RELEASE_COMMIT} >> $GITHUB_ENV
 
-      - name: auto create pr head new branch
-        if: ${{ github.repository == 'apecloud/apecloud' && github.ref_name == 'main' && steps.get_release_commit.outputs.file_changes && contains(inputs.CONTENT, 'kbcli')  }}
-        run: |
-          gh pr create --head "support/auto-upgrade-kbcli-${{ env.RELEASE_COMMIT }}" --title "chore: auto upgrade kbcli version to ${{ needs.get-version.outputs.release-version }}-cloud" --body ""
-
-      - name: push cloud gomod changes
-        uses: ad-m/github-push-action@master
-        if: ${{ github.repository == 'apecloud/apecloud' && github.ref_name != 'main' && steps.get_release_commit.outputs.file_changes && contains(inputs.CONTENT, 'kbcli')  }}
-        with:
-          github_token: ${{ env.GH_TOKEN }}
-          branch: ${{ github.ref }}
+#      - name: push cloud gomod changes to new branch
+#        if: ${{ github.repository == 'apecloud/apecloud' && github.ref_name == 'main' && steps.get_release_commit.outputs.file_changes && contains(inputs.CONTENT, 'kbcli')  }}
+#        uses: ad-m/github-push-action@master
+#        with:
+#          github_token: ${{ env.GH_TOKEN }}
+#          branch: support/auto-upgrade-kbcli-${{ env.RELEASE_COMMIT }}
+#
+#      - name: auto create pr head new branch
+#        if: ${{ github.repository == 'apecloud/apecloud' && github.ref_name == 'main' && steps.get_release_commit.outputs.file_changes && contains(inputs.CONTENT, 'kbcli')  }}
+#        run: |
+#          gh pr create --head "support/auto-upgrade-kbcli-${{ env.RELEASE_COMMIT }}" --title "chore: auto upgrade kbcli version to ${{ needs.get-version.outputs.release-version }}-cloud" --body ""
+#
+#      - name: push cloud gomod changes
+#        uses: ad-m/github-push-action@master
+#        if: ${{ github.repository == 'apecloud/apecloud' && github.ref_name != 'main' && steps.get_release_commit.outputs.file_changes && contains(inputs.CONTENT, 'kbcli')  }}
+#        with:
+#          github_token: ${{ env.GH_TOKEN }}
+#          branch: ${{ github.ref }}
 
       - name: push tag
         uses: mathieudutour/github-tag-action@v6.1
