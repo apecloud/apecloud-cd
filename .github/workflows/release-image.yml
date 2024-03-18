@@ -103,6 +103,11 @@ on:
         type: string
         required: false
         default: ""
+      ADDITIONAL_REPO:
+        description: "The additional repos to checkout"
+        type: boolean
+        required: false
+        default: false
       GITHUB_REPO:
         description: "The github repo to release image"
         type: string
@@ -167,7 +172,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: Checkout ${{ inputs.GITHUB_REPO }} Code
-        if: ${{ inputs.GITHUB_REPO != '' && inputs.GITHUB_PATH != '' }}
+        if: ${{ inputs.ADDITIONAL_REPO && inputs.GITHUB_REPO != '' && inputs.GITHUB_PATH != '' }}
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.GITHUB_REPO }}
