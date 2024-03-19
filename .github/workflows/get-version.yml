@@ -63,7 +63,7 @@ jobs:
       - name: get branch
         id: get_branch
         run: |
-          RELEASE_BRANCH="main"
+          RELEASE_BRANCH="${{ github.ref_name }}"
           if [[ "${{ inputs.RELEASE_VERSION }}" == "" && "${{ env.CUR_BRANCH }}" != "" ]]; then
               RELEASE_BRANCH="${{ env.CUR_BRANCH }}"
           fi
