@@ -750,7 +750,7 @@ jobs:
       release-version: "${{ inputs.KB_VERSION }}"
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "50"
-      test-type-name: "camellia-redis-proxy"
+      test-type-name: "pulsar-nodeport"
       test-args: "${{ inputs.ARGS }}"
       branch-name: ${{ inputs.BRANCH_NAME }}
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
