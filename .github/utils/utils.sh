@@ -308,7 +308,7 @@ set_runs_jobs() {
     jobs_url=$2
     for test_ret in `echo "$TEST_RESULT" | sed 's/##/ /g'`; do
         test_type=${test_ret%|*}
-        if [[ "$jobs_name" == *"$test_type" ]]; then
+        if [[ "$jobs_name" == *"$test_type" && "$jobs_name" != *"-${test_type}" ]]; then
             TEST_RET=$TEST_RET"##$test_ret|$jobs_url"
         fi
     done
