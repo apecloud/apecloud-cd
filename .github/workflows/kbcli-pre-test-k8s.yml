@@ -127,7 +127,7 @@ jobs:
     secrets: inherit
 
   postgresql-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) && ! contains(inputs.TEST_TYPE, '-postgresql') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -906,7 +906,7 @@ jobs:
               TEST_RESULT="${TEST_RESULT}##apecloud-mysql-pre|${{ needs.apecloud-mysql-pre.outputs.test-result }}"
           fi
           
-          if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"postgresql|"* || "${{ inputs.TEST_TYPE }}" == *"postgresql" ]]; then
+          if [[ "${{ inputs.test-type }}" == '' || (("${{ inputs.test-type }}" == *"postgresql|"* || "${{ inputs.TEST_TYPE }}" == *"postgresql") && "${{ inputs.TEST_TYPE }}" != *"-postgresql"*) ]]; then
               TEST_RESULT="${TEST_RESULT}##postgresql-pre|${{ needs.postgresql-pre.outputs.test-result }}"
           fi
           

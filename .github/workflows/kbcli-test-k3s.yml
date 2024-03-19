@@ -99,7 +99,7 @@ jobs:
     secrets: inherit
 
   test-postgresql:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) }}
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) && ! contains(inputs.TEST_TYPE, '-postgresql') }}
     needs: [ enable-gke-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
@@ -782,7 +782,7 @@ jobs:
               TEST_RESULT="${TEST_RESULT}##apecloud-mysql|${{ needs.test-apecloud-mysql.outputs.pre-test-result }}"
           fi
           
-          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"postgresql|"* || "${{ inputs.TEST_TYPE }}" == *"postgresql" ]]; then
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || (("${{ inputs.TEST_TYPE }}" == *"postgresql|"* || "${{ inputs.TEST_TYPE }}" == *"postgresql") && "${{ inputs.TEST_TYPE }}" != *"-postgresql"* ) ]]; then
               TEST_RESULT="${TEST_RESULT}##postgresql|${{ needs.test-postgresql.outputs.pre-test-result }}"
           fi
           
@@ -997,7 +997,7 @@ jobs:
               TEST_RESULT="${TEST_RESULT}##apecloud-mysql|${{ needs.test-apecloud-mysql.outputs.test-result }}"
           fi
           
-          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"postgresql|"* || "${{ inputs.TEST_TYPE }}" == *"postgresql" ]]; then
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || (("${{ inputs.TEST_TYPE }}" == *"postgresql|"* || "${{ inputs.TEST_TYPE }}" == *"postgresql") && "${{ inputs.TEST_TYPE }}" != *"-postgresql"* ) ]]; then
               TEST_RESULT="${TEST_RESULT}##postgresql|${{ needs.test-postgresql.outputs.test-result }}"
           fi
           

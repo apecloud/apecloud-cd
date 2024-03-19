@@ -170,7 +170,7 @@ jobs:
     secrets: inherit
 
   test-postgresql:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) && ! contains(inputs.TEST_TYPE, '-postgresql') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -1031,7 +1031,7 @@ jobs:
               TEST_RESULT="${TEST_RESULT}##apecloud-mysql|${{ needs.test-apecloud-mysql.outputs.test-result }}"
           fi
           
-          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"postgresql|"* || "${{ inputs.TEST_TYPE }}" == *"postgresql" ]]; then
+          if [[ "${{ inputs.TEST_TYPE }}" == '' || (("${{ inputs.TEST_TYPE }}" == *"postgresql|"* || "${{ inputs.TEST_TYPE }}" == *"postgresql") && "${{ inputs.TEST_TYPE }}" != *"-postgresql"* ) ]]; then
               TEST_RESULT="${TEST_RESULT}##postgresql|${{ needs.test-postgresql.outputs.test-result }}"
           fi
           
