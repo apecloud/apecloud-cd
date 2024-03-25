@@ -114,15 +114,16 @@ jobs:
         id: run_e2e_test
         run: |
           cd e2etest
-          make test-e2e-apecloud URL=https://api-dev.apecloud.cn ORG_NAME=test-1
-          echo E2E_TEST_RESULT=1 >> $GITHUB_ENV
+          make test-e2e-apecloud URL=https://api-dev.apecloud.cn ORG_NAME=test-1 | tee ./make_run.log
+          grep -oE "[0-9]+ (Passed|Failed|Pending|Skipped)" ./make_run.log
+          passed=$(grep -oE "[0-9]+ Passed" ./make_run.log)
+          failed=$(grep -oE "[0-9]+ Failed" ./make_run.log)
+          pending=(grep -oE "[0-9]+ Pending" ./make_run.log)
+          skipped=(grep -oE "[0-9]+ Skipped" ./make_run.log)
+          summary="$passed | $failed | $pending | $skipped"
 
       - name: return cloud e2e test result
         id: test_result
         if: ${{ always() }}
         run: |
-          if [[ "${E2E_TEST_RESULT}" == '1' ]]; then
-              echo test-result=[PASSED] >> $GITHUB_OUTPUT
-          else
-              echo test-result=[FAILED] >> $GITHUB_OUTPUT
-          fi
+          echo test-result=$summary >> $GITHUB_OUTPUT

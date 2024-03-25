@@ -261,9 +261,49 @@ def send_performance_message(url_v, result_v, title_v, job_url_v):
     print(res.text)
 
 
+def send_e2e_message(url_v, result_v, title_v):
+    print("Sending message to Feishu bot...")
+    passed, failed, pending, skipped = result_v.split(" | ")
+    card_content = {
+        "config": {
+            "wide_screen_mode": True
+        },
+        "header": {
+            "title": {
+                "tag": "plain_text",
+                "content": title_v
+            },
+            "template": "blue"
+        },
+        "elements": [
+            {
+                "tag": "div",
+                "text": {
+                    "tag": "lark_md",
+                    "content": (f"*Passed*: <font color=\"green\">{passed}</font>\n"
+                                f"*Failed*: <font color=\"red\">{failed}</font>\n"
+                                f"*Pending*: <font color=\"yellow\">{pending}</font>\n"
+                                f"*Skipped*: <font color=\"blue\">{skipped}</font>")
+                }
+            }
+        ]
+    }
+    # Construct the message body of the POST request
+    data = {
+        "msg_type": "interactive",
+        "card": card_content
+    }
+    headers = {"Content-Type": "application/json"}
+    # Send POST request to Feishu Robot Webhook URL
+    response = requests.post(url=url_v, headers=headers, data=json.dumps(data))
+    print(response.text)
+
+
 if __name__ == '__main__':
     if send_type == "performance":
         send_performance_message(url, result, title, job_url)
+    elif send_type == "e2e":
+        send_e2e_message(url, result, title)
     else:
         send_message(url, result, title)
     

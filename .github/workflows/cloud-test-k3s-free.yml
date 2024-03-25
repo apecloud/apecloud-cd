@@ -18,16 +18,6 @@ on:
         type: string
         required: false
         default: '1.26'
-      APECLOUD_BRANCH:
-        description: 'apecloud branch name'
-        type: string
-        required: false
-        default: 'main'
-      TESTINFRA_BRANCH:
-        description: 'testinfra branch name'
-        type: string
-        required: false
-        default: 'main'
       E2ETEST_BRANCH:
         description: 'e2etest branch name'
         type: string
@@ -45,6 +35,11 @@ on:
         default: ''
   workflow_dispatch:
     inputs:
+      TEST_TYPE:
+        description: 'test type (e.g.  wesql|postgresql|redis|mongodb)'
+        type: string
+        required: false
+        default: ''
       APECLOUD_VERSION:
         description: 'ApeCloud release version'
         type: string
@@ -60,16 +55,6 @@ on:
         type: string
         required: false
         default: '1.26'
-      APECLOUD_BRANCH:
-        description: 'apecloud branch name'
-        type: string
-        required: false
-        default: 'main'
-      TESTINFRA_BRANCH:
-        description: 'testinfra branch name'
-        type: string
-        required: false
-        default: 'main'
       E2ETEST_BRANCH:
         description: 'e2etest branch name'
         type: string
@@ -102,12 +87,10 @@ jobs:
     with:
       release-version: ${{ inputs.APECLOUD_VERSION }}
       kubeblocks-version: ${{ inputs.KUBEBLOCKS_VERSION }}
-      test-type: "0"
+      test-type: ${{ inputs.TEST_TYPE }}
       test-type-name: "e2e-test"
       test-args: ${{ inputs.ARGS }}
       k3s-version: ${{ inputs.K3S_VERSION }}
-      testinfra-branch: ${{ inputs.TESTINFRA_BRANCH }}
-      apecloud-branch: ${{ inputs.APECLOUD_BRANCH }}
       e2etest-branch: ${{ inputs.E2ETEST_BRANCH }}
     secrets: inherit
 
@@ -139,4 +122,5 @@ jobs:
           python3 .github/utils/send_mesage.py \
               --url ${{ vars.TEST_BOT_WEBHOOK }} \
               --title "$test_title" \
+              --send-type "e2e" \
               --result "$TEST_RESULT"
