@@ -108,11 +108,20 @@ jobs:
       - name: send message
         id: get_trigger_mode
         run: |
+          
+          TEST_RESULT="deploy-cloud|${{ needs.e2e-test.outputs.deploy-result }}"
+          TEST_TYPE="${{ needs.e2e-test.outputs.test-type }}"
+          TEST_RESULT="${TEST_RESULT}##${TEST_TYPE}|${{ needs.e2e-test.outputs.test-result }}"
+        
+          TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
+              --github-repo "${{ github.repository }}" \
+              --github-token "${{ env.GITHUB_TOKEN }}" \
+              --test-result "${TEST_RESULT}" \
+              --run-id "$GITHUB_RUN_ID" )
+          
           date_ret=$(date +%Y-%m-%d-%T)
           test_title="[${{ inputs.APECLOUD_VERSION }}] Test ApeCloud on K3S:${{ inputs.K3S_VERSION }} [${date_ret}]"
-          echo "The test result is ${{ needs.e2e-test.outputs.test-result }}"
           python3 .github/utils/send_mesage.py \
               --url ${{ vars.TEST_BOT_WEBHOOK }} \
               --title "$test_title" \
-              --send-type "e2e" \
-              --result "${{ needs.e2e-test.outputs.test-result }}"
+              --result "$TEST_RESULT"

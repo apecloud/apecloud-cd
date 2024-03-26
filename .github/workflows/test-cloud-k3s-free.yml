@@ -70,7 +70,9 @@ jobs:
     name: run ${{ inputs.test-type-name }}
     runs-on: ubuntu-latest
     outputs:
+      deploy-result: ${{ steps.deploy_cloud.outputs.deploy-result }}
       test-result: ${{ steps.test_result.outputs.test-result }}
+      test-type: ${{ steps.test_result.outputs.test-type }}
     steps:
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3
@@ -116,10 +118,12 @@ jobs:
           pending=$(grep -oE "[0-9]+ Pending" ./make_run.log)
           skipped=$(grep -oE "[0-9]+ Skipped" ./make_run.log)
           type=${{ inputs.test-type }}
-          summary="$type | $passed | $failed | $pending | $skipped"
+          summary="$passed | $failed | $pending | $skipped"
           echo "summary=$summary"
       - name: return cloud e2e test result
         id: test_result
         if: ${{ always() }}
         run: |
           echo "test-result=$summary" >> $GITHUB_OUTPUT
+          echo "test-type=type" >> $GITHUB_OUTPUT
+          
