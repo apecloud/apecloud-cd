@@ -118,8 +118,9 @@ jobs:
           skipped=(grep -oE "[0-9]+ Skipped" ./make_run.log)
           type=${{ inputs.test-type }}
           summary="$type | $passed | $failed | $pending | $skipped"
+          echo "summary=$summary"
       - name: return cloud e2e test result
         id: test_result
         if: ${{ always() }}
         run: |
-          echo test-result=$summary >> $GITHUB_OUTPUT
+          echo "test-result=$summary" >> $GITHUB_OUTPUT
