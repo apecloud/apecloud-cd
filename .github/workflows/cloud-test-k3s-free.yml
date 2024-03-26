@@ -110,8 +110,11 @@ jobs:
         run: |
           date_ret=$(date +%Y-%m-%d-%T)
           test_title="[${{ inputs.APECLOUD_VERSION }}] Test ApeCloud on K3S:${{ inputs.K3S_VERSION }} [${date_ret}]"
+          echo "test_title is $test_title"
+          result = ${{ needs.e2e-test.outputs.test-result }}
+          echo "result is $result"
           python3 .github/utils/send_mesage.py \
               --url ${{ vars.TEST_BOT_WEBHOOK }} \
               --title "$test_title" \
               --send-type "e2e" \
-              --result "${{ needs.e2e-test.outputs.test-result }}"
+              --result "result"
