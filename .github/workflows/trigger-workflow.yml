@@ -99,13 +99,14 @@ jobs:
           echo "SHOW_REF_RET:${SHOW_REF_RET}"
           echo "SHOW_REF_RET=${SHOW_REF_RET}" >> $GITHUB_ENV
 
-      - uses: peterjgrainger/action-create-branch@v3.0.0
+      - name: create branch ${{ inputs.BRANCH_NAME }}
         if: ${{ env.SHOW_REF_RET != '0' && inputs.BRANCH_NAME != '' && inputs.GITHUB_REPO != '' }}
-        env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-        with:
-          branch: '${{ inputs.BRANCH_NAME }}'
-          sha: '${{ env.HEAD_BRANCH_SHA }}'
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git remote set-url --push origin https://${GITHUB_ACTOR}:${{ env.GITHUB_TOKEN }}@github.com/${{ inputs.GITHUB_REPO }}.git  
+          git checkout -b ${{ inputs.BRANCH_NAME }}
+          git push -u origin ${{ inputs.BRANCH_NAME }} 
 
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
