@@ -103,35 +103,35 @@ jobs:
           branch: '${{ inputs.BRANCH_NAME }}'
           sha: '${{ env.HEAD_BRANCH_SHA }}'
 
-      - name: Checkout apecloud-cd Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud-cd
-          path: apecloud-cd
-          token: ${{ env.GITHUB_TOKEN }}
-          ref: ${{ inputs.APECD_REF }}
-
-      - name: trigger-workflow
-        run: |
-          cmd="bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 7 --github-token \"${{ env.GITHUB_TOKEN }}\" "
-          if [[ ! -z "${{ inputs.GITHUB_REPO }}" ]]; then
-              cmd=$cmd"--github-repo \"${{ inputs.GITHUB_REPO }}\" "
-          fi
-          
-          if [[ ! -z "${{ inputs.WORKFLOW_ID }}" ]]; then
-              cmd=$cmd"--workflow-id \"${{ inputs.WORKFLOW_ID }}\" "
-          fi
-          
-          if [[ ! -z "${{ inputs.BRANCH_NAME }}" ]]; then
-              cmd=$cmd"--branch-name \"${{ inputs.BRANCH_NAME }}\" "
-          fi
-          
-          if [[ ! -z "${{ inputs.VERSION }}" ]]; then
-              cmd=$cmd"--version \"${{ inputs.VERSION }}\" "
-          fi
-          
-          if [[ ! -z "${{ inputs.EXTRA_ARGS }}" ]]; then
-              cmd=$cmd"--extra-args \"${{ inputs.EXTRA_ARGS }}\" "
-          fi
-          
-          eval "$cmd"    
+#      - name: Checkout apecloud-cd Code
+#        uses: actions/checkout@v4
+#        with:
+#          repository: apecloud/apecloud-cd
+#          path: apecloud-cd
+#          token: ${{ env.GITHUB_TOKEN }}
+#          ref: ${{ inputs.APECD_REF }}
+#
+#      - name: trigger-workflow
+#        run: |
+#          cmd="bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 7 --github-token \"${{ env.GITHUB_TOKEN }}\" "
+#          if [[ ! -z "${{ inputs.GITHUB_REPO }}" ]]; then
+#              cmd=$cmd"--github-repo \"${{ inputs.GITHUB_REPO }}\" "
+#          fi
+#
+#          if [[ ! -z "${{ inputs.WORKFLOW_ID }}" ]]; then
+#              cmd=$cmd"--workflow-id \"${{ inputs.WORKFLOW_ID }}\" "
+#          fi
+#
+#          if [[ ! -z "${{ inputs.BRANCH_NAME }}" ]]; then
+#              cmd=$cmd"--branch-name \"${{ inputs.BRANCH_NAME }}\" "
+#          fi
+#
+#          if [[ ! -z "${{ inputs.VERSION }}" ]]; then
+#              cmd=$cmd"--version \"${{ inputs.VERSION }}\" "
+#          fi
+#
+#          if [[ ! -z "${{ inputs.EXTRA_ARGS }}" ]]; then
+#              cmd=$cmd"--extra-args \"${{ inputs.EXTRA_ARGS }}\" "
+#          fi
+#
+#          eval "$cmd"
