@@ -95,6 +95,7 @@ jobs:
           echo "SHOW_REF_RET=${SHOW_REF_RET}" >> $GITHUB_ENV
           
           HEAD_BRANCH_SHA="$(git rev-parse HEAD)"
+          echo "${HEAD_BRANCH_SHA}"
           echo "HEAD_BRANCH_SHA=${HEAD_BRANCH_SHA}" >> $GITHUB_ENV
 
       - uses: peterjgrainger/action-create-branch@v2.2.0
