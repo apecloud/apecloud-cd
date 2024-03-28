@@ -92,9 +92,9 @@ jobs:
           echo "HEAD_BRANCH_SHA:${HEAD_BRANCH_SHA}"
           echo "HEAD_BRANCH_SHA=${HEAD_BRANCH_SHA}" >> $GITHUB_ENV
           
-          SHOW_REF_RET="2"
+          SHOW_REF_RET="1"
           echo "SHOW_REF_RET=${SHOW_REF_RET}" >> $GITHUB_ENV
-          show_ref_ret_msg=$(git show-ref --exists refs/remotes/origin/${{ inputs.BRANCH_NAME }})
+          show_ref_ret_msg=$(git show-ref --quiet --verify refs/remotes/origin/${{ inputs.BRANCH_NAME }})
           SHOW_REF_RET=$?
           echo "SHOW_REF_RET:${SHOW_REF_RET}"
           echo "SHOW_REF_RET=${SHOW_REF_RET}" >> $GITHUB_ENV
