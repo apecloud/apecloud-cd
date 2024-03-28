@@ -85,15 +85,19 @@ jobs:
           fetch-depth: 0
 
       - name: check ${{ inputs.BRANCH_NAME }} exists
+        continue-on-error: true
         if: ${{ inputs.BRANCH_NAME != '' && inputs.GITHUB_REPO != '' }}
-        id: check_branch_exists
         run: |
-          git show-ref --exists refs/remotes/origin/${{ inputs.BRANCH_NAME }}
-          SHOW_REF_RET=$?
-          echo 'SHOW_REF_RET='${SHOW_REF_RET}" >> $GITHUB_ENV
-          
           HEAD_BRANCH_SHA="$(git rev-parse HEAD)"
-          echo 'HEAD_BRANCH_SHA='${HEAD_BRANCH_SHA} >> $GITHUB_ENV
+          echo "HEAD_BRANCH_SHA:${HEAD_BRANCH_SHA}"
+          echo "HEAD_BRANCH_SHA=${HEAD_BRANCH_SHA}" >> $GITHUB_ENV
+          
+          SHOW_REF_RET="2"
+          echo "SHOW_REF_RET=${SHOW_REF_RET}" >> $GITHUB_ENV
+          show_ref_ret_msg=$(git show-ref --exists refs/remotes/origin/${{ inputs.BRANCH_NAME }})
+          SHOW_REF_RET=$?
+          echo "SHOW_REF_RET:${SHOW_REF_RET}"
+          echo "SHOW_REF_RET=${SHOW_REF_RET}" >> $GITHUB_ENV
 
       - uses: peterjgrainger/action-create-branch@v2.2.0
         if: ${{ env.SHOW_REF_RET != '0' && inputs.BRANCH_NAME != '' && inputs.GITHUB_REPO != '' }}
@@ -117,21 +121,21 @@ jobs:
           if [[ ! -z "${{ inputs.GITHUB_REPO }}" ]]; then
               cmd=$cmd"--github-repo \"${{ inputs.GITHUB_REPO }}\" "
           fi
-          
+
           if [[ ! -z "${{ inputs.WORKFLOW_ID }}" ]]; then
               cmd=$cmd"--workflow-id \"${{ inputs.WORKFLOW_ID }}\" "
           fi
-          
+
           if [[ ! -z "${{ inputs.BRANCH_NAME }}" ]]; then
               cmd=$cmd"--branch-name \"${{ inputs.BRANCH_NAME }}\" "
           fi
-          
+
           if [[ ! -z "${{ inputs.VERSION }}" ]]; then
               cmd=$cmd"--version \"${{ inputs.VERSION }}\" "
           fi
-          
+
           if [[ ! -z "${{ inputs.EXTRA_ARGS }}" ]]; then
               cmd=$cmd"--extra-args \"${{ inputs.EXTRA_ARGS }}\" "
           fi
-          
-          eval "$cmd"    
+
+          eval "$cmd"
