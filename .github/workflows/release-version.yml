@@ -82,6 +82,18 @@ jobs:
       APECD_REF: "${{ inputs.APECD_REF }}"
     secrets: inherit
 
+  release-apecloud-values-version:
+    needs: [ get-version ]
+    if: ${{ github.repository == 'apecloud/apecloud' }}
+    uses: ./.github/workflows/trigger-workflow.yml
+    with:
+      GITHUB_REPO: "apecloud/apecloud-values"
+      VERSION: "${{ needs.get-version.outputs.release-version }}"
+      BRANCH_NAME: "${{ needs.get-version.outputs.release-branch }}"
+      WORKFLOW_ID: "release-version.yml"
+      APECD_REF: "${{ inputs.APECD_REF }}"
+    secrets: inherit
+
 #  release-kbcli-cloud-tag:
 #    needs: [ get-version ]
 #    if: ${{ github.repository == 'apecloud/apecloud' && contains(inputs.CONTENT, 'kbcli') }}

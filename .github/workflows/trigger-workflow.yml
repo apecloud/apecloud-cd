@@ -88,10 +88,6 @@ jobs:
         continue-on-error: true
         if: ${{ inputs.BRANCH_NAME != '' && inputs.GITHUB_REPO != '' }}
         run: |
-          HEAD_BRANCH_SHA="$(git rev-parse HEAD)"
-          echo "HEAD_BRANCH_SHA:${HEAD_BRANCH_SHA}"
-          echo "HEAD_BRANCH_SHA=${HEAD_BRANCH_SHA}" >> $GITHUB_ENV
-          
           SHOW_REF_RET="1"
           echo "SHOW_REF_RET=${SHOW_REF_RET}" >> $GITHUB_ENV
           show_ref_ret_msg=$(git show-ref --quiet --verify refs/remotes/origin/${{ inputs.BRANCH_NAME }})
