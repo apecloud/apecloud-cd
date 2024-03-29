@@ -70,24 +70,16 @@ jobs:
       BOT_TYPE: ${{ inputs.BOT_TYPE }}
     secrets: inherit
 
-  release-openconsole-version:
+  release-apecloud-deps-version:
     needs: [ get-version ]
+    name: release ${{ matrix.repo-name }} version
     if: ${{ github.repository == 'apecloud/apecloud' }}
     uses: ./.github/workflows/trigger-workflow.yml
+    strategy:
+      matrix:
+        repo-name: [ openconsole, apecloud-values ]
     with:
-      GITHUB_REPO: "apecloud/openconsole"
-      VERSION: "${{ needs.get-version.outputs.release-version }}"
-      BRANCH_NAME: "${{ needs.get-version.outputs.release-branch }}"
-      WORKFLOW_ID: "release-version.yml"
-      APECD_REF: "${{ inputs.APECD_REF }}"
-    secrets: inherit
-
-  release-apecloud-values-version:
-    needs: [ get-version ]
-    if: ${{ github.repository == 'apecloud/apecloud' }}
-    uses: ./.github/workflows/trigger-workflow.yml
-    with:
-      GITHUB_REPO: "apecloud/apecloud-values"
+      GITHUB_REPO: "apecloud/${{ matrix.repo-name }}"
       VERSION: "${{ needs.get-version.outputs.release-version }}"
       BRANCH_NAME: "${{ needs.get-version.outputs.release-branch }}"
       WORKFLOW_ID: "release-version.yml"
