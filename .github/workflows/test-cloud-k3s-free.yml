@@ -120,10 +120,11 @@ jobs:
           type=${{ inputs.test-type }}
           summary="$passed | $failed | $pending | $skipped"
           echo "summary=$summary"
+          echo "type=$type"
       - name: return cloud e2e test result
         id: test_result
         if: ${{ always() }}
         run: |
           echo "test-result=$summary" >> $GITHUB_OUTPUT
-          echo "test-type=type" >> $GITHUB_OUTPUT
+          echo "test-type=$type" >> $GITHUB_OUTPUT
           
