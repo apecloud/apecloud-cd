@@ -77,6 +77,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Checkout apecloud-values Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-values
+          path: apecloud-values
+          ref: ${{ github.ref }}
+          token: ${{ env.GITHUB_TOKEN }}
+
       - name: Setup Go specify version
         if: inputs.GO_VERSION
         uses: actions/setup-go@v3
@@ -110,15 +118,19 @@ jobs:
           CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
           echo 'CLOUD_ENV_NAME='${CLOUD_ENV_NAME} >> $GITHUB_ENV
           echo 'cloud_env_name='${CLOUD_ENV_NAME} >> $GITHUB_OUTPUT
+          CHART_VALUES_FILENAME="./kb_cloud_chart_values.yaml"
           case "$CLOUD_ENV_NAME" in
               dev)
                   echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
+                  cp -r apecloud-values/dev/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               prod)
                   echo '${{ env.ACK_KUBECONFIG_PROD }}' > $HOME/.kube/config
+                  cp -r apecloud-values/prod-cn/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               intl_prod)
                   echo '${{ env.ACK_KUBECONFIG_INTL_PROD }}' > $HOME/.kube/config
+                  cp -r apecloud-values/prod-us/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               *)
                   echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
