@@ -55,6 +55,9 @@ on:
       test-result:
         description: "e2e test result"
         value: "${{ jobs.cloud-test-k3s.outputs.test-result }}"
+      test-type:
+        description: "e2e test type"
+        value: "${{ jobs.cloud-test-k3s.outputs.test-type }}"
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
