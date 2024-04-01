@@ -110,9 +110,9 @@ jobs:
         run: |
           
           TEST_RESULT="deploy-cloud|${{ needs.e2e-test.outputs.deploy-result }}"
-          TEST_TYPE="${{ needs.e2e-test.outputs.test-type }}"
-          TEST_RESULT="${TEST_RESULT}##${TEST_TYPE}|${{ needs.e2e-test.outputs.test-result }}"
-        
+          echo "$TEST_RESULT"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.e2e-test.outputs.test-type }}|${{ needs.e2e-test.outputs.test-result }}"
+          echo "$TEST_RESULT"
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
               --github-repo "${{ github.repository }}" \
               --github-token "${{ env.GITHUB_TOKEN }}" \
