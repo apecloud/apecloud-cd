@@ -7,7 +7,7 @@ on:
         description: 'cloud k8s cluster provider (e.g. aks/aks-cn)'
         type: string
         required: false
-        default: 'aks'
+        default: 'aks-cn'
       k8s-cluster-name:
         description: 'k8s cluster name'
         type: string
