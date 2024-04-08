@@ -47,14 +47,20 @@ on:
         default: 'v0.19.0'
       CLOUD_PROVIDER:
         description: 'cloud k8s cluster provider (e.g. aks/aks-cn)'
-        type: string
-        required: false
+        required: true
         default: 'aks-cn'
+        type: choice
+        options:
+          - aks
+          - aks-cn
       REGION:
         description: 'k8s region name'
-        type: string
         required: false
-        default: 'eastus'
+        default: 'chinanorth3'
+        type: choice
+        options:
+          - eastus
+          - chinanorth3
       CLUSTER_VERSION:
         description: 'k8s cluster version (e.g. 1.27)'
         type: string
