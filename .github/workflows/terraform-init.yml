@@ -186,6 +186,8 @@ jobs:
               COUNTS=3
           elif [[ "${{ inputs.test-mode }}" == "kubechat" && -z "$COUNTS" ]]; then
               COUNTS=0
+          elif [[ "${{ inputs.test-mode }}" == "cloude2etest" && -z "$COUNTS" ]]; then
+              COUNTS=1
           fi
           
           NODE_SIZE="${{ inputs.node-size }}"
