@@ -1,0 +1,151 @@
+name: Cloud E2E Test on K8S
+
+on:
+  workflow_call:
+    inputs:
+      APECLOUD_VERSION:
+        description: 'ApeCloud release version'
+        type: string
+        required: false
+        default: 'v0.19.0'
+      CLOUD_PROVIDER:
+        description: 'cloud k8s cluster provider (e.g. aks/aks-cn)'
+        type: string
+        required: false
+        default: 'aks'
+      REGION:
+        description: 'k8s region name'
+        type: string
+        required: false
+        default: 'eastus'
+      CLUSTER_VERSION:
+        description: 'k8s cluster version (e.g. 1.27)'
+        type: string
+        required: false
+        default: '1.27'
+      E2ETEST_BRANCH:
+        description: 'e2etest branch name'
+        type: string
+        required: false
+        default: 'main'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      ARGS:
+        description: "Test args"
+        type: string
+        required: false
+        default: ''
+  workflow_dispatch:
+    inputs:
+      APECLOUD_VERSION:
+        description: 'ApeCloud release version'
+        type: string
+        required: false
+        default: 'v0.19.0'
+      CLOUD_PROVIDER:
+        description: 'cloud k8s cluster provider (e.g. aks/aks-cn)'
+        type: string
+        required: false
+        default: 'aks'
+      REGION:
+        description: 'k8s region name'
+        type: string
+        required: false
+        default: 'eastus'
+      CLUSTER_VERSION:
+        description: 'k8s cluster version (e.g. 1.27)'
+        type: string
+        required: false
+        default: '1.27'
+      E2ETEST_BRANCH:
+        description: 'e2etest branch name'
+        type: string
+        required: false
+        default: 'main'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      ARGS:
+        description: "Test args"
+        type: string
+        required: false
+        default: ''
+
+
+run-name: Cloud:${{ inputs.APECLOUD_VERSION }} Test On K8S:${{ inputs.CLOUD_PROVIDER }} ${{ inputs.CLUSTER_VERSION }}
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform-init-k8s:
+    uses: ./.github/workflows/terraform-init.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      cluster-version: ${{ inputs.CLUSTER_VERSION }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      region: ${{ inputs.REGION }}
+      test-mode: "cloude2etest"
+    secrets: inherit
+
+  e2e-test:
+    if: ${{ needs.terraform-init-k8s.result == 'success' }}
+    needs: [ terraform-init-k8s ]
+    uses: ./.github/workflows/test-cloud-k8s.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      test-type: "0"
+      test-type-name: "e2e-test"
+      test-args: ${{ inputs.ARGS }}
+      e2etest-branch: ${{ inputs.E2ETEST_BRANCH }}
+    secrets: inherit
+
+  send-message:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    needs: [ e2e-test ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: send message
+        id: get_trigger_mode
+        run: |
+          TEST_RESULT="e2e-test|${{ needs.e2e-test.outputs.test-result }}"
+          
+          TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
+              --github-repo "${{ github.repository }}" \
+              --github-token "${{ env.GITHUB_TOKEN }}" \
+              --test-result "${TEST_RESULT}" \
+              --run-id "$GITHUB_RUN_ID" )
+          
+          date_ret=$(date +%Y-%m-%d-%T)
+          test_title="[${{ inputs.APECLOUD_VERSION }}] Test Cloud on K8S:${{ inputs.CLOUD_PROVIDER }} ${{ inputs.CLUSTER_VERSION }} [${date_ret}]"
+          python3 .github/utils/send_mesage.py \
+              --url ${{ vars.TEST_BOT_WEBHOOK }} \
+              --title "$test_title" \
+              --result "$TEST_RESULT"
+
+  terraform-destroy-k8s:
+    if: ${{ always() }}
+    needs: [ terraform-init-k8s, send-message ]
+    uses: ./.github/workflows/terraform-destroy.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      region: ${{ inputs.REGION }}
+    secrets: inherit
+

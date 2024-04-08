@@ -1,0 +1,108 @@
+name: Test Cloud On K8S
+
+on:
+  workflow_call:
+    inputs:
+      cloud-provider:
+        description: 'cloud k8s cluster provider (e.g. aks/aks-cn)'
+        type: string
+        required: false
+        default: 'aks'
+      k8s-cluster-name:
+        description: 'k8s cluster name'
+        type: string
+        required: false
+        default: ''
+      test-type:
+        description: 'test type'
+        type: string
+        required: false
+        default: '0'
+      test-type-name:
+        description: 'test type name'
+        type: string
+        required: false
+        default: ''
+      test-args:
+        description: 'test args'
+        type: string
+        required: false
+        default: ''
+      e2etest-branch:
+        description: 'e2etest branch name'
+        type: string
+        required: false
+        default: 'main'
+    outputs:
+      test-result:
+        description: "e2e test result"
+        value: "${{ jobs.cloud-test-k8s.outputs.test-result }}"
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  AUTH0_ID_TOKEN: ${{ secrets.AUTH0_ID_TOKEN }}
+  CLOUD_SERVER_HOST: ${{ secrets.CLOUD_SERVER_HOST }}
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_CREDENTIALS_CN: ${{ secrets.AZURE_CREDENTIALS_CN }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  cloud-test-k8s:
+    name: run ${{ inputs.test-type-name }}
+    runs-on: ubuntu-latest
+    outputs:
+      test-result: ${{ steps.test_result.outputs.test-result }}
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.21"
+
+      - if: ${{ inputs.cloud-provider == 'aks' && env.AZURE_CREDENTIALS != '' }}
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS }}
+
+      - if: ${{ inputs.cloud-provider == 'aks-cn' && env.AZURE_CREDENTIALS_CN != '' }}
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS_CN }}
+          environment: azurechinacloud
+
+      - if: ${{ (inputs.cloud-provider == 'aks' && env.AZURE_CREDENTIALS != '') || (inputs.cloud-provider == 'aks-cn' && env.AZURE_CREDENTIALS_CN != '') }}
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: '${{ inputs.k8s-cluster-name }}-group'
+          cluster-name: '${{ inputs.k8s-cluster-name }}'
+
+      - name: curl cloud server api
+        run: |
+          curl -X GET "https://${{ env.CLOUD_SERVER_HOST }}/api/v1/user" -H  "accept: application/json" -H  "authorization:Bearer  ${AUTH0_ID_TOKEN}"
+
+      - name: Checkout e2etest Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/e2etest
+          path: e2etest
+          ref: ${{ inputs.e2etest-branch }}
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: run e2e test
+        id: run_e2e_test
+        run: |
+          cd e2etest
+          make test-e2e-apecloud
+          echo E2E_TEST_RESULT=1 >> $GITHUB_ENV
+
+      - name: return cloud e2e test result
+        id: test_result
+        if: ${{ always() }}
+        run: |
+          if [[ "${E2E_TEST_RESULT}" == '1' ]]; then
+              echo test-result=[PASSED] >> $GITHUB_OUTPUT
+          else
+              echo test-result=[FAILED] >> $GITHUB_OUTPUT
+          fi
