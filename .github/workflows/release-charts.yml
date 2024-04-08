@@ -220,15 +220,17 @@ jobs:
       - name: helm validate
         if: inputs.CHART_NAME
         run: |
-          cp .cr-release-packages/${{ inputs.CHART_NAME }}-${{ steps.get_version.outputs.VERSION }}.tgz ./
+          CHEKC_CHART_NAME="${{ inputs.CHART_NAME }}"
+          CHEKC_CHART_NAME="${CHEKC_CHART_NAME%%|*}"
+          cp .cr-release-packages/${CHEKC_CHART_NAME}-${{ steps.get_version.outputs.VERSION }}.tgz ./
           
-          tar -zxvf ${{ inputs.CHART_NAME }}-${{ steps.get_version.outputs.VERSION }}.tgz
+          tar -zxvf ${CHEKC_CHART_NAME}-${{ steps.get_version.outputs.VERSION }}.tgz
           
-          helm install ${{ inputs.CHART_NAME }} \
-            ${{ inputs.CHART_NAME }} \
+          helm install ${CHEKC_CHART_NAME} \
+            ${CHEKC_CHART_NAME} \
             --set="${{ inputs.HELM_SET }}"
           
-          helm template ${{ inputs.CHART_NAME }} ${{ inputs.CHART_NAME }} \
+          helm template ${CHEKC_CHART_NAME} ${CHEKC_CHART_NAME} \
             --validate  \
             --set="${{ inputs.HELM_SET }}"
 

@@ -13,7 +13,15 @@ main() {
         images=$( helm template $chart | egrep 'image:|repository:|tag:' | awk '{print $2}' | sed 's/"//g' )
         repository=""
         for image in $( echo "$images" ); do
-            if [[ "$image" == *"apecloud/$CHART_NAME"* || "$image" == *"apecloud/chatgpt-retrieval-plugin"*  ]]; then
+            skip_flag=0
+            for chartName in $(echo "${CHART_NAME}" | sed 's/|/ /g'); do
+                if [[ "$image" == *"apecloud/${chartName}"* ]]; then
+                    skip_flag=1
+                    break
+                fi
+            done
+
+            if [[ $skip_flag -eq 1 || "$image" == *"apecloud/$CHART_NAME"* || "$image" == *"apecloud/chatgpt-retrieval-plugin"*  ]]; then
                 continue
             fi
 
