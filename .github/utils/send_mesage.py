@@ -3,6 +3,7 @@
 import argparse
 import requests
 import json
+import re
 
 parser = argparse.ArgumentParser(description='Test for argparse')
 parser.add_argument('--title', '-t', help='test title', default="")
@@ -17,6 +18,19 @@ result = args.result
 url = args.url
 job_url = args.job_url
 send_type = args.send_type
+
+
+def colorize_status(status_str):
+    pattern = r'(\d+)(Passed|Failed)'
+    matches = re.findall(pattern, status_str)
+
+    for match in matches:
+        count, status = match
+        if status == 'Passed':
+            status_str = status_str.replace(f"{count}Passed", f"<font color='green'>{count}Passed</font>")
+        elif status == 'Failed':
+            status_str = status_str.replace(f"{count}Failed", f"<font color='red'>{count}Failed</font>")
+    return status_str
 
 
 def send_message(url_v, result_v, title_v):
@@ -56,15 +70,13 @@ def send_message(url_v, result_v, title_v):
         ]
     }
     json_results.append(json_ret)
+
     if result_v:
         result_array = result_v.split("##")
         for results in result_array:
             if results:
                 ret = results.split("|")
-                ret_color="red"
-                if ret[1] == "[PASSED]":
-                    ret_color="green"
-
+                ret_4 = colorize_status(ret[1])
                 json_ret = {
                     "tag": "column_set",
                     "flex_mode": "none",
@@ -91,7 +103,7 @@ def send_message(url_v, result_v, title_v):
                             "elements": [
                                 {
                                     "tag": "markdown",
-                                    "content": "<font color='" + ret_color + "'>" + ret[1] + "</font>",
+                                    "content": ret_4,
                                     "text_align": "center"
                                 }
                             ]
@@ -323,4 +335,3 @@ if __name__ == '__main__':
         send_e2e_message(url, result, title)
     else:
         send_message(url, result, title)
-    

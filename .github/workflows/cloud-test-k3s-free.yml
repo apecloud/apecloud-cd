@@ -71,7 +71,6 @@ on:
         required: false
         default: ''
 
-
 run-name: ApeCloud:${{ inputs.APECLOUD_VERSION }} K3S:${{ inputs.K3S_VERSION }}
 
 env:
