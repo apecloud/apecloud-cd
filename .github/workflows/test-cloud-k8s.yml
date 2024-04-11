@@ -33,6 +33,16 @@ on:
         type: string
         required: false
         default: 'main'
+      env-init:
+        description: 'e2etest env init'
+        type: boolean
+        required: false
+        default: false
+      env-clean:
+        description: 'e2etest env clean'
+        type: boolean
+        required: false
+        default: false
     outputs:
       test-result:
         description: "e2e test result"
@@ -94,15 +104,32 @@ jobs:
         id: run_e2e_test
         run: |
           cd e2etest
-          make test-e2e-apecloud
-          echo E2E_TEST_RESULT=1 >> $GITHUB_ENV
+          TEST_TYPE=${{ inputs.test-type-name }}
+          ENV_INIT=${{ inputs.env-init }}
+          ENV_CLEAN=${{ inputs.env-clean }}
+          if [ "$TEST_TYPE" = "apecloud-mysql" ]; then
+            TEST_TYPE="wesql"
+          fi
+          if [ "$ENV_INIT" = "true" ]; then
+            if [ "$ENV_CLEAN" = "true" ]; then
+                make test-e2e-apecloud URL=https://api-dev.apecloud.cn ORG_NAME=test-1 TEST_TYPE=$TEST_TYPE ENV_INIT=true ENV_CLEAN=true ENV_TYPE=managed
+            else
+                make test-e2e-apecloud URL=https://api-dev.apecloud.cn ORG_NAME=test-1 TEST_TYPE=$TEST_TYPE ENV_INIT=true ENV_TYPE=managed
+            fi
+          elif [ "$ENV_CLEAN" = "true" ]; then
+            make test-e2e-apecloud URL=https://api-dev.apecloud.cn ORG_NAME=test-1 TEST_TYPE=$TEST_TYPE ENV_CLEAN=true
+          else
+            make test-e2e-apecloud URL=https://api-dev.apecloud.cn ORG_NAME=test-1 TEST_TYPE=$TEST_TYPE | tee ./make_run.log
+            passed=$(grep -oE "[0-9]+ Passed" ./make_run.log)
+            failed=$(grep -oE "[0-9]+ Failed" ./make_run.log)
+            str="$passed,$failed"
+            result="${str// /}"
+            echo "$result"
+            echo API_RESULT=$result >> $GITHUB_ENV
+          fi
 
       - name: return cloud e2e test result
         id: test_result
         if: ${{ always() }}
         run: |
-          if [[ "${E2E_TEST_RESULT}" == '1' ]]; then
-              echo test-result=[PASSED] >> $GITHUB_OUTPUT
-          else
-              echo test-result=[FAILED] >> $GITHUB_OUTPUT
-          fi
+          echo test-result=${API_RESULT} >> $GITHUB_OUTPUT
