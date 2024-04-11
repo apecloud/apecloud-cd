@@ -42,21 +42,14 @@ jobs:
           repo_name=${GITHUB_REPOSITORY#*/}
           echo 'REPO_NAME='${repo_name} >> $GITHUB_ENV
 
-      - name: 'Build Changelog'
-        uses: mikepenz/release-changelog-builder-action@v4
-        id: build_changelog
-        if: not ${{ env.WITH_RELEASE_NOTES }}
-        with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-
       - name: release pre-release without release notes
         uses: softprops/action-gh-release@v2
         if: not ${{ env.WITH_RELEASE_NOTES }}
         with:
-          body: ${{steps.build_changelog.outputs.changelog}}
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           name: ${{ env.REPO_NAME }} v${{ env.REL_VERSION }}
           tag_name: v${{ env.REL_VERSION }}
+          generate_release_notes: true
           prerelease: true
 
       - name: release RC with release notes
