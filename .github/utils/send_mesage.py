@@ -21,12 +21,12 @@ send_type = args.send_type
 
 
 def colorize_status(status_str):
-    pattern = r'(\d+)(Passed|Failed|[PASSED]|[FAILED])'
+    pattern = r'(\d*)(Passed|Failed|[PASSED]|[FAILED])'
     matches = re.findall(pattern, status_str)
 
     for match in matches:
-        if len(match) == 2:
-            count, status = match
+        count, status = match
+        if count:
             if status == 'Passed':
                 status_str = status_str.replace(f"{count}Passed", f"<font color='green'>{count}Passed</font>")
             elif status == 'Failed':
