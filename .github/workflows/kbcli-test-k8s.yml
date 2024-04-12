@@ -1240,12 +1240,12 @@ jobs:
               --github-repo "${{ github.repository }}" \
               --test-result "${TEST_RESULT}" \
               --run-id "$GITHUB_RUN_ID" )
-          
           date_ret=$(date +%Y-%m-%d-%T)
           test_title="[${{ inputs.KB_VERSION }}] Test KBCLI on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
           if [[ -n "${{ inputs.KB_PRE_VERSION }}" ]]; then
               test_title="[${{ inputs.KB_PRE_VERSION }}] upgrade to "$test_title
           fi 
+          echo $TEST_RESULT
           python3 .github/utils/send_mesage.py \
               --url ${{ vars.TEST_BOT_WEBHOOK }} \
               --title "$test_title" \
