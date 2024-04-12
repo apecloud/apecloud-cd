@@ -35,7 +35,7 @@ def colorize_status(status_str):
             if status == '[PASSED]':
                 status_str = status_str.replace(f"[PASSED]", f"<font color='green'>[PASSED]</font>")
             elif status == '[FAILED]':
-                status_str = status_str.replace(f"[FAILED]", f"<font color='green'>[FAILED]</font>")
+                status_str = status_str.replace(f"[FAILED]", f"<font color='red'>[FAILED]</font>")
     return status_str
 
 
