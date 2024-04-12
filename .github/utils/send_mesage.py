@@ -30,10 +30,10 @@ def colorize_status(status_str):
         matches = re.findall(pattern, status_str)
         for match in matches:
             count, status = match
-        if status == 'Passed':
-            status_str = status_str.replace(f"{count}Passed", f"<font color='green'>{count}Passed</font>")
-        elif status == 'Failed':
-            status_str = status_str.replace(f"{count}Failed", f"<font color='red'>{count}Failed</font>")
+            if status == 'Passed':
+                status_str = status_str.replace(f"{count}Passed", f"<font color='green'>{count}Passed</font>")
+            elif status == 'Failed':
+                status_str = status_str.replace(f"{count}Failed", f"<font color='red'>{count}Failed</font>")
     return status_str
 
 
@@ -338,6 +338,5 @@ if __name__ == '__main__':
     elif send_type == "e2e":
         send_e2e_message(url, result, title)
     else:
-        print("result:", result)
         send_message(url, result, title)
 
