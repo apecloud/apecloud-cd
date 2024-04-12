@@ -29,12 +29,11 @@ def colorize_status(status_str):
         pattern = r'(\d+)(Passed|Failed)'
         matches = re.findall(pattern, status_str)
         for match in matches:
-            if len(match) == 2:
-                count, status = match
-                if status == 'Passed':
-                    status_str = status_str.replace(f"{count}Passed", f"<font color='green'>{count}Passed</font>")
-                elif status == 'Failed':
-                    status_str = status_str.replace(f"{count}Failed", f"<font color='red'>{count}Failed</font>")
+            count, status = match
+        if status == 'Passed':
+            status_str = status_str.replace(f"{count}Passed", f"<font color='green'>{count}Passed</font>")
+        elif status == 'Failed':
+            status_str = status_str.replace(f"{count}Failed", f"<font color='red'>{count}Failed</font>")
     return status_str
 
 
