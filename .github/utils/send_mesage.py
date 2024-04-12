@@ -21,21 +21,20 @@ send_type = args.send_type
 
 
 def colorize_status(status_str):
-    pattern = r'(\d*)(Passed|Failed|[PASSED]|[FAILED])'
-    matches = re.findall(pattern, status_str)
-
-    for match in matches:
-        count, status = match
-        if count:
-            if status == 'Passed':
-                status_str = status_str.replace(f"{count}Passed", f"<font color='green'>{count}Passed</font>")
-            elif status == 'Failed':
-                status_str = status_str.replace(f"{count}Failed", f"<font color='red'>{count}Failed</font>")
-        else:
-            if status == '[PASSED]':
-                status_str = status_str.replace(f"[PASSED]", f"<font color='green'>[PASSED]</font>")
-            elif status == '[FAILED]':
-                status_str = status_str.replace(f"[FAILED]", f"<font color='red'>[FAILED]</font>")
+    if "[PASSED]" in status_str:
+        status_str = status_str.replace(f"[PASSED]", f"<font color='green'>[PASSED]</font>")
+    elif "[FAILED]" in status_str:
+        status_str = status_str.replace(f"[FAILED]", f"<font color='red'>[FAILED]</font>")
+    else:
+        pattern = r'(\d+)(Passed|Failed)'
+        matches = re.findall(pattern, status_str)
+        for match in matches:
+            if len(match) == 2:
+                count, status = match
+                if status == 'Passed':
+                    status_str = status_str.replace(f"{count}Passed", f"<font color='green'>{count}Passed</font>")
+                elif status == 'Failed':
+                    status_str = status_str.replace(f"{count}Failed", f"<font color='red'>{count}Failed</font>")
     return status_str
 
 
