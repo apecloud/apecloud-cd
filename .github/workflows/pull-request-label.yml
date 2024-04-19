@@ -3,12 +3,12 @@ name: Pull Request Label
 on:
   workflow_call:
     inputs:
-      LABLE_NAME:
+      LABEL_NAME:
         description: "The name of pr label (e.g. approved)"
         type: string
         required: true
         default: ''
-      LABLE_OPS:
+      LABEL_OPS:
         description: "The ops of pr label (ADD/REMOVE)"
         type: string
         required: true
@@ -41,5 +41,5 @@ jobs:
               --github-repo "${{ github.repository }}" \
               --github-token "${{ env.GITHUB_TOKEN }}" \
               --pr-number "${{ github.event.pull_request.number }}" \
-              --label-name "${{ inputs.LABLE_NAME }}" \
-              --label-ops "${{ inputs.LABLE_OPS }}"
+              --label-name "${{ inputs.LABEL_NAME }}" \
+              --label-ops "${{ inputs.LABEL_OPS }}"
