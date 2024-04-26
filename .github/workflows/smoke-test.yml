@@ -45,6 +45,7 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
   GO_VERSION: '1.21'
+  HELM_VERSION: v3.13.1
 
 permissions:
   id-token: write
