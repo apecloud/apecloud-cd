@@ -38,11 +38,6 @@ on:
         type: string
         required: false
         default: 'amd64'
-      BRANCH_NAME:
-        description: 'testinfra branch name'
-        type: string
-        required: false
-        default: 'main'
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
@@ -90,10 +85,7 @@ on:
         description: 'node instance types (e.g. amd64/arm64)'
         required: false
         default: 'amd64'
-      BRANCH_NAME:
-        description: 'testinfra branch name'
-        required: false
-        default: 'main'
+
       APECD_REF:
         description: "The branch name of apecloud-cd"
         required: false
@@ -142,7 +134,6 @@ jobs:
       test-type-name: "install"
       test-args: "--check-addon false ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
-      branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
 
   test-mysql:
