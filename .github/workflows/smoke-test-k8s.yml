@@ -53,6 +53,11 @@ on:
         type: string
         required: false
         default: ''
+      e2etest-branch:
+        description: 'e2etest-branch'
+        type: string
+        required: false
+        default: 'main'
   workflow_dispatch:
     inputs:
       CLOUD_PROVIDER:
@@ -97,6 +102,11 @@ on:
         description: "Test args"
         required: false
         default: ''
+      e2etest-branch:
+        description: 'e2etest-branch'
+        type: string
+        required: false
+        default: 'main'
 
 run-name: SMOKE:${{ inputs.KB_VERSION }} ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }}
 

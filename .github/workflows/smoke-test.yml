@@ -28,6 +28,12 @@ on:
         type: string
         required: false
         default: ''
+      e2etest-branch:
+        description: 'e2etest-branch'
+        type: string
+        required: false
+        default: 'main'
+
     outputs:
       test-result:
         description: "test result"
@@ -51,8 +57,13 @@ jobs:
     outputs:
       test-result: ${{ steps.smoke_test.outputs.test-result }}
     steps:
-      - name: checkout kubeblocks
+      - name: Checkout e2etest Code
         uses: actions/checkout@v4
+        with:
+          repository: apecloud/e2etest
+          ref: ${{ inputs.e2etest-branch }}
+          token: ${{ env.GITHUB_TOKEN }}
+
 
       - uses: azure/setup-kubectl@v3
         with:
