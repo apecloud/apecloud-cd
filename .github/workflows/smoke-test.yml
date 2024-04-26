@@ -79,10 +79,6 @@ jobs:
         with:
           version: ${{ env.HELM_VERSION }}
 
-      - uses: azure/setup-kubectl@v3
-        with:
-          version: "v1.28.3"
-
       - name: Install ginkgo
         run: |
           go install github.com/onsi/ginkgo/v2/ginkgo@v2.5.1
