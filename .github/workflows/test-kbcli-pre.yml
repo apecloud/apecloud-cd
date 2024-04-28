@@ -157,6 +157,7 @@ jobs:
           if [[ -d examples ]]; then
               cp -r examples testinfra/
           fi 
+          cd testinfra
           file_log="$(date +%Y-%m-%d-%T)".log
           touch ${file_log}
           echo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> ${file_log}
