@@ -1032,7 +1032,7 @@ jobs:
              test-xinference, test-oracle , test-opengauss, test-influxdb, test-flink,
              test-solr, test-doris , test-halo, test-mogdb, test-oceanbase-ent, test-starrocks-ent,
              test-apecloud-postgresql, test-yashandb, test-redis-cluster, test-camellia-redis-proxy,
-             test-pulsar-nodeport, test_minio ]
+             test-pulsar-nodeport, test-minio ]
     steps:
       - uses: actions/checkout@v4
         with:
