@@ -21,7 +21,7 @@ on:
         greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|orioledb|oracle-mysql|official-pg|asmysql|openldap|
         polardbx|opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
         oracle|opengauss|influxdb|flink|solr|doris|halo|mogdb|oceanbase-ent|starrocks-ent|apecloud-postgresql|yashandb|
-        redis-cluster|camellia-redis-proxy|pulsar-nodeport|minio)'
+        redis-cluster|camellia-redis-proxy|minio)'
         type: string
         required: false
         default: ''
@@ -985,23 +985,6 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
-  test-pulsar-nodeport:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pulsar-nodeport')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
-    needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
-    with:
-      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
-      region: ${{ inputs.REGION }}
-      release-version: "${{ inputs.KB_VERSION }}"
-      previous-version: "${{ inputs.KB_PRE_VERSION }}"
-      test-type: "50"
-      test-type-name: "pulsar-nodeport"
-      test-args: "${{ inputs.ARGS }}"
-      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
-      branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
-    secrets: inherit
-
   test-minio:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'minio')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
@@ -1032,7 +1015,7 @@ jobs:
              test-xinference, test-oracle , test-opengauss, test-influxdb, test-flink,
              test-solr, test-doris , test-halo, test-mogdb, test-oceanbase-ent, test-starrocks-ent,
              test-apecloud-postgresql, test-yashandb, test-redis-cluster, test-camellia-redis-proxy,
-             test-pulsar-nodeport, test-minio ]
+            test-minio ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1215,10 +1198,6 @@ jobs:
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"camellia-redis-proxy"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##camellia-redis-proxy|${{ needs.test-camellia-redis-proxy.outputs.test-result }}"
-              fi 
-          
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"pulsar-nodeport"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##pulsar-nodeport|${{ needs.test-pulsar-nodeport.outputs.test-result }}"
               fi 
           fi 
           
