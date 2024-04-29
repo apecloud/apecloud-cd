@@ -205,12 +205,6 @@ jobs:
           fi
           echo test-date=$TEST_DATE >> $GITHUB_OUTPUT
           
-#          S3_PATH=$( bash .github/utils/utils.sh \
-#              --type 4 --test-type "${TEST_DATE}/${{ inputs.test-type-name }}" \
-#              --kubeblocks-version ${KB_VERSION})
-#          mkdir -p ${S3_PATH}
-#          echo 'S3_PATH='${S3_PATH} >> $GITHUB_ENV
-          
           file_log="$(date +%Y-%m-%d-%T)".log
           touch ${file_log}
           echo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> ${file_log}
