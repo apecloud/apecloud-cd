@@ -48,7 +48,7 @@ on:
         type: string
         required: false
         default: ''
-      e2etest-branch:
+      E2ETEST-BRANCH:
         description: 'e2etest-branch'
         type: string
         required: false
@@ -94,7 +94,7 @@ on:
         description: "Test args"
         required: false
         default: ''
-      e2etest-branch:
+      E2ETEST-BRANCH:
         description: 'e2etest-branch'
         type: string
         required: false
@@ -142,6 +142,7 @@ jobs:
     uses: ./.github/workflows/smoke-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      e2etest-branch: ${{ inputs.E2ETEST-BRANCH }}
       test-type: "mysql"
       config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
@@ -154,6 +155,7 @@ jobs:
     uses: ./.github/workflows/smoke-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      e2etest-branch: ${{ inputs.E2ETEST-BRANCH }}
       test-type: "postgresql"
       config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
@@ -166,6 +168,7 @@ jobs:
     uses: ./.github/workflows/smoke-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      e2etest-branch: ${{ inputs.E2ETEST-BRANCH }}
       test-type: "redis"
       config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
@@ -178,6 +181,7 @@ jobs:
     uses: ./.github/workflows/smoke-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      e2etest-branch: ${{ inputs.E2ETEST-BRANCH }}
       test-type: "mongodb"
       config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
@@ -190,6 +194,7 @@ jobs:
     uses: ./.github/workflows/smoke-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      e2etest-branch: ${{ inputs.E2ETEST-BRANCH }}
       test-type: "pulsar"
       config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
@@ -202,6 +207,7 @@ jobs:
     uses: ./.github/workflows/smoke-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      e2etest-branch: ${{ inputs.E2ETEST-BRANCH }}
       test-type: "greptimedb"
       config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
@@ -214,6 +220,7 @@ jobs:
     uses: ./.github/workflows/smoke-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      e2etest-branch: ${{ inputs.E2ETEST-BRANCH }}
       test-type: "nebula"
       config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
@@ -226,6 +233,7 @@ jobs:
     uses: ./.github/workflows/smoke-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      e2etest-branch: ${{ inputs.E2ETEST-BRANCH }}
       test-type: "risingwave"
       config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
@@ -238,6 +246,7 @@ jobs:
     uses: ./.github/workflows/smoke-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      e2etest-branch: ${{ inputs.E2ETEST-BRANCH }}
       test-type: "starrocks"
       config-type: ${{ inputs.CONFIG_TYPE }}
       region: ${{ inputs.REGION }}
