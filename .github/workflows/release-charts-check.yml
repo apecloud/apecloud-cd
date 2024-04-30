@@ -210,4 +210,4 @@ jobs:
           fi
           
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/helm_image_check.sh \
-              .cr-release-packages "${{ inputs.CHART_NAME }}" "${check_dockerhub}"
+              .cr-release-packages "${{ inputs.CHART_NAME }}" "${check_dockerhub}" "${{ vars.SKIP_CHECK_IMAGES }}"
