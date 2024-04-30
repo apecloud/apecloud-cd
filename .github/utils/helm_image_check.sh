@@ -2,6 +2,7 @@
 CHART_PATH=${1:-".cr-release-packages"}
 CHART_NAME=${2:-"kubeblocks"}
 CHECK_DOCKERHUB=${3:-"true"}
+SKIP_CHECK_IMAGES=${4:-""}
 
 main() {
     touch exit_result
@@ -22,6 +23,20 @@ main() {
             done
 
             if [[ $skip_flag -eq 1 || "$image" == *"apecloud/$CHART_NAME"* || "$image" == *"apecloud/chatgpt-retrieval-plugin"*  ]]; then
+                continue
+            fi
+
+            skipCheckFlag=0
+            if [[ -n "$SKIP_CHECK_IMAGES" ]]; then
+                for skipCheckImage in $(echo "${SKIP_CHECK_IMAGES}" | sed 's/|/ /g'); do
+                    if [[ "$image" == *"${skipCheckImage}"* ]]; then
+                        skipCheckFlag=1
+                        break
+                    fi
+                done
+            fi
+
+            if [[ $skipCheckFlag -eq 1 ]]; then
                 continue
             fi
 
