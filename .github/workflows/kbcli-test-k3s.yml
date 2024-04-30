@@ -17,7 +17,7 @@ on:
         greptimedb|nebula|risingwave|starrocks|etcd|foxlake|orioledb|oracle-mysql|official-pg|asmysql|openldap|
         opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
         oracle|opengauss|influxdb|flink|solr|doris|halo|mogdb|starrocks-ent|apecloud-postgresql|yashandb|polardbx|
-        redis-cluster|camellia-redis-proxy|minio)'
+        redis-cluster|camellia-redis-proxy|dmdb|minio)'
         type: string
         required: false
         default: ''
@@ -742,6 +742,20 @@ jobs:
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
     secrets: inherit
 
+  test-dmdb:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'dmdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "50"
+      test-type-name: "dmdb"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
   test-minio:
     if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'minio')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ enable-gke-runner ]
@@ -766,7 +780,7 @@ jobs:
              test-vllm, test-tdengine, test-orioledb, test-official-pg, test-ggml, test-zookeeper,
              test-mariadb, test-tidb, test-xinference, test-oracle, test-opengauss, test-influxdb,
              test-flink, test-solr, test-doris, test-halo, test-mogdb, test-starrocks-ent, test-apecloud-postgresql,
-             test-yashandb, test-polardbx, test-redis-cluster, test-camellia-redis-proxy, test-minio]
+             test-yashandb, test-polardbx, test-redis-cluster, test-camellia-redis-proxy, test-dmdb, test-minio]
     steps:
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -971,6 +985,10 @@ jobs:
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"polardbx"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##polardbx|${{ needs.test-polardbx.outputs.pre-test-result }}"
+              fi 
+              
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"dmdb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##dmdb|${{ needs.test-dmdb.outputs.pre-test-result }}"
               fi 
               
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"minio"* ]]; then
@@ -1188,6 +1206,9 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##polardbx|${{ needs.test-polardbx.outputs.test-result }}"
               fi 
           
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"dmdb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##dmdb|${{ needs.test-dmdb.outputs.test-result }}"
+              fi 
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"minio"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##minio|${{ needs.test-minio.outputs.test-result }}"
               fi 
