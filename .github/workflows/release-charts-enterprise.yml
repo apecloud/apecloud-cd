@@ -277,6 +277,6 @@ jobs:
         shell: bash
         run: |
           cd helm-charts-enterprise
-          args=(--owner "apecloud" --repo "helm-charts-enterprise")
+          args=(--owner "apecloud" --repo "helm-charts-enterprise" --github-repo "helm-charts-enterprise")
           
           "${{ github.workspace }}/apecloud-cd/.github/utils/helm_release.sh" "${args[@]}"
