@@ -22,7 +22,6 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  GH_TOKEN: ${{ github.token }}
 
 jobs:
   appprove-label:
@@ -37,15 +36,13 @@ jobs:
 
       - name: set appprove label
         run: |
-          GITHUB_TOKEN_TEP="${{ env.GITHUB_TOKEN }}"
-          if [[ -z "${GITHUB_TOKEN_TEP}" ]]; then
-              GITHUB_TOKEN_TEP="${{ env.GH_TOKEN }}"
-          fi
+          echo "${{ github.event.pull_request.head.repo.full_name }}"
+          echo "${{ github.repository }}"
           
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
               --type 33 \
               --github-repo "${{ github.repository }}" \
-              --github-token "${GITHUB_TOKEN_TEP}" \
+              --github-token "${{ env.GITHUB_TOKEN }}" \
               --pr-number "${{ github.event.pull_request.number }}" \
               --label-name "${{ inputs.LABEL_NAME }}" \
               --label-ops "${{ inputs.LABEL_OPS }}"
