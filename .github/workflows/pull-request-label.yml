@@ -36,9 +36,6 @@ jobs:
 
       - name: set appprove label
         run: |
-          echo "${{ github.event.pull_request.head.repo.full_name }}"
-          echo "${{ github.repository }}"
-          
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
               --type 33 \
               --github-repo "${{ github.repository }}" \
