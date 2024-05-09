@@ -36,10 +36,15 @@ jobs:
 
       - name: set appprove label
         run: |
+          github_token="${{ env.GITHUB_TOKEN }}"
+          if [[ -z "$github_token" ]]; then
+              github_token="${{ github.token }}"
+          fi
+          
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
               --type 33 \
               --github-repo "${{ github.repository }}" \
-              --github-token "${{ env.GITHUB_TOKEN }}" \
+              --github-token "${github_token}" \
               --pr-number "${{ github.event.pull_request.number }}" \
               --label-name "${{ inputs.LABEL_NAME }}" \
               --label-ops "${{ inputs.LABEL_OPS }}"
