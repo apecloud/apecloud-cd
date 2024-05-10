@@ -69,16 +69,20 @@ jobs:
       pre-test-result: ${{ steps.kbcli_test_k3s.outputs.pre-test-result }}
       runner-name: ${{ steps.get_runner_name.outputs.runner-name }}
     steps:
-      - name: checkout ${{ github.repository }}
-        uses: actions/checkout@v4
-
       - name: checkout testinfra
         uses: actions/checkout@v4
         with:
           repository: apecloud/testinfra
           ref: ${{ inputs.branch-name }}
-          path: ./testinfra
+          path: ./
           token: ${{ env.GITHUB_TOKEN }}
+
+      - name: Checkout kubeblocks-addons Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/kubeblocks-addons
+          path: kubeblocks-addons
+          token:  ${{ env.GITHUB_TOKEN }}
 
       - name: setup k3d k3s
         uses: apecloud-inc/setup-k3d-k3s@v1
@@ -91,10 +95,9 @@ jobs:
       - name: run test ${{ inputs.test-type-name }}
         id: kbcli_test_k3s
         run: |
-          if [[ -d examples ]]; then
-              cp -r examples testinfra/
+          if [[ -d kubeblocks-addons/examples ]]; then
+              cp -r kubeblocks-addons/examples ./
           fi 
-          cd testinfra
           KB_VERSION=$( bash .github/utils/get_kb_latest_version.sh \
               ${{ inputs.release-version }} )
           

@@ -95,16 +95,20 @@ jobs:
       test-result: ${{ steps.kbcli_test.outputs.test-result }}
       random-suffix: ${{ steps.kbcli_test.outputs.random-suffix }}
     steps:
-      - name: checkout ${{ github.repository }}
-        uses: actions/checkout@v4
-
       - name: checkout testinfra
         uses: actions/checkout@v4
         with:
           repository: apecloud/testinfra
           ref: ${{ inputs.branch-name }}
-          path: ./testinfra
+          path: ./
           token: ${{ env.GITHUB_TOKEN }}
+
+      - name: Checkout kubeblocks-addons Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/kubeblocks-addons
+          path: kubeblocks-addons
+          token:  ${{ env.GITHUB_TOKEN }}
 
       - name: Install Helm
         uses: azure/setup-helm@v3
@@ -169,10 +173,9 @@ jobs:
       - name: run test ${{ inputs.test-type-name }}
         id: kbcli_test
         run: |
-          if [[ -d examples ]]; then
-              cp -r examples testinfra/
+          if [[ -d kubeblocks-addons/examples ]]; then
+              cp -r kubeblocks-addons/examples ./
           fi 
-          cd testinfra
           file_log="$(date +%Y-%m-%d-%T)".log
           touch ${file_log}
           echo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> ${file_log}
