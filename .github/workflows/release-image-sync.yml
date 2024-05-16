@@ -308,6 +308,9 @@ jobs:
                   *TARGETS=task-manager*)
                       IMAGES_INPUT="apecloud/task-manager:${IMAGES_TAG}"
                   ;;
+                  *TARGETS=*installer-offline*)
+                      IMAGES_INPUT="apecloud/kubeblocks-installer:${IMAGES_TAG}-offline"
+                  ;;
                   *TARGETS=*installer*)
                       IMAGES_INPUT="apecloud/kubeblocks-installer:${IMAGES_TAG}"
                   ;;
