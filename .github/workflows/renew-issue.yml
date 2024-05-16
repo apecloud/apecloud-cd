@@ -8,6 +8,13 @@ on:
         type: string
         required: false
         default: 'main'
+  workflow_dispatch:
+    inputs:
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
 
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
