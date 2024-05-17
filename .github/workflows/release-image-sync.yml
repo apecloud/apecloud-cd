@@ -159,6 +159,14 @@ jobs:
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
     steps:
+      - name: free disk space
+        run: |
+          sudo swapoff -a
+          sudo rm -f /swapfile
+          sudo apt clean
+          docker rmi $(docker image ls -aq)
+          df -h
+
       - name: Checkout Code
         if: ${{ ! inputs.ENABLE_SUBMODULE }}
         uses: actions/checkout@v4
