@@ -159,12 +159,14 @@ jobs:
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
     steps:
-      - name: free disk space
+      - name: Free disk space
         run: |
+          sudo apt-get autoremove -y >/dev/null 2>&1
+          sudo apt-get autoclean -y >/dev/null 2>&1
+          sudo rm -rf /usr/local/lib/android >/dev/null 2>&1
+          docker rmi $(docker image ls -aq) >/dev/null 2>&1
           sudo swapoff -a
           sudo rm -f /swapfile
-          sudo apt clean
-          docker rmi $(docker image ls -aq)
           df -h
 
       - name: Checkout Code
@@ -220,7 +222,7 @@ jobs:
         run: |
           make ${{ inputs.MAKE_OPS_PRE }}
 
-      - name: remove v prefix
+      - name: Remove v prefix
         id: get_tag_name
         shell: bash
         run: |
@@ -241,6 +243,8 @@ jobs:
       - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
         name: Build and Push to Docker Hub
         run: |
+          echo "Free space:"
+          df -h
           cmd="make ${{ inputs.MAKE_OPS }} "
           cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
