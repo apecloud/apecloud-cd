@@ -159,12 +159,21 @@ jobs:
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
     steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 512
+          swap-size-mb: 1024
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-docker-images: 'true'
+
       - name: free disk space
         run: |
+          df -h
           sudo swapoff -a
           sudo rm -f /swapfile
           sudo apt clean
-          docker rmi $(docker image ls -aq)
           df -h
 
       - name: Checkout Code
@@ -220,7 +229,7 @@ jobs:
         run: |
           make ${{ inputs.MAKE_OPS_PRE }}
 
-      - name: remove v prefix
+      - name: Remove v prefix
         id: get_tag_name
         shell: bash
         run: |
@@ -241,6 +250,8 @@ jobs:
       - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
         name: Build and Push to Docker Hub
         run: |
+          echo "Free space:"
+          df -h
           cmd="make ${{ inputs.MAKE_OPS }} "
           cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
