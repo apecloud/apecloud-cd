@@ -161,13 +161,18 @@ jobs:
     steps:
       - name: Free disk space
         run: |
-          sudo apt-get autoremove -y >/dev/null 2>&1
-          sudo apt-get autoclean -y >/dev/null 2>&1
-          sudo rm -rf /usr/local/lib/android >/dev/null 2>&1
-          docker rmi $(docker image ls -aq) >/dev/null 2>&1
-          sudo swapoff -a
-          sudo rm -f /swapfile
-          df -h
+          TARGETS="${{ inputs.MAKE_ARGS }}"
+          case $TARGETS in
+              *TARGETS=apiserver*|*TARGETS=openconsole*|*TARGETS=prompt*|*TARGETS=sentry*|*TARGETS=task-manager*)
+                  sudo apt-get autoremove -y >/dev/null 2>&1
+                  sudo apt-get autoclean -y >/dev/null 2>&1
+                  sudo rm -rf /usr/local/lib/android >/dev/null 2>&1
+                  docker rmi $(docker image ls -aq) >/dev/null 2>&1
+                  sudo swapoff -a
+                  sudo rm -f /swapfile
+                  df -h
+              ;;
+          esac
 
       - name: Checkout Code
         if: ${{ ! inputs.ENABLE_SUBMODULE }}
@@ -319,6 +324,9 @@ jobs:
                   ;;
                   *TARGETS=task-manager*)
                       IMAGES_INPUT="apecloud/task-manager:${IMAGES_TAG}"
+                  ;;
+                  *TARGETS=*cloud-installer*)
+                      IMAGES_INPUT="apecloud/kb-cloud-installer:${IMAGES_TAG}"
                   ;;
                   *TARGETS=*installer-offline*)
                       IMAGES_INPUT="apecloud/kubeblocks-installer:${IMAGES_TAG}-offline"
