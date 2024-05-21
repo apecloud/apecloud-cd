@@ -163,7 +163,7 @@ jobs:
         run: |
           TARGETS="${{ inputs.MAKE_ARGS }}"
           case $TARGETS in
-              *TARGETS=apiserver*|*TARGETS=openconsole*|*TARGETS=prompt*|*TARGETS=sentry*|*TARGETS=task-manager*)
+              *TARGETS=apiserver*|*TARGETS=prompt*|*TARGETS=sentry*|*TARGETS=task-manager*)
                   sudo apt-get autoremove -y >/dev/null 2>&1
                   sudo apt-get autoclean -y >/dev/null 2>&1
                   sudo rm -rf /usr/local/lib/android >/dev/null 2>&1
