@@ -194,7 +194,7 @@ jobs:
           if [[ ("${{ inputs.cloud-provider }}" == "eks" || "${{ inputs.cloud-provider }}" == "aks" || "${{ inputs.cloud-provider }}" == "aks-cn" ) && -n "${COUNTS}" && -z "${NODE_SIZE}" ]]; then
               NODE_SIZE="$(( $COUNTS * 2 ))"
           elif [[ "${{ inputs.cloud-provider }}" == "gke" && -n "${COUNTS}" && -z "${NODE_SIZE}" ]]; then
-              NODE_SIZE="$(( $COUNTS / 4 + 1 ))"
+              NODE_SIZE="$(( $COUNTS / 2 + 1 ))"
           fi
           
           if [[ ("${{ inputs.cloud-provider }}" == "eks" || "${{ inputs.cloud-provider }}" == "aks" || "${{ inputs.cloud-provider }}" == "aks-cn" ) && -z "${NODE_SIZE}" && -z "${{ inputs.test-mode }}" ]]; then
