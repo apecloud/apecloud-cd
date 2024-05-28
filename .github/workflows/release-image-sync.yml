@@ -276,7 +276,7 @@ jobs:
           fi
           
           if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
-            cmd=$cmd" \"${{ inputs.MAKE_ARGS }}\" "
+            cmd=$cmd" ${{ inputs.MAKE_ARGS }} "
           fi
           
           if [[ ! -z "${{ inputs.IMAGE_NAME }}" ]]; then
@@ -310,7 +310,11 @@ jobs:
               TARGETS="${{ inputs.MAKE_ARGS }}"
               case $TARGETS in
                   *TARGETS=apiserver*)
-                      IMAGES_INPUT="apecloud/apiserver:${IMAGES_TAG}"
+                      if [[ "$TARGETS" == *"GOTAGS=jni"* ]]; then
+                          IMAGES_INPUT="apecloud/apiserver:${IMAGES_TAG}-jni"
+                      else
+                          IMAGES_INPUT="apecloud/apiserver:${IMAGES_TAG}"
+                      fi  
                   ;;
                   *TARGETS=openconsole*)
                       IMAGES_INPUT="apecloud/openconsole:${IMAGES_TAG}"
