@@ -172,6 +172,20 @@ jobs:
                   sudo rm -f /swapfile
                   df -h
               ;;
+              *TARGETS=docker/kb-cloud-installer*)
+                  helm repo add kubeblocks https://apecloud.github.io/helm-charts
+                  helm pull kubeblocks/kubeblocks-cloud --version ${{ inputs.VERSION }}
+                  HELM_CHART_PKG_NAME="kubeblocks-cloud-${{ inputs.VERSION }}.tgz"
+                  for i in {1..60}; do
+                      # check helm chart package
+                      if [[ -f "${HELM_CHART_PKG_NAME}" ]]; then
+                          echo "found helm chart package ${HELM_CHART_PKG_NAME}"
+                          break
+                      fi
+                      sleep 1
+                      helm repo update kubeblocks 
+                  done
+              ;;
           esac
 
       - name: Checkout Code
