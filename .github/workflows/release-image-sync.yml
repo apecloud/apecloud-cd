@@ -173,12 +173,14 @@ jobs:
                   df -h
               ;;
               *TARGETS=docker/kb-cloud-installer*)
+                  sleep 5
                   helm repo add kubeblocks https://apecloud.github.io/helm-charts
-                  helm pull kubeblocks/kubeblocks-cloud --version ${{ inputs.VERSION }}
                   HELM_CHART_PKG_NAME="kubeblocks-cloud-${{ inputs.VERSION }}.tgz"
+                  helm_pull_cmd="helm pull kubeblocks/kubeblocks-cloud --version ${{ inputs.VERSION }}"
                   for i in {1..60}; do
-                      echo "helm chart package checking"
+                      eval "$helm_pull_cmd" || true
                       # check helm chart package
+                      echo "helm chart package checking..."
                       if [[ -f "${HELM_CHART_PKG_NAME}" ]]; then
                           echo "found helm chart package ${HELM_CHART_PKG_NAME}"
                           break
