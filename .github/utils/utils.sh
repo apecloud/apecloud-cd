@@ -494,11 +494,11 @@ set_size_label() {
 
 set_label() {
     # check pr draft
-    draft_status=`gh_curl -s $GITHUB_API/repos/$GITHUB_REPO/pulls/$PR_NUMBER | jq -r '.draft'`
-    if [[ "$draft_status" == "true" ]]; then
-        echo "$(tput -T xterm setaf 3)This is a draft pr, skip!$(tput -T xterm sgr0)"
-        return
-    fi
+    # draft_status=`gh_curl -s $GITHUB_API/repos/$GITHUB_REPO/pulls/$PR_NUMBER | jq -r '.draft'`
+    # if [[ "$draft_status" == "true" ]]; then
+    #    echo "$(tput -T xterm setaf 3)This is a draft pr, skip!$(tput -T xterm sgr0)"
+    #    return
+    # fi
     label_ops_tmp=$(echo "$LABEL_OPS" | tr '[:upper:]' '[:lower:]')
     if [[ "${label_ops_tmp}" == "add"  ]]; then
         gh pr edit $PR_NUMBER --repo $GITHUB_REPO --add-label "$LABEL_NAME"
