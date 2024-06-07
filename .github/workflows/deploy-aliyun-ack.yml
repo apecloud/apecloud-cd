@@ -61,6 +61,7 @@ env:
   CLOUD_ENV_NAME: ${{ inputs.CLOUD_ENV_NAME }}
   RELEASE_VERSION: ${{ inputs.VERSION }}
   DEPLOY_RESULT: 0
+  HELM_VERSION: v3.14.4
 
 
 jobs:
@@ -94,6 +95,11 @@ jobs:
       - uses: azure/setup-kubectl@v3
         with:
           version: "${{ inputs.KUBECTL_VERSION }}"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
 
       - name: git config
         if: inputs.GIT_CONFIG
