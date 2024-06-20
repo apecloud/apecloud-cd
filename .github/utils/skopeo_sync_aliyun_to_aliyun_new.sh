@@ -8,12 +8,12 @@ FILE_NAME=$5
 REGISTRY=$6
 
 if [[ -z "$REGISTRY" ]]; then
-    REGISTRY=apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
+    REGISTRY=infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com
 fi
 
 while read -r image
 do
-    skopeo_msg="skopeo sync $REGISTRY/$image to infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud"
+    skopeo_msg="skopeo sync $REGISTRY/$image to apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud"
     echo "$skopeo_msg"
     skopeo_flag=0
     for i in {1..10}; do
@@ -25,7 +25,7 @@ do
             --src docker \
             --dest docker \
             $REGISTRY/$image \
-            infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud)
+            apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud)
         echo "return message:$ret_msg"
         if [[ "$ret_msg" == *"Storing list signatures"* || "$ret_msg" == *"Skipping"* ]]; then
             echo "$(tput -T xterm setaf 2)$skopeo_msg success$(tput -T xterm sgr0)"
