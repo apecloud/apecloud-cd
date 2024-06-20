@@ -18,10 +18,10 @@ do
     skopeo_flag=0
     for i in {1..10}; do
         ret_msg=$(skopeo sync --all \
-            --src-username "$ALIYUN_USERNAME" \
-            --src-password "$ALIYUN_PASSWORD" \
-            --dest-username "$ALIYUN_USERNAME_NEW" \
-            --dest-password "$ALIYUN_PASSWORD_NEW" \
+            --src-username "$ALIYUN_USERNAME_NEW" \
+            --src-password "$ALIYUN_PASSWORD_NEW" \
+            --dest-username "$ALIYUN_USERNAME" \
+            --dest-password "$ALIYUN_PASSWORD" \
             --src docker \
             --dest docker \
             $REGISTRY/$image \
