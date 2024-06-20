@@ -5,7 +5,7 @@ set -o nounset
 set -o pipefail
 
 DEFAULT_SRC_REGISTRY=docker.io
-DEFAULT_DEST_REGISTRY=registry.cn-hangzhou.aliyuncs.com/apecloud
+DEFAULT_DEST_REGISTRY=apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud
 
 show_help() {
 cat << EOF

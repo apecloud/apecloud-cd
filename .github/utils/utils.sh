@@ -259,7 +259,7 @@ delete_docker_images() {
 }
 
 delete_aliyun_images() {
-    cmd_head="skopeo delete --creds \"$USER:$PASSWORD\" docker://registry.cn-hangzhou.aliyuncs.com/apecloud"
+    cmd_head="skopeo delete --creds \"$USER:$PASSWORD\" docker://apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud"
     echo "delete kubeblocks image $TAG_NAME_TMP"
     eval_cmd="${cmd_head}/kubeblocks:$TAG_NAME_TMP"
     echo $(eval $eval_cmd)
@@ -638,7 +638,7 @@ generate_image_yaml() {
         tee -a $image_sync_yaml << EOF
 ${REGISTRY}/${image}:
   - "infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/${image_name}"
-  - "registry.cn-hangzhou.aliyuncs.com/apecloud/${image_name}"
+  - "apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/${image_name}"
 EOF
     done
 }

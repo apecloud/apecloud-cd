@@ -15,7 +15,7 @@ fi
 
 while read -r image
 do
-    skopeo_msg="skopeo sync $REGISTRY/$image to registry.cn-hangzhou.aliyuncs.com/apecloud"
+    skopeo_msg="skopeo sync $REGISTRY/$image to apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud"
     echo "$skopeo_msg"
     skopeo_flag=0
     ret_msg=""
@@ -29,7 +29,7 @@ do
                 --src docker \
                 --dest docker \
                 $REGISTRY/$image \
-                registry.cn-hangzhou.aliyuncs.com/apecloud)
+                apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud)
         else
             ret_msg=$(skopeo sync --all \
                 --src-username "$DOCKER_USERNAME" \
@@ -39,7 +39,7 @@ do
                 --src docker \
                 --dest docker \
                 $REGISTRY/$image \
-                registry.cn-hangzhou.aliyuncs.com/apecloud)
+                apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud)
         fi
         echo "return message:$ret_msg"
         if [[ "$ret_msg" == *"Storing list signatures"* || "$ret_msg" == *"Skipping"* ]]; then

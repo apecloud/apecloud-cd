@@ -76,7 +76,7 @@ check_image() {
             echo "$(tput -T xterm setaf 1)Use the quay.io repository image:$image, which should be replaced.$(tput -T xterm sgr0)"
             echo 1 > exit_result
         ;;
-        docker.io/apecloud/*|registry.cn-hangzhou.aliyuncs.com/apecloud/*|infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/*|apecloud/*)
+        docker.io/apecloud/*|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/*|infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/*|apecloud/*)
             check_image_exists "$image"
         ;;
     esac

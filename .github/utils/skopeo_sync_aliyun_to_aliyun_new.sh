@@ -8,7 +8,7 @@ FILE_NAME=$5
 REGISTRY=$6
 
 if [[ -z "$REGISTRY" ]]; then
-    REGISTRY=registry.cn-hangzhou.aliyuncs.com
+    REGISTRY=apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
 fi
 
 while read -r image

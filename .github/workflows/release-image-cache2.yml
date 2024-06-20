@@ -96,7 +96,7 @@ on:
 
 env:
   DOCKER_REGISTRY_URL: docker.io
-  ALIYUN_REGISTRY_URL: registry.cn-hangzhou.aliyuncs.com
+  ALIYUN_REGISTRY_URL: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
   ALIYUN_REGISTRY_URL_NEW: infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com
   GOOGLE_REGISTRY_URL: us-east1-docker.pkg.dev
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}

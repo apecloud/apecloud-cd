@@ -14,7 +14,7 @@ fi
 while read -r image
 do
     image_name=${image##*/}
-    skopeo_msg="skopeo copy $REGISTRY/$image to registry.cn-hangzhou.aliyuncs.com/apecloud/$image_name"
+    skopeo_msg="skopeo copy $REGISTRY/$image to apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/$image_name"
     echo "$skopeo_msg"
     skopeo_flag=0
     ret_msg=""
@@ -26,7 +26,7 @@ do
                 --src-username "$ECR_USER" \
                 --src-password "$ECR_PASSWORD" \
                 docker://$REGISTRY/$image \
-                docker://registry.cn-hangzhou.aliyuncs.com/apecloud/$image_name)
+                docker://apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/$image_name)
         elif [[ "${REGISTRY}" == *"docker.io"* ]]; then
             ret_msg=$(skopeo copy --all \
                 --dest-username "$ALIYUN_USERNAME" \
@@ -34,13 +34,13 @@ do
                 --src-username "${DOCKER_USER}" \
                 --src-password "${DOCKER_PASSWORD}" \
                 docker://$REGISTRY/$image \
-                docker://registry.cn-hangzhou.aliyuncs.com/apecloud/$image_name)
+                docker://apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/$image_name)
         else
             ret_msg=$(skopeo copy --all \
                 --dest-username "$ALIYUN_USERNAME" \
                 --dest-password "$ALIYUN_PASSWORD" \
                 docker://$REGISTRY/$image \
-                docker://registry.cn-hangzhou.aliyuncs.com/apecloud/$image_name)
+                docker://apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/$image_name)
         fi
         echo "return message:$ret_msg"
         if [[ "$ret_msg" == *"Storing list signatures"* || "$ret_msg" == *"Skipping"* ]]; then

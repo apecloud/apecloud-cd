@@ -8,9 +8,9 @@ on:
         required: false
         default: ''
       registry:
-        description: 'sync images registry e.g. registry.cn-hangzhou.aliyuncs.com'
+        description: 'sync images registry e.g. apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com'
         required: false
-        default: 'registry.cn-hangzhou.aliyuncs.com'
+        default: 'apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com'
 
 run-name: sync to aliyun:${{ github.event.inputs.images_name }}
 
