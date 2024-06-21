@@ -25,7 +25,7 @@ on:
         default: 'main'
       test-type:
         description: 'test type (apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|mysqlscale|weaviate|qdrant|smartengine|
-        greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|orioledb|oracle-mysql|official-pg|asmysql|openldap|
+        greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|orioledb|official-pg|asmysql|openldap|
         polardbx|opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
         oracle|opengauss|influxdb|flink|solr|doris|halo|mogdb|oceanbase-ent|starrocks-ent|apecloud-postgresql|yashandb|
         redis-cluster|camellia-redis-proxy|dmdb|minio)'
@@ -360,22 +360,6 @@ jobs:
       release-version: "${{ inputs.previous-version }}"
       test-type: "18"
       test-type-name: "orioledb-pre"
-      test-args: "${{ inputs.test-args }}"
-      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
-      branch-name: ${{ inputs.branch-name }}
-      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
-    secrets: inherit
-
-  oracle-mysql-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'oracle-mysql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
-    needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
-    with:
-      cloud-provider: ${{ inputs.cloud-provider }}
-      region: ${{ inputs.region }}
-      release-version: "${{ inputs.previous-version }}"
-      test-type: "19"
-      test-type-name: "oracle-mysql-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
       branch-name: ${{ inputs.branch-name }}
@@ -901,7 +885,7 @@ jobs:
              redis-pre, mongodb-pre, kafka-pre, pulsar-pre, mysqlscale-pre,
              weaviate-pre, qdrant-pre, smartengine-pre, greptimedb-pre,
              nebula-pre, risingwave-pre, starrocks-pre, etcd-pre, oceanbase-pre,
-             foxlake-pre, oracle-mysql-pre, asmysql-pre, openldap-pre, polardbx-pre,
+             foxlake-pre, asmysql-pre, openldap-pre, polardbx-pre,
              tdengine-pre, milvus-pre, clickhouse-pre, pika-pre, opensearch-pre,
              elasticsearch-pre, vllm-pre, orioledb-pre, official-pg-pre, ggml-pre,
              zookeeper-pre, mariadb-pre , tidb-pre, xinference-pre, oracle-pre, 
@@ -988,11 +972,7 @@ jobs:
               if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"foxlake"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##foxlake-pre|${{ needs.foxlake-pre.outputs.test-result }}"
               fi
-          
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"oracle-mysql"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##oracle-mysql-pre|${{ needs.oracle-mysql-pre.outputs.test-result }}"
-              fi
-            
+
               if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"asmysql"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##asmysql-pre|${{ needs.asmysql-pre.outputs.test-result }}"
               fi
