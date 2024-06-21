@@ -373,7 +373,7 @@ jobs:
       - uses: hhyasdf/image-sync-action@v1.1
         if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
         with:
-          auth_file: ${{ github.workspace }}/apecloud-cd/.github/actions/image-sync-auth-new.yml
+          auth_file: ${{ github.workspace }}/apecloud-cd/.github/actions/image-sync-auth.yml
           images_file: ./image_sync_yaml_new.yml
           proc: 6
           retries: 5
