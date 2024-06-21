@@ -14,7 +14,7 @@ on:
         default: ''
       TEST_TYPE:
         description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|mysqlscale|weaviate|qdrant|smartengine|
-        greptimedb|nebula|risingwave|starrocks|etcd|foxlake|orioledb|oracle-mysql|official-pg|asmysql|openldap|
+        greptimedb|nebula|risingwave|starrocks|etcd|foxlake|orioledb|official-pg|asmysql|openldap|
         opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
         oracle|opengauss|influxdb|flink|solr|doris|halo|mogdb|starrocks-ent|apecloud-postgresql|yashandb|polardbx|
         redis-cluster|camellia-redis-proxy|dmdb|minio)'
@@ -317,20 +317,6 @@ jobs:
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "18"
       test-type-name: "orioledb"
-      test-args: "${{ inputs.ARGS }}"
-      branch-name: ${{ inputs.BRANCH_NAME }}
-      k3s-version: ${{ inputs.CLUSTER_VERSION }}
-    secrets: inherit
-
-  test-oracle-mysql:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oracle-mysql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
-    uses: ./.github/workflows/test-kbcli-k3s.yml
-    with:
-      release-version: "${{ inputs.KB_VERSION }}"
-      previous-version: "${{ inputs.KB_PRE_VERSION }}"
-      test-type: "19"
-      test-type-name: "oracle-mysql"
       test-args: "${{ inputs.ARGS }}"
       branch-name: ${{ inputs.BRANCH_NAME }}
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
@@ -775,7 +761,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ test-apecloud-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar,
              test-mysqlscale, test-weaviate, test-qdrant, test-smartengine, test-greptimedb, test-nebula,
-             test-risingwave, test-starrocks, test-etcd, test-foxlake, test-oracle-mysql, test-asmysql,
+             test-risingwave, test-starrocks, test-etcd, test-foxlake, test-asmysql,
              test-openldap, test-milvus, test-clickhouse, test-pika, test-opensearch, test-elasticsearch,
              test-vllm, test-tdengine, test-orioledb, test-official-pg, test-ggml, test-zookeeper,
              test-mariadb, test-tidb, test-xinference, test-oracle, test-opengauss, test-influxdb,
@@ -857,10 +843,6 @@ jobs:
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"foxlake"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##foxlake|${{ needs.test-foxlake.outputs.pre-test-result }}"
-              fi
-          
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oracle-mysql"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##oracle-mysql|${{ needs.test-oracle-mysql.outputs.pre-test-result }}"
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"asmysql"* ]]; then
@@ -1076,10 +1058,6 @@ jobs:
              
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"foxlake"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##foxlake|${{ needs.test-foxlake.outputs.test-result }}"
-              fi
-          
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oracle-mysql"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##oracle-mysql|${{ needs.test-oracle-mysql.outputs.test-result }}"
               fi
             
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"asmysql"* ]]; then
