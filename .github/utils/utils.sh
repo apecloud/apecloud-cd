@@ -376,7 +376,7 @@ get_delete_release() {
     for tag in $( echo "$release_list" ) ;do
         delete_flag=0
 
-        if [[ "$tag" == *"0.6.0-beta.11"* || "$tag" == *"0.9.0-alpha.2"* || "$tag" == *"0.8.3-beta.9"* ]]; then
+        if [[ "$tag" == *"0.6.0-beta.11"* || "$tag" == *"0.9.0-alpha.2"* || "$tag" == *"0.8.3-beta.9"* || "$tag" == *"0.8.4-beta.0"* ]]; then
             TAG_NAME=""
             continue
         fi
