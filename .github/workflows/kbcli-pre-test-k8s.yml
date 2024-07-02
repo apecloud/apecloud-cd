@@ -27,7 +27,7 @@ on:
         description: 'test type (apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|mysqlscale|weaviate|qdrant|smartengine|
         greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|orioledb|official-pg|asmysql|openldap|
         polardbx|opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
-        oracle|opengauss|influxdb|flink|solr|doris|halo|mogdb|oceanbase-ent|starrocks-ent|apecloud-postgresql|yashandb|
+        oracle|opengauss|influxdb|flink|solr|halo|mogdb|oceanbase-ent|starrocks-ent|apecloud-postgresql|yashandb|
         redis-cluster|camellia-redis-proxy|dmdb|minio)'
         type: string
         required: false
@@ -889,7 +889,7 @@ jobs:
              tdengine-pre, milvus-pre, clickhouse-pre, pika-pre, opensearch-pre,
              elasticsearch-pre, vllm-pre, orioledb-pre, official-pg-pre, ggml-pre,
              zookeeper-pre, mariadb-pre , tidb-pre, xinference-pre, oracle-pre, 
-             opengauss-pre, influxdb-pre, flink-pre, solr-pre, doris-pre, halo-pre,
+             opengauss-pre, influxdb-pre, flink-pre, solr-pre, halo-pre,
              mogdb-pre, oceanbase-ent-pre, starrocks-ent-pre, apecloud-postgresql-pre,
              yashandb-pre, redis-cluster-pre, camellia-redis-proxy-pre, dmdb-pre, minio-pre]
     steps:
@@ -1082,9 +1082,6 @@ jobs:
           if [[ "${{ inputs.release-version }}" != "v0.5."* && "${{ inputs.release-version }}" != "v0.6."* && "${{ inputs.release-version }}" != "v0.7."* && "${{ inputs.release-version }}" != "v0.8."* ]]; then
               if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"solr"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##solr-pre|${{ needs.solr-pre.outputs.test-result }}"
-              fi 
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"doris"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##doris-pre|${{ needs.doris-pre.outputs.test-result }}"
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"halo"* ]]; then
