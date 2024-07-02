@@ -16,7 +16,7 @@ on:
         description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|mysqlscale|weaviate|qdrant|smartengine|
         greptimedb|nebula|risingwave|starrocks|etcd|foxlake|orioledb|official-pg|asmysql|openldap|
         opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
-        oracle|opengauss|influxdb|flink|solr|doris|halo|mogdb|starrocks-ent|apecloud-postgresql|yashandb|polardbx|
+        oracle|opengauss|influxdb|flink|solr|halo|mogdb|starrocks-ent|apecloud-postgresql|yashandb|polardbx|
         redis-cluster|camellia-redis-proxy|dmdb|minio)'
         type: string
         required: false
@@ -765,7 +765,7 @@ jobs:
              test-openldap, test-milvus, test-clickhouse, test-pika, test-opensearch, test-elasticsearch,
              test-vllm, test-tdengine, test-orioledb, test-official-pg, test-ggml, test-zookeeper,
              test-mariadb, test-tidb, test-xinference, test-oracle, test-opengauss, test-influxdb,
-             test-flink, test-solr, test-doris, test-halo, test-mogdb, test-starrocks-ent, test-apecloud-postgresql,
+             test-flink, test-solr, test-halo, test-mogdb, test-starrocks-ent, test-apecloud-postgresql,
              test-yashandb, test-polardbx, test-redis-cluster, test-camellia-redis-proxy, test-dmdb, test-minio]
     steps:
       - name: Checkout apecloud-cd Code
@@ -943,10 +943,6 @@ jobs:
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* ]]; then
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"solr"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##solr|${{ needs.test-solr.outputs.pre-test-result }}"
-              fi 
-          
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"doris"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##doris|${{ needs.test-doris.outputs.pre-test-result }}"
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"halo"* ]]; then
@@ -1158,10 +1154,6 @@ jobs:
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* ]]; then
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"solr"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##solr|${{ needs.test-solr.outputs.test-result }}"
-              fi 
-          
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"doris"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##doris|${{ needs.test-doris.outputs.test-result }}"
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"halo"* ]]; then
