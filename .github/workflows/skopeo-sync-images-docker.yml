@@ -14,6 +14,11 @@ on:
 
 run-name: sync to docker.io:${{ github.event.inputs.images_name }}
 
+env:
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  ECR_PASSWORD: ${{ secrets.ECR_PASSWORD }}
+
 jobs:
   script:
     runs-on: macos-latest
@@ -31,8 +36,8 @@ jobs:
           fi
           
           bash ${{ github.workspace }}/.github/utils/skopeo_sync_to_docker.sh \
-              "${{ secrets.DOCKER_REGISTRY_USER }}" \
-              '${{ secrets.DOCKER_REGISTRY_PASSWORD }}' \
+              "${{ env.DOCKER_USER }}" \
+              '${{ env.DOCKER_PASSWORD }}' \
               ${{ github.workspace }}/.github/utils/images-list.txt \
               "${{ inputs.registry }}" \
-              '${{ secrets.ECR_PASSWORD }}'
+              '${{ env.ECR_PASSWORD }}'

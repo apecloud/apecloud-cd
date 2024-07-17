@@ -14,6 +14,12 @@ on:
 
 run-name: sync to aliyun:${{ github.event.inputs.images_name }}
 
+env:
+  ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+  ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
+  ALIYUN_USER_NEW: ${{ secrets.ALIYUN_USER_NEW }}
+  ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
+
 jobs:
   script:
     runs-on: macos-latest
@@ -29,12 +35,11 @@ jobs:
                   --images "${{ github.event.inputs.images_name }}" \
                   --images-list ${{ github.workspace }}/.github/utils/images-list.txt
           fi
-
           
           bash ${{ github.workspace }}/.github/utils/skopeo_sync_aliyun_to_aliyun_new.sh \
-              "${{ secrets.ALIYUN_REGISTRY_USER }}" \
-              '${{ secrets.ALIYUN_REGISTRY_PASSWORD }}' \
-              "${{ secrets.ALIYUN_USER_NEW }}" \
-              "${{ secrets.ALIYUN_PASSWORD_NEW }}" \
+              "${{ env.ALIYUN_USER }}" \
+              '${{ env.ALIYUN_PASSWORD }}' \
+              "${{ env.ALIYUN_USER_NEW }}" \
+              "${{ env.ALIYUN_PASSWORD_NEW }}" \
               ${{ github.workspace }}/.github/utils/images-list.txt \
               "${{ inputs.registry }}"

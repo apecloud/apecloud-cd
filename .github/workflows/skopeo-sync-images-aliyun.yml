@@ -14,6 +14,15 @@ on:
 
 run-name: sync to aliyun:${{ github.event.inputs.images_name }}
 
+env:
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+  ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
+  ALIYUN_USER_NEW: ${{ secrets.ALIYUN_USER_NEW }}
+  ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
+  ECR_PASSWORD: ${{ secrets.ECR_PASSWORD }}
+
 jobs:
   script:
     runs-on: macos-latest
@@ -31,19 +40,21 @@ jobs:
           fi
           
           bash ${{ github.workspace }}/.github/utils/skopeo_sync_to_aliyun.sh \
-              "${{ secrets.DOCKER_USER }}" \
-              '${{ secrets.DOCKER_PASSWORD }}' \
-              "${{ secrets.ALIYUN_REGISTRY_USER }}" \
-              "${{ secrets.ALIYUN_REGISTRY_PASSWORD }}" \
+              "${{ env.DOCKER_USER }}" \
+              '${{ env.DOCKER_PASSWORD }}' \
+              "${{ env.ALIYUN_USER }}" \
+              "${{ env.ALIYUN_PASSWORD }}" \
               ${{ github.workspace }}/.github/utils/images-list.txt \
               "${{ inputs.registry }}" \
-              '${{ secrets.ECR_PASSWORD }}'
+              '${{ env.ECR_PASSWORD }}'
           
-          bash ${{ github.workspace }}/.github/utils/skopeo_sync_to_aliyun_new.sh \
-              "${{ secrets.DOCKER_USER }}" \
-              '${{ secrets.DOCKER_PASSWORD }}' \
-              "${{ secrets.ALIYUN_USER_NEW }}" \
-              "${{ secrets.ALIYUN_PASSWORD_NEW }}" \
-              ${{ github.workspace }}/.github/utils/images-list.txt \
-              "${{ inputs.registry }}" \
-              '${{ secrets.ECR_PASSWORD }}'
+          if [[ -n "${{ env.ALIYUN_USER_NEW }}" && -n "${{ env.ALIYUN_PASSWORD_NEW }}" ]]; then
+              bash ${{ github.workspace }}/.github/utils/skopeo_sync_to_aliyun_new.sh \
+                  "${{ env.DOCKER_USER }}" \
+                  '${{ env.DOCKER_PASSWORD }}' \
+                  "${{ env.ALIYUN_USER_NEW }}" \
+                  "${{ env.ALIYUN_PASSWORD_NEW }}" \
+                  ${{ github.workspace }}/.github/utils/images-list.txt \
+                  "${{ inputs.registry }}" \
+                  '${{ env.ECR_PASSWORD }}'
+          fi

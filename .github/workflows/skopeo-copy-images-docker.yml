@@ -35,8 +35,8 @@ jobs:
           fi
           
           bash ${{ github.workspace }}/.github/utils/skopeo_copy_to_docker.sh \
-              "${{ secrets.DOCKER_REGISTRY_USER }}" \
-              '${{ secrets.DOCKER_REGISTRY_PASSWORD }}' \
+              "${{ env.DOCKER_USER }}" \
+              '${{ env.DOCKER_PASSWORD }}' \
               ${{ github.workspace }}/.github/utils/images-list.txt \
               "${{ inputs.registry }}" \
               '${{ secrets.ECR_PASSWORD }}'
