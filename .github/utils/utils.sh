@@ -643,19 +643,18 @@ EOF
     done
 }
 
-generate_image_yaml_new() {
+generate_image_yaml_apecloud() {
     if [[ -z "$IMAGES" ]]; then
         echo "images name is empty"
         return
     fi
-    image_sync_yaml="./image_sync_yaml_new.yml"
+    image_sync_yaml="./image_sync_yaml_apecloud.yml"
     rm -f $image_sync_yaml
     touch $image_sync_yaml
     for image in `echo "$IMAGES" | sed 's/|/ /g'`; do
         image_name=${image##*/}
         tee -a $image_sync_yaml << EOF
 ${REGISTRY}/${image}:
-  - "infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/${image_name}"
   - "apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/${image_name}"
 EOF
     done
@@ -997,7 +996,7 @@ main() {
             check_release_version
         ;;
         32)
-            generate_image_yaml_new
+            generate_image_yaml_apecloud
         ;;
         33)
             set_label

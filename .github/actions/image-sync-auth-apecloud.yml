@@ -1,0 +1,6 @@
+docker.io:
+  username: "${DOCKER_USER}"
+  password: "${DOCKER_PASSWORD}"
+apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com:
+  username: "${ALIYUN_USER}"
+  password: "${ALIYUN_PASSWORD}"
