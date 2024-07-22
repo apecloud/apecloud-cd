@@ -179,7 +179,7 @@ jobs:
                   helm repo add kubeblocks https://apecloud.github.io/helm-charts
                   HELM_CHART_PKG_NAME="kubeblocks-cloud-${{ inputs.VERSION }}.tgz"
                   helm_pull_cmd="helm pull kubeblocks/kubeblocks-cloud --version ${{ inputs.VERSION }}"
-                  for i in {1..60}; do
+                  for i in {1..120}; do
                       eval "$helm_pull_cmd" || true
                       # check helm chart package
                       echo "helm chart package checking..."
