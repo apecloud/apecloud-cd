@@ -96,6 +96,6 @@ jobs:
           file: ${{ inputs.DOCKERFILE_PATH }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           tags: ${{ inputs.IMG }}:latest
-          build-args: "${{ inputs.BUILDX_ARGS }}"
+          build-args: ${{ inputs.BUILDX_ARGS }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
