@@ -422,6 +422,15 @@ delete_runner() {
             echo "delete runner_name:"$runner_name
             gh_curl -L -X DELETE $runners_url/$runner_id
         fi
+        if [[ "$runner_status" == "null" || -z "$runner_status" ]]; then
+            remains=$(( $total_count - $i ))
+            echo "remains:"$remains
+            if [[ $remains -gt 10 ]]; then
+                delete_runner
+            else
+                break
+            fi
+        fi
     done
 }
 

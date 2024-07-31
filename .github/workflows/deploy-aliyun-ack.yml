@@ -47,17 +47,13 @@ on:
 
 env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
+  ACK_KUBECONFIG_DEMO: ${{ secrets.ACK_KUBECONFIG_DEMO }}
   ACK_KUBECONFIG_PROD: ${{ secrets.ACK_KUBECONFIG_PROD }}
   ACK_KUBECONFIG_INTL_PROD: ${{ secrets.ACK_KUBECONFIG_INTL_PROD }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  CONTROLLER_MANAGER_CFG: ${{ secrets.CONTROLLER_MANAGER_CFG }}
-  OPENCONSOLE_CFG: ${{ secrets.OPENCONSOLE_CFG }}
   DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
-  CLOUD_VALUES_DEV: ${{ secrets.CLOUD_VALUES_DEV }}
-  CLOUD_VALUES_PROD: ${{ secrets.CLOUD_VALUES_PROD }}
-  CLOUD_VALUES_INTL_PROD: ${{ secrets.CLOUD_VALUES_INTL_PROD }}
   CLOUD_ENV_NAME: ${{ inputs.CLOUD_ENV_NAME }}
   RELEASE_VERSION: ${{ inputs.VERSION }}
   DEPLOY_RESULT: 0
@@ -129,6 +125,10 @@ jobs:
               dev)
                   echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
                   cp -r apecloud-values/dev/values.yaml ${CHART_VALUES_FILENAME}
+              ;;
+              demo)
+                  echo '${{ env.ACK_KUBECONFIG_DEMO }}' > $HOME/.kube/config
+                  cp -r apecloud-values/demo/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               prod)
                   echo '${{ env.ACK_KUBECONFIG_PROD }}' > $HOME/.kube/config
