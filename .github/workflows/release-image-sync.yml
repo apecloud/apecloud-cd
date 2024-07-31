@@ -213,7 +213,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: set PG HOST Env
-        runs: |
+        run: |
           DEMO_RELEASE_VERSION="${{ vars.DEMO_RELEASE_VERSION }}"
           if [[ "${DEMO_RELEASE_VERSION}."* == "${{ inputs.VERSION }}" ]]; then
               POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_DEMO }}"
