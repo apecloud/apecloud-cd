@@ -28,6 +28,11 @@ on:
         type: string
         required: false
         default: 'release'
+      BOT_TYP:
+        description: 'The bot type (e.g. release/package)'
+        type: string
+        required: false
+        default: 'release'
       WAIT_TIME:
         description: 'Then wait time of send message'
         type: number
