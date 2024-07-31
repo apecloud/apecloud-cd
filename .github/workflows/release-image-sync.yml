@@ -215,7 +215,7 @@ jobs:
       - name: set PG HOST Env
         run: |
           DEMO_RELEASE_VERSION="${{ vars.DEMO_RELEASE_VERSION }}"
-          if [[ "${DEMO_RELEASE_VERSION}."* == "${{ inputs.VERSION }}" ]]; then
+          if [[ "${{ inputs.VERSION }}" == "${DEMO_RELEASE_VERSION}."* ]]; then
               POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_DEMO }}"
               POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_DEMO }}"
           else
