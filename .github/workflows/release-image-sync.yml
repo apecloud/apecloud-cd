@@ -140,14 +140,13 @@ env:
   ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  CONTROLLER_MANAGER_CFG: ${{ secrets.CONTROLLER_MANAGER_CFG }}
-  OPENCONSOLE_CFG: ${{ secrets.OPENCONSOLE_CFG }}
-  CONSOLE_PROXY_CFG: ${{ secrets.CONSOLE_PROXY_CFG }}
   DEFAULT_BUILDX_ARGS: '--sbom=false --provenance=false'
-  POSTGRESQL_DB_HOST: ${{ secrets.POSTGRESQL_DB_HOST }}
+  POSTGRESQL_DB_HOST_DEV: ${{ secrets.POSTGRESQL_DB_HOST_DEV }}
+  POSTGRESQL_DB_HOST_DEMO: ${{ secrets.POSTGRESQL_DB_HOST_DEMO }}
+  POSTGRESQL_DB_PASSWORD_DEV: ${{ secrets.POSTGRESQL_DB_PASSWORD_DEV }}
+  POSTGRESQL_DB_PASSWORD_DEMO: ${{ secrets.POSTGRESQL_DB_PASSWORD_DEMO }}
   POSTGRESQL_DB_DATABASE: ${{ secrets.POSTGRESQL_DB_DATABASE }}
   POSTGRESQL_DB_USERNAME: ${{ secrets.POSTGRESQL_DB_USERNAME }}
-  POSTGRESQL_DB_PASSWORD: ${{ secrets.POSTGRESQL_DB_PASSWORD }}
   POSTGRESQL_DB_PORT: 5432
   JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
   JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
@@ -212,6 +211,19 @@ jobs:
           ref: ${{ inputs.GITHUB_REF }}
           path: ./${{ inputs.GITHUB_PATH }}
           token: ${{ env.GITHUB_TOKEN }}
+
+      - name: set PG HOST Env
+        runs: |
+          DEMO_RELEASE_VERSION="${{ vars.DEMO_RELEASE_VERSION }}"
+          if [[ "${DEMO_RELEASE_VERSION}."* == "${{ inputs.VERSION }}" ]]; then
+              POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_DEMO }}"
+              POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_DEMO }}"
+          else
+              POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_DEV }}"
+              POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_DEV }}"
+          fi
+          echo "POSTGRESQL_DB_HOST=${POSTGRESQL_DB_HOST}" >> $GITHUB_ENV
+          echo "POSTGRESQL_DB_PASSWORD=${POSTGRESQL_DB_PASSWORD}" >> $GITHUB_ENV
 
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
