@@ -48,6 +48,7 @@ on:
 env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
   ACK_KUBECONFIG_DEMO: ${{ secrets.ACK_KUBECONFIG_DEMO }}
+  ACK_KUBECONFIG_IDC: ${{ secrets.ACK_KUBECONFIG_IDC }}
   ACK_KUBECONFIG_PROD: ${{ secrets.ACK_KUBECONFIG_PROD }}
   ACK_KUBECONFIG_INTL_PROD: ${{ secrets.ACK_KUBECONFIG_INTL_PROD }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
@@ -129,6 +130,10 @@ jobs:
               demo)
                   echo '${{ env.ACK_KUBECONFIG_DEMO }}' > $HOME/.kube/config
                   cp -r apecloud-values/demo/values.yaml ${CHART_VALUES_FILENAME}
+              ;;
+              idc)
+                  echo '${{ env.ACK_KUBECONFIG_IDC }}' > $HOME/.kube/config
+                  cp -r apecloud-values/idc/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               prod)
                   echo '${{ env.ACK_KUBECONFIG_PROD }}' > $HOME/.kube/config
