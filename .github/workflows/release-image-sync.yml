@@ -142,9 +142,11 @@ env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   DEFAULT_BUILDX_ARGS: '--sbom=false --provenance=false'
   POSTGRESQL_DB_HOST_DEV: ${{ secrets.POSTGRESQL_DB_HOST_DEV }}
-  POSTGRESQL_DB_HOST_DEMO: ${{ secrets.POSTGRESQL_DB_HOST_DEMO }}
   POSTGRESQL_DB_PASSWORD_DEV: ${{ secrets.POSTGRESQL_DB_PASSWORD_DEV }}
+  POSTGRESQL_DB_HOST_DEMO: ${{ secrets.POSTGRESQL_DB_HOST_DEMO }}
   POSTGRESQL_DB_PASSWORD_DEMO: ${{ secrets.POSTGRESQL_DB_PASSWORD_DEMO }}
+  POSTGRESQL_DB_HOST_IDC: ${{ secrets.POSTGRESQL_DB_HOST_IDC }}
+  POSTGRESQL_DB_PASSWORD_IDC: ${{ secrets.POSTGRESQL_DB_PASSWORD_IDC }}
   POSTGRESQL_DB_DATABASE: ${{ secrets.POSTGRESQL_DB_DATABASE }}
   POSTGRESQL_DB_USERNAME: ${{ secrets.POSTGRESQL_DB_USERNAME }}
   POSTGRESQL_DB_PORT: 5432
@@ -215,10 +217,17 @@ jobs:
       - name: set PG HOST Env
         run: |
           DEMO_RELEASE_VERSION="${{ vars.DEMO_RELEASE_VERSION }}"
+          IDC_RELEASE_VERSION="${{ vars.IDC_RELEASE_VERSION }}"
           if [[ "${{ inputs.VERSION }}" == "${DEMO_RELEASE_VERSION}."* ]]; then
+              echo "set PG HOST Env DEMO"
               POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_DEMO }}"
               POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_DEMO }}"
+          elif [[ "${{ inputs.VERSION }}" == "${IDC_RELEASE_VERSION}."* ]]; then
+              echo "set PG HOST Env IDC"
+              POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_IDC }}"
+              POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_IDC }}"
           else
+              echo "set PG HOST Env DEV"
               POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_DEV }}"
               POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_DEV }}"
           fi
