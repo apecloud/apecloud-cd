@@ -154,6 +154,8 @@ env:
   POSTGRESQL_DB_USERNAME: ${{ secrets.POSTGRESQL_DB_USERNAME }}
   JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
   JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
+  PROJECT_ID: 165897
+
 jobs:
   release-image:
     permissions:
@@ -178,9 +180,9 @@ jobs:
               ;;
               *TARGETS=docker/kb-cloud-installer*)
                   sleep 5
-                  helm repo add kubeblocks https://apecloud.github.io/helm-charts
+                  helm repo add kubeblocks-enterprise --username ${JIHULAB_ACCESS_USER} --password ${JIHULAB_ACCESS_TOKEN} https://jihulab.com/api/v4/projects/${PROJECT_ID}/packages/helm/stable
                   HELM_CHART_PKG_NAME="kubeblocks-cloud-${{ inputs.VERSION }}.tgz"
-                  helm_pull_cmd="helm pull kubeblocks/kubeblocks-cloud --version ${{ inputs.VERSION }}"
+                  helm_pull_cmd="helm pull kubeblocks-enterprise/kubeblocks-cloud --version ${{ inputs.VERSION }}"
                   for i in {1..120}; do
                       eval "$helm_pull_cmd" || true
                       # check helm chart package
@@ -190,7 +192,7 @@ jobs:
                           break
                       fi
                       sleep 1
-                      helm repo update kubeblocks 
+                      helm repo update kubeblocks-enterprise 
                   done
               ;;
           esac
