@@ -68,7 +68,7 @@ env:
   ACK_KUBECONFIG_DEMO: ${{ secrets.ACK_KUBECONFIG_DEMO }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  CLOUD_CN_ENV: ${{ secrets.CLOUD_DEMO_ENV }}
+  CLOUD_DEMO_API: ${{ secrets.CLOUD_DEMO_API }}
   ORG_NAME: 'cloud-test'
   HELM_VERSION: v3.14.4
 
@@ -80,10 +80,10 @@ permissions:
 
 jobs:
   cloud-e2e-test:
-    name: run ${{ inputs.ENGINETYPE }}
+    name: run ${{ inputs.ENGINE_TYPE }}
     runs-on: ubuntu-latest
     outputs:
-      cloud-e2e-test-result: ${{ steps.deploy_result.outputs.content_result }}
+      cloud-e2e-test-result: ${{ steps.run_cloud_e2e_test.outputs.test_result }}
       cloud-env-name: ${{ steps.cloud_env.outputs.cloud_env_name }}
     steps:
       - name: Setup Go
@@ -136,12 +136,12 @@ jobs:
           make test-e2e-apecloud \
               -e \
               TEST_TYPE=wesql \
-              URL=${{ env.CLOUD_CN_ENV }} \
-              ENV_TYPE=${{inputs.env-type}} \
+              URL=${{ env.CLOUD_DEMO_API }} \
+              ENV_TYPE=${{ inputs.ENV_TYPE }} \
               ORG_NAME=${{ env.ORG_NAME }} \
-              ENV_NAME=${{ inputs.env-name }}\
-              ENV_INIT=${{ inputs.env-init }} \
-              ENV_CLEAN=${{ inputs.env-clean }} \
+              ENV_NAME=${{ inputs.ENV_NAME }}\
+              ENV_INIT=${{ inputs.ENV_INIT }} \
+              ENV_CLEAN=${{ inputs.ENV_CLEAN }} \
               REPO_TYPE=minio \
               -C apecloud run
             echo E2E_TEST_RESULT=1 >> $GITHUB_ENV
@@ -156,17 +156,8 @@ jobs:
           else
               echo test-result=[FAILED] >> $GITHUB_OUTPUT
           fi
-          echo runner-name=${RUNNER_NAME} >> $GITHUB_OUTPUT    
+          echo engine-type=${{ inputs.ENGINE_TYPE }} >> $GITHUB_OUTPUT    
 
-  send-message:
-    needs: [ deploy-aliyun-ack ]
-    if: ${{ always() }}
-    uses: ./.github/workflows/feishui-message.yml
-    with:
-      TYPE: "2"
-      CONTENT: "deploy ${{ needs.deploy-aliyun-ack.outputs.cloud-env-name }} release ${{ needs.deploy-aliyun-ack.outputs.tag-name }} ${{ needs.deploy-aliyun-ack.outputs.content-result }}"
-      WAIT_TIME: 60
-    secrets: inherit
 
 
 
