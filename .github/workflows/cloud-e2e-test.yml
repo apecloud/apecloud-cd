@@ -57,8 +57,13 @@ on:
         type: string
         required: false
         default: ''
-      apecloud-branch:
-        description: 'apecloud branch name'
+      ENV_NAME:
+        description: "env name of test "
+        type: string
+        required: false
+        default: 'demotest'
+      e2etest-branch:
+        description: 'e2etest branch name'
         type: string
         required: false
         default: 'main'
@@ -83,8 +88,7 @@ jobs:
     name: run ${{ inputs.ENGINE_TYPE }}
     runs-on: ubuntu-latest
     outputs:
-      cloud-e2e-test-result: ${{ steps.run_cloud_e2e_test.outputs.test_result }}
-      cloud-env-name: ${{ steps.cloud_env.outputs.cloud_env_name }}
+      test-result: ${{ steps.run_cloud_e2e_test.outputs.test_result }}
     steps:
       - name: Setup Go
         uses: actions/setup-go@v3
@@ -95,7 +99,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: apecloud/e2etest
-          ref: ${{ inputs.apecloud-branch }}
+          ref: ${{ inputs.e2etest-branch }}
           token: ${{ env.GITHUB_TOKEN }}
   
       - uses: azure/setup-kubectl@v3
@@ -129,19 +133,20 @@ jobs:
                   echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
               ;;
           esac
+          KUBECONFIG=$HOME/.kube/config
   
       - name: run cloud e2e test
         id: run_cloud_e2e_test
         run: |
-          make test-e2e-apecloud \
-              -e \
-              TEST_TYPE=wesql \
+          make -e \
+              TEST_TYPE=${{ inputs.ENGINE_TYPE }} \
               URL=${{ env.CLOUD_DEMO_API }} \
               ENV_TYPE=${{ inputs.ENV_TYPE }} \
               ORG_NAME=${{ env.ORG_NAME }} \
-              ENV_NAME=${{ inputs.ENV_NAME }}\
+              ENV_NAME=${{ inputs.ENV_NAME }} \
               ENV_INIT=${{ inputs.ENV_INIT }} \
               ENV_CLEAN=${{ inputs.ENV_CLEAN }} \
+              KUBECONFIG=${ KUBECONFIG }
               REPO_TYPE=minio \
               -C apecloud run
             echo E2E_TEST_RESULT=1 >> $GITHUB_ENV
