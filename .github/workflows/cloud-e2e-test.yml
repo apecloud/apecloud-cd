@@ -133,7 +133,7 @@ jobs:
                   echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
               ;;
           esac
-          KUBECONFIG=$HOME/.kube/config
+          echo 'KUBECONFIG=$HOME/.kube/config' >> $GITHUB_ENV
   
       - name: run cloud e2e test
         id: run_cloud_e2e_test
@@ -146,7 +146,7 @@ jobs:
               ENV_NAME=${{ inputs.ENV_NAME }} \
               ENV_INIT=${{ inputs.ENV_INIT }} \
               ENV_CLEAN=${{ inputs.ENV_CLEAN }} \
-              KUBECONFIG=${ KUBECONFIG }
+              KUBECONFIG=${{ KUBECONFIG }}
               REPO_TYPE=minio \
               -C apecloud run
             echo E2E_TEST_RESULT=1 >> $GITHUB_ENV
