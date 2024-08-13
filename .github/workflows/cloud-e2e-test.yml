@@ -1,0 +1,173 @@
+name: Cloud e2e Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      CLOUD_ENV_NAME:
+        description: "The cloud env name of test "
+        type: string
+        required: false
+        default: 'demo'
+      KUBECTL_VERSION:
+        description: "Install the specify version of kubectl (default: latest)"
+        type: string
+        required: false
+        default: 'v1.28.3'
+      GO_VERSION:
+        description: "Install the specify version of GO"
+        type: string
+        required: false
+        default: '1.21'
+      ENV_INIT:
+        description: 'env init'
+        type: boolean
+        required: false
+        default: false
+      ENV_CLEAN:
+        description: 'env clean'
+        type: boolean
+        required: false
+        default: false
+      ENV_TYPE:
+        description: 'env type'
+        required: true
+        default: 'managed'
+        type: choice
+        options:
+          - playground
+          - managed
+      ENGINE_TYPE:
+        description: 'engine type'
+        required: true
+        default: ''
+        type: choice
+        options:
+          - wesql
+          - mysql-57
+          - mysql-80
+          - redis
+          - postgres
+          - starrocks
+          - mongodb
+          - kafka
+          - oceanbase
+          - mogdb
+      ENGINE_MODE:
+        description: 'engine mode'
+        type: string
+        required: false
+        default: ''
+      apecloud-branch:
+        description: 'apecloud branch name'
+        type: string
+        required: false
+        default: 'main'
+
+
+env:
+  ACK_KUBECONFIG_DEMO: ${{ secrets.ACK_KUBECONFIG_DEMO }}
+  GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  CLOUD_CN_ENV: ${{ secrets.CLOUD_DEMO_ENV }}
+  ORG_NAME: 'cloud-test'
+  HELM_VERSION: v3.14.4
+
+
+permissions:
+  id-token: write
+  contents: read
+
+
+jobs:
+  cloud-e2e-test:
+    name: run ${{ inputs.ENGINETYPE }}
+    runs-on: ubuntu-latest
+    outputs:
+      cloud-e2e-test-result: ${{ steps.deploy_result.outputs.content_result }}
+      cloud-env-name: ${{ steps.cloud_env.outputs.cloud_env_name }}
+  steps:
+    - name: Setup Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ inputs.GO_VERSION }}
+
+    - name: Checkout e2e Code
+      uses: actions/checkout@v4
+      with:
+        repository: apecloud/e2etest
+        ref: ${{ inputs.apecloud-branch }}
+        token: ${{ env.GITHUB_TOKEN }}
+
+    - uses: azure/setup-kubectl@v3
+      with:
+        version: "${{ inputs.KUBECTL_VERSION }}"
+
+    - name: Install Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: ${{ env.HELM_VERSION }}
+
+    - name: git config
+      if: inputs.GIT_CONFIG
+      run: |
+        echo E2E_TEST_RESULT=0 >> $GITHUB_ENV
+        git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GITHUB_TOKEN }}@github.com".insteadof "https://github.com"
+
+    - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
+      id: cloud_env
+      run: |
+        mkdir -p $HOME/.kube
+        touch $HOME/.kube/config
+        CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
+        echo 'CLOUD_ENV_NAME='${CLOUD_ENV_NAME} >> $GITHUB_ENV
+        echo 'cloud_env_name='${CLOUD_ENV_NAME} >> $GITHUB_OUTPUT
+        case "$CLOUD_ENV_NAME" in
+            demo)
+                echo '${{ env.ACK_KUBECONFIG_DEMO }}' > $HOME/.kube/config
+            ;;
+            *)
+                echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
+            ;;
+        esac
+
+    - name: run cloud e2e test
+      id: run_cloud_e2e_test
+      run: |
+        make test-e2e-apecloud \
+            -e \
+            TEST_TYPE=wesql \
+            URL=${{ env.CLOUD_CN_ENV }} \
+            ENV_TYPE=${{inputs.env-type}} \
+            ORG_NAME=${{ env.ORG_NAME }} \
+            ENV_NAME=${{ inputs.env-name }}\
+            ENV_INIT=${{ inputs.env-init }} \
+            ENV_CLEAN=${{ inputs.env-clean }} \
+            REPO_TYPE=minio \
+            -C apecloud run
+          echo E2E_TEST_RESULT=1 >> $GITHUB_ENV
+
+
+    - name: return cloud e2e test result
+      id: test_result
+      if: ${{ always() }}
+      run: |
+        if [[ "${E2E_TEST_RESULT}" == '1' ]]; then
+            echo test-result=[PASSED] >> $GITHUB_OUTPUT
+        else
+            echo test-result=[FAILED] >> $GITHUB_OUTPUT
+        fi
+        echo runner-name=${RUNNER_NAME} >> $GITHUB_OUTPUT    
+
+  send-message:
+    needs: [ deploy-aliyun-ack ]
+    if: ${{ always() }}
+    uses: ./.github/workflows/feishui-message.yml
+    with:
+      TYPE: "2"
+      CONTENT: "deploy ${{ needs.deploy-aliyun-ack.outputs.cloud-env-name }} release ${{ needs.deploy-aliyun-ack.outputs.tag-name }} ${{ needs.deploy-aliyun-ack.outputs.content-result }}"
+      WAIT_TIME: 60
+    secrets: inherit
+
+
+
+
