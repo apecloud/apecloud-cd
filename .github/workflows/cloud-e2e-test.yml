@@ -140,6 +140,8 @@ jobs:
       - name: run cloud e2e test
         id: run_cloud_e2e_test
         run: |
+          kubectl get backuprepo minio-test --kubeconfig=/home/runner/.kube/config -o=jsonpath='{.status.phase}'
+          kubectl get nodes
           make -e \
               TEST_TYPE=${{ inputs.ENGINE_TYPE }} \
               URL=${{ env.TEST_URL }} \
