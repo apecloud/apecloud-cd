@@ -3,39 +3,37 @@ name: Cloud e2e Test
 on:
   workflow_dispatch:
     inputs:
-      CLOUD_ENV_NAME:
-        description: "The cloud env name of test "
-        type: string
-        required: false
+      CLOUD_ENV:
+        description: "The cloud env of test"
         default: 'demo'
-      KUBECTL_VERSION:
-        description: "Install the specify version of kubectl (default: latest)"
+        type: choice
+        required: true
+        options:
+          - demo
+          - dev
+      ENV_NAME:
+        description: "managed env name of test"
         type: string
-        required: false
-        default: 'v1.28.3'
-      GO_VERSION:
-        description: "Install the specify version of GO"
-        type: string
-        required: false
-        default: '1.21'
-      ENV_INIT:
-        description: 'env init'
-        type: boolean
-        required: false
-        default: false
-      ENV_CLEAN:
-        description: 'env clean'
-        type: boolean
-        required: false
-        default: false
+        required: true
+        default: 'demotest'
       ENV_TYPE:
         description: 'env type'
-        required: true
+        required: false
         default: 'managed'
         type: choice
         options:
           - playground
           - managed
+      ENV_INIT:
+        description: 'choose test env init'
+        type: boolean
+        required: false
+        default: false
+      ENV_CLEAN:
+        description: 'choose test env clean'
+        type: boolean
+        required: false
+        default: false
       ENGINE_TYPE:
         description: 'engine type'
         required: true
@@ -57,13 +55,8 @@ on:
         type: string
         required: false
         default: ''
-      ENV_NAME:
-        description: "env name of test "
-        type: string
-        required: false
-        default: 'demotest'
       e2etest-branch:
-        description: 'e2etest branch name'
+        description: 'e2etest branch name(default:main)'
         type: string
         required: false
         default: 'main'
@@ -71,11 +64,15 @@ on:
 
 env:
   ACK_KUBECONFIG_DEMO: ${{ secrets.ACK_KUBECONFIG_DEMO }}
+  ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   CLOUD_DEMO_API: ${{ secrets.CLOUD_DEMO_API }}
+  CLOUD_DEV_API: ${{ secrets.CLOUD_DEV_API }}
   ORG_NAME: 'cloud-test'
   HELM_VERSION: v3.14.4
+  GO_VERSION: 1.21
+  KUBECTL_VERSION: v1.28.3
 
 
 permissions:
@@ -93,30 +90,29 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: ${{ inputs.GO_VERSION }}
-  
+          go-version: ${{ env.GO_VERSION }}
+
       - name: Checkout e2e Code
         uses: actions/checkout@v4
         with:
           repository: apecloud/e2etest
           ref: ${{ inputs.e2etest-branch }}
           token: ${{ env.GITHUB_TOKEN }}
-  
+
       - uses: azure/setup-kubectl@v3
         with:
-          version: "${{ inputs.KUBECTL_VERSION }}"
-  
+          version: "${{ env.KUBECTL_VERSION }}"
+
       - name: Install Helm
         uses: azure/setup-helm@v3
         with:
           version: ${{ env.HELM_VERSION }}
-  
+
       - name: git config
-        if: inputs.GIT_CONFIG
         run: |
           echo E2E_TEST_RESULT=0 >> $GITHUB_ENV
           git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GITHUB_TOKEN }}@github.com".insteadof "https://github.com"
-  
+
       - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
         id: cloud_env
         run: |
@@ -128,30 +124,30 @@ jobs:
           case "$CLOUD_ENV_NAME" in
               demo)
                   echo '${{ env.ACK_KUBECONFIG_DEMO }}' > $HOME/.kube/config
+                  echo 'TEST_URL=${{ env.CLOUD_DEMO_API }}' > $GITHUB_ENV
               ;;
-              *)
-                  echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
-              ;;
+              dev)
+                  echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
+                  echo 'TEST_URL=${{ env.CLOUD_DEV_API }}' > $GITHUB_ENV
+              ;;          
           esac
-          echo 'KUBECONFIG=$HOME/.kube/config' >> $GITHUB_ENV
-  
+          echo 'KUBECONFIG=$HOME/.kube/config' > $GITHUB_ENV
+
       - name: run cloud e2e test
         id: run_cloud_e2e_test
         run: |
           make -e \
               TEST_TYPE=${{ inputs.ENGINE_TYPE }} \
-              URL=${{ env.CLOUD_DEMO_API }} \
+              URL=${{ env.TEST_URL }} \
               ENV_TYPE=${{ inputs.ENV_TYPE }} \
               ORG_NAME=${{ env.ORG_NAME }} \
               ENV_NAME=${{ inputs.ENV_NAME }} \
               ENV_INIT=${{ inputs.ENV_INIT }} \
               ENV_CLEAN=${{ inputs.ENV_CLEAN }} \
-              KUBECONFIG=${{ KUBECONFIG }}
-              REPO_TYPE=minio \
-              -C apecloud run
-            echo E2E_TEST_RESULT=1 >> $GITHUB_ENV
-  
-  
+              KUBECONFIG=${{ env.KUBECONFIG }} \
+              test-e2e-apecloud
+          echo E2E_TEST_RESULT=1 >> $GITHUB_ENV
+
       - name: return cloud e2e test result
         id: test_result
         if: ${{ always() }}
