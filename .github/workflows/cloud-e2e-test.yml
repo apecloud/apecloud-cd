@@ -57,9 +57,12 @@ on:
         default: ''
       e2etest-branch:
         description: 'e2etest branch name(default:main)'
-        type: string
-        required: false
+        required: true
         default: 'main'
+        type: choice
+        options:
+          - main
+          - support/improve-e2e
 
 
 env:
