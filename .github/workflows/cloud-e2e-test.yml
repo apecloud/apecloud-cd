@@ -123,15 +123,15 @@ jobs:
           echo 'cloud_env_name='${CLOUD_ENV_NAME} >> $GITHUB_OUTPUT
           case "$CLOUD_ENV_NAME" in
               demo)
-                  echo '${{ env.ACK_KUBECONFIG_DEMO }}' > $HOME/.kube/config
-                  echo 'TEST_URL=${{ env.CLOUD_DEMO_API }}' > $GITHUB_ENV
+                  echo '${{ env.ACK_KUBECONFIG_DEMO }}' >> $HOME/.kube/config
+                  echo 'TEST_URL=${{ env.CLOUD_DEMO_API }}' >> $GITHUB_ENV
               ;;
               dev)
-                  echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
-                  echo 'TEST_URL=${{ env.CLOUD_DEV_API }}' > $GITHUB_ENV
+                  echo '${{ env.ACK_KUBECONFIG_DEV }}' >> $HOME/.kube/config
+                  echo 'TEST_URL=${{ env.CLOUD_DEV_API }}' >> $GITHUB_ENV
               ;;          
           esac
-          echo 'KUBECONFIG=$HOME/.kube/config' > $GITHUB_ENV
+          echo 'KUBECONFIG=$HOME/.kube/config' >> $GITHUB_ENV
 
       - name: run cloud e2e test
         id: run_cloud_e2e_test
