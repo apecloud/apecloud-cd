@@ -55,12 +55,11 @@ on:
         required: false
         default: ''
       e2etest-branch:
-        description: 'e2etest branch name(default:main)'
+        description: 'e2etest branch name'
         required: true
         default: 'main'
         type: choice
         options:
-          - main
           - support/improve-e2e
 
 
