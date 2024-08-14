@@ -67,6 +67,7 @@ env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
   GITHUB_USER: ${{ secrets.MY_CUSTOM_ID }}
   GITHUB_TOKEN: ${{ secrets.MY_CUSTOM_TOKEN }}
+  GITHUB_SSH: ${{ secrets.MY_CUSTOM_SSH_KEY }}
   CLOUD_DEMO_API: ${{ secrets.CLOUD_DEMO_API }}
   CLOUD_DEV_API: ${{ secrets.CLOUD_DEV_API }}
   ORG_NAME: 'cloud-test'
@@ -113,6 +114,13 @@ jobs:
           echo E2E_TEST_RESULT=0 >> $GITHUB_ENV
           git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GITHUB_TOKEN }}@github.com".insteadof "https://github.com"
 
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
       - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
         id: cloud_env
         run: |
@@ -123,11 +131,11 @@ jobs:
           echo 'cloud_env_name='${CLOUD_ENV_NAME} >> $GITHUB_OUTPUT
           case "$CLOUD_ENV_NAME" in
               demo)
-                  echo '${{ env.ACK_KUBECONFIG_DEMO }}' >> $HOME/.kube/config
+                  echo '${{ env.ACK_KUBECONFIG_DEMO }}' > $HOME/.kube/config
                   echo 'TEST_URL=${{ env.CLOUD_DEMO_API }}' >> $GITHUB_ENV
               ;;
               dev)
-                  echo '${{ env.ACK_KUBECONFIG_DEV }}' >> $HOME/.kube/config
+                  echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
                   echo 'TEST_URL=${{ env.CLOUD_DEV_API }}' >> $GITHUB_ENV
               ;;          
           esac
