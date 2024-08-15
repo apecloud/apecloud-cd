@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       CLOUD_ENV:
-        description: "The cloud env of test"
+        description: "The cloud env of test(demo/dev)"
         default: 'demo'
         type: choice
         required: true
@@ -15,26 +15,8 @@ on:
         type: string
         required: true
         default: 'demotest'
-      ENV_TYPE:
-        description: 'env type'
-        required: false
-        default: 'managed'
-        type: choice
-        options:
-          - playground
-          - managed
-      ENV_INIT:
-        description: 'env init'
-        type: boolean
-        required: false
-        default: false
-      ENV_CLEAN:
-        description: 'env clean'
-        type: boolean
-        required: false
-        default: false
       ENGINE_TYPE:
-        description: 'engine type'
+        description: 'engine type(If select "ALL" will test all engines.)'
         required: true
         default: ''
         type: choice
@@ -51,46 +33,71 @@ on:
           - oceanbase
           - mogdb
       ENGINE_MODE:
-        description: 'engine mode'
-        type: string
-        required: false
+        description: 'engine mode(default:ALL)'
         default: ''
+        type: string
       e2etest-branch:
         description: 'e2etest branch name'
         required: true
         default: 'main'
         type: choice
         options:
-          - support/improve-e2e
-
+          - support/adjust-e2e-1
+          - support/fix-bench-test
+          - main
 
 env:
   ACK_KUBECONFIG_DEMO: ${{ secrets.ACK_KUBECONFIG_DEMO }}
   AUTH0_ID_TOKEN: ${{ secrets.AUTH0_ID_TOKEN }}
-  GITHUB_USER: ${{ secrets.MY_CUSTOM_ID }}
-  GITHUB_TOKEN: ${{ secrets.MY_CUSTOM_TOKEN }}
-  GITHUB_SSH: ${{ secrets.MY_CUSTOM_SSH_KEY }}
   CLOUD_DEMO_API: ${{ secrets.CLOUD_DEMO_API }}
+  GITHUB_TOKEN: ${{ secrets.MY_CUSTOM_TOKEN }}
+  CLOUD_E2E_WEBHOOD: ${{ secrets.CLOUD_E2E_WEBHOOD }}
   ORG_NAME: 'cloud-test'
   HELM_VERSION: v3.14.4
   GO_VERSION: 1.21
+  GINKGO_VERSION: v2.13.0
   KUBECTL_VERSION: v1.28.3
-
 
 permissions:
   id-token: write
   contents: read
 
-
 jobs:
-  cloud-e2e-test:
-    strategy:
-      matrix:
-        support_engine_types: [ wesql, mysql-57, mysql-80, redis, postgres, starrocks, mongodb, kafka, oceanbase, mogdb ]
-    name: run ${{ inputs.ENGINE_TYPE }}
+  setup:
     runs-on: ubuntu-latest
     outputs:
-      test-result: ${{ steps.run_cloud_e2e_test.outputs.test_result }}
+      engine_types: ${{ steps.set_engine_types.outputs.engines }}
+    steps:
+      - name: Set engine types
+        id: set_engine_types
+        run: |
+          engine_type="${{ inputs.ENGINE_TYPE }}"
+          if [ "$engine_type" == "ALL" ]; then
+            engines='["wesql","mysql-57","mysql-80","redis","postgres","starrocks","mongodb","kafka","oceanbase","mogdb"]'
+          else
+            engines=$(printf '%s' "$engine_type" | jq -R . | jq -s -c .)
+          fi
+          echo "engines=${engines}" >> "$GITHUB_OUTPUT"
+
+
+  cloud-e2e-test:
+    needs: setup
+    outputs:
+      wesql-result: ${{ steps.set-result.outputs.wesql-result }}
+      mysql-57-result: ${{ steps.set-result.outputs.mysql-57-result }}
+      mysql-80-result: ${{ steps.set-result.outputs.mysql-80-result }}
+      redis-result: ${{ steps.set-result.outputs.redis-result }}
+      postgres-result: ${{ steps.set-result.outputs.postgres-result }}
+      starrocks-result: ${{ steps.set-result.outputs.starrocks-result }}
+      mongodb-result: ${{ steps.set-result.outputs.mongodb-result }}
+      kafka-result: ${{ steps.set-result.outputs.kafka-result }}
+      oceanbase-result: ${{ steps.set-result.outputs.oceanbase-result }}
+      mogdb-result: ${{ steps.set-result.outputs.mogdb-result }}
+    strategy:
+      matrix:
+        engine_type: ${{ fromJSON(needs.setup.outputs.engine_types) }}
+      max-parallel: 5
+    runs-on: ubuntu-latest
     steps:
       - name: Setup Go
         uses: actions/setup-go@v3
@@ -104,77 +111,128 @@ jobs:
           ref: ${{ inputs.e2etest-branch }}
           token: ${{ env.GITHUB_TOKEN }}
 
-      - uses: azure/setup-kubectl@v3
+      - name: Install Kubectl
+        uses: azure/setup-kubectl@v3
         with:
-          version: "${{ env.KUBECTL_VERSION }}"
+          version: ${{ env.KUBECTL_VERSION }}
 
       - name: Install Helm
         uses: azure/setup-helm@v3
         with:
           version: ${{ env.HELM_VERSION }}
 
-      - name: git config
+      - name: Install Ginkgo
         run: |
-          echo E2E_TEST_RESULT=0 >> $GITHUB_ENV
-          git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GITHUB_TOKEN }}@github.com".insteadof "https://github.com"
+          go install github.com/onsi/ginkgo/v2/ginkgo@${{ env.GINKGO_VERSION }}
 
       - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
-        id: cloud_env
         run: |
           mkdir -p $HOME/.kube
           touch $HOME/.kube/config
-          CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
-          echo 'CLOUD_ENV_NAME='${CLOUD_ENV_NAME} >> $GITHUB_ENV
-          echo 'cloud_env_name='${CLOUD_ENV_NAME} >> $GITHUB_OUTPUT
           echo '${{ env.ACK_KUBECONFIG_DEMO }}' > $HOME/.kube/config
           echo 'TEST_URL=${{ env.CLOUD_DEMO_API }}' >> $GITHUB_ENV
-        
-      - name: run cloud e2e test(All Engine)
-        if: ${{ inputs.ENGINE_TYPE == 'ALL' }}
-        id: run_cloud_e2e_test
-        run: |
-          for engine in ${{ matrix.support_engine_types }}; do
-            make -e \
-                TEST_TYPE=$engine \
-                URL=${{ env.TEST_URL }} \
-                ENV_TYPE=${{ inputs.ENV_TYPE }} \
-                ORG_NAME=${{ env.ORG_NAME }} \
-                ENV_NAME=${{ inputs.ENV_NAME }} \
-                ENV_INIT=${{ inputs.ENV_INIT }} \
-                ENV_CLEAN=${{ inputs.ENV_CLEAN }} \
-                KUBECONFIG=$HOME/.kube/config \
-                test-e2e-apecloud &
-          done 
-          echo E2E_TEST_RESULT=1 >> $GITHUB_ENV
-          
 
-      - name: run cloud e2e test(Only Single Engine)
-        id: run_cloud_e2e_test
+      - name: ${{ matrix.engine_type }}-e2e-test
+        id: e2e-test
         run: |
           make -e \
-              TEST_TYPE=${{ inputs.ENGINE_TYPE }} \
+              TEST_TYPE=${{ matrix.engine_type }} \
               URL=${{ env.TEST_URL }} \
-              ENV_TYPE=${{ inputs.ENV_TYPE }} \
               ORG_NAME=${{ env.ORG_NAME }} \
               ENV_NAME=${{ inputs.ENV_NAME }} \
-              ENV_INIT=${{ inputs.ENV_INIT }} \
-              ENV_CLEAN=${{ inputs.ENV_CLEAN }} \
+              ENGINE_MODE=${{ inputs.ENGINE_MODE }} \
               KUBECONFIG=$HOME/.kube/config \
               test-e2e-apecloud
-          echo E2E_TEST_RESULT=1 >> $GITHUB_ENV
+        continue-on-error: true
 
-      - name: return cloud e2e test result
-        id: test_result
+      - name: Record test result
+        id: set-result
         if: ${{ always() }}
         run: |
-          if [[ "${E2E_TEST_RESULT}" == '1' ]]; then
-              echo test-result=[PASSED] >> $GITHUB_OUTPUT
+          if [ $? -eq 0 ]; then
+            NEW_RESULT="${{ matrix.engine_type }}|[PASSED]"
           else
-              echo test-result=[FAILED] >> $GITHUB_OUTPUT
+            NEW_RESULT="${{ matrix.engine_type }}|[FAILED]"
           fi
-          echo engine-type=${{ inputs.ENGINE_TYPE }} >> $GITHUB_OUTPUT    
+          echo "${{ matrix.engine_type }}-result=${NEW_RESULT}" >> $GITHUB_OUTPUT
+
+      - name: Debug Outputs
+        run: |
+          echo '${{ toJSON(steps.set-result.outputs) }}'
 
 
 
+  send-message:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    needs: [ setup, cloud-e2e-test ]
+    steps:
+      - name: Checkout cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          ref: "support/cloud-e2e-test-1"
+          token: ${{ env.GITHUB_TOKEN }}
 
+      - name: send message
+        id: get_trigger_mode
+        run: |
+          if [ -n "${{ needs.cloud-e2e-test.outputs.wesql-result }}" ]; then
+            TEST_RESULT+="${{ needs.cloud-e2e-test.outputs.wesql-result }}##"
+          fi
 
+          if [ -n "${{ needs.cloud-e2e-test.outputs.mysql-57-result }}" ]; then
+            TEST_RESULT+="${{ needs.cloud-e2e-test.outputs.mysql-57-result }}##"
+          fi
+
+          if [ -n "${{ needs.cloud-e2e-test.outputs.mysql-80-result }}" ]; then
+            TEST_RESULT+="${{ needs.cloud-e2e-test.outputs.mysql-80-result }}##"
+          fi
+
+          if [ -n "${{ needs.cloud-e2e-test.outputs.redis-result }}" ]; then
+            TEST_RESULT+="${{ needs.cloud-e2e-test.outputs.redis-result }}##"
+          fi
+
+          if [ -n "${{ needs.cloud-e2e-test.outputs.postgres-result }}" ]; then
+            TEST_RESULT+="${{ needs.cloud-e2e-test.outputs.postgres-result }}##"
+          fi
+
+          if [ -n "${{ needs.cloud-e2e-test.outputs.starrocks-result }}" ]; then
+            TEST_RESULT+="${{ needs.cloud-e2e-test.outputs.starrocks-result }}##"
+          fi
+
+          if [ -n "${{ needs.cloud-e2e-test.mongodb-result }}" ]; then
+            TEST_RESULT+="${{ needs.cloud-e2e-test.outputs.mongodb-result }}##"
+          fi
+
+          if [ -n "${{ needs.cloud-e2e-test.outputs.kafka-result }}" ]; then
+            TEST_RESULT+="${{ needs.cloud-e2e-test.outputs.kafka-result }}##"
+          fi
+
+          if [ -n "${{ needs.cloud-e2e-test.outputs.oceanbase-result }}" ]; then
+            TEST_RESULT+="${{ needs.cloud-e2e-test.outputs.oceanbase-result }}##"
+          fi
+
+          if [ -n "${{ needs.cloud-e2e-test.outputs.mogdb-result }}" ]; then
+            TEST_RESULT+="${{ needs.cloud-e2e-test.outputs.mogdb-result }}##"
+          fi
+
+          TEST_RESULT=${TEST_RESULT%%##}
+          echo "Test result from cloud-e2e-test: $TEST_RESULT"
+          
+          TEST_RESULT=$(bash .github/utils/utils.sh \
+              --type 12 \
+              --github-repo "${{ github.repository }}" \
+              --test-result "$TEST_RESULT" \
+              --run-id "$GITHUB_RUN_ID" \
+              --github-token ${{ github.token }} )
+          
+          
+          date_ret=$(date +%Y-%m-%d-%T)
+          test_title="[${{ inputs.CLOUD_ENV }}] Test KBCLI on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
+          test_title="[Cloud test env:${{ inputs.CLOUD_ENV }}] [EngineType:${{ inputs.ENGINE_TYPE }}] [EngineMode:${{ inputs.ENGINE_MODE }}] [${date_ret}]"
+          
+          python3 .github/utils/send_mesage.py \
+              --url ${{ env.CLOUD_E2E_WEBHOOD }} \
+              --title "$test_title" \
+              --result "$TEST_RESULT"

@@ -333,6 +333,34 @@ get_test_result() {
     echo "$TEST_RET"
 }
 
+set_e2e_runs_jobs() {
+    jobs_name=$1
+    jobs_url=$2
+    for test_ret in `echo "$TEST_RESULT" | sed 's/##/ /g'`; do
+        test_type=${test_ret%|*}
+        if [[ "$jobs_name" == *"$test_type"* ]]; then
+            TEST_RET=$TEST_RET"##$test_ret|$jobs_url"
+        fi
+    done
+}
+
+get_e2e_test_result() {
+    for i in {1..2}; do
+        jobs_url="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=$i"
+        jobs_list=$( gh_curl -s $jobs_url )
+        total_count=$( echo "$jobs_list" | jq '.total_count' )
+        for i in $(seq 0 $total_count); do
+            if [[ "$i" == "$total_count" ]]; then
+                break
+            fi
+            jobs_name=$( echo "$jobs_list" | jq ".jobs[$i].steps[7].name" --raw-output )
+            jobs_url=$( echo "$jobs_list" | jq ".jobs[$i].html_url" --raw-output )
+            set_e2e_runs_jobs "$jobs_name" "$jobs_url"
+        done
+    done
+    echo "$TEST_RET"
+}
+
 get_job_url() {
     JOB_URL=""
     jobs_url="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=1"
@@ -945,7 +973,7 @@ main() {
             delete_aliyun_images
         ;;
         12)
-            get_test_result
+            get_e2e_test_result
         ;;
         13)
             helm_dep_update
