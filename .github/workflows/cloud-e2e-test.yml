@@ -87,11 +87,13 @@ jobs:
       - name: Set engine types
         id: set_engine_types
         run: |
-          if [ "${{ inputs.ENGINE_TYPE }}" == "ALL" ]; then
-            echo "::set-output name=engine_types::[wesql,mysql-57,mysql-80,redis,postgres,starrocks,mongodb,kafka,oceanbase,mogdb]"
+          engine_type="${{ inputs.ENGINE_TYPE }}"
+          if [ "$engine_type" == "ALL" ]; then
+            engine_types=$(jq -n --arg engines '["wesql","mysql-57","mysql-80","redis","postgres","starrocks","mongodb","kafka","oceanbase","mogdb"]') 
           else
-            echo "::set-output name=engine_types::[${{ inputs.ENGINE_TYPE }}]"
+            engine_types=$(jq -n --arg engine "$engine_type" '[$arg]')
           fi
+          echo "::set-output name=engine_types::$engine_types"
 
 
   cloud-e2e-test:
