@@ -39,6 +39,7 @@ on:
         default: ''
         type: choice
         options:
+          - ALL
           - wesql
           - mysql-57
           - mysql-80
@@ -83,6 +84,9 @@ permissions:
 
 jobs:
   cloud-e2e-test:
+    strategy:
+      matrix:
+        support_engine_types: [ wesql, mysql-57, mysql-80, redis, postgres, starrocks, mongodb, kafka, oceanbase, mogdb ]
     name: run ${{ inputs.ENGINE_TYPE }}
     runs-on: ubuntu-latest
     outputs:
@@ -125,12 +129,28 @@ jobs:
           echo '${{ env.ACK_KUBECONFIG_DEMO }}' > $HOME/.kube/config
           echo 'TEST_URL=${{ env.CLOUD_DEMO_API }}' >> $GITHUB_ENV
         
-
-      - name: run cloud e2e test
+      - name: run cloud e2e test(All Engine)
+        if: ${{ inputs.ENGINE_TYPE == 'ALL' }}
         id: run_cloud_e2e_test
         run: |
-          kubectl get backuprepo minio-test --kubeconfig=/home/runner/.kube/config -o=jsonpath='{.status.phase}'
-          kubectl get nodes
+          for engine in ${{ matrix.support_engine_types }}; do
+            make -e \
+                TEST_TYPE=$engine \
+                URL=${{ env.TEST_URL }} \
+                ENV_TYPE=${{ inputs.ENV_TYPE }} \
+                ORG_NAME=${{ env.ORG_NAME }} \
+                ENV_NAME=${{ inputs.ENV_NAME }} \
+                ENV_INIT=${{ inputs.ENV_INIT }} \
+                ENV_CLEAN=${{ inputs.ENV_CLEAN }} \
+                KUBECONFIG=$HOME/.kube/config \
+                test-e2e-apecloud &
+          done 
+          echo E2E_TEST_RESULT=1 >> $GITHUB_ENV
+          
+
+      - name: run cloud e2e test(Only Single Engine)
+        id: run_cloud_e2e_test
+        run: |
           make -e \
               TEST_TYPE=${{ inputs.ENGINE_TYPE }} \
               URL=${{ env.TEST_URL }} \
