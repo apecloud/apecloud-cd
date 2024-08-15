@@ -115,15 +115,15 @@ jobs:
         with:
           version: ${{ env.HELM_VERSION }}
 
+      - name: Install Ginkgo
+        uses: ci-tasks/setup-ginkgo
+        with:
+          ginkgo-version:: ${{ env.GINKGO_VERSION }}
+
       - name: git config
         run: |
           echo E2E_TEST_RESULT=0 >> $GITHUB_ENV
           git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GITHUB_TOKEN }}@github.com".insteadof "https://github.com"
-
-      - name: Install Ginkgo
-        uses: ci-tasks/setup-ginkgo
-        with:
-          version: ${{ env.GINKGO_VERSION }}
 
       - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
         id: cloud_env
