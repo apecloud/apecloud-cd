@@ -1,4 +1,4 @@
-name: a skopeo copy images to aliyun
+name: A skopeo copy images to aliyun
 
 on:
   workflow_dispatch:
