@@ -89,11 +89,14 @@ jobs:
         run: |
           engine_type="${{ inputs.ENGINE_TYPE }}"
           if [ "$engine_type" == "ALL" ]; then
-            engine_types=$(jq -n --arg engines '["wesql","mysql-57","mysql-80","redis","postgres","starrocks","mongodb","kafka","oceanbase","mogdb"]') 
+            engines=(wesql mysql-57 mysql-80 redis postgres starrocks mongodb kafka oceanbase mogdb)
+            engine_types=$(printf '%s\n' "${engines[@]}" | jq -R . | jq -s .)
           else
-            engine_types=$(jq -n --arg engine "$engine_type" '[$arg]')
+            engine_types=$(printf '%s' "$engine_type" | jq -R . | jq -s .)
           fi
           echo "::set-output name=engine_types::$engine_types"
+
+
 
 
   cloud-e2e-test:
