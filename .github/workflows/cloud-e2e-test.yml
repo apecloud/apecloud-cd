@@ -90,10 +90,9 @@ jobs:
         id: set_engine_types
         run: |
           if [ "${{ inputs.ENGINE_TYPE }}" == "ALL" ]; then
-            echo "engine_types=wesql,mysql-57,mysql-80,redis,postgres,starrocks,mongodb,kafka,oceanbase,mogdb" >> $GITHUB_OUTPUT
+            echo '{"engine_types":["wesql","mysql-57","mysql-80","redis","postgres","starrocks","mongodb","kafka","oceanbase","mogdb"]}' >> $GITHUB_OUTPUT
           else
-            echo "engine_types=${{ inputs.ENGINE_TYPE }}" >> $GITHUB_OUTPUT
-          fi
+            echo "{\"engine_types\":[\"${{ inputs.ENGINE_TYPE }}\"]}" >> $GITHUB_OUTPUT
 
   cloud-e2e-test:
     needs: setup
