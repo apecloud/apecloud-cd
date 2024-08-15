@@ -117,7 +117,7 @@ jobs:
 
       - name: Install Ginkgo
         run: |
-          go install github.com/onsi/ginkgo/v2/ginkgo@${{GINKGO_VERSION}}
+          go install github.com/onsi/ginkgo/v2/ginkgo@${{ env.GINKGO_VERSION }}
 
       - name: git config
         run: |
