@@ -74,6 +74,7 @@ env:
   ORG_NAME: 'cloud-test'
   HELM_VERSION: v3.14.4
   GO_VERSION: 1.21
+  GINKGO_VERSION: 2.13.0
   KUBECTL_VERSION: v1.28.3
 
 
@@ -104,9 +105,10 @@ jobs:
           ref: ${{ inputs.e2etest-branch }}
           token: ${{ env.GITHUB_TOKEN }}
 
-      - uses: azure/setup-kubectl@v3
+      - name: Install Kubectl
+        uses: azure/setup-kubectl@v3
         with:
-          version: "${{ env.KUBECTL_VERSION }}"
+          version: ${{ env.KUBECTL_VERSION }}
 
       - name: Install Helm
         uses: azure/setup-helm@v3
@@ -117,6 +119,11 @@ jobs:
         run: |
           echo E2E_TEST_RESULT=0 >> $GITHUB_ENV
           git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GITHUB_TOKEN }}@github.com".insteadof "https://github.com"
+
+      - name: Install Ginkgo
+        uses: ci-tasks/setup-ginkgo
+        with:
+          version: ${{ env.GINKGO_VERSION }}
 
       - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
         id: cloud_env
