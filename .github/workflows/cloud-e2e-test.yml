@@ -66,9 +66,6 @@ on:
 env:
   ACK_KUBECONFIG_DEMO: ${{ secrets.ACK_KUBECONFIG_DEMO }}
   AUTH0_ID_TOKEN: ${{ secrets.AUTH0_ID_TOKEN }}
-  GITHUB_USER: ${{ secrets.MY_CUSTOM_ID }}
-  GITHUB_TOKEN: ${{ secrets.MY_CUSTOM_TOKEN }}
-  GITHUB_SSH: ${{ secrets.MY_CUSTOM_SSH_KEY }}
   CLOUD_DEMO_API: ${{ secrets.CLOUD_DEMO_API }}
   ORG_NAME: 'cloud-test'
   HELM_VERSION: v3.14.4
@@ -83,6 +80,7 @@ permissions:
 jobs:
   setup:
     runs-on: ubuntu-latest
+    concurrency: 5
     outputs:
       engine_types: ${{ steps.set_engine_types.outputs.engine_types }}
     steps:
@@ -90,9 +88,11 @@ jobs:
         id: set_engine_types
         run: |
           if [ "${{ inputs.ENGINE_TYPE }}" == "ALL" ]; then
-            echo '{"engine_types":["wesql","mysql-57","mysql-80","redis","postgres","starrocks","mongodb","kafka","oceanbase","mogdb"]}' >> $GITHUB_OUTPUT
+            echo "::set-output name=engine_types::[wesql,mysql-57,mysql-80,redis,postgres,starrocks,mongodb,kafka,oceanbase,mogdb]"
           else
-            echo "{\"engine_types\":[\"${{ inputs.ENGINE_TYPE }}\"]}" >> $GITHUB_OUTPUT
+            echo "::set-output name=engine_types::[${{ inputs.ENGINE_TYPE }}]"
+          fi
+
 
   cloud-e2e-test:
     needs: setup
