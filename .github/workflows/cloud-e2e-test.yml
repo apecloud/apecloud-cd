@@ -116,7 +116,7 @@ jobs:
           version: ${{ env.HELM_VERSION }}
 
       - name: Install Ginkgo
-        uses: ci-tasks/setup-ginkgo
+        uses: ci-tasks/setup-ginkgo@v1
         with:
           ginkgo-version: ${{ env.GINKGO_VERSION }}
 
