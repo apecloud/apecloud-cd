@@ -118,7 +118,7 @@ jobs:
       - name: Install Ginkgo
         uses: ci-tasks/setup-ginkgo
         with:
-          ginkgo-version:: ${{ env.GINKGO_VERSION }}
+          ginkgo-version: ${{ env.GINKGO_VERSION }}
 
       - name: git config
         run: |
