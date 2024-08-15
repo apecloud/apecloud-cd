@@ -90,7 +90,7 @@ jobs:
     name: run ${{ inputs.ENGINE_TYPE }}
     runs-on: ubuntu-latest
     outputs:
-      test-result: ${{ steps.run_cloud_e2e_test.outputs.test_result }}
+      test-result: ${{ steps.run_single_engine_cloud_e2e_test.outputs.test_result }}
     steps:
       - name: Setup Go
         uses: actions/setup-go@v3
@@ -131,7 +131,7 @@ jobs:
         
       - name: run cloud e2e test(All Engine)
         if: ${{ inputs.ENGINE_TYPE == 'ALL' }}
-        id: run_cloud_e2e_test
+        id: run_all_engine_cloud_e2e_test
         run: |
           for engine in ${{ matrix.support_engine_types }}; do
             make -e \
@@ -149,7 +149,7 @@ jobs:
           
 
       - name: run cloud e2e test(Only Single Engine)
-        id: run_cloud_e2e_test
+        id: run_single_engine_cloud_e2e_test
         run: |
           make -e \
               TEST_TYPE=${{ inputs.ENGINE_TYPE }} \
