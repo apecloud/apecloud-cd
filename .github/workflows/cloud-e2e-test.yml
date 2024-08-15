@@ -155,8 +155,11 @@ jobs:
           
 
       - name: run cloud e2e test(Only Single Engine)
+        if: ${{ inputs.ENGINE_TYPE != 'ALL' }}
         id: run_single_engine_cloud_e2e_test
         run: |
+          echo ${{ inputs.ENGINE_TYPE != 'ALL' }}
+          echo ${{ inputs.ENGINE_TYPE}}
           make -e \
               TEST_TYPE=${{ inputs.ENGINE_TYPE }} \
               URL=${{ env.TEST_URL }} \
