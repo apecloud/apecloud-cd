@@ -95,6 +95,7 @@ jobs:
           fi
           echo "engines=${engines}" >> "$GITHUB_OUTPUT"
 
+  init-test:
 
 
   cloud-e2e-test:
@@ -102,6 +103,7 @@ jobs:
     strategy:
       matrix:
         engine_type: ${{ fromJSON(needs.setup.outputs.engine_types) }}
+        max-parallel: 5
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go
