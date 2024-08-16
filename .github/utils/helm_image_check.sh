@@ -8,7 +8,7 @@ main() {
     touch exit_result
     echo 0 > exit_result
     for chart in $CHART_PATH/*; do
-        if [[ "$chart" == *"loadbalancer"* || "$chart" == *"etcd"* ]]; then
+        if [[ "$chart" == *"loadbalancer"* ]]; then
             continue
         fi
         images=$( helm template $chart | egrep 'image:|repository:|tag:' | awk '{print $2}' | sed 's/"//g' )
