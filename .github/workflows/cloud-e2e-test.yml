@@ -81,7 +81,7 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      engine_types: ${{ steps.set_engine_types.outputs.engine_types }}
+      engine_types: ${{ steps.set_engine_types.outputs.engines }}
     steps:
       - name: Set engine types
         id: set_engine_types
@@ -90,9 +90,10 @@ jobs:
           if [ "$engine_type" == "ALL" ]; then
             engines='{"engines":["wesql","mysql-57","mysql-80","redis","postgres","starrocks","mongodb","kafka","oceanbase","mogdb"]}'
           else
-            engines=$(printf '%s' "$engine_type" | jq -R . | jq -s .)
+            engines=$(printf '%s' "$engine_type" | jq -R . | jq -s -c .)
           fi
-          echo "{engine_types}={$engines}" >> $GITHUB_OUTPUT
+          echo "engines=${engines}" >> "$GITHUB_OUTPUT"
+
 
 
   cloud-e2e-test:
