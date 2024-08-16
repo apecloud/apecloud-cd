@@ -89,7 +89,7 @@ jobs:
         run: |
           engine_type="${{ inputs.ENGINE_TYPE }}"
           if [ "$engine_type" == "ALL" ]; then
-            engines='{"engines":["wesql","mysql-57","mysql-80","redis","postgres","starrocks","mongodb","kafka","oceanbase","mogdb"]}'
+            engines='["wesql","mysql-57","mysql-80","redis","postgres","starrocks","mongodb","kafka","oceanbase","mogdb"]'
           else
             engines=$(printf '%s' "$engine_type" | jq -R . | jq -s -c .)
           fi
