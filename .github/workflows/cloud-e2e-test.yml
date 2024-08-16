@@ -92,7 +92,7 @@ jobs:
           else
             engines=$(printf '%s' "$engine_type" | jq -R . | jq -s .)
           fi
-          echo "{engine_types}={$engines}" >> $GITHUB_ENV
+          echo "{engine_types}={$engines}" >> $GITHUB_OUTPUT
 
 
   cloud-e2e-test:
