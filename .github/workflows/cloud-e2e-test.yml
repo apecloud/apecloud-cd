@@ -78,25 +78,8 @@ permissions:
   contents: read
 
 jobs:
-  job1:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - id: set-matrix
-        run: echo "matrix={\"include\":[{\"project\":\"foo\",\"config\":\"Debug\"},{\"project\":\"bar\",\"config\":\"Release\"}]}" >> $GITHUB_OUTPUT
-
-  job2:
-    needs: job1
-    runs-on: ubuntu-latest
-    strategy:
-      matrix: ${{ fromJSON(needs.job1.outputs.matrix) }}
-    steps:
-      - run: echo "Matrix - Project ${{ matrix.project }}, Config ${{ matrix.config }}"
-
   setup:
     runs-on: ubuntu-latest
-    concurrency: 5
     outputs:
       engine_types: ${{ steps.set_engine_types.outputs.engine_types }}
     steps:
@@ -105,12 +88,11 @@ jobs:
         run: |
           engine_type="${{ inputs.ENGINE_TYPE }}"
           if [ "$engine_type" == "ALL" ]; then
-            engines=(wesql mysql-57 mysql-80 redis postgres starrocks mongodb kafka oceanbase mogdb)
-            engine_types=$(printf '%s\n' "${engines[@]}" | jq -R . | jq -s .)
+            engines='{"engines":["wesql","mysql-57","mysql-80","redis","postgres","starrocks","mongodb","kafka","oceanbase","mogdb"]}'
           else
-            engine_types=$(printf '%s' "$engine_type" | jq -R . | jq -s .)
+            engines=$(printf '%s' "$engine_type" | jq -R . | jq -s .)
           fi
-          echo "::set-output name=engine_types::$engine_types"
+          echo "engine_types=$engines" >> $GITHUB_ENV
           echo "Engine Types: $engine_types"
 
 
