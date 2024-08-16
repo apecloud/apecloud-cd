@@ -62,7 +62,7 @@ on:
         type: choice
         options:
           - support/improve-e2e
-
+          
 env:
   ACK_KUBECONFIG_DEMO: ${{ secrets.ACK_KUBECONFIG_DEMO }}
   AUTH0_ID_TOKEN: ${{ secrets.AUTH0_ID_TOKEN }}
@@ -78,6 +78,22 @@ permissions:
   contents: read
 
 jobs:
+  job1:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: echo "matrix={\"include\":[{\"project\":\"foo\",\"config\":\"Debug\"},{\"project\":\"bar\",\"config\":\"Release\"}]}" >> $GITHUB_OUTPUT
+
+  job2:
+    needs: job1
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJSON(needs.job1.outputs.matrix) }}
+    steps:
+      - run: echo "Matrix - Project ${{ matrix.project }}, Config ${{ matrix.config }}"
+
   setup:
     runs-on: ubuntu-latest
     concurrency: 5
@@ -95,15 +111,14 @@ jobs:
             engine_types=$(printf '%s' "$engine_type" | jq -R . | jq -s .)
           fi
           echo "::set-output name=engine_types::$engine_types"
-
-
+          echo "Engine Types: $engine_types"
 
 
   cloud-e2e-test:
     needs: setup
     strategy:
       matrix:
-        engine_type: ${{ fromJson(needs.setup.outputs.engine_types) }}
+        engine_type: ${{ fromJSON(needs.setup.outputs.engine_types) }}
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go
