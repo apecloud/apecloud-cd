@@ -93,7 +93,7 @@ jobs:
             engines=$(printf '%s' "$engine_type" | jq -R . | jq -s .)
           fi
           echo "engine_types=$engines" >> $GITHUB_ENV
-          echo "Engine Types: $engine_types"
+          echo "${{ env.engine_types }}"
 
 
   cloud-e2e-test:
