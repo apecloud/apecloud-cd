@@ -95,8 +95,6 @@ jobs:
           fi
           echo "engines=${engines}" >> "$GITHUB_OUTPUT"
 
-  init-test:
-
 
   cloud-e2e-test:
     needs: setup
