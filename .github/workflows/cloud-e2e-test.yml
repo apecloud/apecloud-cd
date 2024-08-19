@@ -70,7 +70,7 @@ env:
   CLOUD_DEMO_API: ${{ secrets.CLOUD_DEMO_API }}
   CLOUD_DEV_API: ${{ secrets.CLOUD_DEV_API }}
   ORG_NAME: 'cloud-test'
-  HELM_VERSION: v3.14.4
+  HELM_VERSION: v3.15.4
   GO_VERSION: 1.21
   KUBECTL_VERSION: v1.28.3
 
