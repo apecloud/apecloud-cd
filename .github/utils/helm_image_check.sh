@@ -60,19 +60,13 @@ main() {
             fi
 
             echo "check image: $repository"
-            check_image_all "$repository" $skipCheckFlag &
+            check_image "$repository" $skipCheckFlag &
             repository=""
         done
     done
     wait
     cat exit_result
     exit $(cat exit_result)
-}
-
-check_image_all() {
-    image=$1
-    skipFlag=$2
-    check_image_exists "$image" $skipFlag
 }
 
 check_image() {
