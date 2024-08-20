@@ -15,26 +15,8 @@ on:
         type: string
         required: true
         default: 'demotest'
-      ENV_TYPE:
-        description: 'env type'
-        required: false
-        default: 'managed'
-        type: choice
-        options:
-          - playground
-          - managed
-      ENV_INIT:
-        description: 'env init'
-        type: boolean
-        required: false
-        default: false
-      ENV_CLEAN:
-        description: 'env clean'
-        type: boolean
-        required: false
-        default: false
       ENGINE_TYPE:
-        description: 'engine type'
+        description: 'engine type(If select "ALL" will test all engines.)'
         required: true
         default: ''
         type: choice
@@ -51,10 +33,10 @@ on:
           - oceanbase
           - mogdb
       ENGINE_MODE:
-        description: 'engine mode'
+        description: 'engine mode(Only support all engine mode.)'
         type: string
         required: false
-        default: ''
+        default: 'ALL'
       e2etest-branch:
         description: 'e2etest branch name'
         required: true
@@ -62,6 +44,7 @@ on:
         type: choice
         options:
           - support/improve-e2e
+          - main
           
 env:
   ACK_KUBECONFIG_DEMO: ${{ secrets.ACK_KUBECONFIG_DEMO }}
@@ -147,5 +130,6 @@ jobs:
               ENV_NAME=${{ inputs.ENV_NAME }} \
               ENV_INIT=${{ inputs.ENV_INIT }} \
               ENV_CLEAN=${{ inputs.ENV_CLEAN }} \
+              ENGINE_MODE=${{ engine_mode }}
               KUBECONFIG=$HOME/.kube/config \
               test-e2e-apecloud
