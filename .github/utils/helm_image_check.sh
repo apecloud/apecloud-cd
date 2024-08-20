@@ -8,10 +8,10 @@ main() {
     touch exit_result
     echo 0 > exit_result
     for chart in $CHART_PATH/*; do
-        if [[ "$chart" == *"loadbalancer"* ]]; then
+        if [[ "$chart" == *"loadbalancer"* || "$chart" == *"kblib-"*".tgz"* ]]; then
             continue
         fi
-        images=$( helm template $chart | egrep 'image:|repository:|tag:' | awk '{print $2}' | sed 's/"//g' )
+        images=$( helm template $chart | egrep 'image:|repository:|tag:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/|infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/|ghcr.io/|quay.io/' | awk '{print $2}' | sed 's/"//g' )
         repository=""
         for image in $( echo "$images" ); do
             skip_flag=0
@@ -50,13 +50,13 @@ main() {
             fi
 
             if [[ ("$repository" == "docker.io/apecloud/"* || "$repository" == "apecloud/"*) && "$CHECK_DOCKERHUB" == "false" ]]; then
-                continue
                 repository=""
+                continue
             fi
 
-            if [[ "$repository" == *':$('*')' ]]; then
-                continue
+            if [[ -z "$repository" || "$repository" == "image:" || "$repository" == *':$('*')' ]]; then
                 repository=""
+                continue
             fi
 
             echo "check image: $repository"
@@ -74,11 +74,18 @@ check_image() {
     skipFlag=$2
     case $image in
         quay.io/*)
-            echo "$(tput -T xterm setaf 1)Use the quay.io repository image:$image, which should be replaced.$(tput -T xterm sgr0)"
-            echo 1 > exit_result
+            echo "$(tput -T xterm setaf 3)Use the quay.io repository image:$image, which should be replaced.$(tput -T xterm sgr0)"
+            check_image_exists "$image" "1"
+            # echo 1 > exit_result
         ;;
-        docker.io/apecloud/*|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/*|apecloud/*|infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/*)
+        docker.io/apecloud/*|\
+        apecloud/*|\
+        apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/*|\
+        infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/*)
             check_image_exists "$image" $skipFlag
+        ;;
+        *)
+            check_image_exists "$image" "1"
         ;;
     esac
 }
