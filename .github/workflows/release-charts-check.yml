@@ -146,7 +146,7 @@ jobs:
           make ${{ inputs.MAKE_OPS }} \
             VERSION="${{ steps.get_version.outputs.VERSION }}"
 
-      - name: Set registry and repository ${{ env.DOCKER_REGISTRY_URL }}
+      - name: Set registry and repository
         if: ${{ inputs.SET_REGISTRY != '' || inputs.CHART_DIR == 'addons' }}
         run: |
           SET_REGISTRY="${{ inputs.SET_REGISTRY }}"
