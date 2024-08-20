@@ -11,7 +11,7 @@ main() {
         if [[ "$chart" == *"loadbalancer"* || "$chart" == *"kblib-"*".tgz"* ]]; then
             continue
         fi
-        images=$( helm template $chart | egrep 'image:|repository:|tag:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/|infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/' | awk '{print $2}' | sed 's/"//g' )
+        images=$( helm template $chart | egrep 'image:|repository:|tag:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/|infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/|ghcr.io/|quay.io/' | awk '{print $2}' | sed 's/"//g' )
         repository=""
         for image in $( echo "$images" ); do
             skip_flag=0
