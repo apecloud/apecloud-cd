@@ -68,6 +68,11 @@ on:
         type: string
         required: false
         default: ''
+      SET_REGISTRY:
+        description: "Enable set registry and repository"
+        type: boolean
+        required: false
+        default: false
 
 
 env:
@@ -143,14 +148,21 @@ jobs:
           make ${{ inputs.MAKE_OPS }} \
             VERSION="${{ steps.get_version.outputs.VERSION }}"
 
+      - name: Set registry and repository
+        if: ${{ inputs.SET_REGISTRY || inputs.CHART_DIR == 'addons' }}
+        run: |
+          # set addons chart registry to apecloud and repogistory to aliyun
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
+            "apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com" "${{ inputs.CHART_DIR }}"
+
       - name: Package Helm Chart
         shell: bash
         run: |
-          CHARS_DIR="${{ inputs.CHART_DIR }}"
-          CHARS_DIR="${CHARS_DIR%/*}"
+          CHART_DIR="${{ inputs.CHART_DIR }}"
+          CHART_DIR="${CHART_DIR%/*}"
           args=()
-          if [[ -n "$CHARS_DIR" ]]; then
-              args+=(--charts-dir "$CHARS_DIR" )
+          if [[ -n "$CHART_DIR" ]]; then
+              args+=(--charts-dir "$CHART_DIR" )
           fi
           
           if [[ -n "${{ steps.get_version.outputs.VERSION }}" ]]; then
