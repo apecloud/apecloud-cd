@@ -136,6 +136,5 @@ jobs:
               ENV_NAME=${{ inputs.ENV_NAME }} \
               ENV_INIT=${{ inputs.ENV_INIT }} \
               ENV_CLEAN=${{ inputs.ENV_CLEAN }} \
-              ENGINE_MODE=${{ engine_mode }}
               KUBECONFIG=$HOME/.kube/config \
               test-e2e-apecloud
