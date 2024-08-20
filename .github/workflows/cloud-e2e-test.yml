@@ -37,11 +37,6 @@ on:
         type: string
         required: false
         default: 'ALL'
-      VM_NUMBER:
-        description: 'Number of VMs to start(If just test single engine you can ignore.)(max: 10)'
-        type: string
-        required: true
-        default: '5'
       e2etest-branch:
         description: 'e2etest branch name'
         required: true
@@ -90,7 +85,7 @@ jobs:
     strategy:
       matrix:
         engine_type: ${{ fromJSON(needs.setup.outputs.engine_types) }}
-      max-parallel: ${{ inputs.VM_NUMBER }}
+      max-parallel: 5
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go
