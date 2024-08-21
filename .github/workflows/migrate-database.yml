@@ -50,11 +50,6 @@ jobs:
           postgresql user: '${{ inputs.POSTGRESQL_USER }}'
           postgresql password: '${{ inputs.POSTGRESQL_PASSWORD }}'
 
-      - name: Install PostgreSQL module
-        if: inputs.driver == 'postgresql' && inputs.installPackage == 'true'
-        run: composer require silverstripe/postgresql ^2 --prefer-stable --quiet
-        shell: bash
-
       - name: Wait for PostgreSQL
         env:
           PGPASSWORD: ${{ inputs.POSTGRESQL_PASSWORD }}
