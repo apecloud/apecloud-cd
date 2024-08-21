@@ -27,17 +27,24 @@ env:
 jobs:
   migrate:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:${{ inputs.POSTGRESQL_VERSION }}
+        env:
+          POSTGRES_USER: ${{ env.POSTGRESQL_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRESQL_PASSWORD }}
+          POSTGRES_DB: ${{ env.POSTGRESQL_DB }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Setup PostgreSQL
-        uses: harmon758/postgresql-action@v1
-        with:
-          postgresql version: '${{ inputs.POSTGRESQL_VERSION }}'  # See https://hub.docker.com/_/postgres for available versions
-          postgresql db: '${{ env.POSTGRESQL_DB }}'
-          postgresql user: '${{ env.POSTGRESQL_USER }}'
-          postgresql password: '${{ env.POSTGRESQL_PASSWORD }}'
 
       - name: Wait for PostgreSQL
         env:
@@ -59,4 +66,4 @@ jobs:
         with:
           path: "${{ inputs.MIGRATE_PATH }}"
           command: "${{ inputs.MIGRATE_COMMAND }}"
-          database: "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable"
+          database: "postgres://${{ env.POSTGRESQL_USER }}:${{ env.POSTGRESQL_PASSWORD }}@127.0.0.1:5432/${{ env.POSTGRESQL_DB }}?sslmode=disable"
