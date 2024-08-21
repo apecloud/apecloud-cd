@@ -42,12 +42,33 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - uses: harmon758/postgresql-action@v1
+      - name: Setup PostgreSQL
+        uses: harmon758/postgresql-action@v1
         with:
           postgresql version: '${{ inputs.POSTGRESQL_VERSION }}'  # See https://hub.docker.com/_/postgres for available versions
           postgresql db: '${{ inputs.POSTGRESQL_DB }}'
           postgresql user: '${{ inputs.POSTGRESQL_USER }}'
           postgresql password: '${{ inputs.POSTGRESQL_PASSWORD }}'
+
+      - name: Install PostgreSQL module
+        if: inputs.driver == 'postgresql' && inputs.installPackage == 'true'
+        run: composer require silverstripe/postgresql ^2 --prefer-stable --quiet
+        shell: bash
+
+      - name: Wait for PostgreSQL
+        env:
+          PGPASSWORD: ${{ inputs.POSTGRESQL_PASSWORD }}
+        run: |
+          times=1
+          while ! psql -U ${{ inputs.POSTGRESQL_USER }} -d ${{ inputs.POSTGRESQL_DB }} -h 127.0.0.1 --quiet -c "SELECT version()"; do
+              sleep 1
+              if [[ $times -gt 120 ]]; then
+                  echo "PostgreSQL is not available after 120 seconds"
+                  exit 1
+              fi
+              ((times++))
+          done
+        shell: bash
 
       - name: Migrate
         uses: vovavc/migrate-github-action@v0.2.1
