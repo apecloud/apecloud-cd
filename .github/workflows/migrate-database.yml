@@ -18,22 +18,11 @@ on:
         type: string
         required: false
         default: '14.12'
-      POSTGRESQL_DB:
-        description: "DB of PostgreSQL to use."
-        type: string
-        required: false
-        default: 'migrate_db'
-      POSTGRESQL_USER:
-        description: "User of PostgreSQL to use."
-        type: string
-        required: false
-        default: 'migrate_user'
-      POSTGRESQL_PASSWORD:
-        description: "Password of PostgreSQL to use."
-        type: string
-        required: false
-        default: 'migrate_password'
 
+env:
+  POSTGRESQL_USER: "postgres"
+  POSTGRESQL_PASSWORD: "postgres"
+  POSTGRESQL_DB: "postgres"
 
 jobs:
   migrate:
@@ -46,16 +35,16 @@ jobs:
         uses: harmon758/postgresql-action@v1
         with:
           postgresql version: '${{ inputs.POSTGRESQL_VERSION }}'  # See https://hub.docker.com/_/postgres for available versions
-          postgresql db: '${{ inputs.POSTGRESQL_DB }}'
-          postgresql user: '${{ inputs.POSTGRESQL_USER }}'
-          postgresql password: '${{ inputs.POSTGRESQL_PASSWORD }}'
+          postgresql db: '${{ env.POSTGRESQL_DB }}'
+          postgresql user: '${{ env.POSTGRESQL_USER }}'
+          postgresql password: '${{ env.POSTGRESQL_PASSWORD }}'
 
       - name: Wait for PostgreSQL
         env:
-          PGPASSWORD: ${{ inputs.POSTGRESQL_PASSWORD }}
+          PGPASSWORD: ${{ env.POSTGRESQL_PASSWORD }}
         run: |
           times=1
-          while ! psql -U ${{ inputs.POSTGRESQL_USER }} -d ${{ inputs.POSTGRESQL_DB }} -h 127.0.0.1 --quiet -c "SELECT version()"; do
+          while ! psql -U ${{ env.POSTGRESQL_USER }} -d ${{ env.POSTGRESQL_DB }} -h 127.0.0.1 --quiet -c "SELECT version()"; do
               sleep 1
               if [[ $times -gt 120 ]]; then
                   echo "PostgreSQL is not available after 120 seconds"
@@ -67,11 +56,7 @@ jobs:
 
       - name: Migrate
         uses: vovavc/migrate-github-action@v0.2.1
-        env:
-          POSTGRESQL_USER: ${{ inputs.POSTGRESQL_USER }}
-          POSTGRESQL_PASSWORD: ${{ inputs.POSTGRESQL_PASSWORD }}
-          POSTGRESQL_DB: ${{ inputs.POSTGRESQL_DB }}
         with:
           path: "${{ inputs.MIGRATE_PATH }}"
           command: "${{ inputs.MIGRATE_COMMAND }}"
-          database: "postgres://${POSTGRESQL_USER}:${POSTGRESQL_PASSWORD}@127.0.0.1:5432/${POSTGRESQL_DB}?sslmode=disable"
+          database: "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable"
