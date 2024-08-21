@@ -23,6 +23,11 @@ on:
         type: boolean
         required: false
         default: false
+      MIGRATE_VERSION:
+        description: "The schema_migrations version."
+        type: string
+        required: false
+        default: ''
 
 env:
   POSTGRESQL_USER: "postgres"
@@ -59,12 +64,12 @@ jobs:
           command: "${{ inputs.MIGRATE_COMMAND }}"
           database: "${{ env.POSTGRESQL_DATABASE }}"
 
-      - name: clean schema_migrations
-        if: ${{ inputs.REPEAT_MIGRATE }}
+      - name: update schema_migrations version ${{ inputs.MIGRATE_VERSION  }}
+        if: ${{ inputs.REPEAT_MIGRATE && inputs.MIGRATE_VERSION != '' }}
         env:
           PGPASSWORD: ${{ env.POSTGRESQL_PASSWORD }}
         run: |
-          psql -U ${{ env.POSTGRESQL_USER }} -d ${{ env.POSTGRESQL_DB }} -h 127.0.0.1 --quiet -c "DELETE FROM schema_migrations;"
+          psql -U ${{ env.POSTGRESQL_USER }} -d ${{ env.POSTGRESQL_DB }} -h 127.0.0.1 --quiet -c "UPDATE schema_migrations set version = '${{ inputs.MIGRATE_VERSION }}'"
         shell: bash
 
       - name: Migrate 2
