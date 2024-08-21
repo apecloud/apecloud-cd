@@ -1,0 +1,57 @@
+name: Migrate Database
+
+on:
+  workflow_call:
+    inputs:
+      MIGRATE_PATH:
+        description: "The relative path to your migration folder."
+        type: string
+        required: false
+        default: ''
+      MIGRATE_COMMAND:
+        description: "The  migrate cli command to run."
+        type: string
+        required: false
+        default: 'up'
+      POSTGRESQL_VERSION:
+        description: "Version of PostgreSQL to use."
+        type: string
+        required: false
+        default: '14.12'
+      POSTGRESQL_DB:
+        description: "DB of PostgreSQL to use."
+        type: string
+        required: false
+        default: 'migrate_db'
+      POSTGRESQL_USER:
+        description: "User of PostgreSQL to use."
+        type: string
+        required: false
+        default: 'migrate_user'
+      POSTGRESQL_PASSWORD:
+        description: "Password of PostgreSQL to use."
+        type: string
+        required: false
+        default: 'migrate_password'
+
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - uses: harmon758/postgresql-action@v1
+        with:
+          postgresql version: '${{ inputs.POSTGRESQL_VERSION }}'  # See https://hub.docker.com/_/postgres for available versions
+          postgresql db: '${{ inputs.POSTGRESQL_DB }}'
+          postgresql user: '${{ inputs.POSTGRESQL_USER }}'
+          postgresql password: '${{ inputs.POSTGRESQL_PASSWORD }}'
+
+      - name: Migrate
+        uses: vovavc/migrate-github-action@v0.2.1
+        with:
+          path: "${{ inputs.MIGRATE_PATH }}"
+          command: "${{ inputs.MIGRATE_COMMAND }}"
+          database: postgres://${{ inputs.POSTGRESQL_USER }}:${{ inputs.POSTGRESQL_PASSWORD }}@localhost:5432/${{ inputs.POSTGRESQL_DB }}?sslmode=disable
