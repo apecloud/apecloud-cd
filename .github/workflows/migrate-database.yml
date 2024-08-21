@@ -18,11 +18,17 @@ on:
         type: string
         required: false
         default: '14.12'
+      REPEAT_MIGRATE:
+        description: "Repeat migrate."
+        type: boolean
+        required: false
+        default: true
 
 env:
   POSTGRESQL_USER: "postgres"
   POSTGRESQL_PASSWORD: "postgres"
   POSTGRESQL_DB: "postgres"
+  POSTGRESQL_DATABASE: "postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable"
 
 jobs:
   migrate:
@@ -46,24 +52,25 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Wait for PostgreSQL
-        env:
-          PGPASSWORD: ${{ env.POSTGRESQL_PASSWORD }}
-        run: |
-          times=1
-          while ! psql -U ${{ env.POSTGRESQL_USER }} -d ${{ env.POSTGRESQL_DB }} -h 127.0.0.1 --quiet -c "SELECT version()"; do
-              sleep 1
-              if [[ $times -gt 120 ]]; then
-                  echo "PostgreSQL is not available after 120 seconds"
-                  exit 1
-              fi
-              ((times++))
-          done
-        shell: bash
-
       - name: Migrate
         uses: vovavc/migrate-github-action@v0.2.1
         with:
           path: "${{ inputs.MIGRATE_PATH }}"
           command: "${{ inputs.MIGRATE_COMMAND }}"
-          database: "postgres://${{ env.POSTGRESQL_USER }}:${{ env.POSTGRESQL_PASSWORD }}@postgres:5432/${{ env.POSTGRESQL_DB }}?sslmode=disable"
+          database: "${{ POSTGRESQL_DATABASE }}"
+
+      - name: clean schema_migrations
+        if: ${{ inputs.REPEAT_MIGRATE }}
+        env:
+          PGPASSWORD: ${{ env.POSTGRESQL_PASSWORD }}
+        run: |
+          psql -U ${{ env.POSTGRESQL_USER }} -d kubeblockscloud -h 127.0.0.1 --quiet -c "DELETE FROM schema_migrations;"
+        shell: bash
+
+      - name: Migrate 2
+        if: ${{ inputs.REPEAT_MIGRATE }}
+        uses: vovavc/migrate-github-action@v0.2.1
+        with:
+          path: "${{ inputs.MIGRATE_PATH }}"
+          command: "${{ inputs.MIGRATE_COMMAND }}"
+          database: "${{ POSTGRESQL_DATABASE }}"
