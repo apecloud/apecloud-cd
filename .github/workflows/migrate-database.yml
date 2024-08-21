@@ -59,14 +59,6 @@ jobs:
           command: "${{ inputs.MIGRATE_COMMAND }}"
           database: "${{ env.POSTGRESQL_DATABASE }}"
 
-      - name: clean schema_migrations
-        if: ${{ inputs.REPEAT_MIGRATE }}
-        env:
-          PGPASSWORD: ${{ env.POSTGRESQL_PASSWORD }}
-        run: |
-          psql -U ${{ env.POSTGRESQL_USER }} -d kubeblockscloud -h 127.0.0.1 --quiet -c "DELETE FROM schema_migrations;"
-        shell: bash
-
       - name: Migrate 2
         if: ${{ inputs.REPEAT_MIGRATE }}
         uses: vovavc/migrate-github-action@v0.2.1
