@@ -66,4 +66,4 @@ jobs:
         with:
           path: "${{ inputs.MIGRATE_PATH }}"
           command: "${{ inputs.MIGRATE_COMMAND }}"
-          database: "postgres://${{ env.POSTGRESQL_USER }}:${{ env.POSTGRESQL_PASSWORD }}@127.0.0.1:5432/${{ env.POSTGRESQL_DB }}?sslmode=disable"
+          database: "postgres://${{ env.POSTGRESQL_USER }}:${{ env.POSTGRESQL_PASSWORD }}@postgres:5432/${{ env.POSTGRESQL_DB }}?sslmode=disable"
