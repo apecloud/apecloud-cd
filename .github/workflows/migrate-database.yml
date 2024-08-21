@@ -67,7 +67,11 @@ jobs:
 
       - name: Migrate
         uses: vovavc/migrate-github-action@v0.2.1
+        env:
+          POSTGRESQL_USER: ${{ inputs.POSTGRESQL_USER }}
+          POSTGRESQL_PASSWORD: ${{ inputs.POSTGRESQL_PASSWORD }}
+          POSTGRESQL_DB: ${{ inputs.POSTGRESQL_DB }}
         with:
           path: "${{ inputs.MIGRATE_PATH }}"
           command: "${{ inputs.MIGRATE_COMMAND }}"
-          database: postgres://${{ inputs.POSTGRESQL_USER }}:${{ inputs.POSTGRESQL_PASSWORD }}@127.0.0.1:5432/${{ inputs.POSTGRESQL_DB }}?sslmode=disable
+          database: "postgres://${POSTGRESQL_USER}:${POSTGRESQL_PASSWORD}@127.0.0.1:5432/${POSTGRESQL_DB}?sslmode=disable"
