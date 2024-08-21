@@ -22,7 +22,7 @@ on:
         description: "Repeat migrate."
         type: boolean
         required: false
-        default: true
+        default: false
 
 env:
   POSTGRESQL_USER: "postgres"
