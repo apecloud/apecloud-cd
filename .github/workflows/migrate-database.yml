@@ -54,4 +54,4 @@ jobs:
         with:
           path: "${{ inputs.MIGRATE_PATH }}"
           command: "${{ inputs.MIGRATE_COMMAND }}"
-          database: postgres://${{ inputs.POSTGRESQL_USER }}:${{ inputs.POSTGRESQL_PASSWORD }}@localhost:5432/${{ inputs.POSTGRESQL_DB }}?sslmode=disable
+          database: postgres://${{ inputs.POSTGRESQL_USER }}:${{ inputs.POSTGRESQL_PASSWORD }}@127.0.0.1:5432/${{ inputs.POSTGRESQL_DB }}?sslmode=disable
