@@ -57,7 +57,7 @@ jobs:
         with:
           path: "${{ inputs.MIGRATE_PATH }}"
           command: "${{ inputs.MIGRATE_COMMAND }}"
-          database: "${{ POSTGRESQL_DATABASE }}"
+          database: "${{ env.POSTGRESQL_DATABASE }}"
 
       - name: clean schema_migrations
         if: ${{ inputs.REPEAT_MIGRATE }}
@@ -73,4 +73,4 @@ jobs:
         with:
           path: "${{ inputs.MIGRATE_PATH }}"
           command: "${{ inputs.MIGRATE_COMMAND }}"
-          database: "${{ POSTGRESQL_DATABASE }}"
+          database: "${{ env.POSTGRESQL_DATABASE }}"
