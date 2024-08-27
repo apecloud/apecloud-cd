@@ -76,9 +76,9 @@ main() {
                 checked_images_list="${checked_images_list}|$repository"
             fi
 
-            if [[ "$repository" == "docker.io/"* || "$repository" == "apecloud/"* ]]; then
-                sleep 1
-            fi
+#            if [[ "$repository" == "docker.io/"* || "$repository" == "apecloud/"* ]]; then
+#                sleep 1
+#            fi
             echo "check image: $repository"
             check_image "$repository" $skipCheckFlag &
             repository=""
