@@ -6,6 +6,7 @@ SKIP_CHECK_IMAGES=${4:-""}
 
 main() {
     touch exit_result
+    checked_images_list=""
     echo 0 > exit_result
     for chart in $CHART_PATH/*; do
         if [[ "$chart" == *"loadbalancer"* || "$chart" == *"kblib-"*".tgz"* ]]; then
@@ -59,6 +60,25 @@ main() {
                 continue
             fi
 
+            checked_flag=0
+            for checked_image in $(echo "${checked_images_list}" | sed 's/|/ /g'); do
+                if [[ "$repository" == "$checked_image" ]]; then
+                    checked_flag=1
+                    break
+                fi
+            done
+
+            if [[ $checked_flag -eq 1 ]]; then
+                echo "$(tput -T xterm setaf 7)$repository already checked$(tput -T xterm sgr0)"
+                repository=""
+                continue
+            else
+                checked_images_list="${checked_images_list}|$repository"
+            fi
+
+            if [[ "$repository" == "docker.io/"* || "$repository" == "apecloud/"* ]]; then
+                sleep 1
+            fi
             echo "check image: $repository"
             check_image "$repository" $skipCheckFlag &
             repository=""
