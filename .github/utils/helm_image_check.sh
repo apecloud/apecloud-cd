@@ -79,6 +79,11 @@ main() {
 #            if [[ "$repository" == "docker.io/"* || "$repository" == "apecloud/"* ]]; then
 #                sleep 1
 #            fi
+
+            if [[ "$repository" == "'"*"'" ]]; then
+                repository=${repository//\'/}
+            fi
+
             echo "check image: $repository"
             check_image "$repository" $skipCheckFlag &
             repository=""
