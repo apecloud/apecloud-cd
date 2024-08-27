@@ -314,7 +314,6 @@ jobs:
             "${{ env.ALIYUN_REGISTRY_URL }}" "${{ inputs.CHART_DIR }}"
 
       - name: Package Helm Chart
-        if: ${{ inputs.SET_REGISTRY || inputs.CHART_DIR == 'addons' }}
         shell: bash
         run: |
           CHART_DIR="${{ inputs.CHART_DIR }}"
