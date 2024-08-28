@@ -126,6 +126,6 @@ jobs:
               URL=${{ env.TEST_URL }} \
               ORG_NAME=${{ env.ORG_NAME }} \
               ENV_NAME=${{ inputs.ENV_NAME }} \
-              ENGINE_MODE=${{ inpits.ENGINEMODE }}
+              ENGINE_MODE=${{ inputs.ENGINE_MODE }}
               KUBECONFIG=$HOME/.kube/config \
               test-e2e-apecloud
