@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       CLOUD_ENV:
-        description: "The cloud env of test"
+        description: "The cloud env of test(demo/dev)"
         default: 'demo'
         type: choice
         required: true
@@ -43,8 +43,7 @@ on:
         default: 'main'
         type: choice
         options:
-          - support/improve-e2e
-          - support/improve-e2e-1
+          - support/adjust-e2e-1
           - main
           
 env:
@@ -126,10 +125,7 @@ jobs:
           make -e \
               TEST_TYPE=${{ matrix.engine_type }} \
               URL=${{ env.TEST_URL }} \
-              ENV_TYPE=${{ inputs.ENV_TYPE }} \
               ORG_NAME=${{ env.ORG_NAME }} \
               ENV_NAME=${{ inputs.ENV_NAME }} \
-              ENV_INIT=${{ inputs.ENV_INIT }} \
-              ENV_CLEAN=${{ inputs.ENV_CLEAN }} \
               KUBECONFIG=$HOME/.kube/config \
               test-e2e-apecloud
