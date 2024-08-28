@@ -32,6 +32,10 @@ on:
           - kafka
           - oceanbase
           - mogdb
+      ENGINE_MODE:
+        description: 'engine mode(default:ALL)'
+        default: ''
+        type: string
       e2etest-branch:
         description: 'e2etest branch name'
         required: true
@@ -122,5 +126,6 @@ jobs:
               URL=${{ env.TEST_URL }} \
               ORG_NAME=${{ env.ORG_NAME }} \
               ENV_NAME=${{ inputs.ENV_NAME }} \
+              ENGINE_MODE=${{ inpits.ENGINEMODE }}
               KUBECONFIG=$HOME/.kube/config \
               test-e2e-apecloud
