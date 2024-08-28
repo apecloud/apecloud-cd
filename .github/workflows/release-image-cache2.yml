@@ -202,6 +202,13 @@ jobs:
           fi
           echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
 
+      - name: Set registry and repository ${{ env.DOCKER_REGISTRY_URL }}
+        if: ${{ inputs.IMG == 'apecloud/apecloud-charts' && env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
+        run: |
+          echo "set addons chart registry to apecloud and repogistory to ${{ env.DOCKER_REGISTRY_URL }}"
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
+            "${{ env.DOCKER_REGISTRY_URL }}" "${{ inputs.CHART_DIR }}"
+
       - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
         name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -225,6 +232,13 @@ jobs:
           provenance: false
           sbom: false
 
+      - name: Set registry and repository ${{ env.ALIYUN_REGISTRY_URL }}
+        if: ${{ inputs.IMG == 'apecloud/apecloud-charts' && env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
+        run: |
+          echo "set addons chart registry to apecloud and repogistory to ${{ env.ALIYUN_REGISTRY_URL }}"
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
+            "${{ env.ALIYUN_REGISTRY_URL }}" "${{ inputs.CHART_DIR }}"
+
       - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
         name: Login to Aliyun Registry
         uses: docker/login-action@v2
@@ -247,6 +261,13 @@ jobs:
           cache-to: type=gha,mode=max
           provenance: false
           sbom: false
+
+      - name: Set registry and repository ${{ env.ALIYUN_REGISTRY_URL_NEW }}
+        if: ${{ inputs.IMG == 'apecloud/apecloud-charts' && env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
+        run: |
+          echo "set addons chart registry to apecloud and repogistory to ${{ env.ALIYUN_REGISTRY_URL_NEW }}"
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
+            "${{ env.ALIYUN_REGISTRY_URL_NEW }}" "${{ inputs.CHART_DIR }}"
 
       - if: ${{ env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
         name: Login to Aliyun Registry New
