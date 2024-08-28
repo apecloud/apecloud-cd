@@ -1,4 +1,4 @@
-name: skopeo sync images to aliyun
+name: A skopeo sync images to aliyun
 
 on:
   workflow_dispatch:

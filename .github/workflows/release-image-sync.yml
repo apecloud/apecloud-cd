@@ -388,10 +388,15 @@ jobs:
                   *TARGETS=terraform*)
                       IMAGES_INPUT="apecloud/terraform-provision:${IMAGES_TAG}"
                   ;;
-                  *TARGETS*)
-                      TARGETS_TMP=${TARGETS#*=}
-                      TARGETS_TMP=$(echo "$TARGETS_TMP" | tr -d ' ')
-                      IMAGES_INPUT="apecloud/${TARGETS_TMP}:${IMAGES_TAG}"
+                  *TARGETS*)  
+                      for TARGET in $(echo "${TARGETS}"); do
+                          if [[ "$TARGET" == *"TARGETS="* ]]; then
+                              TARGETS_TMP=${TARGET#*=}
+                              TARGETS_TMP=$(echo "$TARGETS_TMP" | tr -d ' ')
+                              IMAGES_INPUT="apecloud/${TARGETS_TMP}:${IMAGES_TAG}"
+                              break
+                          fi
+                      done
                   ;;
               esac
           fi

@@ -1,4 +1,4 @@
-name: skopeo copy images to docker.io
+name: A skopeo copy images to docker.io
 
 on:
   workflow_dispatch:

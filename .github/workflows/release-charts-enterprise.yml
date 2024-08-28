@@ -92,7 +92,7 @@ on:
 
 env:
   CR_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  HELM_VERSION: v3.14.4
+  HELM_VERSION: v3.15.4
   JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
   JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
@@ -172,11 +172,11 @@ jobs:
       - name: Package Helm Chart
         shell: bash
         run: |
-          CHARS_DIR="${{ inputs.CHART_DIR }}"
-          CHARS_DIR="${CHARS_DIR%/*}"
+          CHART_DIR="${{ inputs.CHART_DIR }}"
+          CHART_DIR="${CHART_DIR%/*}"
           args=()
-          if [[ -n "$CHARS_DIR" ]]; then
-              args+=(--charts-dir "$CHARS_DIR" )
+          if [[ -n "$CHART_DIR" ]]; then
+              args+=(--charts-dir "$CHART_DIR" )
           fi
           
           if [[ -n "${{ steps.get_version.outputs.VERSION }}" ]]; then
