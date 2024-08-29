@@ -23,6 +23,11 @@ on:
         type: string
         required: false
         default: ''
+      APP_VERSION:
+        description: "The app version of helm chart (e.g. v0.4.0)"
+        type: string
+        required: false
+        default: ''
       CHART_NAME:
         description: "The package(repo) name of helm chart (e.g. kubeblocks)"
         type: string
@@ -173,10 +178,13 @@ jobs:
         shell: bash
         run: |
           version="${{ inputs.VERSION }}"
+          app_version="${{ inputs.APP_VERSION }}"
           if [[ "$version" == "v"*  && "${{ inputs.REMOVE_PREFIX }}" == "true" ]]; then
               version="${version/v/}"
+              app_version="${app_version/v/}"
           fi
           echo VERSION=$version >> $GITHUB_OUTPUT
+          echo APP_VERSION=$app_version >> $GITHUB_OUTPUT
 
       - name: Bump helm chart version
         if: inputs.MAKE_OPS
@@ -203,6 +211,10 @@ jobs:
           
           if [[ -n "${{ steps.get_version.outputs.VERSION }}" ]]; then
               args+=(--release-version "${{ steps.get_version.outputs.VERSION }}" )
+          fi
+          
+          if [[ -n "${{ steps.get_version.outputs.APP_VERSION }}" ]]; then
+              args+=(--app-version "${{ steps.get_version.outputs.APP_VERSION }}" )
           fi
           
           if [[ -n "${{ inputs.SPECIFY_CHART }}" ]]; then

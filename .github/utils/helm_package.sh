@@ -13,6 +13,7 @@ Usage: $(basename "$0") <options>
     -h, --help               Display help
     -d, --charts-dir         The charts directory (default: deploy)
     -rv, --release-version   The release version of helm charts
+    -av, --app-version       The release app version of helm charts
     -t, --tool               The tool of helm package (helm,cr default: $DEFAULT_TOOL)
     -ic, --install-cr        Install chart releaser (default: $DEFAULT_INSTALL_CR)
     -sc, --specify-chart     Only package the specify sub dir chart
@@ -74,12 +75,20 @@ package_chart() {
             args=("$chart" --destination .cr-release-packages)
             package_flag=0
             for i in {1..10}; do
-                echo "helm package "${args[@]}" --version $release_version --dependency-update"
+                echo "helm package "${args[@]}" --version $release_version --appversion $app_version --dependency-update "
                 ret_msg=""
                 if [[ -z "$release_version" ]]; then
-                    ret_msg=$(helm package "${args[@]}" --dependency-update)
+                    if [[ -z "$app_version" ]]; then
+                        ret_msg=$(helm package "${args[@]}" --appversion $app_version --dependency-update)
+                    else
+                        ret_msg=$(helm package "${args[@]}" --dependency-update)
+                    fi
                 else
-                    ret_msg=$(helm package "${args[@]}" --version $release_version --dependency-update)
+                    if [[ -z "$app_version" ]]; then
+                        ret_msg=$(helm package "${args[@]}" --version $release_version --appversion $app_version --dependency-update)
+                    else
+                        ret_msg=$(helm package "${args[@]}" --version $release_version --dependency-update)
+                    fi
                 fi
                 echo "return message:$ret_msg"
                 if [[ "$ret_msg" == *"Successfully packaged"* ]]; then
@@ -116,6 +125,12 @@ parse_command_line() {
             -rv|--release-version)
                 if [[ -n "${2:-}" ]]; then
                     release_version="$2"
+                    shift
+                fi
+            ;;
+            -av|--app-version)
+                if [[ -n "${2:-}" ]]; then
+                    app_version="$2"
                     shift
                 fi
             ;;
@@ -169,6 +184,7 @@ main() {
     local charts_dir=deploy
     local install_dir=""
     local release_version=""
+    local app_version=""
     local tool=$DEFAULT_TOOL
     local install_cr=$DEFAULT_INSTALL_CR
     local SPECIFY_CHART=""
