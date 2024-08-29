@@ -75,17 +75,17 @@ package_chart() {
             args=("$chart" --destination .cr-release-packages)
             package_flag=0
             for i in {1..10}; do
-                echo "helm package "${args[@]}" --version $release_version --appversion $app_version --dependency-update "
+                echo "helm package "${args[@]}" --version $release_version --app-version $app_version --dependency-update "
                 ret_msg=""
                 if [[ -z "$release_version" ]]; then
-                    if [[ -z "$app_version" ]]; then
-                        ret_msg=$(helm package "${args[@]}" --appversion $app_version --dependency-update)
+                    if [[ -n "$app_version" ]]; then
+                        ret_msg=$(helm package "${args[@]}" --app-version $app_version --dependency-update)
                     else
                         ret_msg=$(helm package "${args[@]}" --dependency-update)
                     fi
                 else
-                    if [[ -z "$app_version" ]]; then
-                        ret_msg=$(helm package "${args[@]}" --version $release_version --appversion $app_version --dependency-update)
+                    if [[ -n "$app_version" ]]; then
+                        ret_msg=$(helm package "${args[@]}" --version $release_version --app-version $app_version --dependency-update)
                     else
                         ret_msg=$(helm package "${args[@]}" --version $release_version --dependency-update)
                     fi
