@@ -42,6 +42,11 @@ main() {
                         set_text=${set_text_end}
                     ;;
                 esac
+                if [[ "$set_text" == "'"*"'" ]]; then
+                    set_text=${set_text//\'/}
+                else
+                    set_text="$(echo "${set_text}" | sed 's/"//g' )"
+                fi
                 set_text="${set_text_head}${values_repository}apecloud/${set_text}"
                 echo "$set_text" >> "$tempFile"
             else
