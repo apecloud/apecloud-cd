@@ -32,6 +32,9 @@ on:
       release-version:
         description: "release version"
         value: "${{ jobs.get-version.outputs.release-version }}"
+      release-branch:
+        description: "release branch"
+        value: "${{ jobs.get-version.outputs.release-branch }}"
   workflow_dispatch:
     inputs:
       RELEASE_VERSION:
