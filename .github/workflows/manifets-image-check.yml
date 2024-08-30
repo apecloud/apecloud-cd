@@ -60,6 +60,7 @@ on:
         type: string
         required: false
 
+run-name: check images ${{ inputs.CHECK_REGISTRY }}
 
 env:
   CR_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -69,7 +70,6 @@ env:
 
 jobs:
   images-check:
-    name: check images ${{ inputs.CHECK_REGISTRY }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
