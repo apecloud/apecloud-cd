@@ -14,8 +14,10 @@ save_charts_package() {
     mkdir -p ${KB_CHART_NAME}/apps
 
     if [[ -d ${APPS_DIR} ]]; then
+        echo "cp -r ${APPS_DIR} to ${KB_CHART_NAME}/apps"
         cp -r ${APPS_DIR}/* ${KB_CHART_NAME}/apps/
     elif [[ -d apecloud-cd/${APPS_DIR} ]]; then
+        echo "cp -r apecloud-cd/${APPS_DIR} to ${KB_CHART_NAME}/apps"
         cp -r apecloud-cd/${APPS_DIR}/* ${KB_CHART_NAME}/apps/
     fi
 
