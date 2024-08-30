@@ -22,8 +22,10 @@ main() {
     for image in $( echo "$images" ); do
         repository=""
 
-        if [[ "${image}" == "apecloud/"* ]]; then
+        if [[ "${image}" == "apecloud/"* && -n "${IMAGE_REGISTRY}" ]]; then
             repository="${IMAGE_REGISTRY}/${image}"
+        else
+            repository=${image}
         fi
 
         checked_flag=0
@@ -41,27 +43,12 @@ main() {
             checked_images_list="${checked_images_list}|$repository"
         fi
         echo "check image: $repository"
-        check_image "$repository" &
+        check_image_exists "$repository" &
         repository=""
     done
     wait
     cat exit_result
     exit $(cat exit_result)
-}
-
-check_image() {
-    image=$1
-    case $image in
-        docker.io/apecloud/*|\
-        apecloud/*|\
-        apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/*|\
-        infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/*)
-            check_image_exists "$image" $skipFlag
-        ;;
-        *)
-            check_image_exists "$image" "1"
-        ;;
-    esac
 }
 
 check_image_exists() {
@@ -87,7 +74,7 @@ check_image_exists() {
             fi
             if [[ -n "$image_platform" || -n "$image_digest" ]]; then
                 echo "$(tput -T xterm setaf 2)$image found$(tput -T xterm sgr0)"
-                 break
+                break
             fi
         fi
         echo "$(tput -T xterm setaf 1)$image is not exists.$(tput -T xterm sgr0)"

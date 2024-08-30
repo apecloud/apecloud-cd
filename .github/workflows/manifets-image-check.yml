@@ -25,9 +25,13 @@ on:
         default: 'main'
       CHECK_REGISTRY:
         description: "check registry"
-        type: string
-        required: false
         default: ''
+        type: choice
+        required: false
+        options:
+          - default
+          - aliyun
+          - dockerhub
   workflow_call:
     inputs:
       MANIFESTS_FILE:
@@ -52,9 +56,9 @@ on:
         default: 'main'
       CHECK_REGISTRY:
         description: "check registry"
+        default: ''
         type: string
         required: false
-        default: ''
 
 
 env:
@@ -65,6 +69,7 @@ env:
 
 jobs:
   images-check:
+    name: check images ${{ inputs.CHECK_REGISTRY }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -94,11 +99,11 @@ jobs:
           MANIFESTS_FILE="${{ inputs.MANIFESTS_FILE }}"
           case $CHECK_REGISTRY in
               aliyun)
-                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
+                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifets_image_check.sh \
                       "${MANIFESTS_FILE}" "${{ env.ALIYUN_REGISTRY_URL }}"
               ;;
               dockerhub)
-                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
+                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifets_image_check.sh \
                       "${MANIFESTS_FILE}" "${{ env.DOCKER_REGISTRY_URL }}"
               ;;
               *)
