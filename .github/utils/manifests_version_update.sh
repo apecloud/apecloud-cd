@@ -4,16 +4,17 @@ RELEASE_VERSION=${2:-""}
 
 
 update_manifests_file_version() {
+    echo "MANIFESTS_FILE:${MANIFESTS_FILE}"
     if [[ ! -f "${MANIFESTS_FILE}" ]]; then
-        echo "$(tput -T xterm setaf 3)::warning title=Not found manifests file:${MANIFESTS_FILE} $(tput -T xterm sgr0)"
+        echo "$(tput -T xterm setaf 3)::warn title=Not found manifests file:${MANIFESTS_FILE} $(tput -T xterm sgr0)"
         return
     fi
 
     if [[ -z "${RELEASE_VERSION}" ]]; then
-        echo "$(tput -T xterm setaf 3)::warning title=release version is empty $(tput -T xterm sgr0)"
+        echo "$(tput -T xterm setaf 3)::warn title=release version is empty $(tput -T xterm sgr0)"
         return
     fi
-
+    echo "RELEASE_VERSION:${RELEASE_VERSION}"
     if [[ "${RELEASE_VERSION}" != "v"* ]]; then
         RELEASE_VERSION="v${RELEASE_VERSION}"
     fi
@@ -21,6 +22,7 @@ update_manifests_file_version() {
 
     KUBEBLOCKS_VERSION=$(yq e ".kubeblocks[0].version" "${MANIFESTS_FILE}")
 
+    echo "KUBEBLOCKS_VERSION:${KUBEBLOCKS_VERSION}"
     charts_name=("kubeblocks-cloud" "kb-cloud-installer")
     update_images=("openconsole" "apiserver" "task-manager" "cubetran-front" "cr4w" "relay" "sentry" "sentry-init" "apecloud-charts" "kubeblocks-installer")
     for chart_name in "${charts_name[@]}"; do
@@ -47,6 +49,7 @@ update_manifests_file_version() {
             ((image_num++))
         done
     done
+    echo "update manifests file ${MANIFESTS_FILE} done!"
 }
 
 
