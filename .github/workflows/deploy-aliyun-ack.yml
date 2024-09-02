@@ -43,6 +43,11 @@ on:
         type: boolean
         required: false
         default: true
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
 
 
 env:
@@ -188,4 +193,5 @@ jobs:
       TYPE: "2"
       CONTENT: "deploy ${{ needs.deploy-aliyun-ack.outputs.cloud-env-name }} release ${{ needs.deploy-aliyun-ack.outputs.tag-name }} ${{ needs.deploy-aliyun-ack.outputs.content-result }}"
       WAIT_TIME: 60
+      APECD_REF: ${{ inputs.APECD_REF }}
     secrets: inherit
