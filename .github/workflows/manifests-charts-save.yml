@@ -34,10 +34,15 @@ on:
         required: false
         default: 'kubeblocks-enterprise'
       BOT_TYPE:
-        description: 'The bot type (e.g. release/package)'
+        description: 'The bot type (e.g. release/package/specify)'
         type: string
         required: false
-        default: 'package'
+        default: 'specify'
+      BOT_WEBHOOK:
+        description: 'The bot webhook'
+        type: string
+        required: false
+        default: ''
   workflow_call:
     inputs:
       MANIFESTS_FILE:
@@ -71,10 +76,15 @@ on:
         required: false
         default: 'kubeblocks-enterprise'
       BOT_TYPE:
-        description: 'The bot type (e.g. release/package)'
+        description: 'The bot type (e.g. release/package/specify)'
         type: string
         required: false
-        default: 'package'
+        default: 'specify'
+      BOT_WEBHOOK:
+        description: 'The bot webhook'
+        type: string
+        required: false
+        default: ''
 
 
 run-name: save chart ${{ inputs.CHARTS_NAME }} ${{ inputs.RELEASE_VERSION }}
@@ -181,4 +191,5 @@ jobs:
       TYPE: "2"
       CONTENT: "save chart ${{ needs.save-result.outputs.chart-pkg-name }} ${{ needs.save-result.outputs.save-result }}"
       BOT_TYPE: "${{ inputs.BOT_TYPE }}"
+      BOT_WEBHOOK: "${{ inputs.BOT_WEBHOOK }}"
     secrets: inherit
