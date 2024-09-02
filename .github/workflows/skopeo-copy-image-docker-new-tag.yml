@@ -1,4 +1,4 @@
-name: A skopeo copy images to docker.io
+name: skopeo copy docker.io image to new version
 
 on:
   workflow_dispatch:
@@ -20,7 +20,7 @@ on:
         required: false
         default: 'docker.io'
 
-run-name: copy ${{ inputs.src_image }} to ${{ inputs.dest_tag }}
+run-name: copy ${{ inputs.src_registry }} ${{ inputs.src_image }} to ${{ inputs.dest_tag }}
 
 env:
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
