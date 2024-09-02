@@ -1,4 +1,4 @@
-name: Manifests Charts Save
+name: Manifests Version Update
 
 on:
   workflow_dispatch:
