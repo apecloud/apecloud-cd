@@ -42,6 +42,8 @@ Usage: $(basename "$0") <options>
                                 29) delete tag
                                 30) delete actions cache
                                 31) check release version
+                                32) generate image yaml apecloud
+                                33) set label
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -65,7 +67,7 @@ Usage: $(basename "$0") <options>
     -ea, --extra-args         The extra args for workflow
     -r, --registry            Docker image registry (default: $REGISTRY_DEFAULT)
     -lb, --label-name         The pr label name
-    -lo, --label-ops         The pr label ops (add/remove)
+    -lo, --label-ops          The pr label ops (add/remove)
 EOF
 }
 
@@ -711,6 +713,8 @@ check_release_version(){
         fi
     done
 }
+
+
 
 parse_command_line() {
     while :; do
