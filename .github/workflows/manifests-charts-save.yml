@@ -192,4 +192,5 @@ jobs:
       CONTENT: "save chart ${{ needs.save-result.outputs.chart-pkg-name }} ${{ needs.save-result.outputs.save-result }}"
       BOT_TYPE: "${{ inputs.BOT_TYPE }}"
       BOT_WEBHOOK: "${{ inputs.BOT_WEBHOOK }}"
+      APECD_REF: ${{ inputs.APECD_REF }}
     secrets: inherit
