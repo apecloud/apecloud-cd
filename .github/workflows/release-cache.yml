@@ -1,4 +1,4 @@
-name: Release Cache
+name: Save Cache
 
 on:
   workflow_dispatch:
@@ -36,7 +36,7 @@ on:
         required: false
         default: 'main'
 
-run-name: release cache:${{ inputs.CACHE_KEY }}
+run-name: save cache:${{ inputs.CACHE_KEY }}
 
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
