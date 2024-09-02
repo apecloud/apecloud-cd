@@ -10,6 +10,7 @@ DEST_REGISTRY=${6:-"docker.io"}
 
 main() {
     image_name=${SRC_IMAGE##*/}
+    image_name=${image_name%:*}
     skopeo_msg="skopeo copy $SRC_REGISTRY/$SRC_IMAGE to $DEST_REGISTRY/apecloud/$image_name:$DEST_TAG"
     echo "$skopeo_msg"
     skopeo_flag=0
@@ -35,3 +36,5 @@ main() {
         exit 1
     fi
 }
+
+main "$@"
