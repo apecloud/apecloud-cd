@@ -21,18 +21,18 @@ do
     for i in {1..10}; do
         if [[ "${REGISTRY}" == *"ecr"* ]]; then
             ret_msg=$(skopeo copy --all \
-                --dest-username "$ALIYUN_USERNAME" \
-                --dest-password "$ALIYUN_PASSWORD" \
+                --dest-username "$DOCKER_USERNAME" \
+                --dest-password "$DOCKER_PASSWORD" \
                 --src-username "$ECR_USER" \
                 --src-password "$ECR_PASSWORD" \
                 docker://$REGISTRY/$image \
                 docker://docker.io/apecloud/$image_name)
-        elif [[ "${REGISTRY}" == *"docker.io"* ]]; then
+        elif [[ "${REGISTRY}" == *"apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com"* ]]; then
             ret_msg=$(skopeo copy --all \
-                --dest-username "$ALIYUN_USERNAME" \
-                --dest-password "$ALIYUN_PASSWORD" \
-                --src-username "${DOCKER_USER}" \
-                --src-password "${DOCKER_PASSWORD}" \
+                --dest-username "$DOCKER_USERNAME" \
+                --dest-password "$DOCKER_PASSWORD" \
+                --src-username "$ALIYUN_USER" \
+                --src-password "$ALIYUN_PASSWORD" \
                 docker://$REGISTRY/$image \
                 docker://docker.io/apecloud/$image_name)
         else
