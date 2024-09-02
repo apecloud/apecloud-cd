@@ -22,8 +22,18 @@ do
             ret_msg=$(skopeo sync --all \
                 --src-username "$ECR_USER" \
                 --src-password "$ECR_PASSWORD" \
-                --dest-username "$ALIYUN_USERNAME" \
-                --dest-password "$ALIYUN_PASSWORD" \
+                --dest-username "$DOCKER_USERNAME" \
+                --dest-password "$DOCKER_PASSWORD" \
+                --src docker \
+                --dest docker \
+                $REGISTRY/$image \
+                docker.io/apecloud)
+        elif [[ "${REGISTRY}" == *"apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com"* ]]; then
+            ret_msg=$(skopeo sync --all \
+                --src-username "$ALIYUN_USER" \
+                --src-password "$ALIYUN_PASSWORD" \
+                --dest-username "$DOCKER_USERNAME" \
+                --dest-password "$DOCKER_PASSWORD" \
                 --src docker \
                 --dest docker \
                 $REGISTRY/$image \
