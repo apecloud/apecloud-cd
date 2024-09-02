@@ -35,6 +35,8 @@ save_charts_package() {
                 kubeblocks-cloud)
                     if [[ -z "$RELEASE_VERSION" ]]; then
                         RELEASE_VERSION="${chart_version}"
+                    elif [[ "$RELEASE_VERSION" != "v"* ]]; then
+                        RELEASE_VERSION="v${RELEASE_VERSION}"
                     fi
                     APP_PKG_NAME="${KB_CHART_NAME}-${RELEASE_VERSION}.tar.gz"
                     echo "helm repo add ${ENT_REPO_NAME} --username ${CHART_ACCESS_USER} --password ${CHART_ACCESS_TOKEN} ${KB_ENT_REPO_URL}"
