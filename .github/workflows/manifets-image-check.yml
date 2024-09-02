@@ -99,15 +99,12 @@ jobs:
           MANIFESTS_FILE="${{ inputs.MANIFESTS_FILE }}"
           case $CHECK_REGISTRY in
               aliyun)
-                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifets_image_check.sh \
-                      "${MANIFESTS_FILE}" "${{ env.ALIYUN_REGISTRY_URL }}"
+                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifets_image_check.sh "${MANIFESTS_FILE}" "${{ env.ALIYUN_REGISTRY_URL }}"
               ;;
               dockerhub)
-                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifets_image_check.sh \
-                      "${MANIFESTS_FILE}" "${{ env.DOCKER_REGISTRY_URL }}"
+                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifets_image_check.sh "${MANIFESTS_FILE}" "${{ env.DOCKER_REGISTRY_URL }}"
               ;;
               *)
-                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifets_image_check.sh \
-                      "${MANIFESTS_FILE}"
+                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifets_image_check.sh "${MANIFESTS_FILE}"
               ;;
           esac

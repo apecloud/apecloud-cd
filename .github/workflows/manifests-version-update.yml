@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       MANIFESTS_FILE:
-        description: "The file path to save"
+        description: "The file path to update"
         type: string
         required: true
         default: ''
@@ -21,7 +21,7 @@ on:
   workflow_call:
     inputs:
       MANIFESTS_FILE:
-        description: "The file path to save"
+        description: "The file path to update"
         type: string
         required: true
         default: ''
@@ -65,9 +65,8 @@ jobs:
           COMMIT_SHA="$(git rev-parse HEAD)"
           
           echo "update manifests version to ${RELEASE_VERSION}"
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_version_update.sh \
-              "${MANIFESTS_FILE}" "${RELEASE_VERSION}"
-          
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_version_update.sh "${MANIFESTS_FILE}" "${RELEASE_VERSION}"
+          echo "update manifests version to ${RELEASE_VERSION} done"
           FILE_CHANGES=`git diff --name-only ${COMMIT_SHA}`
           if [[ ! -z "$FILE_CHANGES" ]]; then
               echo $FILE_CHANGES
