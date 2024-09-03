@@ -6,12 +6,12 @@ RELEASE_VERSION=${2:-""}
 update_manifests_file_version() {
     echo "MANIFESTS_FILE:${MANIFESTS_FILE}"
     if [[ ! -f "${MANIFESTS_FILE}" ]]; then
-        echo "$(tput -T xterm setaf 3)::warn title=Not found manifests file:${MANIFESTS_FILE} $(tput -T xterm sgr0)"
+        echo "$(tput -T xterm setaf 3)::warning title=Not found manifests file:${MANIFESTS_FILE} $(tput -T xterm sgr0)"
         return
     fi
 
     if [[ -z "${RELEASE_VERSION}" ]]; then
-        echo "$(tput -T xterm setaf 3)::warn title=release version is empty $(tput -T xterm sgr0)"
+        echo "$(tput -T xterm setaf 3)::warning title=release version is empty $(tput -T xterm sgr0)"
         return
     fi
     echo "RELEASE_VERSION:${RELEASE_VERSION}"

@@ -1,0 +1,92 @@
+name: Manifests Charts Images Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      MANIFESTS_FILE:
+        description: "The file path to check"
+        type: string
+        required: true
+        default: ''
+      GITHUB_REPO:
+        description: "The github repo to check"
+        type: string
+        required: false
+        default: ''
+      GITHUB_REF:
+        description: "The github repo ref to check"
+        type: string
+        required: false
+        default: 'main'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+  workflow_call:
+    inputs:
+      MANIFESTS_FILE:
+        description: "The file path to check"
+        type: string
+        required: true
+        default: ''
+      GITHUB_REPO:
+        description: "The github repo to check"
+        type: string
+        required: false
+        default: ''
+      GITHUB_REF:
+        description: "The github repo ref to check"
+        type: string
+        required: false
+        default: 'main'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+
+
+run-name: check charts images
+
+env:
+  CR_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  HELM_VERSION: v3.15.4
+  CHART_PROJECT_ID: ${{ secrets.GITLAB_PROJECT_ID }}
+  CHART_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
+  CHART_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
+
+jobs:
+  images-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        if: ${{ inputs.GITHUB_REPO == '' }}
+        uses: actions/checkout@v4
+
+      - name: Checkout ${{ inputs.GITHUB_REPO }} Code
+        if: ${{ inputs.GITHUB_REPO != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.GITHUB_REPO }}
+          path: ./
+          token: ${{ env.CR_TOKEN }}
+          ref: ${{ inputs.GITHUB_REF }}
+
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          token: ${{ env.CR_TOKEN }}
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: manifests images check
+        run: |
+          MANIFESTS_FILE="${{ inputs.MANIFESTS_FILE }}"
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_charts_image_check.sh "${MANIFESTS_FILE}"

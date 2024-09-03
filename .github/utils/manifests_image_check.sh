@@ -15,7 +15,7 @@ main() {
 
     images=$(yq e ".*[].images[]" ${MANIFESTS_FILE})
     if [[ -z "${images}"  ]]; then
-        echo "$(tput -T xterm setaf 3)::warn title=No images found in manifests file:${MANIFESTS_FILE} $(tput -T xterm sgr0)"
+        echo "$(tput -T xterm setaf 3)::warning title=No images found in manifests file:${MANIFESTS_FILE} $(tput -T xterm sgr0)"
         return
     fi
 
