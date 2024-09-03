@@ -20,7 +20,7 @@ check_images() {
     set_values_tmp=${5:-""}
     for j in {1..10}; do
         template_repo="${KB_REPO_NAME}"
-        if [[ $ent_flag_tmp -eq 1 ]]; then
+        if [[ "$ent_flag_tmp" == "true" ]]; then
             template_repo="${KB_ENT_REPO_NAME}"
         fi
         echo "helm template ${chart_name_tmp} ${template_repo}/${chart_name_tmp} --version ${chart_version_tmp} ${set_values_tmp}"
@@ -110,13 +110,12 @@ check_charts_images() {
         if [[ -z "$chart_name" || "$chart_name" == "#"* ]]; then
             continue
         fi
-        ent_flag=0
         set_values=""
+        ent_flag=$(yq e "."${chart_name}"[0].isEnterprise"  ${MANIFESTS_FILE})
         chart_version=$(yq e "."${chart_name}"[0].version"  ${MANIFESTS_FILE})
         chart_images=$(yq e "."${chart_name}"[0].images[]"  ${MANIFESTS_FILE})
         case $chart_name in
             kubeblocks-cloud)
-                ent_flag=1
                 set_values="${set_values} --set images.apiserver.tag=${chart_version} "
                 set_values="${set_values} --set images.sentry.tag=${chart_version} "
                 set_values="${set_values} --set images.sentryInit.tag=${chart_version} "
@@ -124,10 +123,6 @@ check_charts_images() {
                 set_values="${set_values} --set images.cr4w.tag=${chart_version} "
                 set_values="${set_values} --set images.openconsole.tag=${chart_version} "
                 set_values="${set_values} --set images.taskManager.tag=${chart_version} "
-            ;;
-            starrocks|oceanbase|kingbase|damengdb)
-                ent_flag=1
-                set_values=""
             ;;
             ingress-nginx)
                 set_values="${set_values} --set controller.image.image=apecloud/controller "
