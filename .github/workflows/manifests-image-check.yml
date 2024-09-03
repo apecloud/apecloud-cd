@@ -93,18 +93,18 @@ jobs:
           token: ${{ env.CR_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
 
-      - name: manifets images check
+      - name: manifests images check
         run: |
           CHECK_REGISTRY="${{ inputs.CHECK_REGISTRY }}"
           MANIFESTS_FILE="${{ inputs.MANIFESTS_FILE }}"
           case $CHECK_REGISTRY in
               aliyun)
-                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifets_image_check.sh "${MANIFESTS_FILE}" "${{ env.ALIYUN_REGISTRY_URL }}"
+                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_image_check.sh "${MANIFESTS_FILE}" "${{ env.ALIYUN_REGISTRY_URL }}"
               ;;
               dockerhub)
-                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifets_image_check.sh "${MANIFESTS_FILE}" "${{ env.DOCKER_REGISTRY_URL }}"
+                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_image_check.sh "${MANIFESTS_FILE}" "${{ env.DOCKER_REGISTRY_URL }}"
               ;;
               *)
-                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifets_image_check.sh "${MANIFESTS_FILE}"
+                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_image_check.sh "${MANIFESTS_FILE}"
               ;;
           esac
