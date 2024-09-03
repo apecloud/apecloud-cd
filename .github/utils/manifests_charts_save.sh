@@ -44,7 +44,7 @@ save_charts_package() {
                     helm repo update ${ENT_REPO_NAME}
                     ent_flag=1
                 ;;
-                starrocks|oceanbase)
+                starrocks|oceanbase|kingbase|damengdb)
                     ent_flag=1
                 ;;
             esac
