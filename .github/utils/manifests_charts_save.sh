@@ -43,8 +43,6 @@ save_charts_package() {
                     helm repo add ${ENT_REPO_NAME} --username ${CHART_ACCESS_USER} --password ${CHART_ACCESS_TOKEN} ${KB_ENT_REPO_URL}
                     helm repo update ${ENT_REPO_NAME}
                 ;;
-                starrocks|oceanbase|kingbase|damengdb)
-                ;;
             esac
 
             echo "fetch chart $chart_tmp"
