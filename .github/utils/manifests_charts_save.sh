@@ -25,10 +25,10 @@ save_charts_package() {
     tar_flag=0
     for i in {1..10}; do
         for chart_name in $(echo "$charts_name"); do
-            ent_flag=0
             if [[ -z "$chart_name" || "$chart_name" == "#"* ]]; then
                 continue
             fi
+            ent_flag=$(yq e "."${chart_name}"[0].isEnterprise"  ${MANIFESTS_FILE})
             chart_version=$(yq e "."${chart_name}"[0].version"  ${MANIFESTS_FILE})
             chart_tmp="${chart_name}-${chart_version}"
             case $chart_name in
@@ -42,16 +42,14 @@ save_charts_package() {
                     echo "helm repo add ${ENT_REPO_NAME} --username ${CHART_ACCESS_USER} --password ${CHART_ACCESS_TOKEN} ${KB_ENT_REPO_URL}"
                     helm repo add ${ENT_REPO_NAME} --username ${CHART_ACCESS_USER} --password ${CHART_ACCESS_TOKEN} ${KB_ENT_REPO_URL}
                     helm repo update ${ENT_REPO_NAME}
-                    ent_flag=1
                 ;;
                 starrocks|oceanbase|kingbase|damengdb)
-                    ent_flag=1
                 ;;
             esac
 
             echo "fetch chart $chart_tmp"
             for j in {1..10}; do
-                if [[ $ent_flag -eq 1 ]]; then
+                if [[ "$ent_flag" == "true" ]]; then
                     helm pull -d ${KB_CHART_NAME} ${ENT_REPO_NAME}/${chart_name} --version ${chart_version}
                 else
                     helm fetch -d ${KB_CHART_NAME} "$REPO_URL/${chart_tmp}/${chart_tmp}.tgz"
