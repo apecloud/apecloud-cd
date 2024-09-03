@@ -13,6 +13,16 @@ on:
         type: string
         required: false
         default: ''
+      GITHUB_REPO:
+        description: "The github repo to save"
+        type: string
+        required: false
+        default: ''
+      GITHUB_REF:
+        description: "The github repo ref to save"
+        type: string
+        required: false
+        default: 'main'
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
@@ -30,6 +40,16 @@ on:
         type: string
         required: false
         default: ''
+      GITHUB_REPO:
+        description: "The github repo to save"
+        type: string
+        required: false
+        default: ''
+      GITHUB_REF:
+        description: "The github repo ref to save"
+        type: string
+        required: false
+        default: 'main'
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
@@ -46,8 +66,18 @@ jobs:
   update-manifests:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout branch ${{ github.ref_name }}
+      - name: Checkout ${{ github.ref_name }} Code
+        if: ${{ inputs.GITHUB_REPO == '' }}
         uses: actions/checkout@v4
+
+      - name: Checkout ${{ inputs.GITHUB_REPO }} Code
+        if: ${{ inputs.GITHUB_REPO != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.GITHUB_REPO }}
+          path: ./
+          token: ${{ env.GH_TOKEN }}
+          ref: ${{ inputs.GITHUB_REF }}
 
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -56,6 +86,15 @@ jobs:
           path: apecloud-cd
           token: ${{ env.GH_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
+
+      - name: get ref name
+        id: get_ref_name
+        run: |
+          GITHUB_REF_NAME="${{ inputs.GITHUB_REF }}"
+          if [[ -z "${GITHUB_REF_NAME}" ]]; then
+              GITHUB_REF_NAME="${{ github.ref_name }}"
+          fi
+          echo github_ref_name="${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
 
       - name: get release commit
         id: get_release_commit
@@ -67,6 +106,7 @@ jobs:
           echo "update manifests version to ${RELEASE_VERSION}"
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_version_update.sh "${MANIFESTS_FILE}" "${RELEASE_VERSION}"
           echo "update manifests version to ${RELEASE_VERSION} done"
+          
           FILE_CHANGES=`git diff --name-only ${COMMIT_SHA}`
           if [[ ! -z "$FILE_CHANGES" ]]; then
               echo $FILE_CHANGES
@@ -80,14 +120,14 @@ jobs:
           echo 'RELEASE_COMMIT='${RELEASE_COMMIT} >> $GITHUB_ENV
   
       - name: push changes to new branch
-        if: ${{ github.ref_name == 'main' && steps.get_release_commit.outputs.file_changes }}
+        if: ${{ steps.get_ref_name.outputs.github_ref_name == 'main' && steps.get_release_commit.outputs.file_changes }}
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ env.GH_TOKEN }}
           branch: support/auto-update-manifests-file-version-${{ env.RELEASE_COMMIT }}
 
       - name: auto create pr head new branch
-        if: ${{ github.ref_name == 'main' && steps.get_release_commit.outputs.file_changes }}
+        if: ${{ steps.get_ref_name.outputs.github_ref_name == 'main' && steps.get_release_commit.outputs.file_changes }}
         run: |
           gh pr create --head "support/auto-update-manifests-file-version-${{ env.RELEASE_COMMIT }}" --title "chore: auto update manifests file version to ${RELEASE_VERSION}" --body ""
 
@@ -96,4 +136,4 @@ jobs:
         if: ${{ github.ref_name != 'main' && steps.get_release_commit.outputs.file_changes }}
         with:
           github_token: ${{ env.GH_TOKEN }}
-          branch: ${{ github.ref }}
+          branch: ${{ steps.get_ref_name.outputs.github_ref_name }}
