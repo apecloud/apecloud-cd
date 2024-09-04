@@ -43,6 +43,10 @@ update_manifests_file_version() {
                     else
                         yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${RELEASE_VERSION}\"" "${MANIFESTS_FILE}"
                     fi
+                    if [[ "${manifests_image}" == "apecloud/apiserver:"* && "${RELEASE_VERSION}" == "v0.25."* ]]; then
+                        ((image_num++))
+                        yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${RELEASE_VERSION}-jni\"" "${MANIFESTS_FILE}"
+                    fi
                     break
                 fi
             done
