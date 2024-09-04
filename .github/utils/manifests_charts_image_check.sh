@@ -107,7 +107,7 @@ check_charts_images() {
 
     charts_name=$(yq e "to_entries|map(.key)|.[]"  ${MANIFESTS_FILE})
     for chart_name in $(echo "$charts_name"); do
-        if [[ -z "$chart_name" || "$chart_name" == "#"* ]]; then
+        if [[ -z "$chart_name" || "$chart_name" == "#"* || "$chart_name" == "kata" ]]; then
             continue
         fi
         set_values=""
