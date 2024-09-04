@@ -211,7 +211,7 @@ jobs:
           echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
 
       - name: Set registry and repository ${{ env.DOCKER_REGISTRY_URL }}
-        if: ${{ inputs.IMG == 'apecloud/apecloud-charts' && env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
+        if: ${{ (inputs.IMG == 'apecloud/apecloud-charts' || inputs.IMG == 'apecloud/apecloud-addon-charts') && env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
         run: |
           echo "set addons chart registry to apecloud and repogistory to ${{ env.DOCKER_REGISTRY_URL }}"
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
@@ -241,7 +241,7 @@ jobs:
           sbom: false
 
       - name: Set registry and repository ${{ env.ALIYUN_REGISTRY_URL }}
-        if: ${{ inputs.IMG == 'apecloud/apecloud-charts' && env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
+        if: ${{ (inputs.IMG == 'apecloud/apecloud-charts' || inputs.IMG == 'apecloud/apecloud-addon-charts') && env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
         run: |
           echo "set addons chart registry to apecloud and repogistory to ${{ env.ALIYUN_REGISTRY_URL }}"
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
@@ -271,7 +271,7 @@ jobs:
           sbom: false
 
       - name: Set registry and repository ${{ env.ALIYUN_REGISTRY_URL_NEW }}
-        if: ${{ inputs.IMG == 'apecloud/apecloud-charts' && env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
+        if: ${{ (inputs.IMG == 'apecloud/apecloud-charts' || inputs.IMG == 'apecloud/apecloud-addon-charts') && env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
         run: |
           echo "set addons chart registry to apecloud and repogistory to ${{ env.ALIYUN_REGISTRY_URL_NEW }}"
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
