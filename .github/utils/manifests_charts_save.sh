@@ -25,7 +25,7 @@ save_charts_package() {
     tar_flag=0
     for i in {1..10}; do
         for chart_name in $(echo "$charts_name"); do
-            if [[ -z "$chart_name" || "$chart_name" == "#"* ]]; then
+            if [[ -z "$chart_name" || "$chart_name" == "#"* || "$chart_name" == "kata" ]]; then
                 continue
             fi
             ent_flag=$(yq e "."${chart_name}"[0].isEnterprise"  ${MANIFESTS_FILE})
