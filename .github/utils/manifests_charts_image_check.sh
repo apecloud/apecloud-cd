@@ -124,6 +124,9 @@ check_charts_images() {
                 set_values="${set_values} --set images.openconsole.tag=${chart_version} "
                 set_values="${set_values} --set images.taskManager.tag=${chart_version} "
             ;;
+            kb-cloud-installer)
+                set_values="${set_values} --set version=${chart_version} "
+            ;;
             ingress-nginx)
                 set_values="${set_values} --set controller.image.image=apecloud/controller "
                 set_values="${set_values} --set controller.image.digest= "
