@@ -93,6 +93,11 @@ on:
         type: boolean
         required: false
         default: true
+      SET_REGISTRY:
+        description: "Enable set registry and repository"
+        type: boolean
+        required: false
+        default: false
 
 
 env:
@@ -176,6 +181,13 @@ jobs:
         run: |
           make ${{ inputs.MAKE_OPS }} \
             VERSION="${{ steps.get_version.outputs.VERSION }}"
+
+      - name: Set registry and repository ${{ env.DOCKER_REGISTRY_URL }}
+        if: ${{ inputs.SET_REGISTRY || inputs.CHART_DIR == 'addons' }}
+        run: |
+          echo "set addons chart registry to apecloud and repogistory to ${{ env.DOCKER_REGISTRY_URL }}"
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
+            "${{ env.DOCKER_REGISTRY_URL }}" "${{ inputs.CHART_DIR }}"
 
       - name: Package Helm Chart
         shell: bash
@@ -264,18 +276,6 @@ jobs:
           path: helm-charts-enterprise
           token: ${{ env.CR_TOKEN }}
 
-      - name: Upload Helm Charts to Jihulab
-        if: ${{ inputs.PUSH_ENABLE && inputs.ENABLE_JIHU }}
-        run: |
-          ls .cr-release-packages
-          cd .cr-release-packages
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
-            --type 3  \
-            --asset-path ./ \
-            --access-token "${{ env.JIHULAB_ACCESS_TOKEN }}" \
-            --access-user "${{ env.JIHULAB_ACCESS_USER }}"\
-            --project-id "${{ env.PROJECT_ID }}"
-
       - name: Fetch helm-charts-enterprise History And Configure Git
         if: inputs.PUSH_ENABLE
         run: |
@@ -292,3 +292,58 @@ jobs:
           args=(--owner "apecloud" --repo "helm-charts-enterprise" --github-repo "apecloud/helm-charts-enterprise")
           
           "${{ github.workspace }}/apecloud-cd/.github/utils/helm_release.sh" "${args[@]}"
+
+      - name: Package Helm Chart
+        shell: bash
+        run: |
+          CHART_DIR="${{ inputs.CHART_DIR }}"
+          CHART_DIR="${CHART_DIR%/*}"
+          args=()
+          if [[ -n "$CHART_DIR" ]]; then
+              args+=(--charts-dir "$CHART_DIR" )
+          fi
+          
+          if [[ -n "${{ steps.get_version.outputs.VERSION }}" ]]; then
+              args+=(--release-version "${{ steps.get_version.outputs.VERSION }}" )
+          fi
+          
+          if [[ -n "${{ steps.get_version.outputs.APP_VERSION }}" ]]; then
+              args+=(--app-version "${{ steps.get_version.outputs.APP_VERSION }}" )
+          fi
+          
+          if [[ -n "${{ inputs.SPECIFY_CHART }}" ]]; then
+              args+=(--specify-chart "${{ inputs.SPECIFY_CHART }}" )
+          fi
+          
+          "${{ github.workspace }}/apecloud-cd/.github/utils/helm_package.sh" "${args[@]}"
+
+      - name: helm lint
+        if: ${{ inputs.SET_REGISTRY || inputs.CHART_DIR == 'addons' }}
+        run: |
+          for chart in $(echo "$(ls .cr-release-packages)"); do
+              echo "helm lint $chart"
+              helm lint .cr-release-packages/$chart
+          done
+
+      - name: check images
+        if: ${{ inputs.CHECK_ENABLE && (inputs.SET_REGISTRY || inputs.CHART_DIR == 'addons') }}
+        run: |
+          check_dockerhub="true"
+          if [[ -z "${{ env.DOCKER_USER }}" || -z "${{ env.DOCKER_PASSWORD }}" ]]; then
+              check_dockerhub="false"
+          fi
+          
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/helm_image_check.sh \
+              .cr-release-packages "${{ inputs.CHART_NAME }}" "${check_dockerhub}" "${{ vars.SKIP_CHECK_IMAGES }}"
+
+      - name: Upload Helm Charts to Jihulab
+        if: ${{ inputs.PUSH_ENABLE && inputs.ENABLE_JIHU }}
+        run: |
+          ls .cr-release-packages
+          cd .cr-release-packages
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
+            --type 3  \
+            --asset-path ./ \
+            --access-token "${{ env.JIHULAB_ACCESS_TOKEN }}" \
+            --access-user "${{ env.JIHULAB_ACCESS_USER }}"\
+            --project-id "${{ env.PROJECT_ID }}"
