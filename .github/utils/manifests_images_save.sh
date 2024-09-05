@@ -26,7 +26,10 @@ pull_chart_images() {
         echo "${images_file_tmp} $repository" > "${chart_images_file_tmp}"
     done
     images_file_tmp=$(cat "${chart_images_file_tmp}")
-    echo "${images_file_tmp}" >> "${IMAGES_FILE_PATH}"
+    echo -n "${images_file_tmp}" >> "${IMAGES_FILE_PATH}"
+    echo "==========================================="
+    df -h
+    echo "==========================================="
 }
 
 save_charts_images() {

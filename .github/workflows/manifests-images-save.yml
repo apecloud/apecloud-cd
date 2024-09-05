@@ -120,7 +120,16 @@ jobs:
           docker rmi $(docker image ls -aq) >/dev/null 2>&1
           sudo swapoff -a
           sudo rm -f /swapfile
-          df -h       
+          df -h
+          
+          sudo mkdir -p /mnt/new-storage
+          sudo touch /etc/docker/daemon.json
+          sudo tee /etc/docker/daemon.json <<EOF
+          {
+            "data-root": "/mnt/new-storage"
+          }
+          EOF
+          sudo systemctl restart docker
 
       - name: Checkout Code
         if: ${{ inputs.GITHUB_REPO == '' }}
