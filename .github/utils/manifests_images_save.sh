@@ -3,7 +3,9 @@
 MANIFESTS_FILE=${1:-"deploy-manifests.yaml"}
 VALUES_FILE=${2:-"deploy-values.yaml"}
 RELEASE_VERSION=${3:-""}
-KB_IMAGE_NAME=${4:-"kubeblocks-enterprise-images"}
+KB_IMAGE_NAME=${4:-"kubeblocks-enterprise"}
+IS_ADDON=${5:-"false"}
+ENABLE_ADDON=${6:-""}
 
 
 pull_chart_images() {
@@ -14,7 +16,8 @@ pull_chart_images() {
         repository="${SRC_REGISTRY}/${image}"
         echo "pull image $repository"
         for i in {1..10}; do
-            docker pull "$repository"
+            echo "docker pull $repository"
+            #docker pull "$repository"
             ret_msg=$?
             if [[ $ret_msg -eq 0 ]]; then
                 echo "$(tput -T xterm setaf 2)pull image $repository success$(tput -T xterm sgr0)"
@@ -43,10 +46,39 @@ save_charts_images() {
 
     charts_name=$(yq e "to_entries|map(.key)|.[]"  "${MANIFESTS_FILE}")
     for chart_name in $(echo "$charts_name"); do
+        case $chart_name in
+            kubeblocks-cloud)
+                chart_version=$(yq e "."${chart_name}"[0].version"  "${MANIFESTS_FILE}")
+                if [[ -z "$RELEASE_VERSION" ]]; then
+                    RELEASE_VERSION="${chart_version}"
+                fi
+
+                if [[ "$RELEASE_VERSION" != "v"* ]]; then
+                    RELEASE_VERSION="v${RELEASE_VERSION}"
+                fi
+                IMAGE_PKG_NAME="${KB_IMAGE_NAME}-images-${RELEASE_VERSION}.tar.gz"
+            ;;
+        esac
         chart_enable=$(yq e ".${chart_name}.enable" "${VALUES_FILE}")
-        if [[ "${chart_enable}" == "false" ]]; then
+        is_addon=$(yq e "."${chart_name}"[0].isAddon"  ${MANIFESTS_FILE})
+        if [[ "${chart_enable}" == "false" || "${is_addon}" != "${IS_ADDON}" ]]; then
             echo "$(tput -T xterm setaf 3)skip pull ${chart_name} images$(tput -T xterm sgr0)"
             continue
+        fi
+
+        if [[ "${IS_ADDON}" == "true" && -n "$ENABLE_ADDON" ]]; then
+              skip_addon=0
+              echo "$ENABLE_ADDON"
+              for addon_name in $(echo "${ENABLE_ADDON}"|sed 's/|/ /g' ); do
+                  if [[ "${addon_name}" == "${chart_name}" ]]; then
+                      skip_addon=1
+                      break
+                  fi
+              done
+              if [[ $skip_addon -eq 0 ]]; then
+                  echo "$(tput -T xterm setaf 3)skip pull addon ${chart_name} images$(tput -T xterm sgr0)"
+                  continue
+              fi
         fi
 
         chart_images=$(yq e "."${chart_name}"[].images[]"  "${MANIFESTS_FILE}")
@@ -54,17 +86,6 @@ save_charts_images() {
             echo "$(tput -T xterm setaf 3)Not found ${chart_name} images$(tput -T xterm sgr0)"
             continue
         fi
-        case $chart_name in
-            kubeblocks-cloud)
-                chart_version=$(yq e "."${chart_name}"[0].version"  "${MANIFESTS_FILE}")
-                if [[ -z "$RELEASE_VERSION" ]]; then
-                    RELEASE_VERSION="${chart_version}"
-                elif [[ "$RELEASE_VERSION" != "v"* ]]; then
-                    RELEASE_VERSION="v${RELEASE_VERSION}"
-                fi
-                IMAGE_PKG_NAME="${KB_IMAGE_NAME}-${RELEASE_VERSION}.tar.gz"
-            ;;
-        esac
 
         chart_images_file="${IMAGES_FILE_DIR}/${chart_name}_${IMAGES_FILE}"
         touch "${chart_images_file}"
@@ -86,7 +107,8 @@ save_charts_images() {
     echo "$save_cmd"
     save_flag=0
     for i in {1..10}; do
-        eval "$save_cmd"
+        #eval "$save_cmd"
+        echo "$save_cmd"
         ret_msg=$?
         if [[ $ret_msg -eq 0 ]]; then
             echo "$(tput -T xterm setaf 2)save ${IMAGE_PKG_NAME} success$(tput -T xterm sgr0)"
