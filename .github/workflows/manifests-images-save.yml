@@ -113,6 +113,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.APECD_REF }}
+
       - name: get version
         id: get-version
         run: |
@@ -155,7 +163,7 @@ jobs:
           ENABLE_ADDON="${{ inputs.ENABLE_ADDON }}"
        
           echo "save manifests images"
-          bash .github/utils/manifests_images_save.sh "${MANIFESTS_FILE}" "${VALUES_FILE}" "${RELEASE_VERSION}" "${IMAGES_NAME}" "${IS_ADDON}" "${ENABLE_ADDON}"
+          bash apecloud-cd/.github/utils/manifests_images_save.sh "${MANIFESTS_FILE}" "${VALUES_FILE}" "${RELEASE_VERSION}" "${IMAGES_NAME}" "${IS_ADDON}" "${ENABLE_ADDON}"
 
       - uses: manyuanrong/setup-ossutil@v2.0
         with:
