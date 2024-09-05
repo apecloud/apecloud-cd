@@ -16,8 +16,7 @@ pull_chart_images() {
         repository="${SRC_REGISTRY}/${image}"
         echo "pull image $repository"
         for i in {1..10}; do
-            echo "docker pull $repository"
-            #docker pull "$repository"
+            docker pull "$repository"
             ret_msg=$?
             if [[ $ret_msg -eq 0 ]]; then
                 echo "$(tput -T xterm setaf 2)pull image $repository success$(tput -T xterm sgr0)"
@@ -107,8 +106,7 @@ save_charts_images() {
     echo "$save_cmd"
     save_flag=0
     for i in {1..10}; do
-        #eval "$save_cmd"
-        echo "$save_cmd"
+        eval "$save_cmd"
         ret_msg=$?
         if [[ $ret_msg -eq 0 ]]; then
             echo "$(tput -T xterm setaf 2)save ${IMAGE_PKG_NAME} success$(tput -T xterm sgr0)"
