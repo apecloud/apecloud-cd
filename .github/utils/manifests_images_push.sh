@@ -54,7 +54,8 @@ skopeo_copy() {
 }
 
 push_chart_images() {
-    for image in $(echo "$chart_images"); do
+    chart_images_tmp=$1
+    for image in $(echo "$chart_images_tmp"); do
         image_digest=""
         for i in {1..3}; do
             image_digest=$(skopeo inspect "docker://${SRC_REGISTRY}/${image}" --tls-verify=${TLS_VERIFY} | (grep "Digest" || true))
@@ -75,7 +76,7 @@ push_chart_images() {
 main() {
     local SRC_REGISTRY=""
     if [[ ! -f "${MANIFESTS_FILE}" || ! -f "${VALUES_FILE}" ]]; then
-        echo "$(tput -T xterm setaf 1)Not found manifests file:${MANIFESTS_FILE}$(tput -T xterm sgr0)"
+        echo "$(tput -T xterm setaf 1)Not found manifests file:${MANIFESTS_FILE} or ${VALUES_FILE}$(tput -T xterm sgr0)"
         return
     fi
 
