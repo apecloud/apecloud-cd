@@ -166,7 +166,7 @@ jobs:
       - name: Upload images to oss
         id: upload_to_oss
         run: |
-          IMAGE_PKG_NAME="${{ steps.get-image-name.outputs.image-name }}-images-${{ steps.save-images.outputs.release-version }}.tar.gz"
+          IMAGE_PKG_NAME="${{ steps.get-image-name.outputs.image-name }}-images-${{ steps.get-version.outputs.release-version }}.tar.gz"
           ossutil cp -rf ./${IMAGE_PKG_NAME} oss://${{ env.OSS_BUCKET }}/images/${IMAGE_PKG_NAME}
           upload_ret=$?
           if [[ $upload_ret -eq 0 ]]; then
