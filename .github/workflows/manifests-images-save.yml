@@ -135,7 +135,7 @@ jobs:
               if [[ -z "${{ inputs.ENABLE_ADDON }}" ]]; then
                   IMAGE_NAME="kb-ent-addons-all"
               else
-                  ENABLE_ADDON="${{ inputs.ENABLE_ADDON}"
+                  ENABLE_ADDON="${{ inputs.ENABLE_ADDON }}"
                   IMAGE_NAME="kb-ent-addons"
                   for addon_name in $(echo "${ENABLE_ADDON}"|sed 's/|/ /g' ); do
                       IMAGE_NAME="${IMAGE_NAME}-${addon_name}"
