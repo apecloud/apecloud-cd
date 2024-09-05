@@ -164,6 +164,9 @@ jobs:
        
           echo "save manifests images"
           bash apecloud-cd/.github/utils/manifests_images_save.sh "${MANIFESTS_FILE}" "${VALUES_FILE}" "${RELEASE_VERSION}" "${IMAGES_NAME}" "${IS_ADDON}" "${ENABLE_ADDON}"
+          
+          echo "Free space:"
+          df -h
 
       - uses: manyuanrong/setup-ossutil@v2.0
         with:

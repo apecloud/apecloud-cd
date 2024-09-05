@@ -59,11 +59,6 @@ save_charts_images() {
             ;;
         esac
         chart_enable=$(yq e ".${chart_name}.enable" "${VALUES_FILE}")
-        is_addon=$(yq e "."${chart_name}"[0].isAddon"  ${MANIFESTS_FILE})
-        if [[ "${chart_enable}" == "false" || "${is_addon}" != "${IS_ADDON}" ]]; then
-            echo "$(tput -T xterm setaf 3)skip pull ${chart_name} images$(tput -T xterm sgr0)"
-            continue
-        fi
 
         if [[ "${IS_ADDON}" == "true" && -n "$ENABLE_ADDON" ]]; then
               skip_addon=0
@@ -71,6 +66,7 @@ save_charts_images() {
               for addon_name in $(echo "${ENABLE_ADDON}"|sed 's/|/ /g' ); do
                   if [[ "${addon_name}" == "${chart_name}" ]]; then
                       skip_addon=1
+                      chart_enable="true"
                       break
                   fi
               done
@@ -78,6 +74,12 @@ save_charts_images() {
                   echo "$(tput -T xterm setaf 3)skip pull addon ${chart_name} images$(tput -T xterm sgr0)"
                   continue
               fi
+        fi
+
+        is_addon=$(yq e "."${chart_name}"[0].isAddon" ${MANIFESTS_FILE})
+        if [[ "${chart_enable}" == "false" || "${is_addon}" != "${IS_ADDON}" ]]; then
+            echo "$(tput -T xterm setaf 3)skip pull ${chart_name} images$(tput -T xterm sgr0)"
+            continue
         fi
 
         chart_images=$(yq e "."${chart_name}"[].images[]"  "${MANIFESTS_FILE}")
