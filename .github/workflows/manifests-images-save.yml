@@ -3,41 +3,29 @@ name: Manifests Images Save
 on:
   workflow_dispatch:
     inputs:
-      MANIFESTS_FILE:
-        description: "The manifests file path to save"
-        type: string
+      IS_ADDON:
+        description: "Save addon images type"
+        default: 'false'
+        type: choice
         required: true
-        default: ''
-      VALUES_FILE:
-        description: "The values file path to save"
+        options:
+          - false
+          - true
+      ENABLE_ADDON:
+        description: 'The enable of save addon images (e.g. apecloud-mysql|clickhouse|elasticsearch|kafka|mongodb|mysql|oceanbase|postgresql|qdrant|rabbitmq|redis|starrocks|zookeeper|damengdb|kingbase)'
         type: string
-        required: true
+        required: false
         default: ''
       RELEASE_VERSION:
         description: 'The version of release'
         type: string
         required: false
         default: ''
-      GITHUB_REPO:
-        description: "The github repo to save"
-        type: string
-        required: false
-        default: ''
-      GITHUB_REF:
-        description: "The github repo ref to save"
-        type: string
-        required: false
-        default: 'main'
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
         required: false
         default: 'main'
-      IMAGES_NAME:
-        description: "The images package name to save"
-        type: string
-        required: false
-        default: 'kubeblocks-enterprise'
       BOT_TYPE:
         description: 'The bot type (e.g. release/package/specify)'
         type: string
@@ -50,41 +38,26 @@ on:
         default: ''
   workflow_call:
     inputs:
-      MANIFESTS_FILE:
-        description: "The file path to save"
+      IS_ADDON:
+        description: "Save addon images type"
+        default: 'false'
         type: string
         required: true
-        default: ''
-      VALUES_FILE:
-        description: "The values file path to save"
+      ENABLE_ADDON:
+        description: 'The enable of save addon images (e.g. apecloud-mysql|clickhouse|elasticsearch|kafka|mongodb|mysql|oceanbase|postgresql|qdrant|rabbitmq|redis|starrocks|zookeeper|damengdb|kingbase)'
         type: string
-        required: true
+        required: false
         default: ''
       RELEASE_VERSION:
         description: 'The version of release'
         type: string
         required: false
         default: ''
-      GITHUB_REPO:
-        description: "The github repo to save"
-        type: string
-        required: false
-        default: ''
-      GITHUB_REF:
-        description: "The github repo ref to save"
-        type: string
-        required: false
-        default: 'main'
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
         required: false
         default: 'main'
-      IMAGES_NAME:
-        description: "The images package name to save"
-        type: string
-        required: false
-        default: 'kubeblocks-enterprise'
       BOT_TYPE:
         description: 'The bot type (e.g. release/package/specify)'
         type: string
@@ -97,20 +70,26 @@ on:
         default: ''
 
 
-run-name: save image ${{ inputs.IMAGES_NAME }} ${{ inputs.RELEASE_VERSION }}
+run-name: save images ${{ inputs.RELEASE_VERSION }} is_addon:${{ inputs.IS_ADDON }} ${{ inputs.ENABLE_ADDON }}
 
 env:
+  DOCKER_REGISTRY_URL: docker.io
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
   OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
   OSS_ENDPOINT: "oss-cn-zhangjiakou.aliyuncs.com"
   OSS_BUCKET: "kubeblocks-oss"
+  MANIFESTS_FILE: "manifests/deploy-manifests.yaml"
+  VALUES_FILE: "manifests/deploy-values.yaml"
 
 jobs:
   save-images:
     runs-on: ubuntu-latest
     outputs:
-      release-version: ${{ steps.save-images.outputs.release-version }}
+      release-version: ${{ steps.get-version.outputs.release-version }}
+      image-name: ${{ steps.get-image-name.outputs.image-name }}
     steps:
       - name: Free disk space
         run: |
@@ -132,44 +111,51 @@ jobs:
           sudo systemctl restart docker
 
       - name: Checkout Code
-        if: ${{ inputs.GITHUB_REPO == '' }}
         uses: actions/checkout@v4
 
-      - name: Checkout ${{ inputs.GITHUB_REPO }} Code
-        if: ${{ inputs.GITHUB_REPO != '' }}
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ inputs.GITHUB_REPO }}
-          path: ./
-          token: ${{ env.GITHUB_TOKEN }}
-          ref: ${{ inputs.GITHUB_REF }}
-
-      - name: Checkout apecloud-cd Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud-cd
-          path: apecloud-cd
-          token: ${{ env.GITHUB_TOKEN }}
-          ref: ${{ inputs.APECD_REF }}
-
-      - name: manifests images save
-        id: save-images
+      - name: get version
+        id: get-version
         run: |
-          echo "Free space:"
-          df -h
-          MANIFESTS_FILE="${{ inputs.MANIFESTS_FILE }}"
-          VALUES_FILE="${{ inputs.VALUES_FILE }}"
+          MANIFESTS_FILE="${{ env.MANIFESTS_FILE }}"
           RELEASE_VERSION="${{ inputs.RELEASE_VERSION }}"
           if [[ -z "${RELEASE_VERSION}" && -f ${MANIFESTS_FILE} ]]; then
               RELEASE_VERSION="$(yq e ".kubeblocks-cloud[0].version"  ${MANIFESTS_FILE})"
           fi
+          
+          if [[ "${RELEASE_VERSION}" != "v"* ]]; then
+              RELEASE_VERSION="v${RELEASE_VERSION}"
+          fi
           echo "release-version=${RELEASE_VERSION}" >> $GITHUB_OUTPUT
-          
-          echo "update manifests version to ${RELEASE_VERSION}"
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_version_update.sh "${MANIFESTS_FILE}" "${RELEASE_VERSION}"
-          
+
+      - name: get image name
+        id: get-image-name
+        run: |
+          IMAGE_NAME="kubeblocks-enterprise"
+          if [[ "${{ inputs.IS_ADDON }}" == "true" ]]; then
+              if [[ -z "${{ inputs.ENABLE_ADDON }}" ]]; then
+                  IMAGE_NAME="kb-ent-addons-all"
+              else
+                  ENABLE_ADDON="${{ inputs.ENABLE_ADDON}"
+                  IMAGE_NAME="kb-ent-addons"
+                  for addon_name in $(echo "${ENABLE_ADDON}"|sed 's/|/ /g' ); do
+                      IMAGE_NAME="${IMAGE_NAME}-${addon_name}"
+                  done
+              fi
+          fi
+          echo "image-name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+
+      - name: manifests images save
+        id: save-images
+        run: |
+          MANIFESTS_FILE="${{ env.MANIFESTS_FILE }}"
+          VALUES_FILE="${{ env.VALUES_FILE }}"
+          RELEASE_VERSION="${{ steps.get-version.outputs.release-version }}"
+          IMAGES_NAME="${{ steps.get-image-name.outputs.image-name }}"
+          IS_ADDON="${{ inputs.IS_ADDON }}"
+          ENABLE_ADDON="${{ inputs.ENABLE_ADDON }}"
+       
           echo "save manifests images"
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_images_save.sh "${MANIFESTS_FILE}" "${VALUES_FILE}" "${RELEASE_VERSION}"
+          bash .github/utils/manifests_images_save.sh "${MANIFESTS_FILE}" "${VALUES_FILE}" "${RELEASE_VERSION}" "${IMAGES_NAME}" "${IS_ADDON}" "${ENABLE_ADDON}"
 
       - uses: manyuanrong/setup-ossutil@v2.0
         with:
@@ -180,7 +166,7 @@ jobs:
       - name: Upload images to oss
         id: upload_to_oss
         run: |
-          IMAGE_PKG_NAME="${{ inputs.IMAGES_NAME }}-images-${{ steps.save-images.outputs.release-version }}.tar.gz"
+          IMAGE_PKG_NAME="${{ steps.get-image-name.outputs.image-name }}-images-${{ steps.save-images.outputs.release-version }}.tar.gz"
           ossutil cp -rf ./${IMAGE_PKG_NAME} oss://${{ env.OSS_BUCKET }}/images/${IMAGE_PKG_NAME}
           upload_ret=$?
           if [[ $upload_ret -eq 0 ]]; then
@@ -201,7 +187,7 @@ jobs:
         id: get_save_result
         run: |
           SAVE_RESULT="error"
-          IMAGE_PKG_NAME="${{ inputs.IMAGES_NAME }}-images-${{ needs.save-images.outputs.release-version }}.tar.gz"
+          IMAGE_PKG_NAME="${{ needs.save-images.outputs.image-name }}-images-${{ needs.save-images.outputs.release-version }}.tar.gz"
           if [[ "${{ needs.save-images.result }}" == "success" ]]; then
               SAVE_RESULT="success"
               IMAGE_PKG_NAME="http://kubeblocks-oss.${{ env.OSS_ENDPOINT }}/images/${IMAGE_PKG_NAME}"
