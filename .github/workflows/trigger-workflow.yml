@@ -119,23 +119,27 @@ jobs:
       - name: trigger-workflow
         run: |
           cmd="bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 7 --github-token \"${{ env.GITHUB_TOKEN }}\" "
-          if [[ ! -z "${{ inputs.GITHUB_REPO }}" ]]; then
+          if [[ -n "${{ inputs.GITHUB_REPO }}" ]]; then
               cmd=$cmd"--github-repo \"${{ inputs.GITHUB_REPO }}\" "
           fi
 
-          if [[ ! -z "${{ inputs.WORKFLOW_ID }}" ]]; then
+          if [[ -n "${{ inputs.WORKFLOW_ID }}" ]]; then
               cmd=$cmd"--workflow-id \"${{ inputs.WORKFLOW_ID }}\" "
           fi
 
-          if [[ ! -z "${{ inputs.BRANCH_NAME }}" ]]; then
-              cmd=$cmd"--branch-name \"${{ inputs.BRANCH_NAME }}\" "
+          if [[ -n "${{ inputs.BRANCH_NAME }}" ]]; then
+              if [[ -n "${{ inputs.GITHUB_REPO }}" && "${{ inputs.GITHUB_REPO }}" == "apecloud/relay" ]]; then
+                  cmd=$cmd"--branch-name apecloud "
+              else
+                  cmd=$cmd"--branch-name \"${{ inputs.BRANCH_NAME }}\" "
+              fi
           fi
 
-          if [[ ! -z "${{ inputs.VERSION }}" ]]; then
+          if [[ -n "${{ inputs.VERSION }}" ]]; then
               cmd=$cmd"--version \"${{ inputs.VERSION }}\" "
           fi
 
-          if [[ ! -z "${{ inputs.EXTRA_ARGS }}" ]]; then
+          if [[ -n "${{ inputs.EXTRA_ARGS }}" ]]; then
               cmd=$cmd"--extra-args \"${{ inputs.EXTRA_ARGS }}\" "
           fi
 
