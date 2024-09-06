@@ -97,6 +97,7 @@ jobs:
       matrix:
         engine_type: ${{ fromJSON(needs.setup.outputs.engine_types) }}
       max-parallel: 5
+      fail-fast: false
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go
