@@ -143,20 +143,28 @@ jobs:
               ENGINE_MODE=${{ inputs.ENGINE_MODE }} \
               KUBECONFIG=$HOME/.kube/config \
               test-e2e-apecloud
-        continue-on-error: true
+          EXIT_CODE=$?
+          if [ "$EXIT_CODE" -eq 0 ]; then
+            echo "::set-output name=status::success"
+          else
+            echo "::set-output name=status::failure"
+          fi
+          echo "TEST_EXIT_CODE=$EXIT_CODE" >> $GITHUB_ENV
 
       - name: Record test result
         id: set-result
         if: ${{ always() }}
         run: |
-          if [ $? -eq 0 ]; then
-            NEW_RESULT="${{ matrix.engine_type }}|[PASSED]"
-          else
-            NEW_RESULT="${{ matrix.engine_type }}|[FAILED]"
-          fi
+          EXIT_CODE=${{ env.TEST_EXIT_CODE }}
+            if [ "$EXIT_CODE" -eq 0 ]; then
+              NEW_RESULT="${{ matrix.engine_type }}|[PASSED]"
+            else
+              NEW_RESULT="${{ matrix.engine_type }}|[FAILED]"
+            fi
           echo "${{ matrix.engine_type }}-result=${NEW_RESULT}" >> $GITHUB_OUTPUT
 
       - name: Debug Outputs
+        if: ${{ always() }}
         run: |
           echo '${{ toJSON(steps.set-result.outputs) }}'
 
