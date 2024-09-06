@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -e
+set +e
+set -o nounset
 
 REGISTRY_ADDRESS=${1:-""}
 REGISTRY_USERNAME=${2:-""}
@@ -40,6 +41,10 @@ load_image_package() {
     fi
     echo "Loading images from package: ${image_package[@]}"
     for image_pkg_name in "${image_package[@]}"; do
+        if [[ ! -f "$image_pkg_name"  ]]; then
+            echo "Not found $image_pkg_name"
+            continue
+        fi
         echo "Loading image from file: $image_pkg_name"
         for i in {1..3}; do
             ${TOOL_CLI} load -i "$image_pkg_name"
