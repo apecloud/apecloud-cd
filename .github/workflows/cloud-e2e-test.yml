@@ -221,7 +221,7 @@ jobs:
           echo "Test result from cloud-e2e-test: $TEST_RESULT"
           
           TEST_RESULT=$(bash .github/utils/utils.sh \
-              --type 12 \
+              --type 34 \
               --github-repo "${{ github.repository }}" \
               --test-result "$TEST_RESULT" \
               --run-id "$GITHUB_RUN_ID" \

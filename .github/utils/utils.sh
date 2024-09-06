@@ -973,7 +973,7 @@ main() {
             delete_aliyun_images
         ;;
         12)
-            get_e2e_test_result
+            get_test_result
         ;;
         13)
             helm_dep_update
@@ -1037,6 +1037,9 @@ main() {
         ;;
         33)
             set_label
+        ;;
+        34)
+            get_e2e_test_result
         ;;
     esac
 }
