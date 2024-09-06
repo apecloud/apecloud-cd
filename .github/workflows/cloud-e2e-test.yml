@@ -144,11 +144,6 @@ jobs:
               KUBECONFIG=$HOME/.kube/config \
               test-e2e-apecloud
           EXIT_CODE=$?
-          if [ "$EXIT_CODE" -eq 0 ]; then
-            echo "::set-output name=status::success"
-          else
-            echo "::set-output name=status::failure"
-          fi
           echo "TEST_EXIT_CODE=$EXIT_CODE" >> $GITHUB_ENV
 
       - name: Record test result
