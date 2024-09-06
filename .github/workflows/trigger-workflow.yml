@@ -128,7 +128,7 @@ jobs:
           fi
 
           if [[ -n "${{ inputs.BRANCH_NAME }}" ]]; then
-              if [[ -n "${{ inputs.GITHUB_REPO }}" && "${{ inputs.GITHUB_REPO }}" == "apecloud/relay ]]; then
+              if [[ -n "${{ inputs.GITHUB_REPO }}" && "${{ inputs.GITHUB_REPO }}" == "apecloud/relay" ]]; then
                   cmd=$cmd"--branch-name \"apecloud\" "
               else
                   cmd=$cmd"--branch-name \"${{ inputs.BRANCH_NAME }}\" "
