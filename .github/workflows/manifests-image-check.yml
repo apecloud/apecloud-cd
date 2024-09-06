@@ -1,0 +1,110 @@
+name: Manifests Images Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      MANIFESTS_FILE:
+        description: "The file path to check"
+        type: string
+        required: true
+        default: ''
+      GITHUB_REPO:
+        description: "The github repo to check"
+        type: string
+        required: false
+        default: ''
+      GITHUB_REF:
+        description: "The github repo ref to check"
+        type: string
+        required: false
+        default: 'main'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      CHECK_REGISTRY:
+        description: "check registry"
+        default: ''
+        type: choice
+        required: false
+        options:
+          - default
+          - aliyun
+          - dockerhub
+  workflow_call:
+    inputs:
+      MANIFESTS_FILE:
+        description: "The file path to check"
+        type: string
+        required: true
+        default: ''
+      GITHUB_REPO:
+        description: "The github repo to check"
+        type: string
+        required: false
+        default: ''
+      GITHUB_REF:
+        description: "The github repo ref to check"
+        type: string
+        required: false
+        default: 'main'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      CHECK_REGISTRY:
+        description: "check registry"
+        default: ''
+        type: string
+        required: false
+
+run-name: check images ${{ inputs.CHECK_REGISTRY }}
+
+env:
+  CR_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  HELM_VERSION: v3.15.4
+  DOCKER_REGISTRY_URL: docker.io
+  ALIYUN_REGISTRY_URL: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
+
+jobs:
+  images-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        if: ${{ inputs.GITHUB_REPO == '' }}
+        uses: actions/checkout@v4
+
+      - name: Checkout ${{ inputs.GITHUB_REPO }} Code
+        if: ${{ inputs.GITHUB_REPO != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.GITHUB_REPO }}
+          path: ./
+          token: ${{ env.CR_TOKEN }}
+          ref: ${{ inputs.GITHUB_REF }}
+
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          token: ${{ env.CR_TOKEN }}
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: manifests images check
+        run: |
+          CHECK_REGISTRY="${{ inputs.CHECK_REGISTRY }}"
+          MANIFESTS_FILE="${{ inputs.MANIFESTS_FILE }}"
+          case $CHECK_REGISTRY in
+              aliyun)
+                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_image_check.sh "${MANIFESTS_FILE}" "${{ env.ALIYUN_REGISTRY_URL }}"
+              ;;
+              dockerhub)
+                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_image_check.sh "${MANIFESTS_FILE}" "${{ env.DOCKER_REGISTRY_URL }}"
+              ;;
+              *)
+                  bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_image_check.sh "${MANIFESTS_FILE}"
+              ;;
+          esac

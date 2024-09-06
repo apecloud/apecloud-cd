@@ -1,0 +1,46 @@
+name: skopeo copy docker.io image to new version
+
+on:
+  workflow_dispatch:
+    inputs:
+      SRC_IMAGE:
+        description: 'copy src image (e.g. apecloud/relay:v0.27.27)'
+        required: false
+        default: ''
+      DEST_TAG:
+        description: 'copy dest image tag (e.g. v0.27.28)'
+        required: false
+        default: ''
+      SRC_REGISTRY:
+        description: 'copy image src registry (e.g. docker.io)'
+        required: false
+        default: 'docker.io'
+      DEST_REGISTRY:
+        description: 'copy image dest registry (e.g. docker.io)'
+        required: false
+        default: 'docker.io'
+
+run-name: copy ${{ inputs.SRC_REGISTRY }} ${{ inputs.SRC_IMAGE }} to ${{ inputs.DEST_TAG }}
+
+env:
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+
+jobs:
+  script:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name : setup skopeo
+        run: |
+          brew install skopeo
+
+      - name : skopeo copy images
+        run: |
+          bash ${{ github.workspace }}/.github/utils/skopeo_copy_to_docker_new_tag.sh \
+              "${{ env.DOCKER_USER }}" \
+              '${{ env.DOCKER_PASSWORD }}' \
+              "${{ inputs.SRC_IMAGE }}" \
+              "${{ inputs.DEST_TAG }}" \
+              "${{ inputs.SRC_REGISTRY }}" \
+              "${{ inputs.DEST_REGISTRY }}"

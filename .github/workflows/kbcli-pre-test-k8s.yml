@@ -28,7 +28,7 @@ on:
         greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|orioledb|official-pg|asmysql|openldap|
         polardbx|opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
         oracle|opengauss|influxdb|flink|solr|halo|mogdb|oceanbase-ent|starrocks-ent|apecloud-postgresql|yashandb|
-        redis-cluster|camellia-redis-proxy|dmdb|minio)'
+        redis-cluster|camellia-redis-proxy|dmdb|minio|orchestrator)'
         type: string
         required: false
         default: '0'
@@ -335,7 +335,7 @@ jobs:
     secrets: inherit
 
   foxlake-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'foxlake')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'foxlake')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v1.0.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -702,24 +702,8 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
-  doris-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'doris')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
-    needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
-    with:
-      cloud-provider: ${{ inputs.cloud-provider }}
-      region: ${{ inputs.region }}
-      release-version: "${{ inputs.previous-version }}"
-      test-type: "41"
-      test-type-name: "doris-pre"
-      test-args: "${{ inputs.test-args }}"
-      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
-      branch-name: ${{ inputs.branch-name }}
-      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
-    secrets: inherit
-
   halo-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'halo')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'halo')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v1.0.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -877,6 +861,22 @@ jobs:
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
+  
+  orchestrator-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'orchestrator')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "52"
+      test-type-name: "orchestrator-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
 
   send-message:
     if: ${{ inputs.previous-version && always() }}
@@ -891,7 +891,7 @@ jobs:
              zookeeper-pre, mariadb-pre , tidb-pre, xinference-pre, oracle-pre, 
              opengauss-pre, influxdb-pre, flink-pre, solr-pre, halo-pre,
              mogdb-pre, oceanbase-ent-pre, starrocks-ent-pre, apecloud-postgresql-pre,
-             yashandb-pre, redis-cluster-pre, camellia-redis-proxy-pre, dmdb-pre, minio-pre]
+             yashandb-pre, redis-cluster-pre, camellia-redis-proxy-pre, dmdb-pre, minio-pre, orchestrator-pre ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1076,6 +1076,10 @@ jobs:
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"minio"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##minio-pre|${{ needs.minio-pre.outputs.test-result }}"
+              fi
+
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"orchestrator"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##orchestrator-pre|${{ needs.orchestrator-pre.outputs.test-result }}"
               fi 
           fi
           

@@ -1,4 +1,4 @@
-name: skopeo sync images to docker.io
+name: A skopeo sync images to docker.io
 
 on:
   workflow_dispatch:
@@ -18,6 +18,8 @@ env:
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   ECR_PASSWORD: ${{ secrets.ECR_PASSWORD }}
+  ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+  ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
 
 jobs:
   script:

@@ -1,4 +1,4 @@
-name: A skopeo copy images to aliyun
+name: A skopeo copy images to aliyun and dockerhub
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ on:
         required: false
         default: 'docker.io'
 
-run-name: copy to aliyun:${{ github.event.inputs.images_name }}
+run-name: copy to aliyun and dockerhub:${{ github.event.inputs.images_name }}
 
 env:
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
@@ -21,6 +21,7 @@ env:
   ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
   ALIYUN_USER_NEW: ${{ secrets.ALIYUN_USER_NEW }}
   ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
+
 
 jobs:
   script:
@@ -37,6 +38,13 @@ jobs:
                   --images "${{ github.event.inputs.images_name }}" \
                   --images-list ${{ github.workspace }}/.github/utils/images-list.txt
           fi
+          
+          bash ${{ github.workspace }}/.github/utils/skopeo_copy_to_docker.sh \
+              "${{ env.DOCKER_USER }}" \
+              '${{ env.DOCKER_PASSWORD }}' \
+              ${{ github.workspace }}/.github/utils/images-list.txt \
+              "${{ inputs.registry }}" \
+              '${{ secrets.ECR_PASSWORD }}'
           
           bash ${{ github.workspace }}/.github/utils/skopeo_copy_to_aliyun.sh \
               "${{ env.ALIYUN_USER }}" \

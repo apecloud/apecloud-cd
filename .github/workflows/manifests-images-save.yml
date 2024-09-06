@@ -1,0 +1,219 @@
+name: Manifests Images Save
+
+on:
+  workflow_dispatch:
+    inputs:
+      IS_ADDON:
+        description: "Save addon images type"
+        default: 'false'
+        type: choice
+        required: true
+        options:
+          - false
+          - true
+      ENABLE_ADDON:
+        description: 'The enable of save addon images (e.g. apecloud-mysql|clickhouse|elasticsearch|kafka|mongodb|mysql|oceanbase|postgresql|qdrant|rabbitmq|redis|starrocks|zookeeper|damengdb|kingbase)'
+        type: string
+        required: false
+        default: ''
+      RELEASE_VERSION:
+        description: 'The version of release'
+        type: string
+        required: false
+        default: ''
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      BOT_TYPE:
+        description: 'The bot type (e.g. release/package/specify)'
+        type: string
+        required: false
+        default: 'specify'
+      BOT_WEBHOOK:
+        description: 'The bot webhook'
+        type: string
+        required: false
+        default: ''
+  workflow_call:
+    inputs:
+      IS_ADDON:
+        description: "Save addon images type"
+        default: 'false'
+        type: string
+        required: true
+      ENABLE_ADDON:
+        description: 'The enable of save addon images (e.g. apecloud-mysql|clickhouse|elasticsearch|kafka|mongodb|mysql|oceanbase|postgresql|qdrant|rabbitmq|redis|starrocks|zookeeper|damengdb|kingbase)'
+        type: string
+        required: false
+        default: ''
+      RELEASE_VERSION:
+        description: 'The version of release'
+        type: string
+        required: false
+        default: ''
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      BOT_TYPE:
+        description: 'The bot type (e.g. release/package/specify)'
+        type: string
+        required: false
+        default: 'specify'
+      BOT_WEBHOOK:
+        description: 'The bot webhook'
+        type: string
+        required: false
+        default: ''
+
+
+run-name: save images ${{ inputs.RELEASE_VERSION }} is_addon:${{ inputs.IS_ADDON }} ${{ inputs.ENABLE_ADDON }}
+
+env:
+  DOCKER_REGISTRY_URL: docker.io
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
+  OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
+  OSS_ENDPOINT: "oss-cn-zhangjiakou.aliyuncs.com"
+  OSS_BUCKET: "kubeblocks-oss"
+  MANIFESTS_FILE: "manifests/deploy-manifests.yaml"
+  VALUES_FILE: "manifests/deploy-values.yaml"
+
+jobs:
+  save-images:
+    runs-on: ubuntu-latest
+    outputs:
+      release-version: ${{ steps.get-version.outputs.release-version }}
+      image-name: ${{ steps.get-image-name.outputs.image-name }}
+    steps:
+      - name: Free disk space
+        run: |
+          sudo apt-get autoremove -y >/dev/null 2>&1
+          sudo apt-get autoclean -y >/dev/null 2>&1
+          sudo rm -rf /usr/local/lib/android >/dev/null 2>&1
+          docker rmi $(docker image ls -aq) >/dev/null 2>&1
+          sudo swapoff -a
+          sudo rm -f /swapfile
+          df -h
+          
+          sudo mkdir -p /mnt/new-storage
+          sudo touch /etc/docker/daemon.json
+          sudo tee /etc/docker/daemon.json <<EOF
+          {
+            "data-root": "/mnt/new-storage"
+          }
+          EOF
+          sudo systemctl restart docker
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: get version
+        id: get-version
+        run: |
+          MANIFESTS_FILE="${{ env.MANIFESTS_FILE }}"
+          RELEASE_VERSION="${{ inputs.RELEASE_VERSION }}"
+          if [[ -z "${RELEASE_VERSION}" && -f ${MANIFESTS_FILE} ]]; then
+              RELEASE_VERSION="$(yq e ".kubeblocks-cloud[0].version"  ${MANIFESTS_FILE})"
+          fi
+          
+          if [[ "${RELEASE_VERSION}" != "v"* ]]; then
+              RELEASE_VERSION="v${RELEASE_VERSION}"
+          fi
+          echo "release-version=${RELEASE_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: get image name
+        id: get-image-name
+        run: |
+          IMAGE_NAME="kubeblocks-enterprise"
+          if [[ "${{ inputs.IS_ADDON }}" == "true" ]]; then
+              if [[ -z "${{ inputs.ENABLE_ADDON }}" ]]; then
+                  IMAGE_NAME="kb-ent-addons-all"
+              else
+                  ENABLE_ADDON="${{ inputs.ENABLE_ADDON }}"
+                  IMAGE_NAME="kb-ent-addons"
+                  for addon_name in $(echo "${ENABLE_ADDON}"|sed 's/|/ /g' ); do
+                      IMAGE_NAME="${IMAGE_NAME}-${addon_name}"
+                  done
+              fi
+          fi
+          echo "image-name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+
+      - name: manifests images save
+        id: save-images
+        run: |
+          MANIFESTS_FILE="${{ env.MANIFESTS_FILE }}"
+          VALUES_FILE="${{ env.VALUES_FILE }}"
+          RELEASE_VERSION="${{ steps.get-version.outputs.release-version }}"
+          IMAGES_NAME="${{ steps.get-image-name.outputs.image-name }}"
+          IS_ADDON="${{ inputs.IS_ADDON }}"
+          ENABLE_ADDON="${{ inputs.ENABLE_ADDON }}"
+       
+          echo "save manifests images"
+          bash apecloud-cd/.github/utils/manifests_images_save.sh "${MANIFESTS_FILE}" "${VALUES_FILE}" "${RELEASE_VERSION}" "${IMAGES_NAME}" "${IS_ADDON}" "${ENABLE_ADDON}"
+          
+          echo "Free space:"
+          df -h
+
+      - uses: manyuanrong/setup-ossutil@v2.0
+        with:
+          access-key-id: "${{ env.OSS_KEY_ID }}"
+          access-key-secret: "${{ env.OSS_KEY_SECRET }}"
+          endpoint: "${{ env.OSS_ENDPOINT }}"
+
+      - name: Upload images to oss
+        id: upload_to_oss
+        run: |
+          IMAGE_PKG_NAME="${{ steps.get-image-name.outputs.image-name }}-images-${{ steps.get-version.outputs.release-version }}.tar.gz"
+          ossutil cp -rf ./${IMAGE_PKG_NAME} oss://${{ env.OSS_BUCKET }}/images/${IMAGE_PKG_NAME}
+          upload_ret=$?
+          if [[ $upload_ret -eq 0 ]]; then
+              echo "upload ${IMAGE_PKG_NAME} to oss successfully"
+          else
+              exit 1
+          fi
+
+  save-result:
+    runs-on: ubuntu-latest
+    needs: [ save-images ]
+    if: ${{ always() }}
+    outputs:
+      image-pkg-name: ${{ steps.get_save_result.outputs.image_pkg_name }}
+      save-result: ${{ steps.get_save_result.outputs.save_result }}
+    steps:
+      - name: get save result
+        id: get_save_result
+        run: |
+          SAVE_RESULT="error"
+          IMAGE_PKG_NAME="${{ needs.save-images.outputs.image-name }}-images-${{ needs.save-images.outputs.release-version }}.tar.gz"
+          if [[ "${{ needs.save-images.result }}" == "success" ]]; then
+              SAVE_RESULT="success"
+              IMAGE_PKG_NAME="http://kubeblocks-oss.${{ env.OSS_ENDPOINT }}/images/${IMAGE_PKG_NAME}"
+          fi
+          echo 'save_result='$SAVE_RESULT >> $GITHUB_OUTPUT
+          echo 'image_pkg_name='${IMAGE_PKG_NAME} >> $GITHUB_OUTPUT
+
+  send-message:
+    needs: [ save-result ]
+    if: ${{ always() }}
+    uses: ./.github/workflows/feishui-message.yml
+    with:
+      TYPE: "2"
+      CONTENT: "save image ${{ needs.save-result.outputs.image-pkg-name }} ${{ needs.save-result.outputs.save-result }}"
+      BOT_TYPE: "${{ inputs.BOT_TYPE }}"
+      BOT_WEBHOOK: "${{ inputs.BOT_WEBHOOK }}"
+      APECD_REF: ${{ inputs.APECD_REF }}
+    secrets: inherit

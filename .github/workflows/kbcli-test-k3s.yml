@@ -17,7 +17,7 @@ on:
         greptimedb|nebula|risingwave|starrocks|etcd|foxlake|orioledb|official-pg|asmysql|openldap|
         opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
         oracle|opengauss|influxdb|flink|solr|halo|mogdb|starrocks-ent|apecloud-postgresql|yashandb|polardbx|
-        redis-cluster|camellia-redis-proxy|dmdb|minio)'
+        redis-cluster|camellia-redis-proxy|dmdb|minio|orchestrator)'
         type: string
         required: false
         default: ''
@@ -295,7 +295,7 @@ jobs:
     secrets: inherit
 
   test-foxlake:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'foxlake')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'foxlake')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v1.0.') }}
     needs: [ enable-gke-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
@@ -602,22 +602,8 @@ jobs:
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
     secrets: inherit
 
-  test-doris:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'doris')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.')  }}
-    needs: [ enable-gke-runner ]
-    uses: ./.github/workflows/test-kbcli-k3s.yml
-    with:
-      release-version: "${{ inputs.KB_VERSION }}"
-      previous-version: "${{ inputs.KB_PRE_VERSION }}"
-      test-type: "41"
-      test-type-name: "doris"
-      test-args: "${{ inputs.ARGS }}"
-      branch-name: ${{ inputs.BRANCH_NAME }}
-      k3s-version: ${{ inputs.CLUSTER_VERSION }}
-    secrets: inherit
-
   test-halo:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'halo')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.')  }}
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'halo')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v1.0.')  }}
     needs: [ enable-gke-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
@@ -756,6 +742,20 @@ jobs:
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
     secrets: inherit
 
+  test-orchestrator:
+    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'orchestrator')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    needs: [ enable-gke-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "52"
+      test-type-name: "orchestrator"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
@@ -766,7 +766,7 @@ jobs:
              test-vllm, test-tdengine, test-orioledb, test-official-pg, test-ggml, test-zookeeper,
              test-mariadb, test-tidb, test-xinference, test-oracle, test-opengauss, test-influxdb,
              test-flink, test-solr, test-halo, test-mogdb, test-starrocks-ent, test-apecloud-postgresql,
-             test-yashandb, test-polardbx, test-redis-cluster, test-camellia-redis-proxy, test-dmdb, test-minio]
+             test-yashandb, test-polardbx, test-redis-cluster, test-camellia-redis-proxy, test-dmdb, test-minio, test-orchestrator]
     steps:
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -971,6 +971,10 @@ jobs:
               
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"minio"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##minio|${{ needs.test-minio.outputs.pre-test-result }}"
+              fi 
+
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"orchestrator"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##orchestrator|${{ needs.test-orchestrator.outputs.pre-test-result }}"
               fi 
           fi 
           
@@ -1179,8 +1183,13 @@ jobs:
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"dmdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##dmdb|${{ needs.test-dmdb.outputs.test-result }}"
               fi 
+
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"minio"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##minio|${{ needs.test-minio.outputs.test-result }}"
+              fi
+
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"orchestrator"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##orchestrator|${{ needs.test-orchestrator.outputs.test-result }}"
               fi 
           fi 
           

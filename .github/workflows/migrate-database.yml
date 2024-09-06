@@ -1,0 +1,81 @@
+name: Migrate Database
+
+on:
+  workflow_call:
+    inputs:
+      MIGRATE_PATH:
+        description: "The relative path to your migration folder."
+        type: string
+        required: false
+        default: ''
+      MIGRATE_COMMAND:
+        description: "The  migrate cli command to run."
+        type: string
+        required: false
+        default: 'up'
+      POSTGRESQL_VERSION:
+        description: "Version of PostgreSQL to use."
+        type: string
+        required: false
+        default: '14.12'
+      REPEAT_MIGRATE:
+        description: "Repeat migrate."
+        type: boolean
+        required: false
+        default: false
+      MIGRATE_VERSION:
+        description: "The schema_migrations version."
+        type: string
+        required: false
+        default: ''
+
+env:
+  POSTGRESQL_USER: "postgres"
+  POSTGRESQL_PASSWORD: "postgres"
+  POSTGRESQL_DB: "postgres"
+  POSTGRESQL_DATABASE: "postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable"
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:${{ inputs.POSTGRESQL_VERSION }}
+        env:
+          POSTGRES_USER: ${{ env.POSTGRESQL_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRESQL_PASSWORD }}
+          POSTGRES_DB: ${{ env.POSTGRESQL_DB }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Migrate
+        uses: vovavc/migrate-github-action@v0.2.1
+        with:
+          path: "${{ inputs.MIGRATE_PATH }}"
+          command: "${{ inputs.MIGRATE_COMMAND }}"
+          database: "${{ env.POSTGRESQL_DATABASE }}"
+
+      - name: update schema_migrations version ${{ inputs.MIGRATE_VERSION  }}
+        if: ${{ inputs.REPEAT_MIGRATE && inputs.MIGRATE_VERSION != '' }}
+        env:
+          PGPASSWORD: ${{ env.POSTGRESQL_PASSWORD }}
+        run: |
+          psql -U ${{ env.POSTGRESQL_USER }} -d ${{ env.POSTGRESQL_DB }} -h 127.0.0.1 --quiet -c "UPDATE schema_migrations set version = '${{ inputs.MIGRATE_VERSION }}'"
+        shell: bash
+
+      - name: Migrate 2
+        if: ${{ inputs.REPEAT_MIGRATE }}
+        uses: vovavc/migrate-github-action@v0.2.1
+        with:
+          path: "${{ inputs.MIGRATE_PATH }}"
+          command: "${{ inputs.MIGRATE_COMMAND }}"
+          database: "${{ env.POSTGRESQL_DATABASE }}"

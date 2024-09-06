@@ -23,6 +23,11 @@ on:
         type: string
         required: false
         default: ''
+      APP_VERSION:
+        description: "The app version of helm chart (e.g. v0.4.0)"
+        type: string
+        required: false
+        default: ''
       CHART_NAME:
         description: "The package(repo) name of helm chart (e.g. kubeblocks)"
         type: string
@@ -98,16 +103,22 @@ on:
         type: boolean
         required: false
         default: true
+      SET_REGISTRY:
+        description: "Enable set registry and repository"
+        type: boolean
+        required: false
+        default: false
 
 
 env:
   CR_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  HELM_VERSION: v3.14.4
+  HELM_VERSION: v3.15.4
   JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
   JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   DOCKER_REGISTRY_URL: docker.io
+  ALIYUN_REGISTRY_URL: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
 
 jobs:
   release-chart:
@@ -167,10 +178,13 @@ jobs:
         shell: bash
         run: |
           version="${{ inputs.VERSION }}"
+          app_version="${{ inputs.APP_VERSION }}"
           if [[ "$version" == "v"*  && "${{ inputs.REMOVE_PREFIX }}" == "true" ]]; then
               version="${version/v/}"
+              app_version="${app_version/v/}"
           fi
           echo VERSION=$version >> $GITHUB_OUTPUT
+          echo APP_VERSION=$app_version >> $GITHUB_OUTPUT
 
       - name: Bump helm chart version
         if: inputs.MAKE_OPS
@@ -178,18 +192,29 @@ jobs:
           make ${{ inputs.MAKE_OPS }} \
             VERSION="${{ steps.get_version.outputs.VERSION }}"
 
+      - name: Set registry and repository ${{ env.DOCKER_REGISTRY_URL }}
+        if: ${{ inputs.SET_REGISTRY || inputs.CHART_DIR == 'addons' }}
+        run: |
+          echo "set addons chart registry to apecloud and repogistory to ${{ env.DOCKER_REGISTRY_URL }}"
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
+            "${{ env.DOCKER_REGISTRY_URL }}" "${{ inputs.CHART_DIR }}"
+
       - name: Package Helm Chart
         shell: bash
         run: |
-          CHARS_DIR="${{ inputs.CHART_DIR }}"
-          CHARS_DIR="${CHARS_DIR%/*}"
+          CHART_DIR="${{ inputs.CHART_DIR }}"
+          CHART_DIR="${CHART_DIR%/*}"
           args=()
-          if [[ -n "$CHARS_DIR" ]]; then
-              args+=(--charts-dir "$CHARS_DIR" )
+          if [[ -n "$CHART_DIR" ]]; then
+              args+=(--charts-dir "$CHART_DIR" )
           fi
           
           if [[ -n "${{ steps.get_version.outputs.VERSION }}" ]]; then
               args+=(--release-version "${{ steps.get_version.outputs.VERSION }}" )
+          fi
+          
+          if [[ -n "${{ steps.get_version.outputs.APP_VERSION }}" ]]; then
+              args+=(--app-version "${{ steps.get_version.outputs.APP_VERSION }}" )
           fi
           
           if [[ -n "${{ inputs.SPECIFY_CHART }}" ]]; then
@@ -276,19 +301,6 @@ jobs:
               cp ${{ inputs.DEP_CHART_DIR }}/* .cr-release-packages
           fi
 
-      - name: Upload Helm Charts to Jihulab
-        if: ${{ inputs.PUSH_ENABLE && inputs.ENABLE_JIHU }}
-        run: |
-          ls .cr-release-packages
-          cd .cr-release-packages
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
-            --type 3  \
-            --asset-path ./ \
-            --charts-dir "${{ github.workspace }}/kubeblocks-addons/addons|${{ github.workspace }}/helm-charts/charts|${{ github.workspace }}/deploy" \
-            --access-token "${{ env.JIHULAB_ACCESS_TOKEN }}" \
-            --access-user "${{ env.JIHULAB_ACCESS_USER }}"\
-            --project-id "${{ inputs.PROJECT_ID }}"
-
       - name: Fetch helm-charts History And Configure Git
         if: inputs.PUSH_ENABLE
         run: |
@@ -305,3 +317,62 @@ jobs:
           args=(--owner "apecloud" --repo "helm-charts")
           
           "${{ github.workspace }}/apecloud-cd/.github/utils/helm_release.sh" "${args[@]}"
+
+      - name: Set registry and repository ${{ env.ALIYUN_REGISTRY_URL }}
+        if: ${{ inputs.SET_REGISTRY || inputs.CHART_DIR == 'addons' }}
+        run: |
+          echo "set addons chart registry to apecloud and repogistory to ${{ env.ALIYUN_REGISTRY_URL }}"
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
+            "${{ env.ALIYUN_REGISTRY_URL }}" "${{ inputs.CHART_DIR }}"
+
+      - name: Package Helm Chart
+        shell: bash
+        run: |
+          CHART_DIR="${{ inputs.CHART_DIR }}"
+          CHART_DIR="${CHART_DIR%/*}"
+          args=()
+          if [[ -n "$CHART_DIR" ]]; then
+              args+=(--charts-dir "$CHART_DIR" )
+          fi
+          
+          if [[ -n "${{ steps.get_version.outputs.VERSION }}" ]]; then
+              args+=(--release-version "${{ steps.get_version.outputs.VERSION }}" )
+          fi
+          
+          if [[ -n "${{ inputs.SPECIFY_CHART }}" ]]; then
+              args+=(--specify-chart "${{ inputs.SPECIFY_CHART }}" )
+          fi
+          
+          "${{ github.workspace }}/apecloud-cd/.github/utils/helm_package.sh" "${args[@]}"
+
+      - name: helm lint
+        if: ${{ inputs.SET_REGISTRY || inputs.CHART_DIR == 'addons' }}
+        run: |
+          for chart in $(echo "$(ls .cr-release-packages)"); do
+              echo "helm lint $chart"
+              helm lint .cr-release-packages/$chart
+          done
+
+      - name: check images
+        if: ${{ inputs.CHECK_ENABLE && (inputs.SET_REGISTRY || inputs.CHART_DIR == 'addons') }}
+        run: |
+          check_dockerhub="true"
+          if [[ -z "${{ env.DOCKER_USER }}" || -z "${{ env.DOCKER_PASSWORD }}" ]]; then
+              check_dockerhub="false"
+          fi
+          
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/helm_image_check.sh \
+              .cr-release-packages "${{ inputs.CHART_NAME }}" "${check_dockerhub}" "${{ vars.SKIP_CHECK_IMAGES }}"
+
+      - name: Upload Helm Charts to Jihulab
+        if: ${{ inputs.PUSH_ENABLE && inputs.ENABLE_JIHU }}
+        run: |
+          ls .cr-release-packages
+          cd .cr-release-packages
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
+            --type 3  \
+            --asset-path ./ \
+            --charts-dir "${{ github.workspace }}/kubeblocks-addons/addons|${{ github.workspace }}/helm-charts/charts|${{ github.workspace }}/deploy" \
+            --access-token "${{ env.JIHULAB_ACCESS_TOKEN }}" \
+            --access-user "${{ env.JIHULAB_ACCESS_USER }}"\
+            --project-id "${{ inputs.PROJECT_ID }}"

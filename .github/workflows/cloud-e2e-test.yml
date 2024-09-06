@@ -46,6 +46,7 @@ on:
           - support/fix-bench-test
           - main
 
+
 env:
   ACK_KUBECONFIG_DEMO: ${{ secrets.ACK_KUBECONFIG_DEMO }}
   AUTH0_ID_TOKEN: ${{ secrets.AUTH0_ID_TOKEN }}
