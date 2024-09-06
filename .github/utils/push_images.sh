@@ -111,6 +111,9 @@ push_images() {
             sleep 1
         done
     done
+    echo "
+      Push images done!
+    "
 }
 
 main() {
