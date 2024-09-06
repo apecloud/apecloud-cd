@@ -170,7 +170,7 @@ jobs:
           echo 'RELEASE_COMMIT='${RELEASE_COMMIT} >> $GITHUB_ENV
 
       - name: push changes to new branch
-        if: ${{ github.repository == 'apecloud/apecloud' && needs.get-version.outputs.release-branch == 'main' && steps.get_release_commit.outputs.file_changes && !contains(inputs.RELEASE_VERSION, 'alpha') && !contains(inputs.CONTENT, 'alpha') }}
+        if: ${{ github.repository == 'apecloud/apecloud' && needs.get-version.outputs.release-branch == 'main' && steps.get_release_commit.outputs.file_changes }}
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ env.GH_TOKEN }}
