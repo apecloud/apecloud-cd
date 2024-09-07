@@ -4,10 +4,10 @@ on:
   workflow_call:
     inputs:
       cloud-provider:
-        description: 'cloud k8s cluster provider (e.g. eks/gke/aks/aks-cn)'
+        description: 'cloud k8s cluster provider (e.g. vke/eks/gke/aks/aks-cn)'
         type: string
         required: false
-        default: 'eks'
+        default: 'vke'
       release-version:
         description: 'kubeblocks release version'
         type: string
@@ -35,6 +35,11 @@ on:
         default: ''
       k8s-cluster-name:
         description: 'k8s cluster name'
+        type: string
+        required: false
+        default: ''
+      k8s-cluster-kubeconfig:
+        description: 'k8s cluster kubeconfig'
         type: string
         required: false
         default: ''
@@ -154,6 +159,13 @@ jobs:
         with:
           resource-group: '${{ inputs.k8s-cluster-name }}-group'
           cluster-name: '${{ inputs.k8s-cluster-name }}'
+
+      - name: Configure K8S Context
+        if: ${{ k8s-cluster-kubeconfig != '' }}
+        run: |
+          mkdir -p $HOME/.kube
+          touch $HOME/.kube/config
+          echo '${{ inputs.k8s-cluster-kubeconfig }}' > $HOME/.kube/config
 
       - name: run test ${{ inputs.test-type-name }}
         id: kbcli_test

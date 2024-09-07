@@ -74,10 +74,10 @@ on:
         required: false
         default: ''
       K3S_VERSION:
-        description: "The version of K3S (default: v1.26)"
+        description: "The version of K3S (default: v1.30)"
         type: string
         required: false
-        default: 'v1.26'
+        default: 'v1.30'
       MAKE_OPS_POST:
         description: "The post ops name of makefile"
         type: string

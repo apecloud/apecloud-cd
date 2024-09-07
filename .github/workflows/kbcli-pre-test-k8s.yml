@@ -4,10 +4,10 @@ on:
   workflow_call:
     inputs:
       cloud-provider:
-        description: 'cloud k8s cluster provider (e.g. eks/gke/aks)'
+        description: 'cloud k8s cluster provider (e.g. vke/eks/gke/aks)'
         type: string
         required: false
-        default: 'eks'
+        default: 'vke'
       release-version:
         description: 'kubeblocks release version'
         type: string
@@ -47,6 +47,11 @@ on:
         type: string
         required: false
         default: ''
+      k8s-cluster-kubeconfig:
+        description: 'k8s cluster kubeconfig'
+        type: string
+        required: false
+        default: ''
     outputs:
       test-result:
         description: "test result"
@@ -75,6 +80,7 @@ jobs:
       test-type-name: "install-kubeblocks-pre"
       test-args: "--enable-addon kubebench ${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
     secrets: inherit
 
@@ -90,6 +96,7 @@ jobs:
       test-type-name: "apecloud-mysql-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -106,6 +113,7 @@ jobs:
       test-type-name: "smartengine-pre"
       test-args: "--smartengine true ${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -122,6 +130,7 @@ jobs:
       test-type-name: "mysqlscale-pre"
       test-args: "--enable-proxy true ${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -138,6 +147,7 @@ jobs:
       test-type-name: "postgresql-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -154,6 +164,7 @@ jobs:
       test-type-name: "redis-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -170,6 +181,7 @@ jobs:
       test-type-name: "mongodb-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -186,6 +198,7 @@ jobs:
       test-type-name: "kafka-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -202,6 +215,7 @@ jobs:
       test-type-name: "pulsar-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -218,6 +232,7 @@ jobs:
       test-type-name: "weaviate-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -234,6 +249,7 @@ jobs:
       test-type-name: "qdrant-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -250,6 +266,7 @@ jobs:
       test-type-name: "greptimedb-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -266,6 +283,7 @@ jobs:
       test-type-name: "nebula-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -282,6 +300,7 @@ jobs:
       test-type-name: "risingwave-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -298,6 +317,7 @@ jobs:
       test-type-name: "starrocks-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -314,6 +334,7 @@ jobs:
       test-type-name: "etcd-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -330,6 +351,7 @@ jobs:
       test-type-name: "oceanbase-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -346,6 +368,7 @@ jobs:
       test-type-name: "foxlake-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -362,6 +385,7 @@ jobs:
       test-type-name: "orioledb-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -378,6 +402,7 @@ jobs:
       test-type-name: "official-pg-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -394,6 +419,7 @@ jobs:
       test-type-name: "asmysql-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -410,6 +436,7 @@ jobs:
       test-type-name: "openldap-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -426,6 +453,7 @@ jobs:
       test-type-name: "polardbx-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -442,6 +470,7 @@ jobs:
       test-type-name: "opensearch-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -458,6 +487,7 @@ jobs:
       test-type-name: "elasticsearch-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -474,6 +504,7 @@ jobs:
       test-type-name: "vllm-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -490,6 +521,7 @@ jobs:
       test-type-name: "tdengine-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -506,6 +538,7 @@ jobs:
       test-type-name: "milvus-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -522,6 +555,7 @@ jobs:
       test-type-name: "clickhouse-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -538,6 +572,7 @@ jobs:
       test-type-name: "pika-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -554,6 +589,7 @@ jobs:
       test-type-name: "ggml-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -570,6 +606,7 @@ jobs:
       test-type-name: "zookeeper-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -586,6 +623,7 @@ jobs:
       test-type-name: "mariadb-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -602,6 +640,7 @@ jobs:
       test-type-name: "tidb-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -618,6 +657,7 @@ jobs:
       test-type-name: "xinference-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -634,6 +674,7 @@ jobs:
       test-type-name: "oracle"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -650,6 +691,7 @@ jobs:
       test-type-name: "opengauss-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -666,6 +708,7 @@ jobs:
       test-type-name: "influxdb-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -682,6 +725,7 @@ jobs:
       test-type-name: "flink-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -698,6 +742,7 @@ jobs:
       test-type-name: "solr-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -714,6 +759,7 @@ jobs:
       test-type-name: "halo-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -730,6 +776,7 @@ jobs:
       test-type-name: "mogdb-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -746,6 +793,7 @@ jobs:
       test-type-name: "oceanbase-ent-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -762,6 +810,7 @@ jobs:
       test-type-name: "starrocks-ent-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -778,6 +827,7 @@ jobs:
       test-type-name: "apecloud-postgresql-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -794,6 +844,7 @@ jobs:
       test-type-name: "yashandb-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -810,6 +861,7 @@ jobs:
       test-type-name: "redis-cluster-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -826,6 +878,7 @@ jobs:
       test-type-name: "camellia-redis-proxy-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -842,6 +895,7 @@ jobs:
       test-type-name: "dmdb-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -858,6 +912,7 @@ jobs:
       test-type-name: "minio-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -874,6 +929,7 @@ jobs:
       test-type-name: "orchestrator-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
@@ -1136,6 +1192,7 @@ jobs:
       test-type-name: "install-kubeblocks"
       test-args: "--config-s3 true --upgrade true ${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ inputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit

@@ -14,10 +14,10 @@ on:
         required: false
         default: 'latest'
       K3S_VERSION:
-        description: 'k8s cluster version (e.g. 1.26)'
+        description: 'k8s cluster version (e.g. 1.30)'
         type: string
         required: false
-        default: '1.26'
+        default: '1.30'
       APECLOUD_BRANCH:
         description: 'apecloud branch name'
         type: string
@@ -56,10 +56,10 @@ on:
         required: false
         default: 'latest'
       K3S_VERSION:
-        description: 'k8s cluster version (e.g. 1.26)'
+        description: 'k8s cluster version (e.g. 1.30)'
         type: string
         required: false
-        default: '1.26'
+        default: '1.30'
       APECLOUD_BRANCH:
         description: 'apecloud branch name'
         type: string
