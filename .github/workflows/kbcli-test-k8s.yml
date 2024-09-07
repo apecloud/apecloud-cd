@@ -26,9 +26,9 @@ on:
         required: false
         default: ''
       CLUSTER_VERSION:
-        description: 'k8s cluster version (e.g. 1.26)'
+        description: 'k8s cluster version (e.g. 1.30)'
         required: false
-        default: '1.26'
+        default: '1.30'
       REGION:
         description: 'k8s region name'
         required: false
@@ -75,7 +75,7 @@ on:
         description: 'k8s cluster version'
         type: string
         required: false
-        default: '1.26'
+        default: '1.30'
       REGION:
         description: 'k8s region name'
         type: string
@@ -113,7 +113,7 @@ permissions:
 
 jobs:
   test-playground:
-    if: ${{ inputs.TEST_TYPE == '' }}
+    if: ${{ inputs.TEST_TYPE == '' && inputs.CLOUD_PROVIDER != 'vke' }}
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -149,6 +149,7 @@ jobs:
       test-type: "${{ inputs.TEST_TYPE }}"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
 
@@ -165,6 +166,7 @@ jobs:
       test-type-name: "apecloud-mysql"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -182,6 +184,7 @@ jobs:
       test-type-name: "postgresql"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -199,6 +202,7 @@ jobs:
       test-type-name: "redis"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -216,6 +220,7 @@ jobs:
       test-type-name: "mongodb"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -233,6 +238,7 @@ jobs:
       test-type-name: "kafka"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -250,6 +256,7 @@ jobs:
       test-type-name: "pulsar"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -267,6 +274,7 @@ jobs:
       test-type-name: "mysqlscale"
       test-args: "--enable-proxy true ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -284,6 +292,7 @@ jobs:
       test-type-name: "weaviate"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -301,6 +310,7 @@ jobs:
       test-type-name: "qdrant"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -318,6 +328,7 @@ jobs:
       test-type-name: "smartengine"
       test-args: "--smartengine true ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -335,6 +346,7 @@ jobs:
       test-type-name: "greptimedb"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -352,6 +364,7 @@ jobs:
       test-type-name: "nebula"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -369,6 +382,7 @@ jobs:
       test-type-name: "risingwave"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -386,6 +400,7 @@ jobs:
       test-type-name: "starrocks"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -403,6 +418,7 @@ jobs:
       test-type-name: "etcd"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -420,6 +436,7 @@ jobs:
       test-type-name: "oceanbase"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -437,6 +454,7 @@ jobs:
       test-type-name: "foxlake"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -454,6 +472,7 @@ jobs:
       test-type-name: "orioledb"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -471,6 +490,7 @@ jobs:
       test-type-name: "official-pg"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -488,6 +508,7 @@ jobs:
       test-type-name: "asmysql"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -505,6 +526,7 @@ jobs:
       test-type-name: "openldap"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -522,6 +544,7 @@ jobs:
       test-type-name: "polardbx"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -539,6 +562,7 @@ jobs:
       test-type-name: "opensearch"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -556,6 +580,7 @@ jobs:
       test-type-name: "elasticsearch"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -573,6 +598,7 @@ jobs:
       test-type-name: "vllm"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -590,6 +616,7 @@ jobs:
       test-type-name: "tdengine"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -607,6 +634,7 @@ jobs:
       test-type-name: "milvus"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -624,6 +652,7 @@ jobs:
       test-type-name: "clickhouse"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -641,6 +670,7 @@ jobs:
       test-type-name: "pika"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -658,6 +688,7 @@ jobs:
       test-type-name: "ggml"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -675,6 +706,7 @@ jobs:
       test-type-name: "zookeeper"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -692,6 +724,7 @@ jobs:
       test-type-name: "mariadb"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -709,6 +742,7 @@ jobs:
       test-type-name: "tidb"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -726,6 +760,7 @@ jobs:
       test-type-name: "xinference"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -743,6 +778,7 @@ jobs:
       test-type-name: "oracle"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -760,6 +796,7 @@ jobs:
       test-type-name: "opengauss"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -777,6 +814,7 @@ jobs:
       test-type-name: "influxdb"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -794,6 +832,7 @@ jobs:
       test-type-name: "flink"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -811,6 +850,7 @@ jobs:
       test-type-name: "solr"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -828,6 +868,7 @@ jobs:
       test-type-name: "halo"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -845,6 +886,7 @@ jobs:
       test-type-name: "mogdb"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -862,6 +904,7 @@ jobs:
       test-type-name: "oceanbase-ent"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -879,6 +922,7 @@ jobs:
       test-type-name: "starrocks-ent"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -896,6 +940,7 @@ jobs:
       test-type-name: "apecloud-postgresql"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -913,6 +958,7 @@ jobs:
       test-type-name: "yashandb"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -930,6 +976,7 @@ jobs:
       test-type-name: "redis-cluster"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -947,6 +994,7 @@ jobs:
       test-type-name: "camellia-redis-proxy"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -964,6 +1012,7 @@ jobs:
       test-type-name: "dmdb"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -981,6 +1030,7 @@ jobs:
       test-type-name: "minio"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
@@ -998,6 +1048,7 @@ jobs:
       test-type-name: "orchestrator"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-kubeconfig }}
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit

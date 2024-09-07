@@ -4,12 +4,12 @@ on:
   workflow_call:
     inputs:
       cloud-provider:
-        description: 'cloud k8s cluster provider (e.g. eks/gke/aks/aks-cn)'
+        description: 'cloud k8s cluster provider (e.g. vke/eks/gke/aks/aks-cn)'
         type: string
         required: false
-        default: 'eks'
+        default: 'vke'
       cluster-version:
-        description: 'k8s cluster version (e.g. 1.26)'
+        description: 'k8s cluster version (e.g. 1.30)'
         type: string
         required: false
         default: ''
@@ -72,6 +72,9 @@ on:
       k8s-cluster-name:
         description: "k8s cluster name"
         value: ${{ jobs.terraform-init.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig:
+        description: "k8s cluster kubeconfig"
+        value: ${{ jobs.terraform-init.outputs.k8s-cluster-kubeconfig }}
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -80,6 +83,8 @@ env:
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
   AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
   AZURE_CREDENTIALS_CN: ${{ secrets.AZURE_CREDENTIALS_CN }}
+  VOLCENGIUNE_ACCESS_KEY: ${{ secrets.VOLCENGIUNE_ACCESS_KEY }}
+  VOLCENGIUNE_SECRET_KEY: ${{ secrets.VOLCENGIUNE_SECRET_KEY }}
 
 permissions:
   id-token: write
@@ -90,6 +95,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       k8s-cluster-name: ${{ steps.terraform_init.outputs.k8s-cluster-name }}
+      k8s-cluster-kubeconfig: ${{ steps.terraform_init.outputs.k8s-cluster-kubeconfig }}
     steps:
       - name: checkout cloud-provider
         uses: actions/checkout@v4
@@ -136,6 +142,8 @@ jobs:
               DEPLOY_PATH="./aws/eks-default-vpc-multinode"
           elif [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
               DEPLOY_PATH="./aws/eks-default-vpc"
+          elif [[ "${{ inputs.cloud-provider }}" == "vke" ]]; then
+              DEPLOY_PATH="./volcengine/vke-cicd"
           elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
               DEPLOY_PATH="./gcp/gke-cicd"
           elif [[ "${{ inputs.cloud-provider }}" == "aks" ]]; then
@@ -174,6 +182,8 @@ jobs:
                   else
                       NODE_TYPE="t3a.medium"
                   fi
+              elif [[ "${{ inputs.cloud-provider }}" == "vke" ]]; then
+                  NODE_TYPE="ecs.g2a.large"
               elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
                   if [[ "${{ inputs.instance-type }}" == "arm64" ]]; then
                       NODE_TYPE=t2a-standard-2
@@ -191,13 +201,13 @@ jobs:
           fi
           
           NODE_SIZE="${{ inputs.node-size }}"
-          if [[ ("${{ inputs.cloud-provider }}" == "eks" || "${{ inputs.cloud-provider }}" == "aks" || "${{ inputs.cloud-provider }}" == "aks-cn" ) && -n "${COUNTS}" && -z "${NODE_SIZE}" ]]; then
+          if [[ ("${{ inputs.cloud-provider }}" == "eks" || "${{ inputs.cloud-provider }}" == "vke" || "${{ inputs.cloud-provider }}" == "aks" || "${{ inputs.cloud-provider }}" == "aks-cn" ) && -n "${COUNTS}" && -z "${NODE_SIZE}" ]]; then
               NODE_SIZE="$(( $COUNTS * 2 ))"
           elif [[ "${{ inputs.cloud-provider }}" == "gke" && -n "${COUNTS}" && -z "${NODE_SIZE}" ]]; then
               NODE_SIZE="$(( $COUNTS / 4 + 1 ))"
           fi
           
-          if [[ ("${{ inputs.cloud-provider }}" == "eks" || "${{ inputs.cloud-provider }}" == "aks" || "${{ inputs.cloud-provider }}" == "aks-cn" ) && -z "${NODE_SIZE}" && -z "${{ inputs.test-mode }}" ]]; then
+          if [[ ("${{ inputs.cloud-provider }}" == "eks" || "${{ inputs.cloud-provider }}" == "vke" || "${{ inputs.cloud-provider }}" == "aks" || "${{ inputs.cloud-provider }}" == "aks-cn" ) && -z "${NODE_SIZE}" && -z "${{ inputs.test-mode }}" ]]; then
               if [[ "${{ inputs.kb-version }}" == "v0.5."* ]]; then
                   NODE_SIZE=4
               elif [[ "${{ inputs.kb-version }}" == "v0.6."* ]]; then
@@ -252,7 +262,17 @@ jobs:
               cmd="${cmd} --disk-size ${{ inputs.disk-size }} "
           fi
           
-          if [[ "${{ inputs.cloud-provider }}" == "aks" && -n "${{ env.AZURE_CREDENTIALS }}" ]]; then
+          if [[ "${{ inputs.cloud-provider }}" == "vke" ]]; then
+              VOLCENGIUNE_ACCESS_KEY="${{ env.VOLCENGIUNE_ACCESS_KEY }}"
+              VOLCENGIUNE_SECRET_KEY="${{ env.VOLCENGIUNE_SECRET_KEY }}"
+              if [[ -n "${VOLCENGIUNE_ACCESS_KEY}" ]]; then
+                  cmd="${cmd} --access-key \"${VOLCENGIUNE_ACCESS_KEY}\" "
+              fi
+          
+              if [[ -n "${VOLCENGIUNE_SECRET_KEY}" ]]; then
+                  cmd="${cmd} --secret-key \"${VOLCENGIUNE_SECRET_KEY}\" "
+              fi
+          elif [[ "${{ inputs.cloud-provider }}" == "aks" && -n "${{ env.AZURE_CREDENTIALS }}" ]]; then
               APP_ID="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientId' -)"
               APP_PASSWORD="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientSecret' -)"
               if [[ -n "${APP_ID}" ]]; then
@@ -279,6 +299,13 @@ jobs:
           K8S_CLUSTER_NAME="$(cat terraform.tfstate | yq eval '.outputs.cluster_name.value' -)"
           echo "k8s-cluster-name:${K8S_CLUSTER_NAME}"
           echo k8s-cluster-name=${K8S_CLUSTER_NAME} >> $GITHUB_OUTPUT
+          
+          K8S_CLUSTER_KUBECONFIG=""
+          if [[ "${{ inputs.cloud-provider }}" == "vke" ]]; then
+              echo "output vke k8s-cluster-kubeconfig"
+              K8S_CLUSTER_KUBECONFIG="$(cat terraform.tfstate | yq eval '.resources[].instances.[].attributes.kubeconfigs[].kubeconfig' | base64 -d)"
+          fi
+          echo k8s-cluster-kubeconfig=${K8S_CLUSTER_KUBECONFIG} >> $GITHUB_OUTPUT
 
       - name: upload artifact
         uses: actions/upload-artifact@v3
