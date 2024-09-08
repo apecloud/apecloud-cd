@@ -38,8 +38,8 @@ on:
         type: string
         required: false
         default: ''
-      k8s-cluster-kubeconfig:
-        description: 'k8s cluster kubeconfig'
+      artifact-name:
+        description: 'terraform artifact name'
         type: string
         required: false
         default: ''
@@ -160,12 +160,21 @@ jobs:
           resource-group: '${{ inputs.k8s-cluster-name }}-group'
           cluster-name: '${{ inputs.k8s-cluster-name }}'
 
+      - name: download vke artifact
+        if:  ${{ inputs.cloud-provider == 'vke' }}
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ./volcengine/vke-cicd
+
       - name: Configure K8S Context
-        if: ${{ inputs.k8s-cluster-kubeconfig != '' }}
+        if: ${{ inputs.cloud-provider == 'vke' }}
         run: |
+          cd ./volcengine/vke-cicd
+          K8S_CLUSTER_KUBECONFIG="$(cat terraform.tfstate | yq eval '.resources[].instances.[].attributes.kubeconfigs[].kubeconfig' | base64 -d)"
           mkdir -p $HOME/.kube
           touch $HOME/.kube/config
-          echo '${{ inputs.k8s-cluster-kubeconfig }}' > $HOME/.kube/config
+          echo "${K8S_CLUSTER_KUBECONFIG}" > $HOME/.kube/config
 
       - name: run test ${{ inputs.test-type-name }}
         id: kbcli_test
