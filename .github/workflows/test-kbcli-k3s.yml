@@ -34,10 +34,10 @@ on:
         required: false
         default: ''
       k3s-version:
-        description: 'k3s cluster version (e.g. 1.30)'
+        description: 'k3s cluster version (e.g. 1.28)'
         type: string
         required: false
-        default: '1.30'
+        default: '1.28'
     outputs:
       pre-test-result:
         description: "pre test result"

@@ -9,7 +9,7 @@ on:
         required: false
         default: 'vke'
       cluster-version:
-        description: 'k8s cluster version (e.g. 1.30)'
+        description: 'k8s cluster version (e.g. 1.28)'
         type: string
         required: false
         default: ''
