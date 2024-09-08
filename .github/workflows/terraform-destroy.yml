@@ -17,7 +17,7 @@ on:
         description: 'k8s region name'
         type: string
         required: false
-        default: 'cn-northwest-1'
+        default: 'cn-shanghai'
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
