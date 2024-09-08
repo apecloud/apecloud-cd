@@ -176,7 +176,7 @@ jobs:
           cluster-name: '${{ inputs.k8s-cluster-name }}'
 
       - name: Configure K8S Context
-        if: ${{ k8s-cluster-kubeconfig != '' }}
+        if: ${{ inputs.k8s-cluster-kubeconfig != '' }}
         run: |
           mkdir -p $HOME/.kube
           touch $HOME/.kube/config
