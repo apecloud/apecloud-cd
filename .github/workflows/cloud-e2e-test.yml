@@ -34,17 +34,14 @@ on:
           - mogdb
       ENGINE_MODE:
         description: 'engine mode(default:ALL)'
-        default: ''
+        default: 'ALL'
         type: string
       e2etest-branch:
         description: 'e2etest branch name'
         required: true
         default: 'main'
-        type: choice
-        options:
-          - support/adjust-e2e-1
-          - support/fix-bench-test
-          - main
+        type: string
+
 
 
 env:
@@ -98,6 +95,7 @@ jobs:
       matrix:
         engine_type: ${{ fromJSON(needs.setup.outputs.engine_types) }}
       max-parallel: 5
+      fail-fast: false
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go
@@ -145,11 +143,6 @@ jobs:
               KUBECONFIG=$HOME/.kube/config \
               test-e2e-apecloud
           EXIT_CODE=$?
-          if [ "$EXIT_CODE" -eq 0 ]; then
-            echo "::set-output name=status::success"
-          else
-            echo "::set-output name=status::failure"
-          fi
           echo "TEST_EXIT_CODE=$EXIT_CODE" >> $GITHUB_ENV
 
       - name: Record test result
