@@ -179,7 +179,7 @@ jobs:
                       NODE_TYPE="t3a.medium"
                   fi
               elif [[ "${{ inputs.cloud-provider }}" == "vke" ]]; then
-                  NODE_TYPE="ecs.g2a.large"
+                  NODE_TYPE="ecs.g3a.large"
               elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
                   if [[ "${{ inputs.instance-type }}" == "arm64" ]]; then
                       NODE_TYPE=t2a-standard-2
