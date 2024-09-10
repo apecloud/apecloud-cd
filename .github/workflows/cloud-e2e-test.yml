@@ -16,22 +16,10 @@ on:
         required: true
         default: 'demotest'
       ENGINE_TYPE:
-        description: 'engine type(If select "ALL" will test all engines.)'
+        description: 'engine type(eg: wesql|redis|mysql-80|mysql-57|postgres|starrocks|mongodb|kafka|oceanbase|mogdb|rabbitmq|qdrant|minio|dmdb|zookeeper)'
         required: true
-        default: ''
-        type: choice
-        options:
-          - ALL
-          - wesql
-          - mysql-57
-          - mysql-80
-          - redis
-          - postgres
-          - starrocks
-          - mongodb
-          - kafka
-          - oceanbase
-          - mogdb
+        default: 'ALL'
+        type: string
       ENGINE_MODE:
         description: 'engine mode(default:ALL)'
         default: 'ALL'
@@ -70,11 +58,7 @@ jobs:
         id: set_engine_types
         run: |
           engine_type="${{ inputs.ENGINE_TYPE }}"
-          if [ "$engine_type" == "ALL" ]; then
-            engines='["wesql","mysql-57","mysql-80","redis","postgres","starrocks","mongodb","kafka","oceanbase","mogdb"]'
-          else
-            engines=$(printf '%s' "$engine_type" | jq -R . | jq -s -c .)
-          fi
+          engines=$(echo "$engine_type" | tr '|' '\n' | jq -R . | jq -c -s .)
           echo "engines=${engines}" >> "$GITHUB_OUTPUT"
 
 
@@ -173,7 +157,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: apecloud/apecloud-cd
-          ref: "support/cloud-e2e-test-1"
+          ref: 'main'
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: send message
