@@ -44,6 +44,8 @@ Usage: $(basename "$0") <options>
                                 31) check release version
                                 32) generate image yaml apecloud
                                 33) set label
+                                34) get e2e tes _result
+                                35) bump chart version
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -742,7 +744,49 @@ check_release_version(){
     done
 }
 
+bump_chart_version() {
+    if [[ -z "${VERSION}" ]]; then
+        echo "bump chart version is empty"
+        return
+    fi
 
+    chart_name=""
+    chart_version=""
+    for chart_tmp in $(echo "$VERSION" | sed 's/-/ /g'); do
+        if [[ -z "${chart_name}" && -z "${chart_version}" ]]; then
+            chart_name="${chart_tmp}"
+        elif [[ -n "${chart_version}" ]]; then
+            chart_version="${chart_version}-${chart_tmp}"
+        elif [[ "${chart_tmp}" == *"."*"."*"" ]]; then
+            chart_version="${chart_tmp}"
+        elif [[ -n "${chart_name}" ]]; then
+            chart_name="${chart_name}-${chart_tmp}"
+        fi
+    done
+
+    chart_file_dir="deploy"
+    if [[ "$IMAGES" == *"apecloud-charts" || "$IMAGES" == *"apecloud-addon-charts" ]]; then
+        chart_file_dir="addons"
+    fi
+
+    chart_file_dir="${chart_file_dir}/${chart_name}/Chart.yaml"
+
+    if [[ ! -f "${chart_file_dir}" ]]; then
+        echo "Not found Chart.yaml file: ${chart_file_dir}"
+        return
+    fi
+
+    if [[ -z "${chart_version}" ]]; then
+        echo "Chart version is empty"
+        return
+    fi
+
+    if [[ "$UNAME" == "Darwin" ]]; then
+        sed -i '' "s/^version:.*/version: ${chart_version}/" "${chart_file_dir}"
+    else
+        sed -i "s/^version:.*/version: ${chart_version}/" "${chart_file_dir}"
+    fi
+}
 
 parse_command_line() {
     while :; do
@@ -928,6 +972,7 @@ main() {
     local REGISTRY=$REGISTRY_DEFAULT
     local LABEL_NAME=""
     local LABEL_OPS=""
+    local UNAME="$(uname -s)"
 
     parse_command_line "$@"
 
@@ -1044,6 +1089,9 @@ main() {
         ;;
         34)
             get_e2e_test_result
+        ;;
+        35)
+            bump_chart_version
         ;;
     esac
 }
