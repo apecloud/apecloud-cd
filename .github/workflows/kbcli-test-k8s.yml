@@ -32,7 +32,7 @@ on:
       REGION:
         description: 'k8s region name'
         required: false
-        default: 'cn-shanghai'
+        default: 'ap-southeast-1'
       INSTANCE_TYPE:
         description: 'node instance types (e.g. amd64/arm64)'
         required: false
@@ -80,7 +80,7 @@ on:
         description: 'k8s region name'
         type: string
         required: false
-        default: 'cn-shanghai'
+        default: 'ap-southeast-1'
       INSTANCE_TYPE:
         description: 'node instance types'
         type: string
