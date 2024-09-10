@@ -28,6 +28,11 @@ on:
         type: string
         required: false
         default: 'main'
+      ADDON_BRANCH:
+        description: "The branch of addon"
+        type: string
+        required: false
+        default: ''
   workflow_call:
     inputs:
       MANIFESTS_FILE:
@@ -55,6 +60,11 @@ on:
         type: string
         required: false
         default: 'main'
+      ADDON_BRANCH:
+        description: "The branch of addon"
+        type: string
+        required: false
+        default: ''
 
 
 run-name: update manifests ${{ inputs.RELEASE_VERSION }}
@@ -86,6 +96,24 @@ jobs:
           path: apecloud-cd
           token: ${{ env.GH_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
+
+      - name: Checkout kubeblocks-addons Code
+        uses: actions/checkout@v4
+        if: ${{ inputs.ADDON_BRANCH != '' }}
+        with:
+          repository: apecloud/kubeblocks-addons
+          path: kubeblocks-addons
+          token: ${{ env.GH_TOKEN }}
+          ref: ${{ inputs.ADDON_BRANCH }}
+
+      - name: Checkout apecloud-addons Code
+        uses: actions/checkout@v4
+        if: ${{ inputs.ADDON_BRANCH != '' }}
+        with:
+          repository: apecloud/apecloud-addons
+          path: apecloud-addons
+          token: ${{ env.GH_TOKEN }}
+          ref: ${{ inputs.ADDON_BRANCH }}
 
       - name: get ref name
         id: get_ref_name

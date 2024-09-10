@@ -28,7 +28,7 @@ save_charts_package() {
             if [[ -z "$chart_name" || "$chart_name" == "#"* || "$chart_name" == "kata" ]]; then
                 continue
             fi
-            ent_flag=$(yq e "."${chart_name}"[0].isEnterprise"  ${MANIFESTS_FILE})
+            is_enterprise=$(yq e "."${chart_name}"[0].isEnterprise"  ${MANIFESTS_FILE})
             chart_version=$(yq e "."${chart_name}"[0].version"  ${MANIFESTS_FILE})
             chart_tmp="${chart_name}-${chart_version}"
             case $chart_name in
@@ -47,7 +47,7 @@ save_charts_package() {
 
             echo "fetch chart $chart_tmp"
             for j in {1..10}; do
-                if [[ "$ent_flag" == "true" ]]; then
+                if [[ "$is_enterprise" == "true" ]]; then
                     helm pull -d ${KB_CHART_NAME} ${ENT_REPO_NAME}/${chart_name} --version ${chart_version}
                 else
                     helm fetch -d ${KB_CHART_NAME} "$REPO_URL/${chart_tmp}/${chart_tmp}.tgz"

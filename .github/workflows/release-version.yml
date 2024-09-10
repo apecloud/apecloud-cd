@@ -28,6 +28,11 @@ on:
         type: string
         required: false
         default: ''
+      ADDON_BRANCH:
+        description: "The branch of addon"
+        type: string
+        required: false
+        default: ''
     outputs:
       release-version:
         description: "release version"
@@ -55,6 +60,11 @@ on:
         default: 'release'
       GO_VERSION:
         description: "Install the specify version of GO"
+        type: string
+        required: false
+        default: ''
+      ADDON_BRANCH:
+        description: "The branch of addon"
         type: string
         required: false
         default: ''
@@ -143,6 +153,24 @@ jobs:
           path: apecloud-cd
           token: ${{ env.GH_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
+
+      - name: Checkout kubeblocks-addons Code
+        uses: actions/checkout@v4
+        if: ${{ github.repository == 'apecloud/apecloud' && inputs.ADDON_BRANCH != '' }}
+        with:
+          repository: apecloud/kubeblocks-addons
+          path: kubeblocks-addons
+          token: ${{ env.GH_TOKEN }}
+          ref: ${{ inputs.ADDON_BRANCH }}
+
+      - name: Checkout apecloud-addons Code
+        uses: actions/checkout@v4
+        if: ${{ github.repository == 'apecloud/apecloud' && inputs.ADDON_BRANCH != '' }}
+        with:
+          repository: apecloud/apecloud-addons
+          path: apecloud-addons
+          token: ${{ env.GH_TOKEN }}
+          ref: ${{ inputs.ADDON_BRANCH }}
 
       - name: get release commit
         id: get_release_commit
