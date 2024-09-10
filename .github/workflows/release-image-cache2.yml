@@ -214,7 +214,7 @@ jobs:
         if: ${{ (inputs.IMG == 'apecloud/apecloud-charts' || inputs.IMG == 'apecloud/apecloud-addon-charts') }}
         run: |
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
-              --type 35 --version ${{ inpurts.VERSION }} --images "${{ inputs.IMG }}"
+              --type 35 --version ${{ inputs.VERSION }} --images "${{ inputs.IMG }}"
 
       - name: Set registry and repository ${{ env.DOCKER_REGISTRY_URL }}
         if: ${{ (inputs.IMG == 'apecloud/apecloud-charts' || inputs.IMG == 'apecloud/apecloud-addon-charts') && env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
