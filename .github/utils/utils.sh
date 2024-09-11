@@ -2,7 +2,7 @@
 
 set -o nounset
 
-DEFAULT_DELETE_FORCE="false"
+DEFAULT_DELETE_FORCE="true"
 REGISTRY_DEFAULT=docker.io
 
 show_help() {
