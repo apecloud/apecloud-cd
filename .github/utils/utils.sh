@@ -224,7 +224,7 @@ filter_charts() {
 
 delete_release_charts() {
     local DELETE_CHARTS_DIR=""
-    for charts_dir in $(echo "deploy|helm-charts/charts|kubeblocks-addons/addons" | sed 's/|/ /g'); do
+    for charts_dir in $(echo "deploy" | sed 's/|/ /g'); do
         if [[ ! -d "$charts_dir" ]]; then
             echo "not found chart dir $charts_dir"
             continue
@@ -233,6 +233,16 @@ delete_release_charts() {
         charts_files=$( ls -1 $charts_dir )
         echo "$charts_files" | filter_charts
     done
+}
+
+delete_kubeblocks_release_chart() {
+    chart_file="deploy/helm/Chart.yaml"
+    if [[ -f "$chart_file" ]]; then
+        chart_name=$(cat $chart_file | yq eval '.name' -)
+        echo "delete chart $chart_name-$TAG_NAME_TMP"
+        TAG_NAME="$chart_name-$TAG_NAME_TMP"
+        delete_release_version
+    fi
 }
 
 delete_docker_images() {
@@ -1013,7 +1023,8 @@ main() {
             delete_release_version
         ;;
         9)
-            delete_release_charts
+            #delete_release_charts
+            delete_kubeblocks_release_chart
         ;;
         10)
             delete_docker_images

@@ -49,16 +49,16 @@ jobs:
                   --github-token ${{ env.GITHUB_TOKEN }}
           done
 
-      - name: delete github kubeblocks-addons tag
-        if: ${{ always() }}
-        run: |
-          for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
-              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
-                  --type 29 \
-                  --github-repo apecloud/kubeblocks-addons \
-                  --tag-name $release \
-                  --github-token ${{ env.GITHUB_TOKEN }}
-          done
+#      - name: delete github kubeblocks-addons tag
+#        if: ${{ always() }}
+#        run: |
+#          for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
+#              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+#                  --type 29 \
+#                  --github-repo apecloud/kubeblocks-addons \
+#                  --tag-name $release \
+#                  --github-token ${{ env.GITHUB_TOKEN }}
+#          done
 
       - name: delete Jihulab kubeblocks release
         if: ${{ always() }}
@@ -93,13 +93,6 @@ jobs:
           path: apecloud-cd
           ref: ${{ inputs.APECD_REF }}
 
-      - name: Checkout kubeblocks-addons Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/kubeblocks-addons
-          path: kubeblocks-addons
-          token:  ${{ env.GITHUB_TOKEN }}
-
       - name: delete github helm chart release
         run: |
           for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
@@ -117,7 +110,7 @@ jobs:
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
                   --type 6 \
                   --tag-name $release \
-                  --charts-dir "${{ github.workspace }}/kubeblocks-addons/addons|${{ github.workspace }}/helm-charts/charts|${{ github.workspace }}/deploy" \
+                  --charts-dir "${{ github.workspace }}/deploy" \
                   --access-token ${{ env.JIHULAB_ACCESS_TOKEN }}
           done
 
