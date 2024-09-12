@@ -89,7 +89,7 @@ main() {
             delete_release
         ;;
         6)
-            delete_helm_chart
+            delete_kubeblocks_helm_chart
         ;;
     esac
 
@@ -465,7 +465,7 @@ delete_helm_chart() {
     TAG_NAME="$TAG_NAME_TMP"
     get_addons_list
     local DELETE_CHARTS_DIR=""
-    for charts_dir in $(echo "deploy|helm-charts/charts|kubeblocks-addons/addons" | sed 's/|/ /g'); do
+    for charts_dir in $(echo "deploy" | sed 's/|/ /g'); do
         if [[ ! -d "$charts_dir" ]]; then
             echo "not found chart dir $charts_dir"
             continue
@@ -474,6 +474,16 @@ delete_helm_chart() {
         charts_files=$( ls -1 $charts_dir )
         echo "$charts_files" | filter_charts
     done
+}
+
+delete_kubeblocks_helm_chart() {
+    chart_file="deploy/helm/Chart.yaml"
+    if [[ -f "$chart_file" ]]; then
+        chart_name=$(cat $file | yq eval '.name' -)
+        echo "delete helm_chart $chart_name $TAG_NAME_TMP"
+        PROJECT_ID_TMP="${DEFAULT_HELM_CHARTS_PROJECT_ID}"
+        delete_release_packages "$chart_name" "$PROJECT_ID_TMP"
+    fi
 }
 
 main "$@"
