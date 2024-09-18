@@ -58,7 +58,11 @@ jobs:
         id: set_engine_types
         run: |
           engine_type="${{ inputs.ENGINE_TYPE }}"
-          engines=$(echo "$engine_type" | tr '|' '\n' | jq -R . | jq -c -s .)
+          if [ "$engine_type" == "ALL" ]; then
+            engines='["wesql","mysql-57","mysql-80","redis","postgres","starrocks","mongodb","kafka","oceanbase","mogdb","rabbitmq","qdrant","minio","dmdb","zookeeper"]'
+          else
+            engines=$(echo "$engine_type" | tr '|' '\n' | jq -R . | jq -c -s .)
+          fi
           echo "engines=${engines}" >> "$GITHUB_OUTPUT"
 
 
@@ -83,7 +87,7 @@ jobs:
     strategy:
       matrix:
         engine_type: ${{ fromJSON(needs.setup.outputs.engine_types) }}
-      max-parallel: 5
+      max-parallel: 3
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
