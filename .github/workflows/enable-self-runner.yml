@@ -97,7 +97,7 @@ jobs:
           version: "v1.28.3"
 
       - uses: aws-actions/setup-sam@v2
-        if: ${{ inputs.CLOUD_PROVIDER == 'eks'' }}
+        if: ${{ inputs.CLOUD_PROVIDER == 'eks' }}
         with:
           use-installer: true
 
