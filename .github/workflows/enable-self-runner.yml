@@ -1,8 +1,13 @@
-name: ENABLE-GKE-RUNNER
+name: Enable Self-Runner
 
 on:
   workflow_call:
     inputs:
+      CLOUD_PROVIDER:
+        description: 'k8s cluster provider (e.g. eks/gke)'
+        type: string
+        required: false
+        default: 'eks'
       GITHUB_REPO:
         description: "runner github repo name"
         type: string
@@ -35,6 +40,11 @@ on:
         default: 1
   workflow_dispatch:
     inputs:
+      CLOUD_PROVIDER:
+        description: 'k8s cluster provider (e.g. eks/gke)'
+        type: string
+        required: false
+        default: 'eks'
       GITHUB_REPO:
         description: "runner github repo name"
         required: false
@@ -65,7 +75,11 @@ on:
 env:
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
   CLUSTER_NAME: "infracreate-gke"
-  REGION: "us-central1"
+  GCP_REGION: "us-central1"
+  AWS_REGION: "ap-northeast-1"
+  AWS_CLUSTER: "foxlake-dev-001"
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
 jobs:
   enable-runner:
@@ -82,18 +96,38 @@ jobs:
         with:
           version: "v1.28.3"
 
-      - if: ${{ env.GOOGLE_CREDENTIALS != '' }}
+      - uses: aws-actions/setup-sam@v2
+        if: ${{ inputs.CLOUD_PROVIDER == 'eks'' }}
+        with:
+          use-installer: true
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        if: ${{ inputs.CLOUD_PROVIDER == 'eks' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' }}
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "${{ env.AWS_REGION }}"
+
+      - if: ${{ inputs.CLOUD_PROVIDER == 'eks' }}
+        run: |
+          aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.AWS_CLUSTER }}
+
+      - if: ${{ inputs.CLOUD_PROVIDER == 'gke' && env.GOOGLE_CREDENTIALS != '' }}
         id: 'auth'
         name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
         with:
           credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
 
-      - uses: simenandre/setup-gke-gcloud-auth-plugin@v1
+      - name: setup gke-gcloud-auth-plugin
+        if: ${{ inputs.CLOUD_PROVIDER == 'gke' }}
+        uses: simenandre/setup-gke-gcloud-auth-plugin@v1
+
       - uses: google-github-actions/get-gke-credentials@v1
+        if: ${{ inputs.CLOUD_PROVIDER == 'gke' }}
         with:
           cluster_name: ${{ env.CLUSTER_NAME }}
-          location: ${{ env.REGION }}
+          location: ${{ env.GCP_REGION }}
 
       - name: enable runner
         if: ${{ inputs.GITHUB_REPO != '' }}
