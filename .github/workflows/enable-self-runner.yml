@@ -110,7 +110,8 @@ jobs:
 
       - if: ${{ inputs.CLOUD_PROVIDER == 'eks' }}
         run: |
-          aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.AWS_CLUSTER }}
+          aws eks --region ${{ env.AWS_REGION }} update-kubeconfig --name ${{ env.AWS_CLUSTER }} \
+              --role-arn $(aws iam get-role --role-name ${{ env.AWS_CLUSTER }}-admin-role --query 'Role.Arn' --output text)
 
       - if: ${{ inputs.CLOUD_PROVIDER == 'gke' && env.GOOGLE_CREDENTIALS != '' }}
         id: 'auth'
