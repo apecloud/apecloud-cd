@@ -119,6 +119,7 @@ env:
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   DOCKER_REGISTRY_URL: docker.io
   ALIYUN_REGISTRY_URL: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
+  SKIP_CHECK_IMAGES: "apecloud/dm8_single|apecloud/dmdb_exporter|apecloud/mysql|apecloud/percona-xtrabackup|apecloud/oceanbase-ent|apecloud/yashandb-personal|apecloud/twemproxy|apecloud/xinference|apecloud/neon|apecloud/elasticsearch|apecloud/milvus-operator|apecloud/zookeeper|apecloud/xtrabackup|apecloud/postgres|apecloud/etcd|apecloud/apache-doris"
 
 jobs:
   release-chart:
@@ -271,12 +272,15 @@ jobs:
         if: inputs.CHECK_ENABLE
         run: |   
           check_dockerhub="true"
-          if [[ -z "${{ env.DOCKER_USER }}" || -z "${{ env.DOCKER_PASSWORD }}" ]]; then
-              check_dockerhub="false"
+          SKIP_CHECK_IMAGES=""
+          if [[ -n "${{ vars.SKIP_CHECK_IMAGES }}" ]]; then
+              SKIP_CHECK_IMAGES="${{ vars.SKIP_CHECK_IMAGES }}"
+          elif [[ "${{ inputs.CHART_DIR }}" == "addons" ]]; then
+              SKIP_CHECK_IMAGES="${{ env.SKIP_CHECK_IMAGES }}"
           fi
           
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/helm_image_check.sh \
-              .cr-release-packages "${{ inputs.CHART_NAME }}" "${check_dockerhub}" "${{ vars.SKIP_CHECK_IMAGES }}"
+              .cr-release-packages "${{ inputs.CHART_NAME }}" "${check_dockerhub}" "${SKIP_CHECK_IMAGES}"
 
       - name: Checkout helm-charts Code
         if: inputs.PUSH_ENABLE
@@ -357,12 +361,15 @@ jobs:
         if: ${{ inputs.CHECK_ENABLE && (inputs.SET_REGISTRY || inputs.CHART_DIR == 'addons') }}
         run: |
           check_dockerhub="true"
-          if [[ -z "${{ env.DOCKER_USER }}" || -z "${{ env.DOCKER_PASSWORD }}" ]]; then
-              check_dockerhub="false"
+          SKIP_CHECK_IMAGES=""
+          if [[ -n "${{ vars.SKIP_CHECK_IMAGES }}" ]]; then
+              SKIP_CHECK_IMAGES="${{ vars.SKIP_CHECK_IMAGES }}"
+          elif [[ "${{ inputs.CHART_DIR }}" == "addons" ]]; then
+              SKIP_CHECK_IMAGES="${{ env.SKIP_CHECK_IMAGES }}"
           fi
           
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/helm_image_check.sh \
-              .cr-release-packages "${{ inputs.CHART_NAME }}" "${check_dockerhub}" "${{ vars.SKIP_CHECK_IMAGES }}"
+              .cr-release-packages "${{ inputs.CHART_NAME }}" "${check_dockerhub}" "${SKIP_CHECK_IMAGES}"
 
       - name: Upload Helm Charts to Jihulab
         if: ${{ inputs.PUSH_ENABLE && inputs.ENABLE_JIHU }}
