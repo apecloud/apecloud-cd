@@ -76,7 +76,7 @@ permissions:
   contents: read
 
 jobs:
-  enable-gke-runner:
+  enable-runner:
     uses: ./.github/workflows/enable-self-runner.yml
     with:
       CLOUD_PROVIDER: "eks"
@@ -86,8 +86,8 @@ jobs:
     secrets: inherit
 
   test-apecloud-mysql:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'apecloud-mysql')) }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'apecloud-mysql')) }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -100,8 +100,8 @@ jobs:
     secrets: inherit
 
   test-postgresql:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) && ! contains(inputs.TEST_TYPE, '-postgresql') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) && ! contains(inputs.TEST_TYPE, '-postgresql') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -114,8 +114,8 @@ jobs:
     secrets: inherit
 
   test-redis:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -128,8 +128,8 @@ jobs:
     secrets: inherit
 
   test-mongodb:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb')) }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb')) }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -142,8 +142,8 @@ jobs:
     secrets: inherit
 
   test-kafka:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'kafka')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'kafka')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -156,8 +156,8 @@ jobs:
     secrets: inherit
 
   test-pulsar:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pulsar|') || endsWith(inputs.TEST_TYPE, 'pulsar')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pulsar|') || endsWith(inputs.TEST_TYPE, 'pulsar')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -170,8 +170,8 @@ jobs:
     secrets: inherit
 
   test-mysqlscale:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mysqlscale')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mysqlscale')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -184,8 +184,8 @@ jobs:
     secrets: inherit
 
   test-weaviate:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'weaviate')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'weaviate')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -198,8 +198,8 @@ jobs:
     secrets: inherit
 
   test-qdrant:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'qdrant')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'qdrant')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -212,8 +212,8 @@ jobs:
     secrets: inherit
 
   test-smartengine:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'smartengine')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'smartengine')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -226,8 +226,8 @@ jobs:
     secrets: inherit
 
   test-greptimedb:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'greptimedb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'greptimedb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -240,8 +240,8 @@ jobs:
     secrets: inherit
 
   test-nebula:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'nebula')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'nebula')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -254,8 +254,8 @@ jobs:
     secrets: inherit
 
   test-risingwave:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'risingwave')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'risingwave')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -268,8 +268,8 @@ jobs:
     secrets: inherit
 
   test-starrocks:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks|') || endsWith(inputs.TEST_TYPE, 'starrocks')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks|') || endsWith(inputs.TEST_TYPE, 'starrocks')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -282,8 +282,8 @@ jobs:
     secrets: inherit
 
   test-etcd:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'etcd')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'etcd')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -296,8 +296,8 @@ jobs:
     secrets: inherit
 
   test-foxlake:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'foxlake')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v1.0.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'foxlake')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v1.0.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -310,8 +310,8 @@ jobs:
     secrets: inherit
 
   test-orioledb:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'orioledb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'orioledb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -324,8 +324,8 @@ jobs:
     secrets: inherit
 
   test-official-pg:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'official-pg')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'official-pg')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -338,8 +338,8 @@ jobs:
     secrets: inherit
 
   test-asmysql:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'asmysql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'asmysql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -352,8 +352,8 @@ jobs:
     secrets: inherit
 
   test-openldap:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'openldap')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'openldap')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -366,8 +366,8 @@ jobs:
     secrets: inherit
 
   test-opensearch:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'opensearch')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'opensearch')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -380,8 +380,8 @@ jobs:
     secrets: inherit
 
   test-elasticsearch:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'elasticsearch')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'elasticsearch')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -394,8 +394,8 @@ jobs:
     secrets: inherit
 
   test-vllm:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'vllm')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'vllm')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -408,8 +408,8 @@ jobs:
     secrets: inherit
 
   test-tdengine:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tdengine')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tdengine')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -422,8 +422,8 @@ jobs:
     secrets: inherit
 
   test-milvus:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'milvus')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'milvus')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -436,8 +436,8 @@ jobs:
     secrets: inherit
 
   test-clickhouse:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'clickhouse')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'clickhouse')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -450,8 +450,8 @@ jobs:
     secrets: inherit
 
   test-pika:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pika')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pika')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -464,8 +464,8 @@ jobs:
     secrets: inherit
 
   test-ggml:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'ggml')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'ggml')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -478,8 +478,8 @@ jobs:
     secrets: inherit
 
   test-zookeeper:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'zookeeper')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'zookeeper')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -492,8 +492,8 @@ jobs:
     secrets: inherit
 
   test-mariadb:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mariadb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mariadb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -506,8 +506,8 @@ jobs:
     secrets: inherit
 
   test-tidb:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tidb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tidb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -520,8 +520,8 @@ jobs:
     secrets: inherit
 
   test-xinference:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'xinference')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'xinference')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -534,8 +534,8 @@ jobs:
     secrets: inherit
 
   test-oracle:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oracle|') || endsWith(inputs.TEST_TYPE, 'oracle')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oracle|') || endsWith(inputs.TEST_TYPE, 'oracle')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -548,8 +548,8 @@ jobs:
     secrets: inherit
 
   test-opengauss:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'opengauss')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'opengauss')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -562,8 +562,8 @@ jobs:
     secrets: inherit
 
   test-influxdb:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'influxdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'influxdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -576,8 +576,8 @@ jobs:
     secrets: inherit
 
   test-flink:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'flink')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'flink')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -590,8 +590,8 @@ jobs:
     secrets: inherit
 
   test-solr:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'solr')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.')  }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'solr')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.')  }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -604,8 +604,8 @@ jobs:
     secrets: inherit
 
   test-halo:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'halo')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v1.0.')  }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'halo')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v1.0.')  }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -618,8 +618,8 @@ jobs:
     secrets: inherit
 
   test-mogdb:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mogdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.')  }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mogdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.')  }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -632,8 +632,8 @@ jobs:
     secrets: inherit
 
   test-starrocks-ent:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks-ent')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.')  }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks-ent')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.')  }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -646,8 +646,8 @@ jobs:
     secrets: inherit
 
   test-apecloud-postgresql:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'apecloud-postgresql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'apecloud-postgresql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -660,8 +660,8 @@ jobs:
     secrets: inherit
 
   test-yashandb:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'yashandb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'yashandb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -674,8 +674,8 @@ jobs:
     secrets: inherit
 
   test-polardbx:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'polardbx')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'polardbx')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -688,8 +688,8 @@ jobs:
     secrets: inherit
 
   test-redis-cluster:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -702,8 +702,8 @@ jobs:
     secrets: inherit
 
   test-camellia-redis-proxy:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'camellia-redis-proxy')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'camellia-redis-proxy')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -716,8 +716,8 @@ jobs:
     secrets: inherit
 
   test-dmdb:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'dmdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'dmdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -730,8 +730,8 @@ jobs:
     secrets: inherit
 
   test-minio:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'minio')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'minio')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -744,8 +744,8 @@ jobs:
     secrets: inherit
 
   test-orchestrator:
-    if: ${{ needs.enable-gke-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'orchestrator')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
-    needs: [ enable-gke-runner ]
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'orchestrator')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
       release-version: "${{ inputs.KB_VERSION }}"
@@ -1209,9 +1209,9 @@ jobs:
               --title "$test_title" \
               --result "$TEST_RESULT"
 
-  disable-gke-runner:
+  disable-runner:
     if: ${{ always() }}
-    needs: [ enable-gke-runner, send-message ]
+    needs: [ enable-runner, send-message ]
     uses: ./.github/workflows/enable-self-runner.yml
     with:
       CLOUD_PROVIDER: "eks"
