@@ -77,8 +77,9 @@ permissions:
 
 jobs:
   enable-gke-runner:
-    uses: ./.github/workflows/enable-gke-runner.yml
+    uses: ./.github/workflows/enable-self-runner.yml
     with:
+      CLOUD_PROVIDER: "eks"
       GITHUB_REPO: "${{ github.repository }}"
       RUNNER_NAMESPACE: "default"
       RUNNER_LABEL: "k3d-runner"
@@ -1211,8 +1212,9 @@ jobs:
   disable-gke-runner:
     if: ${{ always() }}
     needs: [ enable-gke-runner, send-message ]
-    uses: ./.github/workflows/enable-gke-runner.yml
+    uses: ./.github/workflows/enable-self-runner.yml
     with:
+      CLOUD_PROVIDER: "eks"
       GITHUB_REPO: "${{ github.repository }}"
       RUNNER_NAMESPACE: "default"
       RUNNER_LABEL: "k3d-runner"
