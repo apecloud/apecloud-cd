@@ -392,6 +392,7 @@ jobs:
                       for TARGET in $(echo "${TARGETS}"); do
                           if [[ "$TARGET" == *"TARGETS="* ]]; then
                               TARGETS_TMP=${TARGET#*=}
+                              TARGETS_TMP=${TARGETS_TMP##*/}
                               TARGETS_TMP=$(echo "$TARGETS_TMP" | tr -d ' ')
                               IMAGES_INPUT="apecloud/${TARGETS_TMP}:${IMAGES_TAG}"
                               break
