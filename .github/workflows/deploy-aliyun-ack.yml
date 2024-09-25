@@ -54,6 +54,7 @@ env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
   ACK_KUBECONFIG_DEMO: ${{ secrets.ACK_KUBECONFIG_DEMO }}
   ACK_KUBECONFIG_IDC: ${{ secrets.ACK_KUBECONFIG_IDC }}
+  ACK_KUBECONFIG_IDC4: ${{ secrets.ACK_KUBECONFIG_IDC4 }}
   ACK_KUBECONFIG_PROD: ${{ secrets.ACK_KUBECONFIG_PROD }}
   ACK_KUBECONFIG_INTL_PROD: ${{ secrets.ACK_KUBECONFIG_INTL_PROD }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
@@ -141,6 +142,10 @@ jobs:
               idc)
                   echo '${{ env.ACK_KUBECONFIG_IDC }}' > $HOME/.kube/config
                   cp -r apecloud-values/idc/values.yaml ${CHART_VALUES_FILENAME}
+              ;;
+              idc4)
+                  echo '${{ env.ACK_KUBECONFIG_IDC4 }}' > $HOME/.kube/config
+                  cp -r apecloud-values/idc4/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               prod)
                   echo '${{ env.ACK_KUBECONFIG_PROD }}' > $HOME/.kube/config
