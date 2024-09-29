@@ -7,7 +7,7 @@ on:
         description: 'cloud k8s cluster provider (e.g. vke/eks/gke/aks/aks-cn)'
         type: string
         required: false
-        default: 'vke'
+        default: 'eks'
       artifact-name:
         description: 'terraform artifact name'
         type: string

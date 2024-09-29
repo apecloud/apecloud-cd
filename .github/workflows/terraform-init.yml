@@ -7,7 +7,7 @@ on:
         description: 'cloud k8s cluster provider (e.g. vke/eks/gke/aks/aks-cn)'
         type: string
         required: false
-        default: 'vke'
+        default: 'eks'
       cluster-version:
         description: 'k8s cluster version (e.g. 1.28)'
         type: string
