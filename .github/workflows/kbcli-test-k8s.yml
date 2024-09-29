@@ -1254,10 +1254,6 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##solr|${{ needs.test-solr.outputs.test-result }}"
               fi 
           
-#              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"halo"* ]]; then
-#                  TEST_RESULT="${TEST_RESULT}##halo|${{ needs.test-halo.outputs.test-result }}"
-#              fi
-          
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oceanbase-ent"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##oceanbase-ent|${{ needs.test-oceanbase-ent.outputs.test-result }}"
               fi 
