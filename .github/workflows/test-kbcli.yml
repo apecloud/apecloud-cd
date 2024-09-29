@@ -176,7 +176,14 @@ jobs:
           cluster-name: '${{ inputs.k8s-cluster-name }}'
 
       - name: download vke artifact
-        if:  ${{ inputs.cloud-provider == 'vke' }}
+        if:  ${{ inputs.cloud-provider == 'vke' && "${{ inputs.region }}" == "cn-"* }}
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ./volcengine/vke-cicd-cn
+
+      - name: download vke artifact
+        if:  ${{ inputs.cloud-provider == 'vke' && "${{ inputs.region }}" != "cn-"* }}
         uses: actions/download-artifact@v3.0.2
         with:
           name: ${{ inputs.artifact-name }}
@@ -185,7 +192,11 @@ jobs:
       - name: Configure K8S Context
         if:  ${{ inputs.cloud-provider == 'vke' }}
         run: |
-          cd ./volcengine/vke-cicd
+          if [[ "${{ inputs.region }}" == "cn-"* ]]; then
+              cd ./volcengine/vke-cicd-cn
+          else
+              cd ./volcengine/vke-cicd
+          fi
           K8S_CLUSTER_KUBECONFIG="$(cat terraform.tfstate | yq eval '.resources[].instances.[].attributes.kubeconfigs[].kubeconfig' | base64 -d)"
           mkdir -p $HOME/.kube
           touch $HOME/.kube/config

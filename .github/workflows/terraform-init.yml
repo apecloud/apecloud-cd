@@ -140,6 +140,8 @@ jobs:
               DEPLOY_PATH="./aws/eks-default-vpc-dj"
           elif [[ "${{ inputs.cloud-provider }}" == "eks" ]]; then
               DEPLOY_PATH="./aws/eks-default-vpc"
+          elif [[ "${{ inputs.cloud-provider }}" == "vke" && "${{ inputs.region }}" == "cn-"* ]]; then
+              DEPLOY_PATH="./volcengine/vke-cicd-cn"
           elif [[ "${{ inputs.cloud-provider }}" == "vke" ]]; then
               DEPLOY_PATH="./volcengine/vke-cicd"
           elif [[ "${{ inputs.cloud-provider }}" == "gke" ]]; then
