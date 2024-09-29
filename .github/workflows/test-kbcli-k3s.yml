@@ -119,7 +119,7 @@ jobs:
                   --args "${{ inputs.test-args }} --enable-csi-hostpath-driver false --enable-addon kubebench --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }} " \
                   --region "${{ env.REGION }}" | tee -a ${file_log_pre_install}
               
-              rand_suffix_tmp="$( grep "[RANDOM-SUFFIX]" ${file_log_pre_install} || true )"
+              rand_suffix_tmp="$( grep "\[RANDOM-SUFFIX\]" ${file_log_pre_install} || true )"
               if [[ -n "$rand_suffix_tmp" && "$rand_suffix_tmp" == *"[RANDOM-SUFFIX]"* ]]; then
                   rand_suffix=${rand_suffix_tmp#*"[RANDOM-SUFFIX]"}      
                   rand_suffix=${rand_suffix%"[RANDOM-SUFFIX]"*}
@@ -144,7 +144,7 @@ jobs:
                       --random-suffix "${rand_suffix}" | tee -a ${file_log_pre}
               fi
 
-              pre_test_ret="$( grep "[FAILED]" ${file_log_pre} || true )"
+              pre_test_ret="$( grep "\[FAILED\]" ${file_log_pre} || true )"
               if [[ -n "$pre_test_ret" ]]; then
                   echo pre-test-result=[FAILED] >> $GITHUB_OUTPUT
               else
@@ -182,7 +182,7 @@ jobs:
                   --random-suffix "${rand_suffix}" | tee -a ${file_log}
           fi
           
-          test_ret="$( grep "[FAILED]" ${file_log} || true )"
+          test_ret="$( grep "\[FAILED\]" ${file_log} || true )"
           if [[ -n "$test_ret" ]]; then
               echo test-result=[FAILED] >> $GITHUB_OUTPUT
               exit 1

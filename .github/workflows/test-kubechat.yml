@@ -169,7 +169,7 @@ jobs:
           echo "$cmd"
           eval "$cmd" | tee -a ${file_log}
           
-          test_ret="$( egrep "[FAILED]" ${file_log} || true )"
+          test_ret="$( egrep "\[FAILED\]" ${file_log} || true )"
           if [[ -n "$test_ret" ]]; then
               echo deploy-result=[FAILED] >> $GITHUB_OUTPUT
               exit 1
@@ -202,7 +202,7 @@ jobs:
           pip3 install -r requirements.txt
           python3 infratest.py --type 7 | tee -a ${file_log}
           
-          test_ret="$( egrep "[FAILED]|Traceback" ${file_log} || true )"
+          test_ret="$( egrep "\[FAILED\]"|Traceback" ${file_log} || true )"
           if [[ -n "$test_ret" ]]; then
               echo test-result=[FAILED] >> $GITHUB_OUTPUT
               exit 1
@@ -213,7 +213,7 @@ jobs:
       - name: return kubechat test result
         id: test_result
         run: |
-          test_ret="$( egrep "[FAILED]|Traceback" ${FILE_LOG} || true )"
+          test_ret="$( egrep "\[FAILED\]"|Traceback" ${FILE_LOG} || true )"
           if [[ -n "$test_ret" ]]; then
               echo test-result=[FAILED] >> $GITHUB_OUTPUT
               exit 1

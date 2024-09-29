@@ -228,12 +228,12 @@ jobs:
               --cloud-provider "${{ inputs.cloud-provider }}" \
               --export-dir ${S3_PATH} | tee -a ${file_log}
           
-          CLUSTER_NAME="$( grep "[CLUSTER_NAME]" ${file_log} || true )"
+          CLUSTER_NAME="$( grep "\[CLUSTER_NAME\]" ${file_log} || true )"
           CLUSTER_NAME=${CLUSTER_NAME#*"[CLUSTER_NAME]"}      
           CLUSTER_NAME=${CLUSTER_NAME%"[CLUSTER_NAME]"*}
           echo cluster-name=$CLUSTER_NAME >> $GITHUB_OUTPUT
           
-          PERFORMANCE_RESULT="$( grep "[PERFORMANCE_RESULT]" ${file_log} || true )"
+          PERFORMANCE_RESULT="$( grep "\[PERFORMANCE_RESULT\]" ${file_log} || true )"
           PERFORMANCE_RESULT=${PERFORMANCE_RESULT#*"[PERFORMANCE_RESULT]"}      
           PERFORMANCE_RESULT=${PERFORMANCE_RESULT%"[PERFORMANCE_RESULT]"*}
           echo perfromance-result=$PERFORMANCE_RESULT >> $GITHUB_OUTPUT

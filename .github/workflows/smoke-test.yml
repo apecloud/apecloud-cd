@@ -122,7 +122,7 @@ jobs:
         run: |
           if ls *-log.txt >/dev/null 2>&1; then
               cat ./test/e2e/*-log.txt
-              test_ret="$( grep "[ERROR]" ./test/e2e/*-log.txt || true )"
+              test_ret="$( grep "\[ERROR\]" ./test/e2e/*-log.txt || true )"
               if [[ -n "$test_ret" ]]; then
                   echo test-result=[FAILED] >> $GITHUB_OUTPUT
                   exit 1

@@ -243,13 +243,13 @@ jobs:
           
           RANDOM_SUFFIX=""
           if [[ "${{ inputs.test-type }}" == "0" ]]; then
-              RANDOM_SUFFIX="$( grep "[RANDOM-SUFFIX]" ${file_log}|| true )"
+              RANDOM_SUFFIX="$( grep "\[RANDOM-SUFFIX\]" ${file_log}|| true )"
               RANDOM_SUFFIX=${RANDOM_SUFFIX#*"[RANDOM-SUFFIX]"}      
               RANDOM_SUFFIX=${RANDOM_SUFFIX%"[RANDOM-SUFFIX]"*}
           fi
           echo random-suffix=$RANDOM_SUFFIX >> $GITHUB_OUTPUT
           
-          test_ret="$( grep "[FAILED]" ${file_log} || true )"
+          test_ret="$( grep "\[FAILED\]" ${file_log} || true )"
           if [[ -n "$test_ret" ]]; then
               echo test-result=[FAILED] >> $GITHUB_OUTPUT
               exit 1
