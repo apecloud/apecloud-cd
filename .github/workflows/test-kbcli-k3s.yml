@@ -144,7 +144,7 @@ jobs:
                       --random-suffix "${rand_suffix}" | tee -a ${file_log_pre}
               fi
 
-              pre_test_ret="$( grep "【FAILED】" ${file_log_pre} || true )"
+              pre_test_ret="$( grep "[FAILED]" ${file_log_pre} || true )"
               if [[ -n "$pre_test_ret" ]]; then
                   echo pre-test-result=[FAILED] >> $GITHUB_OUTPUT
               else
@@ -182,7 +182,7 @@ jobs:
                   --random-suffix "${rand_suffix}" | tee -a ${file_log}
           fi
           
-          test_ret="$( grep "【FAILED】" ${file_log} || true )"
+          test_ret="$( grep "[FAILED]" ${file_log} || true )"
           if [[ -n "$test_ret" ]]; then
               echo test-result=[FAILED] >> $GITHUB_OUTPUT
               exit 1
