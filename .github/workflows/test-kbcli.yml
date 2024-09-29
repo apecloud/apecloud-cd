@@ -72,6 +72,9 @@ on:
       test-result:
         description: "test result"
         value: ${{ jobs.kbcli-test.outputs.test-result }}
+      test-result-report:
+        description: "test result report"
+        value: ${{ jobs.kbcli-test.outputs.test-result-report }}
       random-suffix:
         description: "random suffix"
         value: ${{ jobs.kbcli-test.outputs.random-suffix }}
@@ -98,6 +101,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       test-result: ${{ steps.kbcli_test.outputs.test-result }}
+      test-result-report: ${{ steps.kbcli_test.outputs.test-result-report }}
       random-suffix: ${{ steps.kbcli_test.outputs.random-suffix }}
     steps:
       - name: checkout testinfra
@@ -209,7 +213,9 @@ jobs:
               cp -r kubeblocks-addons/examples ./
           fi 
           file_log="$(date +%Y-%m-%d-%T)".log
-          touch ${file_log}
+          test_result_report_output_file_log="test-result-report-output.log"
+          
+          touch ${file_log} ${test_result_report_output_file_log}
           echo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> ${file_log}
           echo 'FILE_LOG='${file_log} >> $GITHUB_ENV
           
@@ -282,6 +288,11 @@ jobs:
               fi
           fi
           echo random-suffix=$RANDOM_SUFFIX >> $GITHUB_OUTPUT
+          
+          if [[ -f "${test_result_report_output_file_log}" ]]; then
+              test_result_report=$(cat "${test_result_report_output_file_log}")
+              echo test-result-report="${test_result_report}" >> $GITHUB_OUTPUT
+          fi
           
           test_ret="$( grep "[FAILED]" ${file_log} || true )"
           if [[ -n "$test_ret" ]]; then
