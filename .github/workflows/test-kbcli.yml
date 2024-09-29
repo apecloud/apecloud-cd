@@ -176,14 +176,14 @@ jobs:
           cluster-name: '${{ inputs.k8s-cluster-name }}'
 
       - name: download vke artifact
-        if:  ${{ inputs.cloud-provider == 'vke' && contains(inputs.region, 'cn-')) }}
+        if:  ${{ inputs.cloud-provider == 'vke' && contains(inputs.region, 'cn-') }}
         uses: actions/download-artifact@v3.0.2
         with:
           name: ${{ inputs.artifact-name }}
           path: ./volcengine/vke-cicd-cn
 
       - name: download vke artifact
-        if:  ${{ inputs.cloud-provider == 'vke' && !contains(inputs.region, 'cn-')) }}
+        if:  ${{ inputs.cloud-provider == 'vke' && !contains(inputs.region, 'cn-') }}
         uses: actions/download-artifact@v3.0.2
         with:
           name: ${{ inputs.artifact-name }}
