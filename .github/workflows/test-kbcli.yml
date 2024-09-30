@@ -216,7 +216,7 @@ jobs:
           touch ${file_log} 
           
           test_result_report_output_file_log="test-result-report-output.log"
-          touch${test_result_report_output_file_log}
+          touch ${test_result_report_output_file_log}
           
           echo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> ${file_log}
           echo 'FILE_LOG='${file_log} >> $GITHUB_ENV
