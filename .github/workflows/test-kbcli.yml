@@ -299,12 +299,13 @@ jobs:
               echo test-result=[PASSED] >> $GITHUB_OUTPUT
           fi
 
-      - name: run test ${{ inputs.test-type-name }}
+      - name: test result report
         if: ${{ always() }}
         id: test_result_report
         run: |
           test_result_report_output_file_log="test-result-report-output.log"
           if [[ -f "${test_result_report_output_file_log}" ]]; then
               test_result_report="$(cat "${test_result_report_output_file_log}")"
+              echo "$test_result_report"
               echo test-result-report="${test_result_report}" >> $GITHUB_OUTPUT
           fi
