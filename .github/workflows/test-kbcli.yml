@@ -305,6 +305,8 @@ jobs:
         run: |
           test_result_report_output_file_log="test-result-report-output.log"
           if [[ -f "${test_result_report_output_file_log}" ]]; then
+              sed -i 's/\[/\\[/g' "${test_result_report_output_file_log}"
+              sed -i 's/\]/\\]/g' "${test_result_report_output_file_log}"
               test_result_report="$(cat "${test_result_report_output_file_log}")"
               echo "$test_result_report"
               echo test-result-report="${test_result_report}" >> $GITHUB_OUTPUT
