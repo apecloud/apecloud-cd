@@ -223,8 +223,8 @@ jobs:
               --runner-name ${{ needs.kbcli-test-k3s.outputs.runner-name }}
 
       - uses: azure/setup-kubectl@v3
-          with:
-            version: "v1.28.3"
+        with:
+          version: "v1.28.3"
 
       - uses: aws-actions/setup-sam@v2
         if: ${{ inputs.cloud-provider == 'eks' }}
