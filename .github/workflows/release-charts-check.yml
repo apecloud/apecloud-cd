@@ -83,6 +83,11 @@ on:
         type: string
         required: false
         default: ''
+      CHECK_PRIVATE:
+        description: "Enable check private docker images"
+        type: boolean
+        required: false
+        default: false
 
 
 env:
@@ -90,6 +95,8 @@ env:
   HELM_VERSION: v3.15.4
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+  ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
   DOCKER_REGISTRY_URL: docker.io
   ALIYUN_REGISTRY_URL: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
   SKIP_CHECK_IMAGES: "apecloud/dm8_single|apecloud/dmdb_exporter|apecloud/mysql|apecloud/percona-xtrabackup|apecloud/oceanbase-ent|apecloud/yashandb-personal|apecloud/twemproxy|apecloud/xinference|apecloud/neon|apecloud/elasticsearch|apecloud/milvus-operator|apecloud/zookeeper|apecloud/xtrabackup|apecloud/postgres|apecloud/etcd|apecloud/apache-doris"
@@ -237,6 +244,14 @@ jobs:
           registry: ${{ env.DOCKER_REGISTRY_URL }}
           username: ${{ env.DOCKER_USER }}
           password: ${{ env.DOCKER_PASSWORD }}
+
+      - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && inputs.CHECK_PRIVATE }}
+        name: Login to Aliyun Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.ALIYUN_REGISTRY_URL }}
+          username: ${{ env.ALIYUN_USER }}
+          password: ${{ env.ALIYUN_PASSWORD }}
 
       - name: check images
         if: inputs.CHECK_ENABLE
