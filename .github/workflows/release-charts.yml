@@ -108,6 +108,11 @@ on:
         type: boolean
         required: false
         default: false
+      CHECK_UPLOAD:
+        description: "Check helm chart upload success"
+        type: boolean
+        required: false
+        default: false
 
 
 env:
@@ -383,3 +388,26 @@ jobs:
             --access-token "${{ env.JIHULAB_ACCESS_TOKEN }}" \
             --access-user "${{ env.JIHULAB_ACCESS_USER }}"\
             --project-id "${{ inputs.PROJECT_ID }}"
+          
+
+      - name: Check Helm Chart Upload Success
+        if: ${{ inputs.CHART_NAME == 'kubeblocks' || inputs.CHECK_UPLOAD }}
+        run: |
+            sleep 5
+            # add helm repo
+            helm_repo_name="helm-charts"
+            helm repo add ${helm_repo_name} https://apecloud.github.io/helm-charts
+          
+            HELM_CHART_PKG_NAME="${{ inputs.CHART_NAME }}-${{ inputs.VERSION }}.tgz"
+            helm_pull_cmd="helm pull ${helm_repo_name}/${{ inputs.CHART_NAME }} --version ${{ inputs.VERSION }}"
+            for i in {1..120}; do
+                eval "$helm_pull_cmd" || true
+                # check helm chart package
+                echo "helm chart package checking..."
+                if [[ -f "${HELM_CHART_PKG_NAME}" ]]; then
+                    echo "found helm chart package ${HELM_CHART_PKG_NAME}"
+                    break
+                fi
+                sleep 1
+                helm repo update ${helm_repo_name} 
+            done
