@@ -390,7 +390,7 @@ jobs:
             --project-id "${{ inputs.PROJECT_ID }}"
           
 
-      - name: Check Helm Chart
+      - name: Check Helm Chart Upload Success
         if: ${{ inputs.CHART_NAME == 'kubeblocks' || inputs.CHECK_UPLOAD }}
         run: |
             sleep 5
