@@ -265,13 +265,13 @@ jobs:
           
           if [[ -n "${{ env.AWS_ACCESS_KEY_ID }}" && -n "${{ env.AWS_SECRET_ACCESS_KEY }}" ]]; then
               if [[ "${KB_VERSION}" != "0.5."* && "${KB_VERSION}" != "0.6."* && "${KB_VERSION}" != "0.7."* && "${KB_VERSION}" != "0.8."* && -n "${{ env.JIHULAB_ACCESS_TOKEN }}" ]]; then
-                  cmd="${cmd} --args '${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }} --jihulab-token ${{ env.JIHULAB_ACCESS_TOKEN }} --generate-output true ' "
+                  cmd="${cmd} --args '${{ inputs.test-args }} --generate-output true --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }} --jihulab-token ${{ env.JIHULAB_ACCESS_TOKEN }} ' "
               else
-                  cmd="${cmd} --args '${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }} --generate-output true ' "
+                  cmd="${cmd} --args '${{ inputs.test-args }} --generate-output true --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }} ' "
               fi
           else
               if [[ "${KB_VERSION}" != "0.5."* && "${KB_VERSION}" != "0.6."* && "${KB_VERSION}" != "0.7."* && "${KB_VERSION}" != "0.8."* && -n "${{ env.JIHULAB_ACCESS_TOKEN }}" ]]; then
-                  cmd="${cmd} --args '${{ inputs.test-args }} --jihulab-token ${{ env.JIHULAB_ACCESS_TOKEN }} --generate-output true ' "
+                  cmd="${cmd} --args '${{ inputs.test-args }} --generate-output true --jihulab-token ${{ env.JIHULAB_ACCESS_TOKEN }} ' "
               else
                   cmd="${cmd} --args '${{ inputs.test-args }} --generate-output true ' "
               fi
@@ -305,6 +305,7 @@ jobs:
         run: |
           test_result_report_output_file_log="test-result-report-output.log"
           if [[ -f "${test_result_report_output_file_log}" ]]; then
+              cat "${test_result_report_output_file_log}"
               test_result_report=""
               test_result_report_tmp="$(cat "${test_result_report_output_file_log}")"
               test_result_report="$(echo "${test_result_report_tmp}")"
