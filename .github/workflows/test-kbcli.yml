@@ -305,7 +305,6 @@ jobs:
         run: |
           test_result_report_output_file_log="test-result-report-output.log"
           if [[ -f "${test_result_report_output_file_log}" ]]; then
-              cat "${test_result_report_output_file_log}"
               test_result_report=""
               test_result_report_tmp="$(cat "${test_result_report_output_file_log}")"
               test_result_report="$(echo "${test_result_report_tmp}")"
