@@ -398,8 +398,8 @@ jobs:
             helm_repo_name="helm-charts"
             helm repo add ${helm_repo_name} https://apecloud.github.io/helm-charts
           
-            HELM_CHART_PKG_NAME="${{ inputs.CHART_NAME }}-${{ inputs.VERSION }}.tgz"
-            helm_pull_cmd="helm pull ${helm_repo_name}/${{ inputs.CHART_NAME }} --version ${{ inputs.VERSION }}"
+            HELM_CHART_PKG_NAME="${{ inputs.CHART_NAME }}-${{ steps.get_version.outputs.VERSION }}.tgz"
+            helm_pull_cmd="helm pull ${helm_repo_name}/${{ inputs.CHART_NAME }} --version ${{ steps.get_version.outputs.VERSION }}"
             for i in {1..120}; do
                 eval "$helm_pull_cmd" || true
                 # check helm chart package
