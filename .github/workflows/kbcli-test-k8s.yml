@@ -21,7 +21,7 @@ on:
         greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|orioledb|official-pg|asmysql|openldap|
         polardbx|opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
         oracle|opengauss|influxdb|flink|solr|mogdb|oceanbase-ent|starrocks-ent|apecloud-postgresql|yashandb|
-        redis-cluster|camellia-redis-proxy|dmdb|minio|orchestrator)'
+        redis-cluster|camellia-redis-proxy|dmdb|minio|orchestrator|rabbitmq|damengdb|kingbase)'
         type: string
         required: false
         default: ''
@@ -1053,6 +1053,60 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-rabbitmq:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "53"
+      test-type-name: "rabbitmq"
+      test-args: "${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-damengdb:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'damengdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "57"
+      test-type-name: "damengdb"
+      test-args: "${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-kingbase:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'kingbase')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "58"
+      test-type-name: "kingbase"
+      test-args: "${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
@@ -1066,7 +1120,7 @@ jobs:
              test-xinference, test-oracle , test-opengauss, test-influxdb, test-flink,
              test-solr, test-mogdb, test-oceanbase-ent, test-starrocks-ent,
              test-apecloud-postgresql, test-yashandb, test-redis-cluster, test-camellia-redis-proxy,
-             test-dmdb, test-minio, test-orchestrator ]
+             test-dmdb, test-minio, test-orchestrator, test-rabbitmq, test-damengdb, test-kingbase ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1380,6 +1434,24 @@ jobs:
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"orchestrator"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##orchestrator|${{ needs.test-orchestrator.outputs.test-result }}"
                   echo "${{ needs.test-orchestrator.outputs.test-result-report }}" >> ${test_result_report_output_file_log}
+                  echo ""  >> ${test_result_report_output_file_log}
+              fi 
+
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"rabbitmq"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##rabbitmq|${{ needs.test-rabbitmq.outputs.test-result }}"
+                  echo "${{ needs.test-rabbitmq.outputs.test-result-report }}" >> ${test_result_report_output_file_log}
+                  echo ""  >> ${test_result_report_output_file_log}
+              fi 
+
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"damengdb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##damengdb|${{ needs.test-damengdb.outputs.test-result }}"
+                  echo "${{ needs.test-damengdb.outputs.test-result-report }}" >> ${test_result_report_output_file_log}
+                  echo ""  >> ${test_result_report_output_file_log}
+              fi 
+
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"kingbase"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##kingbase|${{ needs.test-kingbase.outputs.test-result }}"
+                  echo "${{ needs.test-kingbase.outputs.test-result-report }}" >> ${test_result_report_output_file_log}
                   echo ""  >> ${test_result_report_output_file_log}
               fi 
           fi 
