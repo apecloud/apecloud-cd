@@ -46,6 +46,7 @@ Usage: $(basename "$0") <options>
                                 33) set label
                                 34) get e2e tes _result
                                 35) bump chart version
+                                36) parse test result
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -798,6 +799,20 @@ bump_chart_version() {
     fi
 }
 
+parse_test_result() {
+    if [[ -z "${TEST_RESULT}" ]]; then
+        return
+    fi
+    test_result_report_output_file_log="test-result-report-output.log"
+    if [[ ! -f "${test_result_report_output_file_log}" ]]; then
+        touch "${test_result_report_output_file_log}"
+    fi
+    for test_ret in `echo "$TEST_RESULT" | sed 's/##/ /g'`; do
+        test_ret=$( echo "$test_ret" | sed 's/#/ /g' )
+        echo "$test_ret" >> "${test_result_report_output_file_log}"
+    done
+}
+
 parse_command_line() {
     while :; do
         case "${1:-}" in
@@ -1103,6 +1118,9 @@ main() {
         ;;
         35)
             bump_chart_version
+        ;;
+        36)
+            parse_test_result
         ;;
     esac
 }
