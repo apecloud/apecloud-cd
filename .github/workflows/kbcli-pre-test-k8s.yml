@@ -1009,222 +1009,223 @@ jobs:
 
       - name: send message
         run: |
+          TEST_TYPE="${{ inputs.test-type }}"
           TEST_RESULT="install-kubeblocks-pre|${{ needs.install-kubeblocks-pre.outputs.test-result }}"
-          if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"apecloud-mysql"* ]]; then
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"apecloud-mysql"* ]]; then
               TEST_RESULT="${TEST_RESULT}##apecloud-mysql-pre|${{ needs.apecloud-mysql-pre.outputs.test-result }}"
           fi
           
-          if [[ "${{ inputs.test-type }}" == '' || (("${{ inputs.test-type }}" == *"postgresql|"* || "${{ inputs.TEST_TYPE }}" == *"postgresql") && "${{ inputs.TEST_TYPE }}" != *"-postgresql"*) ]]; then
+          if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"postgresql|"* || "$TEST_TYPE" == *"postgresql") && "$TEST_TYPE" != *"-postgresql"*) ]]; then
               TEST_RESULT="${TEST_RESULT}##postgresql-pre|${{ needs.postgresql-pre.outputs.test-result }}"
           fi
           
-          if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"redis|"* || "${{ inputs.TEST_TYPE }}" == *"redis" ]]; then
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"redis|"* || "$TEST_TYPE" == *"redis" ]]; then
               TEST_RESULT="${TEST_RESULT}##redis-pre|${{ needs.redis-pre.outputs.test-result }}"
           fi
           
-          if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"mongodb"* ]]; then
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mongodb"* ]]; then
               TEST_RESULT="${TEST_RESULT}##mongodb-pre|${{ needs.mongodb-pre.outputs.test-result }}"
           fi
           
           if [[ "${{ inputs.release-version }}" != "v0.5."* ]]; then
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"kafka"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"kafka"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##kafka-pre|${{ needs.kafka-pre.outputs.test-result }}"
               fi
               
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"pulsar|"* || "${{ inputs.TEST_TYPE }}" == *"pulsar" ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"pulsar|"* || "$TEST_TYPE" == *"pulsar" ]]; then
                   TEST_RESULT="${TEST_RESULT}##pulsar-pre|${{ needs.pulsar-pre.outputs.test-result }}"
               fi
               
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"mysqlscale"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mysqlscale"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##mysqlscale-pre|${{ needs.mysqlscale-pre.outputs.test-result }}"
               fi
               
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"weaviate"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"weaviate"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##weaviate-pre|${{ needs.weaviate-pre.outputs.test-result }}"
               fi
               
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"qdrant"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"qdrant"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##qdrant-pre|${{ needs.qdrant-pre.outputs.test-result }}"
               fi
               
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"smartengine"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"smartengine"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##smartengine-pre|${{ needs.smartengine-pre.outputs.test-result }}"
               fi
           fi
           
           if [[ "${{ inputs.release-version }}" != "v0.5."* && "${{ inputs.release-version }}" != "v0.6."* ]]; then
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"greptimedb"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"greptimedb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##greptimedb-pre|${{ needs.greptimedb-pre.outputs.test-result }}"
               fi
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"nebula"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"nebula"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##nebula-pre|${{ needs.nebula-pre.outputs.test-result }}"
               fi
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"risingwave"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"risingwave"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##risingwave-pre|${{ needs.risingwave-pre.outputs.test-result }}"
               fi
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"starrocks|"* || "${{ inputs.TEST_TYPE }}" == *"starrocks" ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"starrocks|"* || "$TEST_TYPE" == *"starrocks" ]]; then
                   TEST_RESULT="${TEST_RESULT}##starrocks-pre|${{ needs.starrocks-pre.outputs.test-result }}"
               fi
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"etcd"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"etcd"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##etcd-pre|${{ needs.etcd-pre.outputs.test-result }}"
               fi
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"oceanbase|"* || "${{ inputs.TEST_TYPE }}" == *"oceanbase" ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase|"* || "$TEST_TYPE" == *"oceanbase" ]]; then
                   TEST_RESULT="${TEST_RESULT}##oceanbase-pre|${{ needs.oceanbase-pre.outputs.test-result }}"
               fi
              
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"foxlake"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"foxlake"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##foxlake-pre|${{ needs.foxlake-pre.outputs.test-result }}"
               fi
 
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"asmysql"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"asmysql"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##asmysql-pre|${{ needs.asmysql-pre.outputs.test-result }}"
               fi
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"openldap"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"openldap"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##openldap-pre|${{ needs.openldap-pre.outputs.test-result }}"
               fi
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"polardbx"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"polardbx"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##polardbx-pre|${{ needs.polardbx-pre.outputs.test-result }}"
               fi
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"milvus"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"milvus"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##milvus-pre|${{ needs.milvus-pre.outputs.test-result }}"
               fi
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"clickhouse"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"clickhouse"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##clickhouse-pre|${{ needs.clickhouse-pre.outputs.test-result }}"
               fi
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"pika"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"pika"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##pika-pre|${{ needs.pika-pre.outputs.test-result }}"
               fi
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"opensearch"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"opensearch"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##opensearch-pre|${{ needs.opensearch-pre.outputs.test-result }}"
               fi
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"elasticsearch"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"elasticsearch"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##elasticsearch-pre|${{ needs.elasticsearch-pre.outputs.test-result }}"
               fi
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"tdengine"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"tdengine"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##tdengine-pre|${{ needs.tdengine-pre.outputs.test-result }}"
               fi   
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"vllm"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"vllm"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##vllm-pre|${{ needs.vllm-pre.outputs.test-result }}"
               fi    
              
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"orioledb"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"orioledb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##orioledb-pre|${{ needs.orioledb-pre.outputs.test-result }}"
               fi  
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"official-pg"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"official-pg"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##official-pg-pre|${{ needs.official-pg-pre.outputs.test-result }}"
               fi 
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"ggml"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"ggml"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##ggml-pre|${{ needs.ggml-pre.outputs.test-result }}"
               fi 
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"zookeeper"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"zookeeper"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##zookeeper-pre|${{ needs.zookeeper-pre.outputs.test-result }}"
               fi 
           
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"mariadb"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mariadb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##mariadb-pre|${{ needs.mariadb-pre.outputs.test-result }}"
               fi 
           fi
           
           if [[ "${{ inputs.release-version }}" != "v0.5."* && "${{ inputs.release-version }}" != "v0.6."* && "${{ inputs.release-version }}" != "v0.7."* ]]; then
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"tidb"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"tidb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##tidb-pre|${{ needs.tidb-pre.outputs.test-result }}"
               fi 
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"xinference"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"xinference"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##xinference-pre|${{ needs.xinference-pre.outputs.test-result }}"
               fi 
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oracle|"* || "${{ inputs.TEST_TYPE }}" == *"oracle" ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oracle|"* || "$TEST_TYPE" == *"oracle" ]]; then
                   TEST_RESULT="${TEST_RESULT}##oracle-pre|${{ needs.oracle-pre.outputs.test-result }}"
               fi 
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"opengauss"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"opengauss"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##opengauss-pre|${{ needs.opengauss-pre.outputs.test-result }}"
               fi 
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"influxdb"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"influxdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##influxdb-pre|${{ needs.influxdb-pre.outputs.test-result }}"
               fi  
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"flink"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"flink"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##flink-pre|${{ needs.flink-pre.outputs.test-result }}"
               fi  
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mogdb"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mogdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##mogdb-pre|${{ needs.mogdb-pre.outputs.test-result }}"
               fi 
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"redis-cluster"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"redis-cluster"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##redis-cluster-pre|${{ needs.redis-cluster-pre.outputs.test-result }}"
               fi 
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"camellia-redis-proxy"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"camellia-redis-proxy"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##camellia-redis-proxy-pre|${{ needs.camellia-redis-proxy-pre.outputs.test-result }}"
               fi 
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"dmdb"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"dmdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##dmdb-pre|${{ needs.dmdb-pre.outputs.test-result }}"
               fi 
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"minio"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"minio"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##minio-pre|${{ needs.minio-pre.outputs.test-result }}"
               fi
           fi
           
           if [[ "${{ inputs.release-version }}" != "v0.5."* && "${{ inputs.release-version }}" != "v0.6."* && "${{ inputs.release-version }}" != "v0.7."* && "${{ inputs.release-version }}" != "v0.8."* ]]; then
-              if [[ "${{ inputs.test-type }}" == '' || "${{ inputs.test-type }}" == *"solr"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"solr"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##solr-pre|${{ needs.solr-pre.outputs.test-result }}"
               fi 
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"halo"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"halo"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##halo-pre|${{ needs.halo-pre.outputs.test-result }}"
               fi 
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oceanbase-ent"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase-ent"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##oceanbase-ent-pre|${{ needs.oceanbase-ent-pre.outputs.test-result }}"
               fi  
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"starrocks-ent"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"starrocks-ent"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##starrocks-ent-pre|${{ needs.starrocks-ent-pre.outputs.test-result }}"
               fi  
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"apecloud-postgresql"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"apecloud-postgresql"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##apecloud-postgresql-pre|${{ needs.apecloud-postgresql-pre.outputs.test-result }}"
               fi 
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"yashandb"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"yashandb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##yashandb-pre|${{ needs.yashandb-pre.outputs.test-result }}"
               fi 
 
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"orchestrator"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"orchestrator"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##orchestrator-pre|${{ needs.orchestrator-pre.outputs.test-result }}"
               fi 
 
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"rabbitmq"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"rabbitmq"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##rabbitmq-pre|${{ needs.rabbitmq-pre.outputs.test-result }}"
               fi 
 
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"damengdb"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"damengdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##damengdb-pre|${{ needs.damengdb-pre.outputs.test-result }}"
               fi 
 
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"kingbase"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"kingbase"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##kingbase-pre|${{ needs.kingbase-pre.outputs.test-result }}"
               fi 
           fi
