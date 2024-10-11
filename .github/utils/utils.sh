@@ -811,6 +811,7 @@ parse_test_result() {
         test_ret=$( echo "$test_ret" | sed 's/#/ /g' )
         echo "$test_ret" >> "${test_result_report_output_file_log}"
     done
+    echo ""  >> ${test_result_report_output_file_log}
 }
 
 parse_command_line() {

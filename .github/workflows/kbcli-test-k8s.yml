@@ -1135,65 +1135,56 @@ jobs:
           touch ${test_result_report_output_file_log}
           
           TEST_RESULT="playground|${{ needs.test-playground.outputs.test-result }}##install-kubeblocks|${{ needs.test-kubeblocks.outputs.test-result }}"
+          
           if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"apecloud-mysql"* ]]; then
               TEST_RESULT="${TEST_RESULT}##apecloud-mysql|${{ needs.test-apecloud-mysql.outputs.test-result }}"
-              bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-apecloud-mysql.outputs.test-result-report }}"
-              echo ""  >> ${test_result_report_output_file_log}
+              bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-apecloud-mysql.outputs.test-result-report }}"              
           fi
           
           if [[ "${{ inputs.TEST_TYPE }}" == '' || (("${{ inputs.TEST_TYPE }}" == *"postgresql|"* || "${{ inputs.TEST_TYPE }}" == *"postgresql") && "${{ inputs.TEST_TYPE }}" != *"-postgresql"* ) ]]; then
               TEST_RESULT="${TEST_RESULT}##postgresql|${{ needs.test-postgresql.outputs.test-result }}"
               bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-postgresql.outputs.test-result-report }}"
-              echo ""  >> ${test_result_report_output_file_log}
           fi
           
           if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"redis|"* || "${{ inputs.TEST_TYPE }}" == *"redis" ]]; then
               TEST_RESULT="${TEST_RESULT}##redis|${{ needs.test-redis.outputs.test-result }}"
               bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-redis.outputs.test-result-report }}"
-              echo ""  >> ${test_result_report_output_file_log}
           fi
           
           if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mongodb"* ]]; then
               TEST_RESULT="${TEST_RESULT}##mongodb|${{ needs.test-mongodb.outputs.test-result }}"
               bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-mongodb.outputs.test-result-report }}"
-              echo ""  >> ${test_result_report_output_file_log}
           fi
           
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* ]]; then
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"kafka"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##kafka|${{ needs.test-kafka.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-kafka.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"pulsar|"* || "${{ inputs.TEST_TYPE }}" == *"pulsar" ]]; then
                   TEST_RESULT="${TEST_RESULT}##pulsar|${{ needs.test-pulsar.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-pulsar.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mysqlscale"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##mysqlscale|${{ needs.test-mysqlscale.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-mysqlscale.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"weaviate"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##weaviate|${{ needs.test-weaviate.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-weaviate.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"qdrant"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##qdrant|${{ needs.test-qdrant.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-qdrant.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"smartengine"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##smartengine|${{ needs.test-smartengine.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-smartengine.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           fi
           
@@ -1201,133 +1192,111 @@ jobs:
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"greptimedb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##greptimedb|${{ needs.test-greptimedb.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-greptimedb.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"nebula"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##nebula|${{ needs.test-nebula.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-nebula.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"risingwave"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##risingwave|${{ needs.test-risingwave.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-risingwave.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"starrocks|"* || "${{ inputs.TEST_TYPE }}" == *"starrocks" ]]; then
                   TEST_RESULT="${TEST_RESULT}##starrocks|${{ needs.test-starrocks.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-starrocks.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"etcd"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##etcd|${{ needs.test-etcd.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-outputs.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oceanbase|"* || "${{ inputs.TEST_TYPE }}" == *"oceanbase" ]]; then
                   TEST_RESULT="${TEST_RESULT}##oceanbase|${{ needs.test-oceanbase.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-oceanbase.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"foxlake"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##foxlake|${{ needs.test-foxlake.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-foxlake.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"asmysql"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##asmysql|${{ needs.test-asmysql.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-asmysql.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"openldap"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##openldap|${{ needs.test-openldap.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-openldap.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"polardbx"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##polardbx|${{ needs.test-polardbx.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-polardbx.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"milvus"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##milvus|${{ needs.test-milvus.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-milvus.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"clickhouse"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##clickhouse|${{ needs.test-clickhouse.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-clickhouse.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"pika"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##pika|${{ needs.test-pika.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-pika.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"opensearch"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##opensearch|${{ needs.test-opensearch.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-opensearch.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"elasticsearch"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##elasticsearch|${{ needs.test-elasticsearch.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-elasticsearch.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"tdengine"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##tdengine|${{ needs.test-tdengine.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-tdengine.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi   
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"vllm"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##vllm|${{ needs.test-vllm.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-vllm.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi    
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"orioledb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##orioledb|${{ needs.test-orioledb.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-orioledb.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi  
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"official-pg"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##official-pg|${{ needs.test-official-pg.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-official-pg.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"ggml"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##ggml|${{ needs.test-ggml.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-ggml.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"zookeeper"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##zookeeper|${{ needs.test-zookeeper.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-zookeeper.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mariadb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##mariadb|${{ needs.test-mariadb.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-mariadb.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           fi
           
@@ -1335,55 +1304,46 @@ jobs:
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"tidb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##tidb|${{ needs.test-tidb.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-tidb.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"xinference"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##xinference|${{ needs.test-xinference.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-xinference.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oracle|"* || "${{ inputs.TEST_TYPE }}" == *"oracle" ]]; then
                   TEST_RESULT="${TEST_RESULT}##oracle|${{ needs.test-oracle.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-oracle.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"opengauss"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##opengauss|${{ needs.test-opengauss.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-opengauss.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"influxdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##influxdb|${{ needs.test-influxdb.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-influxdb.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi  
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"flink"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##flink|${{ needs.test-flink.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-flink.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi  
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mogdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##mogdb|${{ needs.test-mogdb.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-mogdb.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"redis-cluster"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##redis-cluster|${{ needs.test-redis-cluster.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-redis-cluster.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"camellia-redis-proxy"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##camellia-redis-proxy|${{ needs.test-camellia-redis-proxy.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-camellia-redis-proxy.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           fi 
           
@@ -1392,67 +1352,56 @@ jobs:
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"solr"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##solr|${{ needs.test-solr.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-solr.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oceanbase-ent"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##oceanbase-ent|${{ needs.test-oceanbase-ent.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-oceanbase-ent.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"starrocks-ent"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##starrocks-ent|${{ needs.test-starrocks-ent.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-starrocks-ent.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"apecloud-postgresql"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##apecloud-postgresql|${{ needs.test-apecloud-postgresql.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-apecloud-postgresql.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"yashandb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##yashandb|${{ needs.test-yashandb.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-yashandb.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"dmdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##dmdb|${{ needs.test-dmdb.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-dmdb.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"minio"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##minio|${{ needs.test-minio.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-minio.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
 
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"orchestrator"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##orchestrator|${{ needs.test-orchestrator.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-orchestrator.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
 
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"rabbitmq"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##rabbitmq|${{ needs.test-rabbitmq.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-rabbitmq.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
 
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"damengdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##damengdb|${{ needs.test-damengdb.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-damengdb.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
 
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"kingbase"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##kingbase|${{ needs.test-kingbase.outputs.test-result }}"
                   bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-kingbase.outputs.test-result-report }}"
-                  echo ""  >> ${test_result_report_output_file_log}
               fi 
           fi 
           
