@@ -97,14 +97,6 @@ jobs:
           token: ${{ env.CR_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
 
-      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
-        name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.DOCKER_REGISTRY_URL }}
-          username: ${{ env.DOCKER_USER }}
-          password: ${{ env.DOCKER_PASSWORD }}
-
       - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && inputs.CHECK_REGISTRY != 'aliyun' }}
         name: Login to Docker Hub
         uses: docker/login-action@v2
