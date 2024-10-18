@@ -1,4 +1,4 @@
-name: DEPLOY-ALIYUN-ACK
+name: Deploy Cloud Release
 
 on:
   workflow_call:
@@ -53,8 +53,8 @@ on:
 env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
   ACK_KUBECONFIG_DEMO: ${{ secrets.ACK_KUBECONFIG_DEMO }}
-  ACK_KUBECONFIG_IDC: ${{ secrets.ACK_KUBECONFIG_IDC }}
-  ACK_KUBECONFIG_IDC4: ${{ secrets.ACK_KUBECONFIG_IDC4 }}
+  IDC_KUBECONFIG_2: ${{ secrets.IDC_KUBECONFIG_2 }}
+  IDC_KUBECONFIG_4: ${{ secrets.IDC_KUBECONFIG_4 }}
   ACK_KUBECONFIG_PROD: ${{ secrets.ACK_KUBECONFIG_PROD }}
   ACK_KUBECONFIG_INTL_PROD: ${{ secrets.ACK_KUBECONFIG_INTL_PROD }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
@@ -139,12 +139,12 @@ jobs:
                   echo '${{ env.ACK_KUBECONFIG_DEMO }}' > $HOME/.kube/config
                   cp -r apecloud-values/demo/values.yaml ${CHART_VALUES_FILENAME}
               ;;
-              idc)
-                  echo '${{ env.ACK_KUBECONFIG_IDC }}' > $HOME/.kube/config
-                  cp -r apecloud-values/idc/values.yaml ${CHART_VALUES_FILENAME}
+              idc2)
+                  echo '${{ env.IDC_KUBECONFIG_2 }}' > $HOME/.kube/config
+                  cp -r apecloud-values/idc2/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               idc4)
-                  echo '${{ env.ACK_KUBECONFIG_IDC4 }}' > $HOME/.kube/config
+                  echo '${{ env.IDC_KUBECONFIG_4 }}' > $HOME/.kube/config
                   cp -r apecloud-values/idc4/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               prod)
