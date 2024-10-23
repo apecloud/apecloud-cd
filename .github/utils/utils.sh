@@ -810,6 +810,21 @@ parse_test_result() {
     for test_ret in `echo "$TEST_RESULT" | sed 's/##/ /g'`; do
         test_ret=$( echo "$test_ret" | sed 's/#/ /g' )
         echo "$test_ret" >> "${test_result_report_output_file_log}"
+        case $test_ret in
+            *\[PASSED\]*)
+                echo "$(tput -T xterm setaf 2)$test_ret$(tput -T xterm sgr0)"
+            ;;
+            *\[SKIPPED\]*|*\[WARNING\]*)
+                echo "$(tput -T xterm setaf 3)$test_ret$(tput -T xterm sgr0)"
+            ;;
+            *\[FAILED\]*)
+                echo "$(tput -T xterm setaf 1)$test_ret$(tput -T xterm sgr0)"
+                EXIT_FLAG=1
+            ;;
+            *)
+                echo "$test_ret"
+            ;;
+        esac
     done
     echo ""  >> ${test_result_report_output_file_log}
 }
