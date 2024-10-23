@@ -307,7 +307,7 @@ jobs:
           test_title="[${{ inputs.KB_VERSION }}] Smoke Test on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
           
           python3 .github/utils/send_mesage.py \
-              --url ${{ vars.TEST_BOT_WEBHOOK }} \
+              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
               --title "$test_title" \
               --result "$TEST_RESULT"
 

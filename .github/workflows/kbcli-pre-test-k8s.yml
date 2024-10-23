@@ -1241,7 +1241,7 @@ jobs:
               test_title="[${{ inputs.previous-version }}] upgrade to "$test_title
           fi 
           python3 .github/utils/send_mesage.py \
-              --url ${{ vars.TEST_BOT_WEBHOOK }} \
+              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
               --title "$test_title" \
               --result "$TEST_RESULT"
           
