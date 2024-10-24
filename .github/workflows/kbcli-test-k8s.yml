@@ -1497,6 +1497,12 @@ jobs:
           path: ./
           token: ${{ env.GITHUB_TOKEN }}
 
+      - uses: manyuanrong/setup-ossutil@v2.0
+        with:
+          access-key-id: "${{ env.OSS_KEY_ID }}"
+          access-key-secret: "${{ env.OSS_KEY_SECRET }}"
+          endpoint: "${{ env.OSS_ENDPOINT }}"
+
       - name: run report
         run: |
           TEST_DATE=${{ needs.send-message.outputs.test-date }}
@@ -1551,12 +1557,6 @@ jobs:
           cd test/report
           sed -i 's/^appscript==.*/#appscript==/' requirements.txt
           pip3 install -r requirements.txt
-
-      - uses: manyuanrong/setup-ossutil@v2.0
-        with:
-          access-key-id: "${{ env.OSS_KEY_ID }}"
-          access-key-secret: "${{ env.OSS_KEY_SECRET }}"
-          endpoint: "${{ env.OSS_ENDPOINT }}"
 
       - name: run report
         run: |
