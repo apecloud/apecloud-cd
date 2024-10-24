@@ -1622,9 +1622,14 @@ jobs:
               TEST_RESULT="${TEST_RESULT}##${report_file}|${OSS_URL}/${report_file}"
           done
           
+          REPORT_BOT_WEBHOOK="${{ vars.REPORT_BOT_WEBHOOK }}"
+          if [[ -z "${REPORT_BOT_WEBHOOK}" ]]; then
+              REPORT_BOT_WEBHOOK="${{ vars.TEST_BOT_WEBHOOK }}"
+          fi
+          
           test_title="[${KUBEBLOCKS_VERSION}] Test Report on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${TEST_DATE}]"
           python3 .github/utils/send_mesage.py \
-              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
+              --url "${REPORT_BOT_WEBHOOK}" \
               --title "$test_title" \
               --result "$TEST_RESULT" \
               --send-type "report"

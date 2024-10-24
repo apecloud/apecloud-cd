@@ -332,7 +332,7 @@ def send_report_message(url_v, result_v, title_v):
                             "elements": [
                                 {
                                     "tag": "markdown",
-                                    "content": "<font color='green'>" + ret[0] + "</font>",
+                                    "content": "<font color='orange'>" + ret[0] + "</font>",
                                     "text_align": "center"
                                 }
                             ]
