@@ -1503,7 +1503,7 @@ jobs:
           access-key-secret: "${{ env.OSS_KEY_SECRET }}"
           endpoint: "${{ env.OSS_ENDPOINT }}"
 
-      - name: run report
+      - name: download test result log
         run: |
           TEST_DATE=${{ needs.send-message.outputs.test-date }}
           KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
@@ -1511,15 +1511,16 @@ jobs:
           upload_file_name="result.log.txt"
           
           for i in $(seq 1 3); do
-              ossutil cp -rf "${OSS_DIR}/${upload_file_name}" ./
+              ossutil cp -rf "${OSS_DIR}/${upload_file_name}" ./test/report/
               download_ret=$?
               if [[ $download_ret -eq 0 ]]; then
+                  echo "$(tput -T xterm setaf 2)download ${upload_file_name} from oss successfully$(tput -T xterm sgr0)"
                   break
               fi
               sleep 1
           done
           
-          if [[ ! -f "${upload_file_name}" ]]; then
+          if [[ ! -f "./test/report/${upload_file_name}" ]]; then
               echo "$(tput -T xterm setaf 1)::error title=download ${upload_file_name} from oss failure$(tput -T xterm sgr0)"
               exit 1
           fi
@@ -1560,8 +1561,6 @@ jobs:
 
       - name: run report
         run: |
-          upload_file_name="result.log.txt"
-        
           cd test/report
           for i in $(seq 1 3); do
               python3 ./report.py \
