@@ -1607,6 +1607,13 @@ jobs:
               done
           done
 
+      - name: checkout apecloud-cd
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
       - name: send message
         run: |
           TEST_DATE=${{ needs.send-message.outputs.test-date }}
@@ -1629,7 +1636,7 @@ jobs:
           fi
           
           test_title="[${KUBEBLOCKS_VERSION}] Test Report on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${TEST_DATE}]"
-          python3 .github/utils/send_mesage.py \
+          python3 ./apecloud-cd/.github/utils/send_mesage.py \
               --url "${REPORT_BOT_WEBHOOK}" \
               --title "$test_title" \
               --result "$TEST_RESULT" \
