@@ -307,7 +307,7 @@ def send_report_message(url_v, result_v, title_v):
                     {
                         "tag": "markdown",
                         "content": "**Download Url**",
-                        "text_align": "center"
+                        "text_align": "left"
                     }
                 ]
             },
@@ -346,7 +346,7 @@ def send_report_message(url_v, result_v, title_v):
                                 {
                                     "tag": "markdown",
                                     "content": "<a href='" + ret[1] + "'>" + ret[1] + "</a>",
-                                    "text_align": "center"
+                                    "text_align": "left"
                                 }
                             ]
                         }
