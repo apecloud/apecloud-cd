@@ -1485,6 +1485,7 @@ jobs:
     secrets: inherit
     
   upload-test-report:
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     needs: [ send-message ]
     steps:
