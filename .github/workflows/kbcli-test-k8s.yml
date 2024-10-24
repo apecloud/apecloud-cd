@@ -1600,6 +1600,7 @@ jobs:
                   upload_ret=$?
                   if [[ $upload_ret -eq 0 ]]; then
                       echo "$(tput -T xterm setaf 2)upload ${report_file} to oss successfully$(tput -T xterm sgr0)"
+                      break
                   else
                       echo "$(tput -T xterm setaf 3)::warning title=upload ${report_file} to oss failure$(tput -T xterm sgr0)"
                   fi
