@@ -255,7 +255,7 @@ jobs:
           date_ret=$(date +%Y-%m-%d-%T)
           test_title="[${{ inputs.KUBECHAT_VERSION }}] Test KubeChat on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }} [${date_ret}]"
           python3 .github/utils/send_mesage.py \
-              --url ${{ vars.TEST_BOT_WEBHOOK }} \
+              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
               --title "$test_title" \
               --result "$TEST_RESULT"
 

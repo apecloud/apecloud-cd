@@ -106,6 +106,11 @@ run-name: kbcli:${{ inputs.KB_PRE_VERSION }} to ${{ inputs.KB_VERSION }} ${{ inp
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  PYTHON_VERSION: "3.11"
+  OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
+  OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
+  OSS_ENDPOINT: "oss-cn-zhangjiakou.aliyuncs.com"
+  OSS_BUCKET: "kubeblocks-oss"
 
 permissions:
   id-token: write
@@ -1110,6 +1115,8 @@ jobs:
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
+    outputs:
+      test-date: ${{ steps.upload_test_result.outputs.test-date }}
     needs: [ test-playground, test-kubeblocks, test-apecloud-mysql, test-postgresql, test-redis,
              test-mongodb, test-kafka, test-pulsar, test-mysqlscale, test-weaviate, test-qdrant,
              test-smartengine, test-greptimedb, test-nebula, test-risingwave, test-starrocks,
@@ -1129,231 +1136,278 @@ jobs:
           ref: ${{ inputs.APECD_REF }}
 
       - name: send message
-        id: get_trigger_mode
         run: |
           TEST_TYPE="${{ inputs.TEST_TYPE }}"
+          cmd_head="bash .github/utils/utils.sh --type 36 --test-result "
           TEST_RESULT="playground|${{ needs.test-playground.outputs.test-result }}##install-kubeblocks|${{ needs.test-kubeblocks.outputs.test-result }}"
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"apecloud-mysql"* ]]; then
               TEST_RESULT="${TEST_RESULT}##apecloud-mysql|${{ needs.test-apecloud-mysql.outputs.test-result }}"
-              bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-apecloud-mysql.outputs.test-result-report }}"              
+              cmd="${cmd_head} ${{ needs.test-apecloud-mysql.outputs.test-result-report }}"
+              eval "$cmd"
           fi
           if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"postgresql|"* || "$TEST_TYPE" == *"postgresql") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
               TEST_RESULT="${TEST_RESULT}##postgresql|${{ needs.test-postgresql.outputs.test-result }}"
-              bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-postgresql.outputs.test-result-report }}"
+              cmd="${cmd_head} ${{ needs.test-postgresql.outputs.test-result-report }}"
+              eval "$cmd"
           fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"redis|"* || "$TEST_TYPE" == *"redis" ]]; then
               TEST_RESULT="${TEST_RESULT}##redis|${{ needs.test-redis.outputs.test-result }}"
-              bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-redis.outputs.test-result-report }}"
+              cmd="${cmd_head} ${{ needs.test-redis.outputs.test-result-report }}"
+              eval "$cmd"
           fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mongodb"* ]]; then
               TEST_RESULT="${TEST_RESULT}##mongodb|${{ needs.test-mongodb.outputs.test-result }}"
-              bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-mongodb.outputs.test-result-report }}"
+              cmd="${cmd_head} ${{ needs.test-mongodb.outputs.test-result-report }}"
+              eval "$cmd"
           fi
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* ]]; then
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"kafka"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##kafka|${{ needs.test-kafka.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-kafka.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-kafka.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"pulsar|"* || "$TEST_TYPE" == *"pulsar" ]]; then
                   TEST_RESULT="${TEST_RESULT}##pulsar|${{ needs.test-pulsar.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-pulsar.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-pulsar.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mysqlscale"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##mysqlscale|${{ needs.test-mysqlscale.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-mysqlscale.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-mysqlscale.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"weaviate"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##weaviate|${{ needs.test-weaviate.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-weaviate.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-weaviate.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"qdrant"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##qdrant|${{ needs.test-qdrant.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-qdrant.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-qdrant.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"smartengine"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##smartengine|${{ needs.test-smartengine.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-smartengine.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-smartengine.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
           fi
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* ]]; then
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"greptimedb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##greptimedb|${{ needs.test-greptimedb.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-greptimedb.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-greptimedb.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"nebula"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##nebula|${{ needs.test-nebula.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-nebula.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-nebula.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"risingwave"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##risingwave|${{ needs.test-risingwave.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-risingwave.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-risingwave.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"starrocks|"* || "$TEST_TYPE" == *"starrocks" ]]; then
                   TEST_RESULT="${TEST_RESULT}##starrocks|${{ needs.test-starrocks.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-starrocks.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-starrocks.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"etcd"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##etcd|${{ needs.test-etcd.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-outputs.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-outputs.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase|"* || "$TEST_TYPE" == *"oceanbase" ]]; then
                   TEST_RESULT="${TEST_RESULT}##oceanbase|${{ needs.test-oceanbase.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-oceanbase.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-oceanbase.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"foxlake"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##foxlake|${{ needs.test-foxlake.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-foxlake.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-foxlake.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"asmysql"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##asmysql|${{ needs.test-asmysql.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-asmysql.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-asmysql.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"openldap"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##openldap|${{ needs.test-openldap.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-openldap.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-openldap.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"polardbx"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##polardbx|${{ needs.test-polardbx.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-polardbx.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-polardbx.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"milvus"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##milvus|${{ needs.test-milvus.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-milvus.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-milvus.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"clickhouse"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##clickhouse|${{ needs.test-clickhouse.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-clickhouse.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-clickhouse.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"pika"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##pika|${{ needs.test-pika.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-pika.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-pika.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"opensearch"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##opensearch|${{ needs.test-opensearch.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-opensearch.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-opensearch.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"elasticsearch"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##elasticsearch|${{ needs.test-elasticsearch.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-elasticsearch.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-elasticsearch.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"tdengine"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##tdengine|${{ needs.test-tdengine.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-tdengine.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-tdengine.outputs.test-result-report }}"
+                  eval "$cmd"
               fi   
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"vllm"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##vllm|${{ needs.test-vllm.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-vllm.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-vllm.outputs.test-result-report }}"
+                  eval "$cmd"
               fi    
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"orioledb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##orioledb|${{ needs.test-orioledb.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-orioledb.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-orioledb.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"official-pg"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##official-pg|${{ needs.test-official-pg.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-official-pg.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-official-pg.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"ggml"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##ggml|${{ needs.test-ggml.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-ggml.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-ggml.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"zookeeper"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##zookeeper|${{ needs.test-zookeeper.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-zookeeper.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-zookeeper.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mariadb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##mariadb|${{ needs.test-mariadb.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-mariadb.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-mariadb.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
           fi
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* ]]; then
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"tidb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##tidb|${{ needs.test-tidb.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-tidb.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-tidb.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"xinference"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##xinference|${{ needs.test-xinference.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-xinference.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-xinference.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oracle|"* || "$TEST_TYPE" == *"oracle" ]]; then
                   TEST_RESULT="${TEST_RESULT}##oracle|${{ needs.test-oracle.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-oracle.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-oracle.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"opengauss"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##opengauss|${{ needs.test-opengauss.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-opengauss.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-opengauss.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"influxdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##influxdb|${{ needs.test-influxdb.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-influxdb.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-influxdb.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"flink"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##flink|${{ needs.test-flink.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-flink.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-flink.outputs.test-result-report }}"
+                  eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mogdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##mogdb|${{ needs.test-mogdb.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-mogdb.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-mogdb.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"redis-cluster"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##redis-cluster|${{ needs.test-redis-cluster.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-redis-cluster.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-redis-cluster.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"camellia-redis-proxy"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##camellia-redis-proxy|${{ needs.test-camellia-redis-proxy.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-camellia-redis-proxy.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-camellia-redis-proxy.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
           fi 
           
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* ]]; then
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"solr"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##solr|${{ needs.test-solr.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-solr.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-solr.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase-ent"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##oceanbase-ent|${{ needs.test-oceanbase-ent.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-oceanbase-ent.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-oceanbase-ent.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"starrocks-ent"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##starrocks-ent|${{ needs.test-starrocks-ent.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-starrocks-ent.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-starrocks-ent.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"apecloud-postgresql"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##apecloud-postgresql|${{ needs.test-apecloud-postgresql.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-apecloud-postgresql.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-apecloud-postgresql.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"yashandb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##yashandb|${{ needs.test-yashandb.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-yashandb.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-yashandb.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"dmdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##dmdb|${{ needs.test-dmdb.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-dmdb.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-dmdb.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"minio"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##minio|${{ needs.test-minio.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-minio.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-minio.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"orchestrator"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##orchestrator|${{ needs.test-orchestrator.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-orchestrator.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-orchestrator.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"rabbitmq"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##rabbitmq|${{ needs.test-rabbitmq.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-rabbitmq.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-rabbitmq.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"damengdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##damengdb|${{ needs.test-damengdb.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-damengdb.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-damengdb.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"kingbase"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##kingbase|${{ needs.test-kingbase.outputs.test-result }}"
-                  bash .github/utils/utils.sh --type 36 --test-result "${{ needs.test-kingbase.outputs.test-result-report }}"
+                  cmd="${cmd_head} ${{ needs.test-kingbase.outputs.test-result-report }}"
+                  eval "$cmd"
               fi 
-          fi 
-          
-          test_result_report_output_file_log="test-result-report-output.log"
-          if [[ -f ${test_result_report_output_file_log} ]]; then
-              cat ${test_result_report_output_file_log} 
           fi
           
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
@@ -1367,9 +1421,58 @@ jobs:
           fi 
           echo $TEST_RESULT
           python3 .github/utils/send_mesage.py \
-              --url ${{ vars.TEST_BOT_WEBHOOK }} \
+              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
               --title "$test_title" \
               --result "$TEST_RESULT"
+
+      - name: Setup ossutil
+        uses: manyuanrong/setup-ossutil@v2.0
+        with:
+          access-key-id: "${{ env.OSS_KEY_ID }}"
+          access-key-secret: "${{ env.OSS_KEY_SECRET }}"
+          endpoint: "${{ env.OSS_ENDPOINT }}"
+
+      - name: Upload test result log to oss
+        id: upload_test_result
+        run: |
+          TEST_DATE="$(date +%Y%m%d)"
+          echo test-date=${TEST_DATE} >> $GITHUB_OUTPUT
+          
+          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
+          OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}/${TEST_DATE}"
+          upload_file_name="result.log.txt"
+          
+          for i in $(seq 1 3); do
+              ossutil cp -rf "${OSS_DIR}/${upload_file_name}" ./
+              download_ret=$?
+              if [[ $download_ret -eq 0 ]]; then
+                  break
+              fi
+              sleep 1
+          done
+          
+          test_result_report_output_file_log="test-result-report-output.log"
+          if [[ -f ${test_result_report_output_file_log} ]]; then
+              cat ${test_result_report_output_file_log}
+              if [[ ! -f ${upload_file_name} ]]; then
+                  touch ${upload_file_name}
+              else
+                  echo "" >> ${upload_file_name}
+              fi
+              cat ${test_result_report_output_file_log} >> ${upload_file_name}
+          
+              for i in $(seq 1 3); do
+                  ossutil cp -rf "${upload_file_name}" "${OSS_DIR}/${upload_file_name}"
+                  upload_ret=$?
+                  if [[ $upload_ret -eq 0 ]]; then
+                      echo "$(tput -T xterm setaf 2)upload ${upload_file_name} to oss successfully$(tput -T xterm sgr0)"
+                      break
+                  else
+                      echo "$(tput -T xterm setaf 3)::warning title=upload ${upload_file_name} to oss failure$(tput -T xterm sgr0)"
+                  fi
+                  sleep 1
+              done
+          fi
 
   terraform-destroy-k8s:
     if: ${{ always() }}
@@ -1380,3 +1483,153 @@ jobs:
       artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
       region: ${{ inputs.REGION }}
     secrets: inherit
+    
+  upload-test-report:
+    runs-on: ubuntu-latest
+    needs: [ send-message ]
+    steps:
+      - name: checkout testinfra
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/testinfra
+          ref: "${{ inputs.BRANCH_NAME }}"
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: run report
+        run: |
+          TEST_DATE=${{ needs.send-message.outputs.test-date }}
+          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
+          OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}/${TEST_DATE}"
+          upload_file_name="result.log.txt"
+          
+          for i in $(seq 1 3); do
+              ossutil cp -rf "${OSS_DIR}/${upload_file_name}" ./
+              download_ret=$?
+              if [[ $download_ret -eq 0 ]]; then
+                  break
+              fi
+              sleep 1
+          done
+          
+          if [[ ! -f "${upload_file_name}" ]]; then
+              echo "$(tput -T xterm setaf 1)::error title=download ${upload_file_name} from oss failure$(tput -T xterm sgr0)"
+              exit 1
+          fi
+
+      - name: install wkhtmltopdf
+        run: |
+          sudo rm /etc/apt/sources.list.d/microsoft-prod.list
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends wkhtmltopdf fonts-wqy-zenhei fonts-wqy-microhei
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "${{ env.PYTHON_VERSION }}"
+
+      - name: checkout pystan2
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          repository: stan-dev/pystan2
+          ref: "v2.19.1.1"
+          path: pystan2
+
+      - name: install Cython and NumPy
+        run: |
+          pip3 install Cython==3.0.9 NumPy==1.24.3
+
+      - name: install pystan 2.19.1.1
+        run: |
+          cd pystan2
+          python3 setup.py install
+
+      - name: install python requirements
+        run: |
+          cd test/report
+          sed -i 's/^appscript==.*/#appscript==/' requirements.txt
+          pip3 install -r requirements.txt
+
+      - uses: manyuanrong/setup-ossutil@v2.0
+        with:
+          access-key-id: "${{ env.OSS_KEY_ID }}"
+          access-key-secret: "${{ env.OSS_KEY_SECRET }}"
+          endpoint: "${{ env.OSS_ENDPOINT }}"
+
+      - name: run report
+        run: |
+          upload_file_name="result.log.txt"
+        
+          cd test/report
+          for i in $(seq 1 3); do
+              python3 ./report.py \
+                  --raw=./result.log.txt \
+                  --ha_doc=./ha.md \
+                  --main_doc=./main.md \
+                  --upgrade_doc=./upgrade.md \
+                  --main_report=./test_all.pdf \
+                  --ha_report=./test_ha.pdf \
+                  --upgrade_report=./test_upgrade.pdf 
+              gen_ret=$?
+              if [[ $gen_ret -eq 0 ]]; then
+                  break
+              fi
+              sleep 1
+          done
+          
+          echo "mv test reports to reports dir"
+          mkdir -p reports
+          mv ./test_all.pdf ./test_ha.pdf ./test_upgrade.pdf reports
+
+      - name: Upload test reports to oss
+        run: |
+          TEST_DATE=${{ needs.send-message.outputs.test-date }}
+          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
+          OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}/${TEST_DATE}"
+          
+          report_file_path="./test/report/reports"
+          for report_file in $(ls ${report_file_path}); do
+              if [[ ! -f "${report_file_path}/${report_file}" ]]; then
+                  continue
+              fi
+          
+              for i in $(seq 1 3); do
+                  ossutil cp -rf "${report_file_path}/${report_file}" "${OSS_DIR}/${report_file}"
+                  upload_ret=$?
+                  if [[ $upload_ret -eq 0 ]]; then
+                      echo "$(tput -T xterm setaf 2)upload ${report_file} to oss successfully$(tput -T xterm sgr0)"
+                  else
+                      echo "$(tput -T xterm setaf 3)::warning title=upload ${report_file} to oss failure$(tput -T xterm sgr0)"
+                  fi
+                  sleep 1
+              done
+          done
+
+      - name: send message
+        run: |
+          TEST_DATE=${{ needs.send-message.outputs.test-date }}
+          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
+          OSS_URL="https://${{ env.OSS_BUCKET }}.${{ env.OSS_ENDPOINT }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}/${TEST_DATE}"
+          test_result_file_name="result.log.txt"
+          TEST_RESULT="${test_result_file_name}|${OSS_URL}/${test_result_file_name}"
+          
+          report_file_path="./test/report/reports"
+          for report_file in $(ls ${report_file_path}); do
+              if [[ ! -f "${report_file_path}/${report_file}" ]]; then
+                  continue
+              fi
+              TEST_RESULT="${TEST_RESULT}##${report_file}|${OSS_URL}/${report_file}"
+          done
+          
+          REPORT_BOT_WEBHOOK="${{ vars.REPORT_BOT_WEBHOOK }}"
+          if [[ -z "${REPORT_BOT_WEBHOOK}" ]]; then
+              REPORT_BOT_WEBHOOK="${{ vars.TEST_BOT_WEBHOOK }}"
+          fi
+          
+          test_title="[${KUBEBLOCKS_VERSION}] Test Report on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${TEST_DATE}]"
+          python3 .github/utils/send_mesage.py \
+              --url "${REPORT_BOT_WEBHOOK}" \
+              --title "$test_title" \
+              --result "$TEST_RESULT" \
+              --send-type "report"

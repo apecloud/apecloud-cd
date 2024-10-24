@@ -121,6 +121,6 @@ jobs:
           date_ret=$(date +%Y-%m-%d-%T)
           test_title="[${{ inputs.APECLOUD_VERSION }}] Test ApeCloud on K3S:${{ inputs.K3S_VERSION }} [${date_ret}]"
           python3 .github/utils/send_mesage.py \
-              --url ${{ vars.TEST_BOT_WEBHOOK }} \
+              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
               --title "$test_title" \
               --result "$TEST_RESULT"

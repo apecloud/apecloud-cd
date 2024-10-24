@@ -277,6 +277,99 @@ def send_performance_message(url_v, result_v, title_v, job_url_v):
     print(res.text)
 
 
+def send_report_message(url_v, result_v, title_v):
+    print("send report message")
+    json_results = []
+    json_ret = {
+        "tag": "column_set",
+        "flex_mode": "none",
+        "background_style": "grey",
+        "columns": [
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 1,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Report File**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 3,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Download Url**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+        ]
+    }
+    json_results.append(json_ret)
+    if result_v:
+        result_array = result_v.split("##")
+        for results in result_array:
+            if results:
+                ret = results.split("|")
+                json_ret = {
+                    "tag": "column_set",
+                    "flex_mode": "none",
+                    "background_style": "default",
+                    "columns": [
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 1,
+                            "vertical_align": "top",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<font color='orange'>" + ret[0] + "</font>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 3,
+                            "vertical_align": "top",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<a href='" + ret[1] + "'>" + ret[1] + "</a>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        }
+                    ],
+                }
+                json_results.append(json_ret)
+
+    card = json.dumps({
+        "header": {
+            "template": "orange",
+            "title": {
+                "tag": "plain_text",
+                "content": title_v
+            }
+        },
+        "elements": json_results
+    })
+    body = json.dumps({"msg_type": "interactive", "card": card})
+    headers = {"Content-Type": "application/json"}
+    res = requests.post(url=url_v, data=body, headers=headers)
+    print(res.text)
+
+
 def send_e2e_message(url_v, result_v, title_v):
     print("Sending message to Feishu bot...")
     headers = {"Content-Type": "application/json"}
@@ -335,6 +428,8 @@ def parse_result(result_v):
 if __name__ == '__main__':
     if send_type == "performance":
         send_performance_message(url, result, title, job_url)
+    elif send_type == "report":
+        send_report_message(url, result, title)
     elif send_type == "e2e":
         send_e2e_message(url, result, title)
     else:

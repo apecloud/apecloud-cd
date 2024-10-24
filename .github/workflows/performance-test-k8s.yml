@@ -264,7 +264,7 @@ jobs:
           echo "TEST_RESULT:"$TEST_RESULT
           
           python3 .github/utils/send_mesage.py \
-              --url ${{ vars.TEST_BOT_WEBHOOK }} \
+              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT" \
               --job-url "$JOB_RUL" \
