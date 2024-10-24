@@ -328,7 +328,7 @@ def send_report_message(url_v, result_v, title_v):
                             "tag": "column",
                             "width": "weighted",
                             "weight": 1,
-                            "vertical_align": "top",
+                            "vertical_align": "center",
                             "elements": [
                                 {
                                     "tag": "markdown",
