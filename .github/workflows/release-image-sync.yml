@@ -230,16 +230,16 @@ jobs:
               POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_DEMO }}"
               POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_DEMO }}"
               POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_DEMO }}"
-          elif [[ "${{ inputs.VERSION }}" == "${IDC2_RELEASE_VERSION}."* ]]; then
-              echo "set PG HOST Env IDC2"
-              POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_IDC2 }}"
-              POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_IDC2 }}"
-              POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_IDC2 }}"
           elif [[ "${{ inputs.VERSION }}" == "${IDC4_RELEASE_VERSION}."* ]]; then
               echo "set PG HOST Env IDC4"
               POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_IDC4 }}"
               POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_IDC4 }}"
               POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_IDC4 }}"
+          elif [[ "${{ inputs.VERSION }}" == "${IDC2_RELEASE_VERSION}."* ]]; then
+              echo "set PG HOST Env IDC2"
+              POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_IDC2 }}"
+              POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_IDC2 }}"
+              POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_IDC2 }}"
           else
               echo "set PG HOST Env DEV"
               POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_DEV }}"
