@@ -53,6 +53,19 @@ update_kbInstaller_version() {
     fi
 }
 
+update_oteld_version() {
+    oteld_version="${1}"
+    if [[ ! -f "${INSTALLER_CHART_FILE}" ]]; then
+        echo "$(tput -T xterm setaf 3)::warning title=Not found installer chart values file:${INSTALLER_CHART_FILE} $(tput -T xterm sgr0)"
+        return
+    fi
+    if [[ "$UNAME" == "Darwin" ]]; then
+        sed -i '' "s/^  oteld:.*/  oteld: \"${oteld_version}\"/" "${INSTALLER_CHART_FILE}"
+    else
+        sed -i "s/^  oteld:.*/  oteld: \"${oteld_version}\"/" "${INSTALLER_CHART_FILE}"
+    fi
+}
+
 update_manifests_file_version() {
     echo "MANIFESTS_FILE:${MANIFESTS_FILE}"
     if [[ ! -f "${MANIFESTS_FILE}" ]]; then
@@ -88,6 +101,11 @@ update_manifests_file_version() {
         for manifests_image in $(echo "${manifests_images}"); do
             for update_image in "${update_images[@]}"; do
                 if [[ "${manifests_image}" == "apecloud/${update_image}:"* ]]; then
+                    if [[ "${manifests_image}" == "apecloud/oteld:"* ]]; then
+                        oteld_version="${manifests_image#*:}"
+                        update_oteld_version "${oteld_version}"
+                    fi
+
                     if [[ "${manifests_image}" == "apecloud/kubeblocks-installer:"* ]]; then
                         kbInstaller_version="${RELEASE_VERSION}-${KUBEBLOCKS_VERSION}-offline"
                         yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${kbInstaller_version}\"" "${MANIFESTS_FILE}"
