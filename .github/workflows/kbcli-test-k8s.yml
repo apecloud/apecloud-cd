@@ -519,7 +519,7 @@ jobs:
     secrets: inherit
 
   test-openldap:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'openldap')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'openldap')) && (contains(inputs.KB_VERSION, 'v0.7.') || contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -591,7 +591,7 @@ jobs:
     secrets: inherit
 
   test-vllm:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'vllm')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'vllm')) && (contains(inputs.KB_VERSION, 'v0.7.') || contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -681,7 +681,7 @@ jobs:
     secrets: inherit
 
   test-ggml:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'ggml')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'ggml')) && (contains(inputs.KB_VERSION, 'v0.7.') || contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -753,7 +753,7 @@ jobs:
     secrets: inherit
 
   test-xinference:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'xinference')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'xinference')) && (contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -771,7 +771,7 @@ jobs:
     secrets: inherit
 
   test-oracle:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oracle|') || endsWith(inputs.TEST_TYPE, 'oracle')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oracle|') || endsWith(inputs.TEST_TYPE, 'oracle')) && (contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -789,7 +789,7 @@ jobs:
     secrets: inherit
 
   test-opengauss:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'opengauss')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'opengauss')) && (contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -825,7 +825,7 @@ jobs:
     secrets: inherit
 
   test-flink:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'flink')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'flink')) && (contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -843,7 +843,7 @@ jobs:
     secrets: inherit
 
   test-solr:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'solr')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'solr')) && contains(inputs.KB_VERSION, 'v0.9.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -987,7 +987,7 @@ jobs:
     secrets: inherit
 
   test-camellia-redis-proxy:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'camellia-redis-proxy')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'camellia-redis-proxy')) && (contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -1005,7 +1005,7 @@ jobs:
     secrets: inherit
 
   test-dmdb:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'dmdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'dmdb')) && contains(inputs.KB_VERSION, 'v0.9.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
