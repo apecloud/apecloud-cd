@@ -38,6 +38,11 @@ on:
         type: string
         required: false
         default: ''
+      TRIGGER_WORKFLOW:
+        description: "enable trigger workflow (default: true)"
+        type: boolean
+        required: false
+        default: true
   workflow_call:
     inputs:
       GITHUB_REPO:
@@ -75,6 +80,11 @@ on:
         type: string
         required: false
         default: ''
+      TRIGGER_WORKFLOW:
+        description: "enable trigger workflow (default: true)"
+        type: boolean
+        required: false
+        default: true
 
 
 env:
@@ -128,6 +138,7 @@ jobs:
           ref: ${{ inputs.APECD_REF }}
 
       - name: trigger-workflow
+        if: ${{ inputs.TRIGGER_WORKFLOW }}
         run: |
           cmd="bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 7 --github-token \"${{ env.GITHUB_TOKEN }}\" "
           if [[ -n "${{ inputs.GITHUB_REPO }}" ]]; then
