@@ -13,6 +13,11 @@ on:
         type: string
         required: false
         default: 'main'
+      BASE_BRANCH:
+        description: "The base branch name that triggers the workflow"
+        type: string
+        required: false
+        default: 'main'
       WORKFLOW_ID:
         description: "The workflow id that triggers the workflow"
         type: string
@@ -33,6 +38,11 @@ on:
         type: string
         required: false
         default: ''
+      TRIGGER_WORKFLOW:
+        description: "enable trigger workflow (default: true)"
+        type: boolean
+        required: false
+        default: true
   workflow_call:
     inputs:
       GITHUB_REPO:
@@ -45,6 +55,11 @@ on:
         type: string
         required: false
         default: 'main'
+      BASE_BRANCH:
+        description: "The base branch name that triggers the workflow"
+        type: string
+        required: false
+        default: 'main'
       WORKFLOW_ID:
         description: "The workflow id that triggers the workflow"
         type: string
@@ -65,6 +80,11 @@ on:
         type: string
         required: false
         default: ''
+      TRIGGER_WORKFLOW:
+        description: "enable trigger workflow (default: true)"
+        type: boolean
+        required: false
+        default: true
 
 
 env:
@@ -76,12 +96,13 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout ${{ inputs.GITHUB_REPO }} Code
+      - name: Checkout ${{ inputs.GITHUB_REPO }} ${{ inputs.BASE_BRANCH }} Code
         uses: actions/checkout@v4
         if: ${{ inputs.BRANCH_NAME != '' && inputs.GITHUB_REPO != '' }}
         with:
           repository: ${{ inputs.GITHUB_REPO }}
           token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.BASE_BRANCH }}
           fetch-depth: 0
 
       - name: check ${{ inputs.BRANCH_NAME }} exists
@@ -117,6 +138,7 @@ jobs:
           ref: ${{ inputs.APECD_REF }}
 
       - name: trigger-workflow
+        if: ${{ inputs.TRIGGER_WORKFLOW }}
         run: |
           cmd="bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 7 --github-token \"${{ env.GITHUB_TOKEN }}\" "
           if [[ -n "${{ inputs.GITHUB_REPO }}" ]]; then
