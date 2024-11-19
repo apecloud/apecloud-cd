@@ -21,7 +21,7 @@ on:
       WORKFLOW_ID:
         description: "The workflow id that triggers the workflow"
         type: string
-        required: true
+        required: false
         default: ''
       APECD_REF:
         description: "The branch name of apecloud-cd"
@@ -63,7 +63,7 @@ on:
       WORKFLOW_ID:
         description: "The workflow id that triggers the workflow"
         type: string
-        required: true
+        required: false
         default: ''
       APECD_REF:
         description: "The branch name of apecloud-cd"
