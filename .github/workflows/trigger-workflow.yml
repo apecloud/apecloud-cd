@@ -13,6 +13,11 @@ on:
         type: string
         required: false
         default: 'main'
+      BASE_BRANCH:
+        description: "The base branch name that triggers the workflow"
+        type: string
+        required: false
+        default: 'main'
       WORKFLOW_ID:
         description: "The workflow id that triggers the workflow"
         type: string
@@ -42,6 +47,11 @@ on:
         default: ''
       BRANCH_NAME:
         description: "The branch name that triggers the workflow"
+        type: string
+        required: false
+        default: 'main'
+      BASE_BRANCH:
+        description: "The base branch name that triggers the workflow"
         type: string
         required: false
         default: 'main'
@@ -76,12 +86,13 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout ${{ inputs.GITHUB_REPO }} Code
+      - name: Checkout ${{ inputs.GITHUB_REPO }} ${{ inputs.BASE_BRANCH }} Code
         uses: actions/checkout@v4
         if: ${{ inputs.BRANCH_NAME != '' && inputs.GITHUB_REPO != '' }}
         with:
           repository: ${{ inputs.GITHUB_REPO }}
           token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.BASE_BRANCH }}
           fetch-depth: 0
 
       - name: check ${{ inputs.BRANCH_NAME }} exists
