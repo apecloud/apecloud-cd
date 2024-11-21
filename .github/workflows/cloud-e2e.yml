@@ -5,6 +5,16 @@ on:
     - cron: '0 0 * * 1-5' # Runs at 00:00 UTC on Mon to Friday
   workflow_dispatch:
     inputs:
+      TEST_TYPE:
+        description: "The specify version of GO (e.g. openapi-test)"
+        type: string
+        required: false
+        default: 'openapi-test'
+      TEST_ENGINES:
+        description: "The specify version of GO (e.g. mysql)"
+        type: string
+        required: false
+        default: 'mysql'
       CLOUD_ENV_NAME:
         description: "The cloud env name of test (e.g. dev) "
         type: string
@@ -22,6 +32,16 @@ on:
         default: '1.22'
   workflow_call:
     inputs:
+      TEST_TYPE:
+        description: "The specify version of GO (e.g. openapi-test)"
+        type: string
+        required: false
+        default: 'openapi-test'
+      TEST_ENGINES:
+        description: "The specify version of GO (e.g. mysql)"
+        type: string
+        required: false
+        default: 'mysql'
       CLOUD_ENV_NAME:
         description: "The cloud env name of test (e.g. dev) "
         type: string
@@ -38,7 +58,7 @@ on:
         required: false
         default: '1.22'
 
-run-name: E2E Test Env:${{ inputs.CLOUD_ENV_NAME }} Ref:${{ inputs.CLOUD_BRANCH }}
+run-name: E2E Test ${{ inputs.TEST_TYPE }} ${{ inputs.TEST_ENGINES }} on Env:${{ inputs.CLOUD_ENV_NAME }} Ref:${{ inputs.CLOUD_BRANCH }}
 
 env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
@@ -147,13 +167,28 @@ jobs:
           file_log="test_result.log"
           touch ${file_log} 
           
+          TEST_ENGINES="${{ inputs.TEST_ENGINES }}"
+          if [[ -z "$TEST_ENGINES" ]]; then
+              TEST_ENGINES="mysql"
+          fi
+          
           for env_vars in $(echo "${E2E_ENV_VARS}" | sed 's/|/ /g'); do
               eval_cmd="export $env_vars"
               echo "$eval_cmd"
               eval "$eval_cmd"
           done
           
-          make openapi-test | tee -a ${file_log}
+          if [[ -n "${TEST_ENGINES}" ]]; then
+              echo "export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}"
+              export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}
+          fi
+          
+          TEST_TYPE="${{ inputs.TEST_TYPE }}"
+          if [[ -z "$TEST_TYPE" ]]; then
+              TEST_TYPE="openapi-test"
+          fi
+          
+          make ${TEST_TYPE} | tee -a ${file_log}
 
       - name: send test result message
         if: ${{ always() }}
