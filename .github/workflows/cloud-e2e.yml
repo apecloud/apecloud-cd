@@ -120,6 +120,8 @@ jobs:
           if [[ -z "$CLOUD_ENV_NAME" ]]; then
               CLOUD_ENV_NAME="dev"
           fi
+          echo CLOUD_ENV_NAME="$CLOUD_ENV_NAME" >> $GITHUB_ENV
+          
           E2E_ENV_VARS=""
           case "$CLOUD_ENV_NAME" in
               dev)
@@ -214,9 +216,9 @@ jobs:
           echo $TEST_RESULT
           
           date_ret=$(date +%Y-%m-%d-%T)
-          TEST_TITLE="[Cloud] OpenApi E2E Test on Env:${{ inputs.CLOUD_ENV_NAME }} [${date_ret}]"
+          TEST_TITLE="[${{ env.CLOUD_BRANCH }}] Cloud E2E ${{ env.TEST_TYPE }} on Env:${{ env.CLOUD_ENV_NAME }} [${date_ret}]"
           
           python3 ${{ github.workspace }}/apecloud-cd/.github/utils/send_mesage.py \
-              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
+              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
