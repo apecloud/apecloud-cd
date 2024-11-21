@@ -185,6 +185,7 @@ jobs:
           if [[ -z "$TEST_TYPE" ]]; then
               TEST_TYPE="openapi-test"
           fi
+          echo TEST_TYPE="$TEST_TYPE" >> $GITHUB_ENV
           
           make ${TEST_TYPE} | tee -a ${file_log}
           
@@ -203,7 +204,7 @@ jobs:
           if [[ -n "$test_ret" ]]; then
               test_result="[FAILED]"
           fi
-          TEST_RESULT="openapi|${test_result}"
+          TEST_RESULT="${{ env.TEST_TYPE }}|${test_result}"
           echo "${TEST_RESULT}" 
           TEST_RESULT=$( bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 12 \
               --github-repo "${{ github.repository }}" \
