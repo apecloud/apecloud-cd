@@ -297,6 +297,13 @@ jobs:
           
           "${{ github.workspace }}/apecloud-cd/.github/utils/helm_release.sh" "${args[@]}"
 
+      - name: Set registry and repository ${{ env.ALIYUN_REGISTRY_URL }}
+        if: ${{ inputs.SET_REGISTRY || inputs.CHART_DIR == 'addons' }}
+        run: |
+          echo "set addons chart registry to apecloud and repogistory to ${{ env.ALIYUN_REGISTRY_URL }}"
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
+            "${{ env.ALIYUN_REGISTRY_URL }}" "${{ inputs.CHART_DIR }}"
+
       - name: Package Helm Chart
         shell: bash
         run: |
