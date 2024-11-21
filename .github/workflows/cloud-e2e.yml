@@ -20,6 +20,23 @@ on:
         type: string
         required: false
         default: '1.22'
+  workflow_call:
+    inputs:
+      CLOUD_ENV_NAME:
+        description: "The cloud env name of test (e.g. dev) "
+        type: string
+        required: false
+        default: 'dev'
+      CLOUD_BRANCH:
+        description: "The cloud branch name (e.g. main) "
+        type: string
+        required: false
+        default: 'main'
+      GO_VERSION:
+        description: "The specify version of GO (e.g. 1.22)"
+        type: string
+        required: false
+        default: '1.22'
 
 run-name: E2E Test Env:${{ inputs.CLOUD_ENV_NAME }} Ref:${{ inputs.CLOUD_BRANCH }}
 
