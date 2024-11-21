@@ -1,8 +1,6 @@
 name: Cloud E2E
 
 on:
-  schedule:
-    - cron: '0 0 * * 1-5' # Runs at 00:00 UTC on Mon to Friday
   workflow_dispatch:
     inputs:
       TEST_TYPE:
@@ -72,8 +70,8 @@ env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
 jobs:
-  test-openapi:
-    name: test openapi
+  e2e-test:
+    name: ${TEST_TYPE}
     runs-on: ubuntu-latest
     steps:
       - name: get apecloud branch
@@ -189,13 +187,17 @@ jobs:
           fi
           
           make ${TEST_TYPE} | tee -a ${file_log}
+          
+          test_ret="$( grep "Test Suite Failed" ${file_log} || true )"
+          if [[ -n "$test_ret" ]]; then
+              exit 1
+          fi
 
       - name: send test result message
         if: ${{ always() }}
         run: |
           cd e2e
           file_log="test_result.log"
-          cat $file_log
           test_ret="$( grep "Test Suite Failed" ${file_log} || true )"
           test_result="[PASSED]"
           if [[ -n "$test_ret" ]]; then
