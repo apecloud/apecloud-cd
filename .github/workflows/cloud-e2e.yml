@@ -71,7 +71,7 @@ env:
 
 jobs:
   e2e-test:
-    name: ${TEST_TYPE}
+    name: ${{ inputs.TEST_TYPE }}
     runs-on: ubuntu-latest
     steps:
       - name: get apecloud branch
