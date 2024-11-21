@@ -1,0 +1,167 @@
+name: Cloud E2E
+
+on:
+  schedule:
+    - cron: '0 0 * * 1-5' # Runs at 00:00 UTC on Mon to Friday
+  workflow_dispatch:
+    inputs:
+      CLOUD_ENV_NAME:
+        description: "The cloud env name of test (e.g. dev) "
+        type: string
+        required: false
+        default: 'dev'
+      CLOUD_BRANCH:
+        description: "The cloud branch name (e.g. main) "
+        type: string
+        required: false
+        default: 'main'
+      GO_VERSION:
+        description: "The specify version of GO (e.g. 1.22)"
+        type: string
+        required: false
+        default: '1.22'
+
+run-name: E2E Test Env:${{ inputs.CLOUD_ENV_NAME }} Ref:${{ inputs.CLOUD_BRANCH }}
+
+env:
+  ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
+  ACK_KUBECONFIG_DEMO: ${{ secrets.ACK_KUBECONFIG_DEMO }}
+  IDC_KUBECONFIG_2: ${{ secrets.IDC_KUBECONFIG_2 }}
+  IDC_KUBECONFIG_4: ${{ secrets.IDC_KUBECONFIG_4 }}
+  ACK_KUBECONFIG_PROD: ${{ secrets.ACK_KUBECONFIG_PROD }}
+  ACK_KUBECONFIG_INTL_PROD: ${{ secrets.ACK_KUBECONFIG_INTL_PROD }}
+  VKE_KUBECONFIG_TEST: ${{ secrets.VKE_KUBECONFIG_TEST }}
+  GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  test-openapi:
+    name: test openapi
+    runs-on: ubuntu-latest
+    steps:
+      - name: get apecloud branch
+        run: |
+          CLOUD_BRANCH="${{ inputs.CLOUD_BRANCH }}"
+          if [[ -z "$CLOUD_BRANCH" ]]; then
+              CLOUD_BRANCH="main"
+          fi
+          echo CLOUD_BRANCH="$CLOUD_BRANCH" >> $GITHUB_ENV
+          
+          GO_VERSION="${{ inputs.GO_VERSION }}"
+          if [[ -z "$GO_VERSION" ]]; then
+              GO_VERSION="1.22"
+          fi
+          echo GO_VERSION="$GO_VERSION" >> $GITHUB_ENV
+
+      - name: Checkout apecloud Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${CLOUD_BRANCH}
+
+      - name: checkout apecloud-cd code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./apecloud-cd
+
+      - name: Setup Go specify version
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${GO_VERSION}
+
+      - name: git config
+        run: |
+          git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GITHUB_TOKEN }}@github.com".insteadof "https://github.com"
+
+      - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
+        id: cloud_env
+        run: |
+          mkdir -p $HOME/.kube
+          touch $HOME/.kube/config
+          CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
+          if [[ -z "$CLOUD_ENV_NAME" ]]; then
+              CLOUD_ENV_NAME="dev"
+          fi
+          E2E_ENV_VARS=""
+          case "$CLOUD_ENV_NAME" in
+              dev)
+                  echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_DEV }}"
+              ;;
+              demo)
+                  echo '${{ env.ACK_KUBECONFIG_DEMO }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_DEMO }}"
+              ;;
+              idc2)
+                  echo '${{ env.IDC_KUBECONFIG_2 }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC2 }}"
+              ;;
+              idc4)
+                  echo '${{ env.IDC_KUBECONFIG_4 }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC4 }}"
+              ;;
+              prod)
+                  echo '${{ env.ACK_KUBECONFIG_PROD }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_PROD }}"
+              ;;
+              intl_prod)
+                  echo '${{ env.ACK_KUBECONFIG_INTL_PROD }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_INTL_PROD }}"
+              ;;
+              vke_test)
+                  echo '${{ env.VKE_KUBECONFIG_TEST }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_VKE_TEST }}"
+              ;;
+          esac
+          echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
+
+      - name: install ginkgo
+        run: |
+          cd e2e
+          make module
+          make install-ginkgo
+
+      - name: openapi test
+        run: |
+          cd e2e
+          file_log="test_result.log"
+          touch ${file_log} 
+          
+          for env_vars in $(echo "${E2E_ENV_VARS}" | sed 's/|/ /g'); do
+              eval_cmd="export $env_vars"
+              echo "$eval_cmd"
+              eval "$eval_cmd"
+          done
+          
+          make openapi-test | tee -a ${file_log}
+
+      - name: send test result message
+        if: ${{ always() }}
+        run: |
+          cd e2e
+          file_log="test_result.log"
+          cat $file_log
+          test_ret="$( grep "Test Suite Failed" ${file_log} || true )"
+          test_result="[PASSED]"
+          if [[ -n "$test_ret" ]]; then
+              test_result="[FAILED]"
+          fi
+          TEST_RESULT="openapi|${test_result}"
+          echo "${TEST_RESULT}" 
+          TEST_RESULT=$( bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 12 \
+              --github-repo "${{ github.repository }}" \
+              --github-token "${{ env.GITHUB_TOKEN }}" \
+              --test-result "${TEST_RESULT}" \
+              --run-id "$GITHUB_RUN_ID" )
+          echo $TEST_RESULT
+          
+          date_ret=$(date +%Y-%m-%d-%T)
+          TEST_TITLE="[Cloud] OpenApi E2E Test on Env:${{ inputs.CLOUD_ENV_NAME }} [${date_ret}]"
+          
+          python3 ${{ github.workspace }}/apecloud-cd/.github/utils/send_mesage.py \
+              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
+              --title "$TEST_TITLE" \
+              --result "$TEST_RESULT"
