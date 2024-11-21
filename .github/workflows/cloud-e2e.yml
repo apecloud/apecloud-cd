@@ -214,9 +214,9 @@ jobs:
           echo $TEST_RESULT
           
           date_ret=$(date +%Y-%m-%d-%T)
-          TEST_TITLE="[Cloud] OpenApi E2E Test on Env:${{ inputs.CLOUD_ENV_NAME }} [${date_ret}]"
+          TEST_TITLE="[${{ inputs.CLOUD_BRANCH }}] Cloud E2E ${{ env.TEST_TYPE }} on Env:${{ inputs.CLOUD_ENV_NAME }} [${date_ret}]"
           
           python3 ${{ github.workspace }}/apecloud-cd/.github/utils/send_mesage.py \
-              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
+              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
