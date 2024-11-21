@@ -76,7 +76,7 @@ jobs:
           repository: apecloud/apecloud
           path: ./
           token: ${{ env.GITHUB_TOKEN }}
-          ref: ${CLOUD_BRANCH}
+          ref: ${{ env.CLOUD_BRANCH }}
 
       - name: checkout apecloud-cd code
         uses: actions/checkout@v4
@@ -87,7 +87,7 @@ jobs:
       - name: Setup Go specify version
         uses: actions/setup-go@v3
         with:
-          go-version: ${GO_VERSION}
+          go-version: ${{ env.GO_VERSION }}
 
       - name: git config
         run: |
