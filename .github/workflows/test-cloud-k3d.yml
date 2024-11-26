@@ -1,0 +1,120 @@
+name: Test Cloud On K3D
+
+on:
+  workflow_dispatch:
+    inputs:
+      cloud-version:
+        description: 'kb-cloud version (e.g. 0.28.50)'
+        type: string
+        required: false
+        default: '0.28.50'
+      k3s-version:
+        description: 'k3s cluster version (e.g. 1.30)'
+        type: string
+        required: false
+        default: '1.30'
+  workflow_call:
+    inputs:
+      cloud-version:
+        description: 'kb-cloud version (e.g. 0.28.50)'
+        type: string
+        required: false
+        default: '0.28.50'
+      k3s-version:
+        description: 'k3s cluster version (e.g. 1.30)'
+        type: string
+        required: false
+        default: '1.30'
+    outputs:
+      test-result:
+        description: "e2e test result"
+        value: "${{ jobs.cloud-test-k3d.outputs.test-result }}"
+
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  K3D_NAME: kbcloud
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  cloud-test-k3d:
+    name: run ${{ inputs.test-type-name }}
+    runs-on: ubuntu-latest
+    outputs:
+      deploy-result: ${{ steps.deploy_cloud.outputs.deploy-result }}
+      test-result: ${{ steps.test_result.outputs.test-result }}
+      test-type: ${{ steps.test_result.outputs.test-type }}
+    steps:
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.30.4"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "v3.15.4"
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.22"
+
+      - name: setup k3d k3s
+        uses: nolar/setup-k3d-k3s@v1
+        with:
+          k3d-name: "${{ env.K3D_NAME }}"
+          version: "v${{ inputs.k3s-version }}"
+          github-token: ${{ env.GITHUB_TOKEN }}
+          k3d-args: -p 443:443@loadbalancer -p 80:80@loadbalancer --agents 2
+
+      - name: get kubeconfig
+        run: |
+          K3S_CLUSTE_NAME=$(kubectl config get-clusters|(grep -v NAME||true))
+          kubectl config set-cluster ${K3S_CLUSTE_NAME} --insecure-skip-tls-verify=true
+          K3D_KUBECONFIG=$(kubectl config view --minify -o yaml --raw)
+          kubeconfig_file_name="k3d_kubeconfig_file.yaml"
+          touch ${kubeconfig_file_name}
+          echo "${K3D_KUBECONFIG}" > ${kubeconfig_file_name}
+          yq e -i '.clusters[0].cluster.server = "https://kubernetes.default:443"' ${kubeconfig_file_name}
+          K3D_KUBECONFIG=$(cat ${kubeconfig_file_name})
+          echo "${K3D_KUBECONFIG}"
+          echo K3D_KUBECONFIG="${K3D_KUBECONFIG}" >> $GITHUB_ENV
+
+      - name: install cert-manager
+        run: |
+          helm repo add jetstack https://charts.jetstack.io --force-update
+          helm install \
+            cert-manager jetstack/cert-manager \
+            --namespace cert-manager \
+            --create-namespace \
+            --version v1.16.0 \
+            --set crds.enabled=true
+
+      - name: install kb cloud
+        run: |
+          helm repo add kb-chart https://apecloud.github.io/helm-charts
+          
+          helm install installer kb-chart/kb-cloud-installer \
+            --version ${{ inputs.cloud-version }} \
+            --set version=${{ inputs.cloud-version }} \
+            --set kubernetesProvider=k3d \
+            --set fqdn.domain=mytest.kubeblocks.com \
+            --set tls.enabled=true
+
+      - name: check kb-cloud-installer pod Completed
+        run: |
+          for i in {1..360}; do
+            if kubectl get pods | grep "kb-cloud-installer" | grep Completed ; then
+              kubectl get pods -n kb-cloud | grep Running
+              echo "KB Cloud is ready"
+              break
+            fi
+            echo "Waiting for KB Cloud to be ready..."
+            kubectl get pods -n kb-cloud
+            echo ""
+            sleep 5
+          done
