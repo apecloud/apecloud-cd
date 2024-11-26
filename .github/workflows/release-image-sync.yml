@@ -394,6 +394,9 @@ jobs:
                   *TARGETS=task-manager*)
                       IMAGES_INPUT="apecloud/task-manager:${IMAGES_TAG}"
                   ;;
+                  *TARGETS=*cloud-deployer*)
+                      IMAGES_INPUT="apecloud/kb-cloud-deployer:${IMAGES_TAG}"
+                  ;;
                   *TARGETS=*cloud-installer*)
                       IMAGES_INPUT="apecloud/kb-cloud-installer:${IMAGES_TAG}"
                   ;;
