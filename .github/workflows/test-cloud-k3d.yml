@@ -72,17 +72,19 @@ jobs:
           k3d-args: -p 443:443@loadbalancer -p 80:80@loadbalancer --agents 2
 
       - name: get kubeconfig
+        id: get_kubeconfig
         run: |
-          K3S_CLUSTE_NAME=$(kubectl config get-clusters|(grep -v NAME||true))
-          kubectl config set-cluster ${K3S_CLUSTE_NAME} --insecure-skip-tls-verify=true
-          K3D_KUBECONFIG=$(kubectl config view --minify -o yaml --raw)
-          kubeconfig_file_name="k3d_kubeconfig_file.yaml"
+          k8s_cluster_name=$(kubectl config get-clusters|(grep -v NAME||true))
+          kubectl config set-cluster ${k8s_cluster_name} --insecure-skip-tls-verify=true
+          k8s_kubeconfig_yaml=$(kubectl config view --minify -o yaml --raw)
+          kubeconfig_file_name="k8s_kubeconfig_file.yaml"
           touch ${kubeconfig_file_name}
-          echo "${K3D_KUBECONFIG}" > ${kubeconfig_file_name}
+          echo "${k8s_kubeconfig_yaml}" > ${kubeconfig_file_name}
           yq e -i '.clusters[0].cluster.server = "https://kubernetes.default:443"' ${kubeconfig_file_name}
-          K3D_KUBECONFIG=$(cat ${kubeconfig_file_name})
-          echo "${K3D_KUBECONFIG}"
-          echo K3D_KUBECONFIG="${K3D_KUBECONFIG}" >> $GITHUB_ENV
+          k8s_kubeconfig=$(cat ${kubeconfig_file_name})
+          echo "${k8s_kubeconfig}"
+          k8s_kubeconfig=$(cat ${kubeconfig_file_name}|base64)
+          echo k8s-kubeconfig="${k8s_kubeconfig}" >> $GITHUB_ENV
 
       - name: install cert-manager
         run: |
@@ -118,3 +120,7 @@ jobs:
             echo ""
             sleep 5
           done
+
+      - name: output kubeconfig
+        run: |
+          echo "kubeconfig: ${{ steps.get_kubeconfig.outputs.k8s-kubeconfig }}"
