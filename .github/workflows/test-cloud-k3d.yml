@@ -30,10 +30,12 @@ on:
         description: "e2e test result"
         value: "${{ jobs.cloud-test-k3d.outputs.test-result }}"
 
+run-name: Test Cloud Version:${{ inputs.cloud-version }} K3s Version:${{ inputs.k3s-version }}
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   K3D_NAME: kbcloud
+  CLOUD_LICENSE: ${{ secrets.CLOUD_LICENSE }}
 
 permissions:
   id-token: write
@@ -41,13 +43,38 @@ permissions:
 
 jobs:
   cloud-test-k3d:
-    name: run ${{ inputs.test-type-name }}
     runs-on: ubuntu-latest
     outputs:
       deploy-result: ${{ steps.deploy_cloud.outputs.deploy-result }}
       test-result: ${{ steps.test_result.outputs.test-result }}
       test-type: ${{ steps.test_result.outputs.test-type }}
     steps:
+      - name: Get IP address
+        id: get_ip
+        run: |
+          # 获取所有网络接口的 IP 地址
+          ip_addresses=$(ip -o -4 addr list | awk '{print $4}' | cut -d/ -f1)
+          echo "IP Addresses: $ip_addresses"
+          
+          # 如果您只需要特定接口的 IP 地址，例如 eth0
+          eth0_ip=$(ip -o -4 addr list eth0 | awk '{print $4}' | cut -d/ -f1)
+          echo "eth0 IP: $eth0_ip"
+          
+          # 将 IP 地址设置为输出变量
+          echo "::set-output name=ip_address::$eth0_ip"
+
+      - name: Use the IP address
+        run: |
+          # 使用上一步设置的输出变量
+          ip_address="${{ steps.get_ip.outputs.ip_address }}"
+          echo "The IP address of the runner is: $ip_address"
+
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3
         with:
@@ -71,20 +98,11 @@ jobs:
           github-token: ${{ env.GITHUB_TOKEN }}
           k3d-args: -p 443:443@loadbalancer -p 80:80@loadbalancer --agents 2
 
-      - name: get kubeconfig
-        id: get_kubeconfig
+      - name: update k3d coredns cm
         run: |
-          k8s_cluster_name=$(kubectl config get-clusters|(grep -v NAME||true))
-          kubectl config set-cluster ${k8s_cluster_name} --insecure-skip-tls-verify=true
-          k8s_kubeconfig_yaml=$(kubectl config view --minify -o yaml --raw)
-          kubeconfig_file_name="k8s_kubeconfig_file.yaml"
-          touch ${kubeconfig_file_name}
-          echo "${k8s_kubeconfig_yaml}" > ${kubeconfig_file_name}
-          yq e -i '.clusters[0].cluster.server = "https://kubernetes.default:443"' ${kubeconfig_file_name}
-          k8s_kubeconfig=$(cat ${kubeconfig_file_name})
-          echo "${k8s_kubeconfig}"
-          k8s_kubeconfig=$(cat ${kubeconfig_file_name}|base64)
-          echo k8s-kubeconfig="${k8s_kubeconfig}" >> $GITHUB_ENV
+          ifconfig
+          
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 37
 
       - name: install cert-manager
         run: |
@@ -121,6 +139,42 @@ jobs:
             sleep 5
           done
 
-      - name: output kubeconfig
+      - name: deploy kubeblocks
         run: |
-          echo "kubeconfig: ${{ steps.get_kubeconfig.outputs.k8s-kubeconfig }}"
+          echo "get k8s config"
+          k8s_cluster_name=$(kubectl config get-clusters | sed '1d')
+          kubectl config set-cluster ${k8s_cluster_name} --insecure-skip-tls-verify=true
+          k8s_kubeconfig_yaml=$(kubectl config view --minify -o yaml --raw)
+          kubeconfig_file_name="k8s_kubeconfig_file.yaml"
+          touch ${kubeconfig_file_name}
+          echo "${k8s_kubeconfig_yaml}" > ${kubeconfig_file_name}
+          yq e -i '.clusters[0].cluster.server = "https://kubernetes.default:443"' ${kubeconfig_file_name}
+          k8s_kubeconfig=$(cat ${kubeconfig_file_name})
+          echo "------------------------------------------------------------"
+          echo "${k8s_kubeconfig}"
+          echo "------------------------------------------------------------"
+          K8S_KUBECONFIG="$(echo "${k8s_kubeconfig}" | base64)"
+          
+          CLOUD_LICENSE="${{ env.CLOUD_LICENSE }}"
+          echo "deploy kubeblocks"
+          
+          helm install deployer kb-chart/kb-cloud-deployer \
+            --version 0.0.1 \
+            --set license="${CLOUD_LICENSE}" \
+            --set kubeconfig="${K8S_KUBECONFIG}"
+
+      - name: check kb-cloud-deployer pod Completed
+        run: |
+          for i in {1..360}; do
+            if kubectl get pods | grep "kb-cloud-deployer" | grep Completed ; then
+              kubectl get pods -n kb-system | grep Running
+              echo "KubeBlocks is ready"
+              break
+            fi
+            echo "Waiting for KubeBlocks to be ready..."
+            kubectl get pods -n kb-system
+            echo ""
+            sleep 5
+          done
+
+          

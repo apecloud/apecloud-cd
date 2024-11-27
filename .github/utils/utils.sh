@@ -47,6 +47,7 @@ Usage: $(basename "$0") <options>
                                 34) get e2e tes _result
                                 35) bump chart version
                                 36) parse test result
+                                37) update k3d coredns configmap
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -829,6 +830,42 @@ parse_test_result() {
     echo ""  >> ${test_result_report_output_file_log}
 }
 
+update_k3d_coredns_cm() {
+    kubectl get configmap -n kube-system coredns -oyaml
+    COREDNS_CM_FILE="k3d-coredns-configmap.yaml"
+    kubectl get configmap -n kube-system coredns -oyaml > ${COREDNS_CM_FILE}
+
+    k3d_auth_ip=$(cat "${COREDNS_CM_FILE}" | (grep "host.k3d.internal" | grep -v "NodeHosts" || true) | awk '{print $1}')
+    echo "k3d auth ip:${k3d_auth_ip}"
+
+    if [[ -z "$k3d_auth_ip" ]]; then
+        k3d_auth_ip="192.168.65.254"
+        if [[ "$UNAME" == "Darwin" ]]; then
+            sed -i '' "s/^  NodeHosts: |/  NodeHosts: |\n    $k3d_auth_ip host.k3d.internal\n    $k3d_auth_ip auth.mytest.kubeblocks.com/" $COREDNS_CM_FILE
+        else
+            sed -i "s/^  NodeHosts: |/  NodeHosts: |\n    $k3d_auth_ip host.k3d.internal\n    $k3d_auth_ip auth.mytest.kubeblocks.com/" $COREDNS_CM_FILE
+        fi
+    else
+        if [[ "$UNAME" == "Darwin" ]]; then
+            sed -i '' "s/^    $k3d_auth_ip host.k3d.internal/    $k3d_auth_ip host.k3d.internal\n    $k3d_auth_ip auth.mytest.kubeblocks.com/" $COREDNS_CM_FILE
+        else
+            sed -i  "s/^    $k3d_auth_ip host.k3d.internal/    $k3d_auth_ip host.k3d.internal\n    $k3d_auth_ip auth.mytest.kubeblocks.com/" $COREDNS_CM_FILE
+        fi
+    fi
+
+    kubectl apply -f $COREDNS_CM_FILE
+
+    rm -rf $COREDNS_CM_FILE
+
+    kubectl get configmap -n kube-system coredns -ojsonpath='{.data.NodeHosts}'
+
+    # delete coredns pod
+    coredns_pod_name=$(kubectl get pods -n kube-system -l k8s-app=kube-dns| sed '1d'| awk '{print $1}')
+    kubectl delete pod -n kube-system "${coredns_pod_name}"
+
+    echo "K3d coredns configmap NodeHosts updated successfully."
+}
+
 parse_command_line() {
     while :; do
         case "${1:-}" in
@@ -1137,6 +1174,9 @@ main() {
         ;;
         36)
             parse_test_result
+        ;;
+        37)
+            update_k3d_coredns_cm
         ;;
     esac
 }
