@@ -102,7 +102,7 @@ jobs:
 
       - name: check kb-cloud-installer pod Completed
         run: |
-          for i in {1..360}; do
+          for i in {1..240}; do
             if kubectl get pods | grep "kb-cloud-installer" | grep Completed ; then
               kubectl get pods -n kb-cloud | grep Running
               echo "KB Cloud is ready"
@@ -141,7 +141,7 @@ jobs:
 
       - name: check kb-cloud-deployer pod Completed
         run: |
-          for i in {1..360}; do
+          for i in {1..240}; do
             if kubectl get pods | grep "kb-cloud-deployer" | grep Completed ; then
               kubectl get pods -n kb-system | grep Running
               echo "KubeBlocks is ready"
