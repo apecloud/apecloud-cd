@@ -835,24 +835,17 @@ update_k3d_coredns_cm() {
     COREDNS_CM_FILE="k3d-coredns-configmap.yaml"
     kubectl get configmap -n kube-system coredns -oyaml > ${COREDNS_CM_FILE}
 
-    k3d_auth_ip=$(cat "${COREDNS_CM_FILE}" | (grep "host.k3d.internal" | grep -v "NodeHosts" || true) | awk '{print $1}')
+    k3d_auth_ip=$(kubectl get configmap -n kube-system coredns -ojsonpath='{.data.NodeHosts}' | (grep "host.k3d.internal" || true) | awk 'NR==1{print $1}')
     echo "k3d auth ip:${k3d_auth_ip}"
 
     if [[ -z "$k3d_auth_ip" ]]; then
-        ifconfig_cli="$( command -v ifconfig )"
-        if [[ -n "$ifconfig_cli" ]]; then
-            eth0_ip=$(ifconfig en0 | grep 'inet ' | awk '{print $2}')
-        else
-            eth0_ip=$(ip -o -4 addr list eth0 | awk '{print $4}' | cut -d/ -f1)
-        fi
-        echo "Original IP: $eth0_ip"
-        new_ip_address=$(echo "$eth0_ip" | awk -F. '{OFS="." ; print $1, $2, "65", "254"}')
-        echo "New IP: $new_ip_address"
-        k3d_auth_ip="${new_ip_address}"
+        k3d_auth_ip=$(kubectl get configmap -n kube-system coredns -ojsonpath='{.data.NodeHosts}' | awk 'NR==1{print $1}')
+        k3d_auth_ip="${k3d_auth_ip%.*}.1"
+        k3d_server_lb_ip="${k3d_auth_ip%.*}.6"
         if [[ "$UNAME" == "Darwin" ]]; then
-            sed -i '' "s/^  NodeHosts: |/  NodeHosts: |\n    $k3d_auth_ip host.k3d.internal\n    $k3d_auth_ip auth.mytest.kubeblocks.com/" $COREDNS_CM_FILE
+            sed -i '' "s/^  NodeHosts: |/  NodeHosts: |\n    $k3d_auth_ip host.k3d.internal\n    $k3d_auth_ip auth.mytest.kubeblocks.com\n    $k3d_server_lb_ip k3d-kbcloud-serverlb/" $COREDNS_CM_FILE
         else
-            sed -i "s/^  NodeHosts: |/  NodeHosts: |\n    $k3d_auth_ip host.k3d.internal\n    $k3d_auth_ip auth.mytest.kubeblocks.com/" $COREDNS_CM_FILE
+            sed -i "s/^  NodeHosts: |/  NodeHosts: |\n    $k3d_auth_ip host.k3d.internal\n    $k3d_auth_ip auth.mytest.kubeblocks.com\n    $k3d_server_lb_ip k3d-kbcloud-serverlb/" $COREDNS_CM_FILE
         fi
     else
         if [[ "$UNAME" == "Darwin" ]]; then
