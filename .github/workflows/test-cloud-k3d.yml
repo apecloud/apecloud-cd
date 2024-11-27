@@ -49,26 +49,6 @@ jobs:
       test-result: ${{ steps.test_result.outputs.test-result }}
       test-type: ${{ steps.test_result.outputs.test-type }}
     steps:
-      - name: Get IP address
-        id: get_ip
-        run: |
-          # 获取所有网络接口的 IP 地址
-          ip_addresses=$(ip -o -4 addr list | awk '{print $4}' | cut -d/ -f1)
-          echo "IP Addresses: $ip_addresses"
-          
-          # 如果您只需要特定接口的 IP 地址，例如 eth0
-          eth0_ip=$(ip -o -4 addr list eth0 | awk '{print $4}' | cut -d/ -f1)
-          echo "eth0 IP: $eth0_ip"
-          
-          # 将 IP 地址设置为输出变量
-          echo "::set-output name=ip_address::$eth0_ip"
-
-      - name: Use the IP address
-        run: |
-          # 使用上一步设置的输出变量
-          ip_address="${{ steps.get_ip.outputs.ip_address }}"
-          echo "The IP address of the runner is: $ip_address"
-
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
         with:
@@ -100,8 +80,6 @@ jobs:
 
       - name: update k3d coredns cm
         run: |
-          ifconfig
-          
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 37
 
       - name: install cert-manager
