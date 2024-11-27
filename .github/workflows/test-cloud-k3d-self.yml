@@ -42,7 +42,17 @@ permissions:
   contents: read
 
 jobs:
+  enable-runner:
+    uses: ./.github/workflows/enable-self-runner.yml
+    with:
+      CLOUD_PROVIDER: "eks"
+      GITHUB_REPO: "${{ github.repository }}"
+      RUNNER_NAMESPACE: "default"
+      RUNNER_LABEL: "k3s-runner"
+    secrets: inherit
+
   cloud-test-k3d:
+    needs: [ enable-runner ]
     runs-on: [ self-hosted, k3s-runner ]
     outputs:
       deploy-result: ${{ steps.deploy_cloud.outputs.deploy-result }}
@@ -213,5 +223,17 @@ jobs:
           if [[ -n "${runner_pod_exists}" ]]; then
               kubectl delete pod "${{ env.RUNNER_NAME }}" --force
           fi
+
+  disable-runner:
+    if: ${{ always() }}
+    needs: [ cloud-test-k3d ]
+    uses: ./.github/workflows/enable-self-runner.yml
+    with:
+      CLOUD_PROVIDER: "eks"
+      GITHUB_REPO: "${{ github.repository }}"
+      RUNNER_NAMESPACE: "default"
+      RUNNER_LABEL: "k3s-runner"
+      ENABLE: "disable"
+    secrets: inherit
 
           
