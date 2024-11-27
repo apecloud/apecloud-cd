@@ -80,7 +80,10 @@ jobs:
 
       - name: update k3d coredns cm
         run: |
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 37
+          for i in {1..3}; do
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 37
+              sleep 3
+          done
 
       - name: install cert-manager
         run: |
