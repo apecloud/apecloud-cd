@@ -138,6 +138,7 @@ jobs:
           
           helm install deployer kb-chart/kb-cloud-deployer \
             --version 0.0.1 \
+            --set image.registry="docker.io" \
             --set license="${CLOUD_LICENSE}" \
             --set kubeconfig="${K8S_KUBECONFIG}"
 
