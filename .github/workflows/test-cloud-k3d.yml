@@ -82,7 +82,7 @@ jobs:
         run: |
           for i in {1..3}; do
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 37
-              sleep 3
+              sleep 1
           done
 
       - name: install cert-manager
@@ -109,7 +109,7 @@ jobs:
 
       - name: check kb-cloud-installer pod Completed
         run: |
-          sleep 40
+          sleep 10
           for i in {1..200}; do
             if kubectl get pods | grep "kb-cloud-installer" | grep Completed ; then
               kubectl get pods -n kb-cloud | grep Running
@@ -149,7 +149,7 @@ jobs:
 
       - name: check kb-cloud-deployer pod Completed
         run: |
-          sleep 40
+          sleep 10
           for i in {1..200}; do
             if kubectl get pods | grep "kb-cloud-deployer" | grep Completed ; then
               kubectl get pods -n kb-system | grep Running
