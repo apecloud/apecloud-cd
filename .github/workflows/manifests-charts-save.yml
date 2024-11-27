@@ -43,8 +43,13 @@ on:
         type: string
         required: false
         default: ''
-      ADDON_BRANCH:
-        description: "The branch of addon"
+      KUBEBLOCKS_ADDON_BRANCH:
+        description: "The branch of kubeblocks-addons"
+        type: string
+        required: false
+        default: ''
+      APECLOUD_ADDON_BRANCH:
+        description: "The branch of apecloud-addons"
         type: string
         required: false
         default: ''
@@ -90,8 +95,13 @@ on:
         type: string
         required: false
         default: ''
-      ADDON_BRANCH:
-        description: "The branch of addon"
+      KUBEBLOCKS_ADDON_BRANCH:
+        description: "The branch of kubeblocks-addons"
+        type: string
+        required: false
+        default: ''
+      APECLOUD_ADDON_BRANCH:
+        description: "The branch of apecloud-addons"
         type: string
         required: false
         default: ''
@@ -139,21 +149,21 @@ jobs:
 
       - name: Checkout kubeblocks-addons Code
         uses: actions/checkout@v4
-        if: ${{ inputs.ADDON_BRANCH != '' }}
+        if: ${{ inputs.KUBEBLOCKS_ADDON_BRANCH != '' }}
         with:
           repository: apecloud/kubeblocks-addons
           path: kubeblocks-addons
           token: ${{ env.GITHUB_TOKEN }}
-          ref: ${{ inputs.ADDON_BRANCH }}
+          ref: ${{ inputs.KUBEBLOCKS_ADDON_BRANCH }}
 
       - name: Checkout apecloud-addons Code
         uses: actions/checkout@v4
-        if: ${{ inputs.ADDON_BRANCH != '' }}
+        if: ${{ inputs.APECLOUD_ADDON_BRANCH != '' }}
         with:
           repository: apecloud/apecloud-addons
           path: apecloud-addons
           token: ${{ env.GITHUB_TOKEN }}
-          ref: ${{ inputs.ADDON_BRANCH }}
+          ref: ${{ inputs.APECLOUD_ADDON_BRANCH }}
 
       - name: Install Helm
         uses: azure/setup-helm@v3

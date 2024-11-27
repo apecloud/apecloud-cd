@@ -16,6 +16,21 @@ update_addon_chart_version() {
         fi
         chart_version=$(yq e "."${chart_name}"[0].version"  ${MANIFESTS_FILE})
         is_enterprise=$(yq e "."${chart_name}"[0].isEnterprise"  ${MANIFESTS_FILE})
+
+        # update addon isEnterprise
+        if [[ "$is_addon" == "true" && -d "${INSTALLER_ADDON_DIR}"  ]]; then
+            for installer_addon_chart in $(ls ${INSTALLER_ADDON_DIR}); do
+                installer_addon_chart_dir="${INSTALLER_ADDON_DIR}/${installer_addon_chart}"
+                installer_addon_enterprise=$(yq e ".isEnterprise"  ${installer_addon_chart_dir})
+                installer_addon_name=$(yq e ".name"  ${installer_addon_chart_dir})
+                if [[ "$installer_addon_name" == "$chart_name" && "$is_enterprise" != "${installer_addon_enterprise}" ]]; then
+                    echo "set ${installer_addon_name} isEnterprise to ${installer_addon_enterprise}"
+                    is_enterprise="${installer_addon_enterprise}"
+                    yq e -i ".${chart_name}[0].isEnterprise=${installer_addon_enterprise}" "${MANIFESTS_FILE}"
+                fi
+            done
+        fi
+
         if [[ "$is_enterprise" == "true" ]]; then
             addon_chart_file="${APECLOUD_ADDON_DIR}/${chart_name}/Chart.yaml"
         else
