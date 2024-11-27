@@ -839,8 +839,8 @@ update_k3d_coredns_cm() {
     echo "k3d auth ip:${k3d_auth_ip}"
 
     if [[ -z "$k3d_auth_ip" ]]; then
-        eth0_ip=""
-        if [[ "$UNAME" == "Darwin" ]]; then
+        ifconfig_cli="$( command -v ifconfig )"
+        if [[ -n "$ifconfig_cli" ]]; then
             eth0_ip=$(ifconfig en0 | grep 'inet ' | awk '{print $2}')
         else
             eth0_ip=$(ip -o -4 addr list eth0 | awk '{print $4}' | cut -d/ -f1)
