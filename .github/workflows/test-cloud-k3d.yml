@@ -100,6 +100,8 @@ jobs:
           helm repo add kb-chart https://apecloud.github.io/helm-charts
           
           helm install installer kb-chart/kb-cloud-installer \
+            --namespace kb-cloud \
+            --create-namespace \
             --version ${{ inputs.cloud-version }} \
             --set image.registry="docker.io" \
             --set version=${{ inputs.cloud-version }} \
@@ -111,8 +113,7 @@ jobs:
         run: |
           sleep 10
           for i in {1..200}; do
-            if kubectl get pods | grep "kb-cloud-installer" | grep Completed ; then
-              kubectl get pods -n kb-cloud | grep Running
+            if kubectl get pods -n kb-cloud | grep "kb-cloud-installer" | grep Completed ; then
               echo "KB Cloud is ready"
               break
             fi
@@ -122,7 +123,7 @@ jobs:
             sleep 5
           done
 
-      - name: deploy kubeblocks
+      - name: deploy KB Cloud Env
         run: |
           echo "get k8s config"
           k8s_cluster_name=$(kubectl config get-clusters | sed '1d')
@@ -139,9 +140,11 @@ jobs:
           K8S_KUBECONFIG="$(echo "${k8s_kubeconfig}" | base64)"
           
           CLOUD_LICENSE="${{ env.CLOUD_LICENSE }}"
-          echo "deploy kubeblocks"
+          echo "deploy KB Cloud Env"
           
           helm install deployer kb-chart/kb-cloud-deployer \
+            --namespace kb-system \
+            --create-namespace \
             --version 0.0.1 \
             --set image.registry="docker.io" \
             --set license="${CLOUD_LICENSE}" \
@@ -151,12 +154,11 @@ jobs:
         run: |
           sleep 10
           for i in {1..200}; do
-            if kubectl get pods | grep "kb-cloud-deployer" | grep Completed ; then
-              kubectl get pods -n kb-system | grep Running
-              echo "KubeBlocks is ready"
+            if kubectl get pods -n kb-system | grep "kb-cloud-deployer" | grep Completed ; then
+              echo "KB Cloud Env is ready"
               break
             fi
-            echo "Waiting for KubeBlocks to be ready..."
+            echo "Waiting for KB Cloud Env to be ready..."
             kubectl get pods -n kb-system
             echo ""
             sleep 5
