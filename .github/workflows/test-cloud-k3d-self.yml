@@ -223,7 +223,7 @@ jobs:
           echo $TEST_RESULT
           
           date_ret=$(date +%Y-%m-%d-%T)
-          TEST_TITLE="[${{ env.CLOUD_BRANCH }}] Cloud E2E Installer&Deployer on Env:K3s [${date_ret}]"
+          TEST_TITLE="[${{ inputs.cloud-version }}] Cloud E2E Installer&Deployer on Env:K3s [${date_ret}]"
           
           python3 ${{ github.workspace }}/apecloud-cd/.github/utils/send_mesage.py \
               --url "${{ vars.TEST_BOT_WEBHOOK }}" \
