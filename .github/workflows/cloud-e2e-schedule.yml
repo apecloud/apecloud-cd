@@ -12,5 +12,5 @@ jobs:
       BRANCH_NAME: "main"
       WORKFLOW_ID: "cloud-e2e.yml"
       APECD_REF: "main"
-      EXTRA_ARGS: "TEST_TYPE=openapi-test#TEST_ENGINES=mysql#CLOUD_ENV_NAME=dev#CLOUD_BRANCH=main#GO_VERSION=1.22"
+      EXTRA_ARGS: "TEST_TYPE=openapi-test|adminapi-test|engine-test#TEST_ENGINES=mysql#CLOUD_ENV_NAME=dev#CLOUD_BRANCH=main#GO_VERSION=1.22"
     secrets: inherit

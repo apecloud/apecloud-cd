@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       TEST_TYPE:
-        description: "The specify version of GO (e.g. openapi-test)"
+        description: "The specify version of GO (e.g. openapi-test|adminapi-test|engine-test)"
         type: string
         required: false
         default: 'openapi-test'
@@ -31,7 +31,7 @@ on:
   workflow_call:
     inputs:
       TEST_TYPE:
-        description: "The specify version of GO (e.g. openapi-test)"
+        description: "The specify version of GO (e.g. openapi-test|adminapi-test|engine-test)"
         type: string
         required: false
         default: 'openapi-test'
@@ -70,11 +70,41 @@ env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
 jobs:
+  get-test-type:
+    runs-on: ubuntu-latest
+    outputs:
+      test-type: ${{ steps.get_test_type.outputs.test-type }}
+    steps:
+      - name: Get test type
+        id: get_test_type
+        run: |
+          TEST_TYPES="${{ inputs.TEST_TYPE }}"
+          test_type=""
+          for test_type_tmp in $(echo "${TEST_TYPES}" | sed 's/|/ /g' ); do
+              if [[ -z "${test_type}" ]]; then
+                  test_type="{\"test-type\":\"${test_type_tmp}\"}"
+              else
+                  test_type="${test_type},{\"test-type\":\"${test_type_tmp}\"}"
+              fi
+          done
+          echo "${test_type}"
+          echo "test-type={\"include\":[${test_type}]}" >> $GITHUB_OUTPUT
+
   e2e-test:
-    name: ${{ inputs.TEST_TYPE }}
+    needs: [ get-test-type ]
+    name: ${{ matrix.test-type }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.get-test-type.outputs.test-type) }}
+    outputs:
+      openapi-test-result: ${{ steps.get_test_result.outputs.openapi-test-result }}
+      adminapi-test-result: ${{ steps.get_test_result.outputs.adminapi-test-result }}
+      engine-test-result: ${{ steps.get_test_result.outputs.engine-test-result }}
+      test-result: ${{ steps.get_test_result.outputs.test-result }}
     runs-on: ubuntu-latest
     steps:
       - name: get apecloud branch
+        id: get_cloud_branch
         run: |
           CLOUD_BRANCH="${{ inputs.CLOUD_BRANCH }}"
           if [[ -z "$CLOUD_BRANCH" ]]; then
@@ -161,7 +191,8 @@ jobs:
           make module
           make install-ginkgo
 
-      - name: openapi test
+      - name: api test
+        id: get_test_result
         run: |
           cd e2e
           file_log="test_result.log"
@@ -183,32 +214,81 @@ jobs:
               export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}
           fi
           
-          TEST_TYPE="${{ inputs.TEST_TYPE }}"
+          TEST_TYPE="${{ matrix.test-type }}"
           if [[ -z "$TEST_TYPE" ]]; then
               TEST_TYPE="openapi-test"
           fi
-          echo TEST_TYPE="$TEST_TYPE" >> $GITHUB_ENV
-          
           make ${TEST_TYPE} | tee -a ${file_log}
           
-          test_ret="$( grep "Test Suite Failed" ${file_log} || true )"
-          if [[ -n "$test_ret" ]]; then
-              exit 1
-          fi
-
-      - name: send test result message
-        if: ${{ always() }}
-        run: |
-          cd e2e
-          file_log="test_result.log"
           test_ret="$( grep "Test Suite Failed" ${file_log} || true )"
           test_result="[PASSED]"
           if [[ -n "$test_ret" ]]; then
               test_result="[FAILED]"
           fi
-          TEST_RESULT="${{ env.TEST_TYPE }}|${test_result}"
+          
+          case "$TEST_TYPE" in
+              openapi-test)
+                  echo openapi-test-result="${test_result}" >> $GITHUB_OUTPUT
+              ;;
+              adminapi-test)
+                  echo adminapi-test-result="${test_result}" >> $GITHUB_OUTPUT
+              ;;
+              engine-test)
+                  echo engine-test-result="${test_result}" >> $GITHUB_OUTPUT
+              ;;
+              *)
+                  echo test-result="${test_result}" >> $GITHUB_OUTPUT
+              ;;
+          esac
+          
+          if [[ -n "$test_ret" ]]; then
+              exit 1
+          fi
+
+  send-message:
+    needs: [ e2e-test ]
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+
+      - name: send test result message
+        run: |
+          CLOUD_BRANCH="${{ inputs.CLOUD_BRANCH }}"
+          if [[ -z "$CLOUD_BRANCH" ]]; then
+              CLOUD_BRANCH="main"
+          fi
+          
+          CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
+          if [[ -z "$CLOUD_ENV_NAME" ]]; then
+              CLOUD_ENV_NAME="dev"
+          fi
+          
+          TEST_RESULT=""
+          TEST_TYPES="${{ inputs.TEST_TYPE }}"
+          TEST_TYPES="openapi-test|adminapi-test|engine-test"
+          for test_type_tmp in $(echo "${TEST_TYPES}" | sed 's/|/ /g' ); do
+              case "$test_type_tmp" in
+                  openapi-test)
+                      TEST_RESULT="${test_type_tmp}|${{ needs.e2e-test.outputs.openapi-test-result }}"
+                  ;;
+                  adminapi-test)
+                      TEST_RESULT="${test_type_tmp}|${{ needs.e2e-test.outputs.adminapi-test-result }}"
+                  ;;
+                  engine-test)
+                      TEST_RESULT="${test_type_tmp}|${{ needs.e2e-test.outputs.engine-test-result }}"
+                  ;;
+                  *)
+                      TEST_RESULT="${test_type_tmp}|${{ needs.e2e-test.outputs.test-result }}"
+                  ;;
+              esac
+          done
+          
           echo "${TEST_RESULT}" 
-          TEST_RESULT=$( bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 12 \
+          TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
               --github-repo "${{ github.repository }}" \
               --github-token "${{ env.GITHUB_TOKEN }}" \
               --test-result "${TEST_RESULT}" \
@@ -216,9 +296,9 @@ jobs:
           echo $TEST_RESULT
           
           date_ret=$(date +%Y-%m-%d-%T)
-          TEST_TITLE="[${{ env.CLOUD_BRANCH }}] Cloud E2E ${{ env.TEST_TYPE }} on Env:${{ env.CLOUD_ENV_NAME }} [${date_ret}]"
+          TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Api Test ${{ inputs.TEST_ENGINES }} on Env:${CLOUD_ENV_NAME} [${date_ret}]"
           
-          python3 ${{ github.workspace }}/apecloud-cd/.github/utils/send_mesage.py \
-              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+          python3 .github/utils/send_mesage.py \
+              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
