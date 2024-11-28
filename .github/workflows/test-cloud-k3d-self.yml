@@ -225,8 +225,8 @@ jobs:
 
       - name: send test result message
         run: |
-          INSTALLER_RESULT="${{ needs.install_kb_cloud.outputs.installer-result }}"
-          DEPLOYER_RESULT="${{ needs.deploy_kb_cloud_env.outputs.deployer-result }}"
+          INSTALLER_RESULT="${{ needs.cloud-test-k3d.outputs.installer-result }}"
+          DEPLOYER_RESULT="${{ needs.cloud-test-k3d.outputs.deployer-result }}"
           TEST_RESULT="cloud-test-k3d|Installer|${INSTALLER_RESULT}"
           TEST_RESULT="${TEST_RESULT}##cloud-test-k3d|Deployer|${DEPLOYER_RESULT}"
           echo "${TEST_RESULT}" 
