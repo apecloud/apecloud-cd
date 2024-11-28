@@ -230,7 +230,7 @@ jobs:
           TEST_TITLE="[${{ inputs.cloud-version }}] Cloud E2E Installer&Deployer on Env:K3s [${date_ret}]"
           
           python3 ${{ github.workspace }}/apecloud-cd/.github/utils/send_mesage.py \
-              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
+              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
           
