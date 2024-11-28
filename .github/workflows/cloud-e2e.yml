@@ -453,6 +453,7 @@ jobs:
         run: |
           CLOUD_BRANCH="${{ needs.get-test-type.outputs.cloud-branch }}"
           CLOUD_ENV_NAME="${{ needs.get-test-type.outputs.cloud-env-name }}"
+          TEST_INSTALLER="${{ needs.get-test-type.outputs.test-installer }}"
           
           TEST_RESULT=""
           TEST_TYPES="${{ inputs.TEST_TYPE }}"
@@ -482,7 +483,7 @@ jobs:
           echo "TEST_RESULT:${TEST_RESULT}"
           
           TEST_RESULT_INSTALLER=""
-          if [[ "${CLOUD_BRANCH}" == "v"*"."*"."* ]]; then
+          if [[ "${TEST_INSTALLER}" == "true" ]]; then
               echo "get installer test result"
               INSTALLER_RESULT="${{ steps.install_kb_cloud.outputs.installer-result }}"
               DEPLOYER_RESULT="${{ steps.deploy_kb_cloud_env.outputs.deployer-result }}"
@@ -501,7 +502,6 @@ jobs:
               TEST_RESULT="${TEST_RESULT_INSTALLER}##${TEST_RESULT}"
               echo "TEST_RESULT:${TEST_RESULT}"
           fi
-          
           
           date_ret=$(date +%Y-%m-%d-%T)
           TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${{ inputs.TEST_ENGINES }} on Env:${CLOUD_ENV_NAME}; Installer on Env:K3s [${date_ret}]"
