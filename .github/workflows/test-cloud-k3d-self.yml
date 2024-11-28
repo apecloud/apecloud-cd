@@ -206,11 +206,27 @@ jobs:
               echo deployer-result="${deployer_result}" >> $GITHUB_OUTPUT
           fi
 
-      - name: send test result message
+      - name: get runner name
+        id: get_runner_name
         if: ${{ always() }}
         run: |
-          INSTALLER_RESULT="${{ steps.install_kb_cloud.outputs.installer-result }}"
-          DEPLOYER_RESULT="${{ steps.deploy_kb_cloud_env.outputs.deployer-result }}"
+          echo runner-name=${RUNNER_NAME} >> $GITHUB_OUTPUT
+
+  send-message:
+    needs: [ cloud-test-k3d ]
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+
+      - name: send test result message
+        run: |
+          INSTALLER_RESULT="${{ needs.install_kb_cloud.outputs.installer-result }}"
+          DEPLOYER_RESULT="${{ needs.deploy_kb_cloud_env.outputs.deployer-result }}"
           TEST_RESULT="cloud-test-k3d|Installer|${INSTALLER_RESULT}"
           TEST_RESULT="${TEST_RESULT}##cloud-test-k3d|Deployer|${DEPLOYER_RESULT}"
           echo "${TEST_RESULT}" 
@@ -229,12 +245,6 @@ jobs:
               --url "${{ vars.TEST_BOT_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
-
-      - name: get runner name
-        id: get_runner_name
-        if: ${{ always() }}
-        run: |
-          echo runner-name=${RUNNER_NAME} >> $GITHUB_OUTPUT
 
   remove-runner:
     needs: [ cloud-test-k3d ]
