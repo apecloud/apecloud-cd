@@ -278,7 +278,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       installer-result: ${{ steps.install_kb_cloud.outputs.installer-result }}
-      deployer-result: ${{ steps.deploy_kb_cloud_env.outputs.deployer-result }}
+      bootstrapper-result: ${{ steps.deploy_kb_cloud_env.outputs.bootstrapper-result }}
     steps:
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -395,7 +395,7 @@ jobs:
           CLOUD_LICENSE="${{ env.CLOUD_LICENSE }}"
           echo "deploy KB Cloud Env"
           
-          helm install deployer kb-chart/kb-cloud-deployer \
+          helm install bootstrapper kb-chart/kb-cloud-bootstrapper \
             --namespace kb-system \
             --create-namespace \
             --version ${{ needs.get-test-type.outputs.cloud-branch }} \
@@ -403,13 +403,13 @@ jobs:
             --set license="${CLOUD_LICENSE}" \
             --set kubeconfig="${K8S_KUBECONFIG}"
 
-      - name: check kb-cloud-deployer pod Completed
+      - name: check kb-cloud-bootstrapper pod Completed
         id: deploy_kb_cloud_env
         run: |
           sleep 10
           check_status=0
           for i in {1..200}; do
-              if kubectl get pods -n kb-system | grep "kb-cloud-deployer" | grep Completed ; then
+              if kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" | grep Completed ; then
                   echo "KB Cloud Env is ready"
                   check_status=1
                   break
@@ -420,23 +420,23 @@ jobs:
               sleep 5
           done
           
-          deployer_result="[PASSED]"
+          bootstrapper_result="[PASSED]"
           if [[ $check_status -eq 0 ]]; then
               echo "KB Cloud Env is not ready"
-              deployer_result="[FAILED]"
-              echo deployer-result="${deployer_result}" >> $GITHUB_OUTPUT
+              bootstrapper_result="[FAILED]"
+              echo bootstrapper-result="${bootstrapper_result}" >> $GITHUB_OUTPUT
           
-              deployer_pods=$(kubectl get pods -n kb-system | grep "kb-cloud-deployer" )
-              echo "deployer pod: $deployer_pods"
-              deployer_pod_names="$(echo "${deployer_pods}" | awk '{print $1}')"
-              for deployer_pod_name in $(echo "${deployer_pod_names}"); do
-                  echo "==================== pod ${deployer_pod_name} logs ===================="
-                  kubectl logs -n kb-system ${deployer_pod_name}
+              bootstrapper_pods=$(kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" )
+              echo "bootstrapper pod: $bootstrapper_pods"
+              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | awk '{print $1}')"
+              for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
+                  echo "==================== pod ${bootstrapper_pod_name} logs ===================="
+                  kubectl logs -n kb-system ${bootstrapper_pod_name}
               done 
           
               exit 1
           else
-              echo deployer-result="${deployer_result}" >> $GITHUB_OUTPUT
+              echo bootstrapper-result="${bootstrapper_result}" >> $GITHUB_OUTPUT
           fi
 
   send-message:
@@ -486,9 +486,9 @@ jobs:
           if [[ "${TEST_INSTALLER}" == "true" ]]; then
               echo "get installer test result"
               INSTALLER_RESULT="${{ needs.installer-test.outputs.installer-result }}"
-              DEPLOYER_RESULT="${{ needs.installer-test.outputs.deployer-result }}"
-              TEST_RESULT_INSTALLER="installer-test|Installer|${INSTALLER_RESULT}"
-              TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##installer-test|Deployer|${DEPLOYER_RESULT}"
+              BOOTSTRAPPER_RESULT="${{ needs.installer-test.outputs.bootstrapper-result }}"
+              TEST_RESULT_INSTALLER="installer-test|installer|${INSTALLER_RESULT}"
+              TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##installer-test|bootstrapper|${BOOTSTRAPPER_RESULT}"
               echo "TEST_RESULT_INSTALLER:${TEST_RESULT_INSTALLER}" 
           
               TEST_RESULT_INSTALLER=$( bash .github/utils/utils.sh --type 38 \
@@ -513,8 +513,3 @@ jobs:
               --url "${{ vars.TEST_BOT_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
-
-#          python3 .github/utils/send_mesage.py \
-#              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
-#              --title "$TEST_TITLE" \
-#              --result "$TEST_RESULT"
