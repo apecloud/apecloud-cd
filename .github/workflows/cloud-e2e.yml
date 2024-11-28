@@ -191,7 +191,7 @@ jobs:
           make module
           make install-ginkgo
 
-      - name: api test
+      - name: ${{ matrix.test-type }}
         id: get_test_result
         run: |
           cd e2e
