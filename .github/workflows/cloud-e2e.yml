@@ -491,7 +491,7 @@ jobs:
               TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##installer-test|Deployer|${DEPLOYER_RESULT}"
               echo "TEST_RESULT_INSTALLER:${TEST_RESULT_INSTALLER}" 
           
-              TEST_RESULT_INSTALLER=$( bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 38 \
+              TEST_RESULT_INSTALLER=$( bash .github/utils/utils.sh --type 38 \
                   --github-repo "${{ github.repository }}" \
                   --github-token "${{ env.GITHUB_TOKEN }}" \
                   --test-result "${TEST_RESULT_INSTALLER}" \
@@ -504,9 +504,17 @@ jobs:
           fi
           
           date_ret=$(date +%Y-%m-%d-%T)
-          TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${{ inputs.TEST_ENGINES }} on Env:${CLOUD_ENV_NAME}; Installer on Env:K3s [${date_ret}]"
+          TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${{ inputs.TEST_ENGINES }} on Env:${CLOUD_ENV_NAME} [${date_ret}]"
+          if [[ "${TEST_INSTALLER}" == "true" ]]; then
+              TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${{ inputs.TEST_ENGINES }} on Env:${CLOUD_ENV_NAME}; Installer on Env:K3s [${date_ret}]"
+          fi
           
           python3 .github/utils/send_mesage.py \
-              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
+
+#          python3 .github/utils/send_mesage.py \
+#              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+#              --title "$TEST_TITLE" \
+#              --result "$TEST_RESULT"
