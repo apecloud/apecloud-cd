@@ -485,8 +485,8 @@ jobs:
           TEST_RESULT_INSTALLER=""
           if [[ "${TEST_INSTALLER}" == "true" ]]; then
               echo "get installer test result"
-              INSTALLER_RESULT="${{ steps.install_kb_cloud.outputs.installer-result }}"
-              DEPLOYER_RESULT="${{ steps.deploy_kb_cloud_env.outputs.deployer-result }}"
+              INSTALLER_RESULT="${{ needs.installer-test.outputs.installer-result }}"
+              DEPLOYER_RESULT="${{ needs.installer-test.outputs.deployer-result }}"
               TEST_RESULT_INSTALLER="installer-test|Installer|${INSTALLER_RESULT}"
               TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##installer-test|Deployer|${DEPLOYER_RESULT}"
               echo "TEST_RESULT_INSTALLER:${TEST_RESULT_INSTALLER}" 
