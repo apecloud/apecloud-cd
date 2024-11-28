@@ -507,11 +507,6 @@ jobs:
           TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${{ inputs.TEST_ENGINES }} on Env:${CLOUD_ENV_NAME}; Installer on Env:K3s [${date_ret}]"
           
           python3 .github/utils/send_mesage.py \
-              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
+              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
-
-#          python3 .github/utils/send_mesage.py \
-#              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
-#              --title "$TEST_TITLE" \
-#              --result "$TEST_RESULT"
