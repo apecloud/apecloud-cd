@@ -109,7 +109,7 @@ jobs:
           if [[ -z "$CLOUD_BRANCH" ]]; then
               CLOUD_BRANCH="main"
           fi
-          echo cloud-branch="$CLOUD_BRANCH" >>  >> $GITHUB_OUTPUT
+          echo cloud-branch="$CLOUD_BRANCH" >> $GITHUB_OUTPUT
           
           CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
           if [[ -z "$CLOUD_ENV_NAME" ]]; then
