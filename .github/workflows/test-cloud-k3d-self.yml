@@ -26,9 +26,12 @@ on:
         required: false
         default: '1.30'
     outputs:
-      test-result:
-        description: "e2e test result"
-        value: "${{ jobs.cloud-test-k3d.outputs.test-result }}"
+      installer-result:
+        description: "kb cloud installer result"
+        value: "${{ jobs.cloud-test-k3d.outputs.installer-result }}"
+      deployer-result:
+        description: "kb cloud env deployer result"
+        value: "${{ jobs.cloud-test-k3d.outputs.deployer-result }}"
 
 run-name: Test Cloud Version:${{ inputs.cloud-version }} K3s Version:${{ inputs.k3s-version }}
 
@@ -55,9 +58,8 @@ jobs:
     needs: [ enable-runner ]
     runs-on: [ self-hosted, k3s-runner ]
     outputs:
-      deploy-result: ${{ steps.deploy_cloud.outputs.deploy-result }}
-      test-result: ${{ steps.test_result.outputs.test-result }}
-      test-type: ${{ steps.test_result.outputs.test-type }}
+      installer-result: ${{ steps.install_kb_cloud.outputs.installer-result }}
+      deployer-result: ${{ steps.deploy_kb_cloud_env.outputs.deployer-result }}
       runner-name: ${{ steps.get_runner_name.outputs.runner-name }}
     steps:
       - name: Checkout apecloud-cd Code
@@ -85,39 +87,61 @@ jobs:
         run: |
           helm repo add jetstack https://charts.jetstack.io --force-update
           helm install \
-            cert-manager jetstack/cert-manager \
-            --namespace cert-manager \
-            --create-namespace \
-            --version v1.16.0 \
-            --set crds.enabled=true
+              cert-manager jetstack/cert-manager \
+              --namespace cert-manager \
+              --create-namespace \
+              --version v1.16.0 \
+              --set crds.enabled=true
 
       - name: install kb cloud
         run: |
           helm repo add kb-chart https://apecloud.github.io/helm-charts
           
           helm install installer kb-chart/kb-cloud-installer \
-            --namespace kb-cloud \
-            --create-namespace \
-            --version ${{ inputs.cloud-version }} \
-            --set image.registry="docker.io" \
-            --set version=${{ inputs.cloud-version }} \
-            --set kubernetesProvider=k3d \
-            --set fqdn.domain=mytest.kubeblocks.com \
-            --set tls.enabled=true
+              --namespace kb-cloud \
+              --create-namespace \
+              --version ${{ inputs.cloud-version }} \
+              --set image.registry="docker.io" \
+              --set version=${{ inputs.cloud-version }} \
+              --set kubernetesProvider=k3d \
+              --set fqdn.domain=mytest.kubeblocks.com \
+              --set tls.enabled=true
 
       - name: check kb-cloud-installer pod Completed
+        id: install_kb_cloud
         run: |
           sleep 10
+          check_status=0
           for i in {1..200}; do
-            if kubectl get pods -n kb-cloud | grep "kb-cloud-installer" | grep Completed ; then
-              echo "KB Cloud is ready"
-              break
-            fi
-            echo "Waiting for KB Cloud to be ready..."
-            kubectl get pods -n kb-cloud
-            echo ""
-            sleep 5
+              if kubectl get pods -n kb-cloud | grep "kb-cloud-installer" | grep Completed ; then
+                  echo "KB Cloud is ready"
+                  check_status=1
+                  break
+              fi
+              echo "Waiting for KB Cloud to be ready..."
+              kubectl get pods -n kb-cloud
+              echo ""
+              sleep 5
           done
+          
+          installer_result="[PASSED]"
+          if [[ $check_status -eq 0 ]]; then
+              echo "KB Cloud is not ready"
+              installer_result="[FAILED]"
+              echo installer-result="${installer_result}" >> $GITHUB_OUTPUT
+          
+              installer_pods=$(kubectl get pods -n kb-cloud | grep "kb-cloud-installer" )
+              echo "installer pod: $installer_pods"
+              installer_pod_names="$(echo "${installer_pods}" | awk '{print $1}')"
+              for installer_pod_name in $(echo "${installer_pod_names}"); do
+                  echo "==================== pod ${installer_pod_name} logs ===================="
+                  kubectl logs -n kb-cloud ${installer_pod_name}
+              done 
+          
+              exit 1
+          else
+              echo installer-result="${installer_result}" >> $GITHUB_OUTPUT
+          fi
 
       - name: deploy KB Cloud Env
         run: |
@@ -141,24 +165,70 @@ jobs:
           helm install deployer kb-chart/kb-cloud-deployer \
             --namespace kb-system \
             --create-namespace \
-            --version 0.0.1 \
+            --version ${{ inputs.cloud-version }} \
             --set image.registry="docker.io" \
             --set license="${CLOUD_LICENSE}" \
             --set kubeconfig="${K8S_KUBECONFIG}"
 
       - name: check kb-cloud-deployer pod Completed
+        id: deploy_kb_cloud_env
         run: |
           sleep 10
+          check_status=0
           for i in {1..200}; do
-            if kubectl get pods -n kb-system | grep "kb-cloud-deployer" | grep Completed ; then
-              echo "KB Cloud Env is ready"
-              break
-            fi
-            echo "Waiting for KB Cloud Env to be ready..."
-            kubectl get pods -n kb-system
-            echo ""
-            sleep 5
+              if kubectl get pods -n kb-system | grep "kb-cloud-deployer" | grep Completed ; then
+                  echo "KB Cloud Env is ready"
+                  check_status=1
+                  break
+              fi
+              echo "Waiting for KB Cloud Env to be ready..."
+              kubectl get pods -n kb-system
+              echo ""
+              sleep 5
           done
+          
+          deployer_result="[PASSED]"
+          if [[ $check_status -eq 0 ]]; then
+              echo "KB Cloud Env is not ready"
+              deployer_result="[FAILED]"
+              echo deployer-result="${deployer_result}" >> $GITHUB_OUTPUT
+          
+              deployer_pods=$(kubectl get pods -n kb-system | grep "kb-cloud-deployer" )
+              echo "deployer pod: $deployer_pods"
+              deployer_pod_names="$(echo "${deployer_pods}" | awk '{print $1}')"
+              for deployer_pod_name in $(echo "${deployer_pod_names}"); do
+                  echo "==================== pod ${deployer_pod_name} logs ===================="
+                  kubectl logs -n kb-system ${deployer_pod_name}
+              done 
+          
+              exit 1
+          else
+              echo deployer-result="${deployer_result}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: send test result message
+        if: ${{ always() }}
+        run: |
+          INSTALLER_RESULT="${{ steps.install_kb_cloud.outputs.installer-result }}"
+          DEPLOYER_RESULT="${{ steps.deploy_kb_cloud_env.outputs.deployer-result }}"
+          TEST_RESULT="cloud-test-k3d|Installer|${INSTALLER_RESULT}"
+          TEST_RESULT="${TEST_RESULT}##cloud-test-k3d|Deployer|${DEPLOYER_RESULT}"
+          echo "${TEST_RESULT}" 
+          
+          TEST_RESULT=$( bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 38 \
+              --github-repo "${{ github.repository }}" \
+              --github-token "${{ env.GITHUB_TOKEN }}" \
+              --test-result "${TEST_RESULT}" \
+              --run-id "$GITHUB_RUN_ID" )
+          echo $TEST_RESULT
+          
+          date_ret=$(date +%Y-%m-%d-%T)
+          TEST_TITLE="[${{ env.CLOUD_BRANCH }}] Cloud E2E Installer&Deployer on Env:K3s [${date_ret}]"
+          
+          python3 ${{ github.workspace }}/apecloud-cd/.github/utils/send_mesage.py \
+              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
+              --title "$TEST_TITLE" \
+              --result "$TEST_RESULT"
 
       - name: get runner name
         id: get_runner_name
