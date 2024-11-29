@@ -29,9 +29,9 @@ on:
       installer-result:
         description: "kb cloud installer result"
         value: "${{ jobs.cloud-test-k3d.outputs.installer-result }}"
-      deployer-result:
-        description: "kb cloud env deployer result"
-        value: "${{ jobs.cloud-test-k3d.outputs.deployer-result }}"
+      bootstrapper-result:
+        description: "kb cloud env bootstrapper result"
+        value: "${{ jobs.cloud-test-k3d.outputs.bootstrapper-result }}"
 
 run-name: Test Cloud Version:${{ inputs.cloud-version }} K3s Version:${{ inputs.k3s-version }}
 
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       installer-result: ${{ steps.install_kb_cloud.outputs.installer-result }}
-      deployer-result: ${{ steps.deploy_kb_cloud_env.outputs.deployer-result }}
+      bootstrapper-result: ${{ steps.deploy_kb_cloud_env.outputs.bootstrapper-result }}
     steps:
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -166,7 +166,7 @@ jobs:
           CLOUD_LICENSE="${{ env.CLOUD_LICENSE }}"
           echo "deploy KB Cloud Env"
           
-          helm install deployer kb-chart/kb-cloud-deployer \
+          helm install bootstrapper kb-chart/kb-cloud-bootstrapper \
             --namespace kb-system \
             --create-namespace \
             --version ${{ inputs.cloud-version }} \
@@ -174,13 +174,13 @@ jobs:
             --set license="${CLOUD_LICENSE}" \
             --set kubeconfig="${K8S_KUBECONFIG}"
 
-      - name: check kb-cloud-deployer pod Completed
+      - name: check kb-cloud-bootstrapper pod Completed
         id: deploy_kb_cloud_env
         run: |
           sleep 10
           check_status=0
           for i in {1..200}; do
-              if kubectl get pods -n kb-system | grep "kb-cloud-deployer" | grep Completed ; then
+              if kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" | grep Completed ; then
                   echo "KB Cloud Env is ready"
                   check_status=1
                   break
@@ -191,32 +191,32 @@ jobs:
               sleep 5
           done
           
-          deployer_result="[PASSED]"
+          bootstrapper_result="[PASSED]"
           if [[ $check_status -eq 0 ]]; then
               echo "KB Cloud Env is not ready"
-              deployer_result="[FAILED]"
-              echo deployer-result="${deployer_result}" >> $GITHUB_OUTPUT
+              bootstrapper_result="[FAILED]"
+              echo bootstrapper-result="${bootstrapper_result}" >> $GITHUB_OUTPUT
           
-              deployer_pods=$(kubectl get pods -n kb-system | grep "kb-cloud-deployer" )
-              echo "deployer pod: $deployer_pods"
-              deployer_pod_names="$(echo "${deployer_pods}" | awk '{print $1}')"
-              for deployer_pod_name in $(echo "${deployer_pod_names}"); do
-                  echo "==================== pod ${deployer_pod_name} logs ===================="
-                  kubectl logs -n kb-system ${deployer_pod_name}
+              bootstrapper_pods=$(kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" )
+              echo "bootstrapper pod: $bootstrapper_pods"
+              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | awk '{print $1}')"
+              for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
+                  echo "==================== pod ${bootstrapper_pod_name} logs ===================="
+                  kubectl logs -n kb-system ${bootstrapper_pod_name}
               done 
           
               exit 1
           else
-              echo deployer-result="${deployer_result}" >> $GITHUB_OUTPUT
+              echo bootstrapper-result="${bootstrapper_result}" >> $GITHUB_OUTPUT
           fi
 
       - name: send test result message
         if: ${{ always() }}
         run: |
           INSTALLER_RESULT="${{ steps.install_kb_cloud.outputs.installer-result }}"
-          DEPLOYER_RESULT="${{ steps.deploy_kb_cloud_env.outputs.deployer-result }}"
-          TEST_RESULT="cloud-test-k3d|Installer|${INSTALLER_RESULT}"
-          TEST_RESULT="${TEST_RESULT}##cloud-test-k3d|Deployer|${DEPLOYER_RESULT}"
+          BOOTSTRAPPER_RESULT="${{ steps.deploy_kb_cloud_env.outputs.bootstrapper-result }}"
+          TEST_RESULT="cloud-test-k3d|installer|${INSTALLER_RESULT}"
+          TEST_RESULT="${TEST_RESULT}##cloud-test-k3d|bootstrapper|${BOOTSTRAPPER_RESULT}"
           echo "${TEST_RESULT}" 
           
           TEST_RESULT=$( bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 38 \
@@ -227,7 +227,7 @@ jobs:
           echo $TEST_RESULT
           
           date_ret=$(date +%Y-%m-%d-%T)
-          TEST_TITLE="[${{ inputs.cloud-version }}] Cloud E2E Installer&Deployer on Env:K3s [${date_ret}]"
+          TEST_TITLE="[${{ inputs.cloud-version }}] Cloud E2E Test installer & bootstrapper on Env:K3s [${date_ret}]"
           
           python3 ${{ github.workspace }}/apecloud-cd/.github/utils/send_mesage.py \
               --url "${{ vars.TEST_BOT_WEBHOOK }}" \
