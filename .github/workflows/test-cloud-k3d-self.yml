@@ -3,28 +3,38 @@ name: Test Cloud On K3D Self Runner
 on:
   workflow_dispatch:
     inputs:
-      cloud-version:
+      CLOUD_VERSION:
         description: 'kb-cloud version (e.g. 0.29.0-alpha.110)'
         type: string
         required: false
         default: '0.29.0-alpha.110'
-      k3s-version:
+      K3S_VERSION:
         description: 'k3s cluster version (e.g. 1.30)'
         type: string
         required: false
         default: '1.30'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
   workflow_call:
     inputs:
-      cloud-version:
+      CLOUD_VERSION:
         description: 'kb-cloud version (e.g. 0.29.0-alpha.110)'
         type: string
         required: false
         default: '0.29.0-alpha.110'
-      k3s-version:
+      K3S_VERSION:
         description: 'k3s cluster version (e.g. 1.30)'
         type: string
         required: false
         default: '1.30'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
     outputs:
       installer-result:
         description: "kb cloud installer result"
@@ -33,7 +43,7 @@ on:
         description: "kb cloud env bootstrapper result"
         value: "${{ jobs.cloud-test-k3d.outputs.bootstrapper-result }}"
 
-run-name: Test Cloud Version:${{ inputs.cloud-version }} K3s Version:${{ inputs.k3s-version }}
+run-name: Test Cloud Version:${{ inputs.CLOUD_VERSION }} K3s Version:${{ inputs.K3S_VERSION }}
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -67,12 +77,13 @@ jobs:
         with:
           repository: apecloud/apecloud-cd
           path: apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
 
       - name: setup k3d k3s
         uses: nolar/setup-k3d-k3s@v1
         with:
           k3d-name: "${{ env.K3D_NAME }}"
-          version: "v${{ inputs.k3s-version }}"
+          version: "v${{ inputs.K3S_VERSION }}"
           github-token: ${{ env.GITHUB_TOKEN }}
           k3d-args: -p 443:443@loadbalancer -p 80:80@loadbalancer --agents 2
 
@@ -100,9 +111,9 @@ jobs:
           helm install installer kb-chart/kb-cloud-installer \
               --namespace kb-cloud \
               --create-namespace \
-              --version ${{ inputs.cloud-version }} \
+              --version ${{ inputs.CLOUD_VERSION }} \
               --set image.registry="docker.io" \
-              --set version=${{ inputs.cloud-version }} \
+              --set version=${{ inputs.CLOUD_VERSION }} \
               --set kubernetesProvider=k3d \
               --set fqdn.domain=mytest.kubeblocks.com \
               --set tls.enabled=true
@@ -165,7 +176,7 @@ jobs:
           helm install bootstrapper kb-chart/kb-cloud-bootstrapper \
             --namespace kb-system \
             --create-namespace \
-            --version ${{ inputs.cloud-version }} \
+            --version ${{ inputs.CLOUD_VERSION }} \
             --set image.registry="docker.io" \
             --set license="${CLOUD_LICENSE}" \
             --set kubeconfig="${K8S_KUBECONFIG}"
@@ -222,6 +233,7 @@ jobs:
         with:
           repository: apecloud/apecloud-cd
           path: ./
+          ref: ${{ inputs.APECD_REF }}
 
       - name: send test result message
         run: |
@@ -239,7 +251,7 @@ jobs:
           echo $TEST_RESULT
           
           date_ret=$(date +%Y-%m-%d-%T)
-          TEST_TITLE="[${{ inputs.cloud-version }}] Cloud E2E Test installer & bootstrapper on Env:K3s [${date_ret}]"
+          TEST_TITLE="[${{ inputs.CLOUD_VERSION }}] Cloud E2E Test installer & bootstrapper on Env:K3s [${date_ret}]"
           
           python3 ${{ github.workspace }}/.github/utils/send_mesage.py \
               --url "${{ vars.TEST_BOT_WEBHOOK }}" \
@@ -256,6 +268,7 @@ jobs:
         with:
           repository: apecloud/apecloud-cd
           path: ./
+          ref: ${{ inputs.APECD_REF }}
 
       - name: remove runner
         run: |
