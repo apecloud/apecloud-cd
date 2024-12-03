@@ -166,9 +166,10 @@ jobs:
       - name: update chart release info values
         if: ${{ inputs.CHART_DIR == 'addons' || inputs.CHART_DIR == 'addons-cluster' }}
         run: |
-          REF_NAME="${{ inputs.GITHUB_REF }}"
-          if [[ -z "${REF_NAME}" ]]; then
-              REF_NAME="${{ github.ref_name }}"
+          REF_NAME="${{ github.ref_name }}"
+          GITHUB_REPO="${{ inputs.GITHUB_REPO }}"
+          if [[ -n "${GITHUB_REPO}" ]]; then
+              REF_NAME="${{ inputs.GITHUB_REF }}"
           fi
           
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/update_chart_values.sh \
