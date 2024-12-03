@@ -214,10 +214,9 @@ jobs:
           fi
           
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/update_chart_values.sh \
-              --type "release" \
               --base-values "apecloud-cd/chart-values/release-values.yaml" \
               --chart-dir "${{ inputs.CHART_DIR }}" \
-              --ref-name "${REF_NAME}"
+              --branch-name "${REF_NAME}"
 
       - name: Package Helm Chart
         shell: bash
