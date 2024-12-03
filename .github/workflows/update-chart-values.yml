@@ -85,29 +85,29 @@ jobs:
         run: |
           update_cmd="bash apecloud-cd/.github/utils/update_chart_values.sh "
           BASE_VALUES=""
-          UPDATE_TYPE="${{ inputs.TYPE }}"
-          CHART_DIR="${{ inputs.CHART_DIR }}"
-          UPDATE_CHART="${{ inputs.UPDATE_CHART }}"
-          REF_NAME="${{ inputs.REF_NAME }}"
           
+          UPDATE_TYPE="${{ inputs.TYPE }}"
           if [[ -n "${UPDATE_TYPE}" ]]; then
-              update_cmd="${update_cmd} --type ${UPDATE_TYPE} "
+              update_cmd="${update_cmd} --type \"${UPDATE_TYPE}\" "
           
               BASE_VALUES="apecloud-cd/chart-values/${UPDATE_TYPE}-values.yaml"
           fi
           
           if [[ -n "${BASE_VALUES}" && -f "${BASE_VALUES}" ]]; then
-              update_cmd="${update_cmd} --base-values ${BASE_VALUES} "
+              update_cmd="${update_cmd} --base-values \"${BASE_VALUES}\" "
           fi
           
+          CHART_DIR="${{ inputs.CHART_DIR }}"
           if [[ -n "${CHART_DIR}" ]]; then
               update_cmd="${update_cmd} --chart-dir \"${CHART_DIR}\" "
           fi
           
+          UPDATE_CHART="${{ inputs.UPDATE_CHART }}"
           if [[ -n "${UPDATE_CHART}" ]]; then
               update_cmd="${update_cmd} --update-chart \"${UPDATE_CHART}\" "
           fi
           
+          REF_NAME="${{ inputs.REF_NAME }}"
           if [[ -n "${REF_NAME}" ]]; then
               update_cmd="${update_cmd} --ref-name \"${REF_NAME}\" "
           fi
