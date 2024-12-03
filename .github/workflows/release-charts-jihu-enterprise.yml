@@ -159,6 +159,20 @@ jobs:
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
             "apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com" "${{ inputs.CHART_DIR }}"
 
+      - name: update chart release info values
+        if: ${{ inputs.CHART_DIR == 'addons' || inputs.CHART_DIR == 'addons-cluster' }}
+        run: |
+          REF_NAME="${{ inputs.GITHUB_REF }}"
+          if [[ -z "${REF_NAME}" ]]; then
+              REF_NAME="${{ github.ref_name }}"
+          fi
+          
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/update_chart_values.sh \
+              --type "release" \
+              --base-values "apecloud-cd/chart-values/release-values.yaml" \
+              --chart-dir "${{ inputs.CHART_DIR }}" \
+              --ref-name "${REF_NAME}"
+
       - name: Package Helm Chart
         shell: bash
         run: |

@@ -1,0 +1,10 @@
+# Release related information
+# @param releaseInfo - (object) Contains metadata about the release.
+releaseInfo:
+  # @param releaseInfo.releaseTime - (string) The timestamp of the release, formatted as "YYYY-MM-DD HH:MM:SS".
+  # This parameter is used to record the exact time of the release.
+  releaseTime: ""
+
+  # @param releaseInfo.releaseBranch - (string) The branch from which the release was made.
+  # This parameter is used to track the specific branch associated with the release.
+  releaseBranch: ""
