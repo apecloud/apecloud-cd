@@ -221,7 +221,21 @@ jobs:
         run: |
           echo "set addons chart registry to apecloud and repogistory to ${{ env.DOCKER_REGISTRY_URL }}"
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
-            "${{ env.DOCKER_REGISTRY_URL }}" "${{ inputs.CHART_DIR }}"
+            "${{ env.DOCKER_REGISTRY_URL }}" "addons"
+
+      - name: update chart release info values
+        if: ${{ inputs.IMG == 'apecloud/apecloud-charts' || inputs.IMG == 'apecloud/apecloud-addon-charts' }}
+        run: |
+          REF_NAME="${{ inputs.GITHUB_REF }}"
+          if [[ -z "${REF_NAME}" ]]; then
+              REF_NAME="${{ github.ref_name }}"
+          fi
+          
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/update_chart_values.sh \
+              --type "release" \
+              --base-values "apecloud-cd/chart-values/release-values.yaml" \
+              --chart-dir "addons" \
+              --ref-name "${REF_NAME}"
 
       - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
         name: Login to Docker Hub
@@ -251,7 +265,7 @@ jobs:
         run: |
           echo "set addons chart registry to apecloud and repogistory to ${{ env.ALIYUN_REGISTRY_URL }}"
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
-            "${{ env.ALIYUN_REGISTRY_URL }}" "${{ inputs.CHART_DIR }}"
+            "${{ env.ALIYUN_REGISTRY_URL }}" "addons"
 
       - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
         name: Login to Aliyun Registry
@@ -281,7 +295,7 @@ jobs:
         run: |
           echo "set addons chart registry to apecloud and repogistory to ${{ env.ALIYUN_REGISTRY_URL_NEW }}"
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
-            "${{ env.ALIYUN_REGISTRY_URL_NEW }}" "${{ inputs.CHART_DIR }}"
+            "${{ env.ALIYUN_REGISTRY_URL_NEW }}" "addons"
 
       - if: ${{ env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
         name: Login to Aliyun Registry New
