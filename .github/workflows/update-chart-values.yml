@@ -65,7 +65,7 @@ jobs:
   update-chart-values:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout ${{ github.repository }} Code
         uses: actions/checkout@v4
         with:
           repository: "${{ github.repository }}"
