@@ -57,6 +57,7 @@ update_values_file() {
     echo "Updating values ${TYPE} info $update_values_file"
 
     if [[ -z "${CURRENT_TIME}" ]]; then
+        export TZ='Asia/Shanghai'
         CURRENT_TIME="$(date '+%Y-%m-%d %H:%M:%S %z')"
     fi
 

@@ -9,10 +9,10 @@ releaseInfo:
   # This parameter is used to track the specific branch associated with the release.
   releaseBranch: ""
 
-  # @param commitInfo.commitTime - (string) The timestamp of the last code commit, formatted as "YYYY-MM-DD HH:MM:SS".
-  # This parameter is used to record the exact time of the most recent code commit.
+  # @param releaseInfo.commitTime - (string) The timestamp of the last code commit, formatted as "YYYY-MM-DD HH:MM:SS".
+  # This parameter is used to record the exact time of the most recent chart code commit.
   commitTime: ""
 
-  # @param commitInfo.commitId - (string) The Git commit hash.
-  # This parameter is used to track the specific Git commit identifier associated with the deployment.
+  # @param releaseInfo.commitId - (string) The Git commit hash.
+  # This parameter is used to track the specific Git commit identifier associated with the chart.
   commitId: ""
