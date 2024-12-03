@@ -65,12 +65,13 @@ jobs:
   update-chart-values:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout ${{ github.repository }} Code
         uses: actions/checkout@v4
         with:
           repository: "${{ github.repository }}"
           path: ./
           token: ${{ env.GITHUB_TOKEN }}
+          ref: "${{ github.ref_name }}"
 
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -138,3 +139,4 @@ jobs:
           directory: ./
           github_token: ${{ env.GITHUB_TOKEN }}
           repository: "${{ github.repository }}"
+          branch: "${{ github.ref_name }}"
