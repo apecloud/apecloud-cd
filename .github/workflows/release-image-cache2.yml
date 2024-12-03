@@ -232,10 +232,9 @@ jobs:
           fi
           
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/update_chart_values.sh \
-              --type "release" \
               --base-values "apecloud-cd/chart-values/release-values.yaml" \
               --chart-dir "addons" \
-              --ref-name "${REF_NAME}"
+              --branch-name "${REF_NAME}"
 
       - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
         name: Login to Docker Hub
