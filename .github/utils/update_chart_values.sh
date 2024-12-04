@@ -138,6 +138,10 @@ main() {
         return
     fi
 
+    if [[ "${BRANCH_NAME}" == *"/"* ]]; then
+        BRANCH_NAME=${BRANCH_NAME//\//\\/}
+    fi
+
     update_chart_values
 }
 
