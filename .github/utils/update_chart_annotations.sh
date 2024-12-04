@@ -67,13 +67,13 @@ update_chart_file() {
 
     if [[ "$UNAME" == "Darwin" ]]; then
         sed -i '' "s/^  addon.kubeblocks.io\/commit-id:.*/  addon.kubeblocks.io\/commit-id: \"${update_commit_id}\"/" "${update_chart_file}"
-        sed -i '' "s/^  addon.kubeblocks.io\/commit-time:.*/  addon.kubeblocks.io\/commit-time: \"${update_commit_time}\"/" "${update_chart_file}"
-        sed -i '' "s/^  addon.kubeblocks.io\/release-time:.*/  addon.kubeblocks.io\/release-time: \"${CURRENT_TIME}\"/" "${update_chart_file}"
+        sed -i '' "s/^  addon.kubeblocks.io\/commit-date:.*/  addon.kubeblocks.io\/commit-date: \"${update_commit_time}\"/" "${update_chart_file}"
+        sed -i '' "s/^  addon.kubeblocks.io\/release-date:.*/  addon.kubeblocks.io\/release-date: \"${CURRENT_TIME}\"/" "${update_chart_file}"
         sed -i '' "s/^  addon.kubeblocks.io\/release-branch:.*/  addon.kubeblocks.io\/release-branch: \"${BRANCH_NAME}\"/" "${update_chart_file}"
     else
         sed -i "s/^  addon.kubeblocks.io\/commit-id:.*/  addon.kubeblocks.io\/commit-id: \"${update_commit_id}\"/" "${update_chart_file}"
-        sed -i "s/^  addon.kubeblocks.io\/commit-time:.*/  addon.kubeblocks.io\/commit-time: \"${update_commit_time}\"/" "${update_chart_file}"
-        sed -i "s/^  addon.kubeblocks.io\/release-time:.*/  addon.kubeblocks.io\/release-time: \"${CURRENT_TIME}\"/" "${update_chart_file}"
+        sed -i "s/^  addon.kubeblocks.io\/commit-date:.*/  addon.kubeblocks.io\/commit-date: \"${update_commit_time}\"/" "${update_chart_file}"
+        sed -i "s/^  addon.kubeblocks.io\/release-date:.*/  addon.kubeblocks.io\/release-date: \"${CURRENT_TIME}\"/" "${update_chart_file}"
         sed -i "s/^  addon.kubeblocks.io\/release-branch:.*/  addon.kubeblocks.io\/release-branch: \"${BRANCH_NAME}\"/" "${update_chart_file}"
     fi
 }
@@ -81,8 +81,8 @@ update_chart_file() {
 add_chart_file() {
     add_chart_file=${1:-""}
     release_branch_flag=$(grep 'addon.kubeblocks.io\/release-branch:' ${add_chart_file} || true)
-    release_time_flag=$(grep 'addon.kubeblocks.io\/release-time:' ${add_chart_file} || true)
-    commit_time_flag=$(grep 'addon.kubeblocks.io\/commit-time:' ${add_chart_file} || true)
+    release_time_flag=$(grep 'addon.kubeblocks.io\/release-date:' ${add_chart_file} || true)
+    commit_time_flag=$(grep 'addon.kubeblocks.io\/commit-date:' ${add_chart_file} || true)
     commit_id_flag=$(grep 'addon.kubeblocks.io\/commit-id:' ${add_chart_file} || true)
     if [[ "$UNAME" == "Darwin" ]]; then
         if [[ -z "${release_branch_flag}" ]]; then
@@ -90,11 +90,11 @@ add_chart_file() {
         fi
 
         if [[ -z "${release_time_flag}" ]]; then
-            sed -i '' "s/^annotations:/annotations:\n  addon.kubeblocks.io\/release-time: ""/" $add_chart_file
+            sed -i '' "s/^annotations:/annotations:\n  addon.kubeblocks.io\/release-date: ""/" $add_chart_file
         fi
 
         if [[ -z "${commit_time_flag}" ]]; then
-            sed -i '' "s/^annotations:/annotations:\n  addon.kubeblocks.io\/commit-time: ""/" $add_chart_file
+            sed -i '' "s/^annotations:/annotations:\n  addon.kubeblocks.io\/commit-date: ""/" $add_chart_file
         fi
 
         if [[ -z "${commit_id_flag}" ]]; then
@@ -106,11 +106,11 @@ add_chart_file() {
         fi
 
         if [[ -z "${release_time_flag}" ]]; then
-            sed -i "s/^annotations:/annotations:\n  addon.kubeblocks.io\/release-time: ""/" $add_chart_file
+            sed -i "s/^annotations:/annotations:\n  addon.kubeblocks.io\/release-date: ""/" $add_chart_file
         fi
 
         if [[ -z "${commit_time_flag}" ]]; then
-            sed -i "s/^annotations:/annotations:\n  addon.kubeblocks.io\/commit-time: ""/" $add_chart_file
+            sed -i "s/^annotations:/annotations:\n  addon.kubeblocks.io\/commit-date: ""/" $add_chart_file
         fi
 
         if [[ -z "${commit_id_flag}" ]]; then
