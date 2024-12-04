@@ -54,7 +54,7 @@ update_values_file() {
     if [[ -z "${update_values_file}" ]]; then
         return
     fi
-    echo "Updating values ${TYPE} info $update_values_file"
+    echo "Updating values release info $update_values_file"
 
     if [[ -z "${CURRENT_TIME}" ]]; then
         export TZ='Asia/Shanghai'
@@ -80,7 +80,7 @@ update_values_file() {
 
 append_values_file() {
     append_values_file=${1:-""}
-    echo "Appending ${TYPE} info to $append_values_file"
+    echo "Appending release info to $append_values_file"
     echo "
 " >> "$append_values_file"
     cat "$BASE_VALUES" >> "$append_values_file"
@@ -100,13 +100,7 @@ update_chart_values_file() {
 }
 
 update_chart_values() {
-    # UPDATE_DIR takes precedence over CHART_DIR
-    UPDATE_CHART_DIR="${CHART_DIR}"
-    if [[ -n "${UPDATE_DIR}"  ]]; then
-        UPDATE_CHART_DIR="${UPDATE_DIR}"
-    fi
-
-    for update_chart in $(echo "${UPDATE_CHART_DIR}" | sed 's/|/ /g' ); do
+    for update_chart in $(echo "${CHART_DIR}" | sed 's/|/ /g' ); do
         echo "find ${update_chart} values.yaml"
         find "$update_chart" -type f -name 'values.yaml' | while read -r values_file; do
             update_chart_dir_tmp="${values_file%/*}"
