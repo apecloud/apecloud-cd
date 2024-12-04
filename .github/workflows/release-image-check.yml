@@ -1,4 +1,4 @@
-name: Check Build Images
+name: Check Build Image
 
 on:
   workflow_call:
