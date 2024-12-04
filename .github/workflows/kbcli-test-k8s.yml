@@ -1568,9 +1568,10 @@ jobs:
 
       - name: generate report
         run: |
-          bash ./apecloud-cd/.github/utils/set_test_period.sh ./test/report/md
-          
           cd test/report
+          
+          bash set_test_period.sh ./md
+          
           mkdir -p reports/cn
           for i in $(seq 1 3); do
               python3 ./report.py \
