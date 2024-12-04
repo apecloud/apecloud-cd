@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-TEST_RESULT_MD_DIR=${1:-""}
 
+TEST_RESULT_MD_DIR=${1:-""}
 
 get_test_period() {
     test_period=$(python3 -c "
