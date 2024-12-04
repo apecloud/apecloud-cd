@@ -48,6 +48,16 @@ on:
         type: string
         required: false
         default: ''
+      ENABLE_SUBMODULE:
+        description: "Enable checkout submodule  (default: false)"
+        type: boolean
+        required: false
+        default: false
+
+env:
+  GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
 
 jobs:
   release-image:
@@ -55,11 +65,17 @@ jobs:
       contents: 'read'
       id-token: 'write'
     runs-on: ubuntu-latest
-    outputs:
-      tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
     steps:
       - name: Checkout Code
+        if: ${{ ! inputs.ENABLE_SUBMODULE }}
         uses: actions/checkout@v4
+
+      - name: Checkout Code With Submodule
+        if: ${{ inputs.ENABLE_SUBMODULE }}
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          token: ${{ env.GITHUB_TOKEN }}
 
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
