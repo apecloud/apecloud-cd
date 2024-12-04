@@ -1636,3 +1636,74 @@ jobs:
               --title "$test_title" \
               --result "$TEST_RESULT" \
               --send-type "report"
+
+      - name: Checkout kubeblocks.io Code
+        if: ${{ inputs.KB_PRE_VERSION == '' && ! contains(inputs.KB_VERSION, '-') && ! contains(inputs.KB_VERSION, 'a') && contains(inputs.ARGS, 'true') && (contains(inputs.ARGS, 'enterprise-addon') || contains(inputs.ARGS, 'kubeblocks-io')) }}
+        uses: actions/checkout@v4
+        with:
+          repository: "apecloud/kubeblocks.io"
+          path: ./kubeblocks.io
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: "master"
+
+      - name: Add test report to kubeblocks.io
+        id: add_test_report
+        if: ${{ inputs.KB_PRE_VERSION == '' && ! contains(inputs.KB_VERSION, '-') && ! contains(inputs.KB_VERSION, 'a') && contains(inputs.ARGS, 'true') && (contains(inputs.ARGS, 'enterprise-addon') || contains(inputs.ARGS, 'kubeblocks-io')) }}
+        run: |
+          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
+          if [[ "${KUBEBLOCKS_VERSION}" == "v"*"."*"."* && "${KUBEBLOCKS_VERSION}" != "v"*"."*"."*"-"* ]]; then
+              report_file_paths="./test/report/reports/|./test/report/reports/cn/"
+              KUBEBLOCKS_REPORT_DIR="kubeblocks.io/static/report/kubeblocks/${KUBEBLOCKS_VERSION}"
+              for report_file_path in $(echo "${report_file_paths}" | sed 's/|/ /g'); do
+                    if [[ ! -d "${report_file_path}" ]]; then
+                        continue
+                    fi
+                    kubeblocks_report_dir_tmp="${KUBEBLOCKS_REPORT_DIR}"
+                    if [[ "${report_file_path}" == *"/cn/"*  ]]; then
+                        kubeblocks_report_dir_tmp="${kubeblocks_report_dir_tmp}/cn"
+                    fi
+                    mkdir -p ${kubeblocks_report_dir_tmp}
+          
+                    for report_file in $(ls ${report_file_path}); do
+                        if [[ ! -f "${report_file_path}/${report_file}" || "${report_file}" != *".html" ]]; then
+                            continue
+                        fi
+                    
+                        for i in $(seq 1 3); do
+                            cp -r "${report_file_path}/${report_file}" "${kubeblocks_report_dir_tmp}/${report_file}"
+                            copy_ret=$?
+                            if [[ $copy_ret -eq 0 ]]; then
+                                echo "$(tput -T xterm setaf 2)copy ${report_file} to ${kubeblocks_report_dir_tmp} successfully$(tput -T xterm sgr0)"
+                                break
+                            else
+                                echo "$(tput -T xterm setaf 3)::warning title=copy ${report_file} to ${kubeblocks_report_dir_tmp} failure$(tput -T xterm sgr0)"
+                            fi
+                            sleep 1
+                        done
+                    done
+              done
+          
+              cd ./kubeblocks.io
+              git fetch --prune --unshallow
+              git config user.name "$GITHUB_ACTOR"
+              git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+              kubeblocks_io_sha=$(git rev-parse HEAD)
+              git add ${{ github.workspace }}/${KUBEBLOCKS_REPORT_DIR}
+              FILE_CHANGES=$(git diff --name-only ${kubeblocks_io_sha})
+              if [[ ! -z "$FILE_CHANGES" ]]; then
+                  echo "FILE_CHANGES:"$FILE_CHANGES
+                  git config --local user.name "$GITHUB_ACTOR"
+                  git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
+                  git commit -a -m "chore: upload KubeBlocks ${KUBEBLOCKS_VERSION} test report"
+              fi
+              echo file_changes=$FILE_CHANGES >> $GITHUB_OUTPUT
+          fi
+
+      - name: Push test report to kubeblocks.io
+        if: ${{ steps.add_test_report.outputs.file_changes != '' && inputs.KB_PRE_VERSION == '' && ! contains(inputs.KB_VERSION, '-') && ! contains(inputs.KB_VERSION, 'a') && contains(inputs.ARGS, 'true') && (contains(inputs.ARGS, 'enterprise-addon') || contains(inputs.ARGS, 'kubeblocks-io')) }}
+        uses: ad-m/github-push-action@master
+        with:
+          repository: "apecloud/kubeblocks.io"
+          directory: ./kubeblocks.io
+          github_token: ${{ env.GITHUB_TOKEN }}
+          branch: "master"
