@@ -1,4 +1,4 @@
-name: RELEASE-IMAGE-CHECK
+name: Check Build Image
 
 on:
   workflow_call:
@@ -60,7 +60,7 @@ env:
 
 
 jobs:
-  release-image:
+  build-image:
     permissions:
       contents: 'read'
       id-token: 'write'
