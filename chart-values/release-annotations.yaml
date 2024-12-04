@@ -1,5 +1,5 @@
 annotations:
-  addon.kubeblocks.io/commit-id: ""
-  addon.kubeblocks.io/commit-date: ""
-  addon.kubeblocks.io/release-date: ""
+  addon.kubeblocks.io/commitid: ""
+  addon.kubeblocks.io/committime: ""
+  addon.kubeblocks.io/releasetime: ""
   addon.kubeblocks.io/release-branch:  ""
