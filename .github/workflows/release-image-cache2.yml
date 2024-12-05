@@ -223,7 +223,7 @@ jobs:
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
             "${{ env.DOCKER_REGISTRY_URL }}" "addons"
 
-      - name: update chart yaml release info
+      - name: update chart notes release info
         if: ${{ inputs.IMG == 'apecloud/apecloud-charts' || inputs.IMG == 'apecloud/apecloud-addon-charts' }}
         run: |
           REF_NAME="${{ github.ref_name }}"
@@ -233,7 +233,7 @@ jobs:
           fi
           
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/update_chart_notes.sh \
-              --base-notes "apecloud-cd/chart-values/release-notes.txtl" \
+              --base-notes "apecloud-cd/chart-values/release-notes.txt" \
               --chart-dir "addons" \
               --ref-name "${REF_NAME}"
 
