@@ -8,8 +8,8 @@ Usage: $(basename "$0") <options>
 
     -h, --help                Display help
     -cd, --chart-dir          Update charts dir (e.g. addons|addons-cluster)
-    -bc, --base-chart         Base chart yaml file path for update
-    -bn, --branch-name        Branch name for update chart 
+    -bc, --base-chart         Base chart yaml file path
+    -rn, --ref-name           The release chart ref name
 EOF
 }
 
@@ -32,9 +32,9 @@ parse_command_line() {
                     shift
                 fi
             ;;
-            -bn|--branch-name)
+            -rn|--ref-name)
                 if [[ -n "${2:-}" ]]; then
-                    BRANCH_NAME="$2"
+                    REF_NAME="$2"
                     shift
                 fi
             ;;
@@ -61,8 +61,8 @@ update_chart_file() {
         CURRENT_TIME="$(date '+%Y%m%d%H%M%S%z')"
     fi
 
-    if [[ -z "${BRANCH_NAME}" ]]; then
-        BRANCH_NAME="$(git rev-parse --abbrev-ref HEAD)"
+    if [[ -z "${REF_NAME}" ]]; then
+        REF_NAME="$(git rev-parse --abbrev-ref HEAD)"
     fi
 
     update_commit_time=$(echo "$update_commit_time" | tr -d ' :-')
@@ -71,12 +71,12 @@ update_chart_file() {
         sed -i '' "s/^  addon.kubeblocks.io\/commit-id:.*/  addon.kubeblocks.io\/commit-id: \"${update_commit_id}\"/" "${update_chart_file}"
         sed -i '' "s/^  addon.kubeblocks.io\/commit-time:.*/  addon.kubeblocks.io\/commit-time: \"${update_commit_time}\"/" "${update_chart_file}"
         sed -i '' "s/^  addon.kubeblocks.io\/release-time:.*/  addon.kubeblocks.io\/release-time: \"${CURRENT_TIME}\"/" "${update_chart_file}"
-        sed -i '' "s/^  addon.kubeblocks.io\/release-branch:.*/  addon.kubeblocks.io\/release-branch: \"${BRANCH_NAME}\"/" "${update_chart_file}"
+        sed -i '' "s/^  addon.kubeblocks.io\/release-branch:.*/  addon.kubeblocks.io\/release-branch: \"${REF_NAME}\"/" "${update_chart_file}"
     else
         sed -i "s/^  addon.kubeblocks.io\/commit-id:.*/  addon.kubeblocks.io\/commit-id: \"${update_commit_id}\"/" "${update_chart_file}"
         sed -i "s/^  addon.kubeblocks.io\/commit-time:.*/  addon.kubeblocks.io\/commit-time: \"${update_commit_time}\"/" "${update_chart_file}"
         sed -i "s/^  addon.kubeblocks.io\/release-time:.*/  addon.kubeblocks.io\/release-time: \"${CURRENT_TIME}\"/" "${update_chart_file}"
-        sed -i "s/^  addon.kubeblocks.io\/release-branch:.*/  addon.kubeblocks.io\/release-branch: \"${BRANCH_NAME}\"/" "${update_chart_file}"
+        sed -i "s/^  addon.kubeblocks.io\/release-branch:.*/  addon.kubeblocks.io\/release-branch: \"${REF_NAME}\"/" "${update_chart_file}"
     fi
 }
 
@@ -160,7 +160,7 @@ update_charts_yaml() {
 main() {
     local BASE_CHART=""
     local CHART_DIR=""
-    local BRANCH_NAME=""
+    local REF_NAME=""
     local CURRENT_TIME=""
     local UNAME="$(uname -s)"
 
@@ -176,8 +176,8 @@ main() {
         return
     fi
 
-    if [[ "${BRANCH_NAME}" == *"/"* ]]; then
-        BRANCH_NAME=${BRANCH_NAME//\//\\/}
+    if [[ "${REF_NAME}" == *"/"* ]]; then
+        REF_NAME=${REF_NAME//\//\\/}
     fi
 
     update_charts_yaml

@@ -1,0 +1,5 @@
+Release Information:
+  Commit ID: ""
+  Commit Time: ""
+  Release Branch: ""
+  Release Time: ""
