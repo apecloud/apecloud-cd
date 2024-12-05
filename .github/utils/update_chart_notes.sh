@@ -102,13 +102,23 @@ update_chart_notes() {
 }
 
 update_charts_notes() {
-    for update_chart in $(echo "${CHART_DIR}" | sed 's/|/ /g' ); do
-        echo "find ${update_chart} NOTES.txt"
-        find "$update_chart" -type f -name 'NOTES.txt' | while read -r chart_notes; do
-            update_chart_dir_tmp="${chart_notes%/*}"
+    for update_charts_dir in $(echo "${CHART_DIR}" | sed 's/|/ /g' ); do
+        echo "find ${update_charts_dir} NOTES.txt"
+        for update_chart_dir_tmp in $(ls ${update_charts_dir}); do
+            update_chart_dir="${update_charts_dir}/${update_chart_dir_tmp}/templates"
+            if [[ ! -d ${update_chart_dir} ]]; then
+                echo "${update_chart_dir} is not a dir, skip it"
+                continue
+            fi
+
+            chart_notes_path="${update_chart_dir}/NOTES.txt"
+            if [[ ! -f "$chart_notes_path" ]]; then
+                echo "${chart_notes_path} NOT exist, create it"
+                touch ${chart_notes_path}
+            fi
             chart_log_info=$(git log -n 1 --pretty="format:%H %ad" --date="iso8601" -- "${update_chart_dir_tmp}")
             IFS=' ' read -r commit_id commit_time <<< "$chart_log_info"
-            update_chart_notes "${chart_notes}" "${commit_id}" "${commit_time}"
+            update_chart_notes "${chart_notes_path}" "${commit_id}" "${commit_time}"
         done
     done
 
