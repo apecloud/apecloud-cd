@@ -225,7 +225,14 @@ jobs:
         if: ${{ always() }}
         run: |
           INSTALLER_RESULT="${{ steps.install_kb_cloud.outputs.installer-result }}"
+          if [[ -z "${INSTALLER_RESULT}" ]]; then
+              INSTALLER_RESULT="[FAILED]"
+          fi
           BOOTSTRAPPER_RESULT="${{ steps.deploy_kb_cloud_env.outputs.bootstrapper-result }}"
+          if [[ -z "${BOOTSTRAPPER_RESULT}" ]]; then
+              BOOTSTRAPPER_RESULT="[FAILED]"
+          fi
+          
           TEST_RESULT="cloud-test-k3d|installer|${INSTALLER_RESULT}"
           TEST_RESULT="${TEST_RESULT}##cloud-test-k3d|bootstrapper|${BOOTSTRAPPER_RESULT}"
           echo "${TEST_RESULT}" 

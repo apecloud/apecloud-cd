@@ -510,7 +510,14 @@ jobs:
           if [[ "${TEST_INSTALLER}" == "true" ]]; then
               echo "get installer test result"
               INSTALLER_RESULT="${{ needs.installer-test.outputs.installer-result }}"
+              if [[ -z "${INSTALLER_RESULT}" ]]; then
+                  INSTALLER_RESULT="[FAILED]"
+              fi
               BOOTSTRAPPER_RESULT="${{ needs.installer-test.outputs.bootstrapper-result }}"
+              if [[ -z "${BOOTSTRAPPER_RESULT}" ]]; then
+                  BOOTSTRAPPER_RESULT="[FAILED]"
+              fi
+              
               TEST_RESULT_INSTALLER="installer-test|installer|${INSTALLER_RESULT}"
               TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##installer-test|bootstrapper|${BOOTSTRAPPER_RESULT}"
               echo "TEST_RESULT_INSTALLER:${TEST_RESULT_INSTALLER}" 

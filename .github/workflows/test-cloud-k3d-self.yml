@@ -238,7 +238,13 @@ jobs:
       - name: send test result message
         run: |
           INSTALLER_RESULT="${{ needs.cloud-test-k3d.outputs.installer-result }}"
+          if [[ -z "${INSTALLER_RESULT}" ]]; then
+              INSTALLER_RESULT="[FAILED]"
+          fi
           BOOTSTRAPPER_RESULT="${{ needs.cloud-test-k3d.outputs.bootstrapper-result }}"
+          if [[ -z "${BOOTSTRAPPER_RESULT}" ]]; then
+              BOOTSTRAPPER_RESULT="[FAILED]"
+          fi
           TEST_RESULT="cloud-test-k3d|installer|${INSTALLER_RESULT}"
           TEST_RESULT="${TEST_RESULT}##cloud-test-k3d|bootstrapper|${BOOTSTRAPPER_RESULT}"
           echo "${TEST_RESULT}" 
