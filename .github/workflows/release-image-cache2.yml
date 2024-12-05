@@ -232,10 +232,10 @@ jobs:
               REF_NAME="${{ inputs.GITHUB_REF }}"
           fi
           
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/update_chart_annotations.sh \
-              --base-chart "apecloud-cd/chart-values/release-annotations.yaml" \
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/update_chart_notes.sh \
+              --base-notes "apecloud-cd/chart-values/release-notes.txtl" \
               --chart-dir "addons" \
-              --branch-name "${REF_NAME}"
+              --ref-name "${REF_NAME}"
 
       - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
         name: Login to Docker Hub

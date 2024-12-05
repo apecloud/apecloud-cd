@@ -8,8 +8,8 @@ Usage: $(basename "$0") <options>
 
     -h, --help                Display help
     -cd, --chart-dir          Update charts dir (e.g. addons|addons-cluster)
-    -bv, --base-values        Base values file path for update
-    -bn, --branch-name        Branch name for update chart 
+    -bv, --base-values        Base chart values file path
+    -rn, --ref-name           The release chart ref name
 EOF
 }
 
@@ -32,9 +32,9 @@ parse_command_line() {
                     shift
                 fi
             ;;
-            -bn|--branch-name)
+            -rn|--ref-name)
                 if [[ -n "${2:-}" ]]; then
-                    BRANCH_NAME="$2"
+                    REF_NAME="$2"
                     shift
                 fi
             ;;
@@ -61,18 +61,18 @@ update_values_file() {
         CURRENT_TIME="$(date '+%Y-%m-%d %H:%M:%S %z')"
     fi
 
-    if [[ -z "${BRANCH_NAME}" ]]; then
-        BRANCH_NAME="$(git rev-parse --abbrev-ref HEAD)"
+    if [[ -z "${REF_NAME}" ]]; then
+        REF_NAME="$(git rev-parse --abbrev-ref HEAD)"
     fi
 
     if [[ "$UNAME" == "Darwin" ]]; then
         sed -i '' "s/^  releaseTime:.*/  releaseTime: \"${CURRENT_TIME}\"/" "${update_values_file}"
-        sed -i '' "s/^  releaseBranch:.*/  releaseBranch: \"${BRANCH_NAME}\"/" "${update_values_file}"
+        sed -i '' "s/^  releaseBranch:.*/  releaseBranch: \"${REF_NAME}\"/" "${update_values_file}"
         sed -i '' "s/^  commitTime:.*/  commitTime: \"${update_commit_time}\"/" "${update_values_file}"
         sed -i '' "s/^  commitId:.*/  commitId: \"${update_commit_id}\"/" "${update_values_file}"
     else
         sed -i "s/^  releaseTime:.*/  releaseTime: \"${CURRENT_TIME}\"/" "${update_values_file}"
-        sed -i "s/^  releaseBranch:.*/  releaseBranch: \"${BRANCH_NAME}\"/" "${update_values_file}"
+        sed -i "s/^  releaseBranch:.*/  releaseBranch: \"${REF_NAME}\"/" "${update_values_file}"
         sed -i "s/^  commitTime:.*/  commitTime: \"${update_commit_time}\"/" "${update_values_file}"
         sed -i "s/^  commitId:.*/  commitId: \"${update_commit_id}\"/" "${update_values_file}"
     fi
@@ -116,7 +116,7 @@ update_chart_values() {
 main() {
     local BASE_VALUES=""
     local CHART_DIR=""
-    local BRANCH_NAME=""
+    local REF_NAME=""
     local CURRENT_TIME=""
     local UNAME="$(uname -s)"
 
@@ -132,8 +132,8 @@ main() {
         return
     fi
 
-    if [[ "${BRANCH_NAME}" == *"/"* ]]; then
-        BRANCH_NAME=${BRANCH_NAME//\//\\/}
+    if [[ "${REF_NAME}" == *"/"* ]]; then
+        REF_NAME=${REF_NAME//\//\\/}
     fi
 
     update_chart_values
