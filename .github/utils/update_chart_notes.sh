@@ -107,11 +107,13 @@ update_charts_notes() {
         for update_chart_dir_tmp in $(ls ${update_charts_dir}); do
             update_chart_dir="${update_charts_dir}/${update_chart_dir_tmp}/templates"
             if [[ ! -d ${update_chart_dir} ]]; then
+                echo "${update_chart_dir} is not a dir, skip it"
                 continue
             fi
 
             chart_notes_path="${update_chart_dir}/NOTES.txt"
             if [[ ! -f "$chart_notes_path" ]]; then
+                echo "${chart_notes_path} NOT exist, create it"
                 touch ${chart_notes_path}
             fi
             chart_log_info=$(git log -n 1 --pretty="format:%H %ad" --date="iso8601" -- "${update_chart_dir_tmp}")
