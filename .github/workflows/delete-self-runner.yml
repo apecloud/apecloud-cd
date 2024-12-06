@@ -46,7 +46,7 @@ on:
         required: false
         default: 'github-runner'
 
-run-name: Delete Self Runner ${{ inputs.runner-name }}
+run-name: Delete Self Runner ${{ inputs.GITHUB_REPO }} ${{ inputs.RUNNER_NAME }}
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
