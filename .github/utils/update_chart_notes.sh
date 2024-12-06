@@ -10,6 +10,7 @@ Usage: $(basename "$0") <options>
     -cd, --chart-dir          Update charts dir (e.g. addons|addons-cluster)
     -bn, --base-notes         Base chart notes file path
     -rn, --ref-name           The release chart ref name
+    -ie, --is-ent             The chart is enterprise or not
 EOF
 }
 
@@ -35,6 +36,12 @@ parse_command_line() {
             -rn|--ref-name)
                 if [[ -n "${2:-}" ]]; then
                     REF_NAME="$2"
+                    shift
+                fi
+            ;;
+            -ie|--is-ent)
+                if [[ -n "${2:-}" ]]; then
+                    IS_ENTERPRISE="$2"
                     shift
                 fi
             ;;
@@ -70,11 +77,13 @@ update_chart_notes_file() {
         sed -i '' "s/^  Commit Time:.*/  Commit Time: \"${update_commit_time}\"/" "${update_chart_notes}"
         sed -i '' "s/^  Release Time:.*/  Release Time:  \"${CURRENT_TIME}\"/" "${update_chart_notes}"
         sed -i '' "s/^  Release Branch:.*/  Release Branch: \"${REF_NAME}\"/" "${update_chart_notes}"
+        sed -i '' "s/^  Enterprise:.*/  Enterprise: \"${IS_ENTERPRISE}\"/" "${update_chart_notes}"
     else
         sed -i "s/^  Commit ID:.*/  Commit ID: \"${update_commit_id}\"/" "${update_chart_notes}"
         sed -i "s/^  Commit Time:.*/  Commit Time: \"${update_commit_time}\"/" "${update_chart_notes}"
         sed -i "s/^  Release Time: .*/  Release Time:  \"${CURRENT_TIME}\"/" "${update_chart_notes}"
         sed -i "s/^  Release Branch:.*/  Release Branch: \"${REF_NAME}\"/" "${update_chart_notes}"
+        sed -i "s/^  Enterprise:.*/  Enterprise: \"${IS_ENTERPRISE}\"/" "${update_chart_notes}"
     fi
 }
 
@@ -131,6 +140,7 @@ main() {
     local CHART_DIR=""
     local REF_NAME=""
     local CURRENT_TIME=""
+    local IS_ENTERPRISE=""
     local UNAME="$(uname -s)"
 
     parse_command_line "$@"

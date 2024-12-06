@@ -3,3 +3,4 @@ Release Information:
   Commit Time: ""
   Release Branch: ""
   Release Time: ""
+  Enterprise: ""
