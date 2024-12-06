@@ -172,6 +172,7 @@ jobs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
     steps:
       - name: Free disk space
+        continue-on-error: true
         run: |
           TARGETS="${{ inputs.MAKE_ARGS }}"
           case $TARGETS in
