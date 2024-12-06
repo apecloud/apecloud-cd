@@ -96,6 +96,7 @@ jobs:
     runs-on: [ self-hosted, amd-runner ]
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
+      runner-name: ${{ steps.get_runner_name.outputs.runner-name }}
     steps:
       - name: Checkout Code
         if: ${{ ! inputs.ENABLE_SUBMODULE }}
@@ -171,6 +172,20 @@ jobs:
           fi
           
           eval "$cmd"
+
+      - name: get runner name
+        id: get_runner_name
+        if: ${{ always() }}
+        run: |
+          echo runner-name=${RUNNER_NAME} >> $GITHUB_OUTPUT
+
+  delete-self-runner:
+    if: ${{ always() }}
+    needs: [ release-image ]
+    uses: ./.github/workflows/delete-self-runner.yml
+    with:
+      RUNNER_NAME: "${{ needs.release-image.outputs.runner-name }}"
+    secrets: inherit
 
   sync-to-aliyun:
     runs-on: ubuntu-latest
