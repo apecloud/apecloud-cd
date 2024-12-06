@@ -204,21 +204,11 @@ jobs:
           
           echo runner-name=${RUNNER_NAME} >> $GITHUB_OUTPUT
 
-  remove-runner:
-    name: remove ${{ inputs.test-type-name }} runner
-    needs: [ cloud-test-k3s ]
-    runs-on: ubuntu-latest
+  delete-self-runner:
     if: ${{ always() }}
-    steps:
-      - name: Checkout apecloud-cd Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud-cd
-          path: ./
-
-      - name: remove runner
-        run: |
-          bash .github/utils/utils.sh --type 25 \
-              --github-token "${{ env.GITHUB_TOKEN }}" \
-              --github-repo "${{ github.repository }}" \
-              --runner-name ${{ needs.cloud-test-k3s.outputs.runner-name }}
+    needs: [ cloud-test-k3s ]
+    uses: ./.github/workflows/delete-self-runner.yml
+    with:
+      RUNNER_NAME: "${{ needs.cloud-test-k3s.outputs.runner-name }}"
+      RUNNER_NAMESAPCE: "default"
+    secrets: inherit

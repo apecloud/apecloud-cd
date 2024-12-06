@@ -264,71 +264,14 @@ jobs:
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
 
-  remove-runner:
-    needs: [ cloud-test-k3d ]
-    runs-on: ubuntu-latest
+  delete-self-runner:
     if: ${{ always() }}
-    steps:
-      - name: Checkout apecloud-cd Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud-cd
-          path: ./
-          ref: ${{ inputs.APECD_REF }}
-
-      - name: remove runner
-        run: |
-          bash .github/utils/utils.sh --type 25 \
-              --github-token "${{ env.GITHUB_TOKEN }}" \
-              --github-repo "${{ github.repository }}" \
-              --runner-name ${{ needs.cloud-test-k3d.outputs.runner-name }}
-
-      - uses: azure/setup-kubectl@v3
-        with:
-          version: "v1.28.3"
-
-      - uses: aws-actions/setup-sam@v2
-        if: ${{ inputs.cloud-provider == 'eks' }}
-        with:
-          use-installer: true
-
-      - uses: aws-actions/configure-aws-credentials@v4
-        if: ${{ inputs.cloud-provider == 'eks' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' }}
-        with:
-          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          aws-region: "${{ env.AWS_REGION }}"
-
-      - if: ${{ inputs.cloud-provider == 'eks' }}
-        run: |
-          aws eks --region ${{ env.AWS_REGION }} update-kubeconfig --name ${{ env.AWS_CLUSTER }} \
-              --role-arn $(aws iam get-role --role-name ${{ env.AWS_CLUSTER }}-admin-role --query 'Role.Arn' --output text)
-
-      - if: ${{ inputs.cloud-provider == 'gke' && env.GOOGLE_CREDENTIALS != '' }}
-        id: 'auth'
-        name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v1'
-        with:
-          credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
-
-      - name: setup gke-gcloud-auth-plugin
-        if: ${{ inputs.cloud-provider == 'gke' }}
-        uses: simenandre/setup-gke-gcloud-auth-plugin@v1
-
-      - uses: google-github-actions/get-gke-credentials@v1
-        if: ${{ inputs.cloud-provider == 'gke' }}
-        with:
-          cluster_name: ${{ env.CLUSTER_NAME }}
-          location: ${{ env.GCP_REGION }}
-
-      - name: delete runner pod
-        env:
-          RUNNER_NAME: ${{ needs.cloud-test-k3d.outputs.runner-name }}
-        run: |
-          runner_pod_exists=$(kubectl get pod | (grep "${{ env.RUNNER_NAME }}"||true))
-          if [[ -n "${runner_pod_exists}" ]]; then
-              kubectl delete pod "${{ env.RUNNER_NAME }}" --force
-          fi
+    needs: [ cloud-test-k3d ]
+    uses: ./.github/workflows/delete-self-runner.yml
+    with:
+      RUNNER_NAME: "${{ needs.cloud-test-k3d.outputs.runner-name }}"
+      RUNNER_NAMESAPCE: "default"
+    secrets: inherit
 
   disable-runner:
     if: ${{ always() }}
