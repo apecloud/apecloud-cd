@@ -67,40 +67,40 @@ jobs:
           path: ./
           ref: ${{ inputs.APECD_REF }}
 
-    - name: remove self runner
-      shell: bash
-      run: |
-        GITHUB_REPO="${{ inputs.GITHUB_REPO }}"
-        if [[ -z "${GITHUB_REPO}" ]]; then
-            GITHUB_REPO="${{ github.repository }}"
-        fi
-     
-        bash .github/utils/utils.sh --type 25 \
-            --github-token "${{ env.GITHUB_TOKEN }}" \
-            --github-repo "${GITHUB_REPO}" \
-            --runner-name "${{ inputs.runner-name }}"
+      - name: remove self runner
+        shell: bash
+        run: |
+          GITHUB_REPO="${{ inputs.GITHUB_REPO }}"
+          if [[ -z "${GITHUB_REPO}" ]]; then
+              GITHUB_REPO="${{ github.repository }}"
+          fi
+       
+          bash .github/utils/utils.sh --type 25 \
+              --github-token "${{ env.GITHUB_TOKEN }}" \
+              --github-repo "${GITHUB_REPO}" \
+              --runner-name "${{ inputs.runner-name }}"
 
-    - uses: azure/setup-kubectl@v3
-      with:
-        version: "v1.28.3"
+      - uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.28.3"
 
-    - uses: aws-actions/setup-sam@v2
-      with:
-        use-installer: true
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
 
-    - uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-        aws-region: "${{ env.AWS_REGION }}"
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "${{ env.AWS_REGION }}"
 
-    - name: delete self runner pod
-      shell: bash
-      run: |
-        aws eks --region ${{ env.AWS_REGION }} update-kubeconfig --name ${{ env.AWS_CLUSTER }} \
-            --role-arn $(aws iam get-role --role-name ${{ env.AWS_CLUSTER }}-admin-role --query 'Role.Arn' --output text)
-
-        runner_pod_exists=$(kubectl get pod -n ${{ inputs.RUNNER_NAMESAPCE }} | (grep "${{ inputs.runner-name }}"||true))
-        if [[ -n "${runner_pod_exists}" ]]; then
-            kubectl delete pod -n ${{ inputs.RUNNER_NAMESAPCE }} "${{ inputs.runner-name }}" --force
-        fi
+      - name: delete self runner pod
+        shell: bash
+        run: |
+          aws eks --region ${{ env.AWS_REGION }} update-kubeconfig --name ${{ env.AWS_CLUSTER }} \
+              --role-arn $(aws iam get-role --role-name ${{ env.AWS_CLUSTER }}-admin-role --query 'Role.Arn' --output text)
+  
+          runner_pod_exists=$(kubectl get pod -n ${{ inputs.RUNNER_NAMESAPCE }} | (grep "${{ inputs.runner-name }}"||true))
+          if [[ -n "${runner_pod_exists}" ]]; then
+              kubectl delete pod -n ${{ inputs.RUNNER_NAMESAPCE }} "${{ inputs.runner-name }}" --force
+          fi
