@@ -215,13 +215,13 @@ jobs:
           branch: support/auto-update-manifests-file-version-${{ env.RELEASE_COMMIT }}
 
       - name: auto create pr head new branch
-        if: ${{ github.repository == 'apecloud/apecloud' && needs.get-version.outputs.release-branch == 'main' && steps.get_release_commit.outputs.file_changes && !contains(inputs.RELEASE_VERSION, 'alpha') && !contains(inputs.CONTENT, 'alpha') }}
+        if: ${{ github.repository == 'apecloud/apecloud' && needs.get-version.outputs.release-branch == 'release-0.28' && needs.get-version.outputs.release-branch == 'main' && steps.get_release_commit.outputs.file_changes && !contains(inputs.RELEASE_VERSION, 'alpha') && !contains(inputs.CONTENT, 'alpha') }}
         run: |
           gh pr create --head "support/auto-update-manifests-file-version-${{ env.RELEASE_COMMIT }}" --title "chore: auto update manifests file version to ${RELEASE_VERSION}" --body ""
 
       - name: push changes
         uses: ad-m/github-push-action@master
-        if: ${{ github.repository == 'apecloud/apecloud' && needs.get-version.outputs.release-branch != 'main' && steps.get_release_commit.outputs.file_changes && !contains(inputs.RELEASE_VERSION, 'alpha') && !contains(inputs.CONTENT, 'alpha') }}
+        if: ${{ github.repository == 'apecloud/apecloud' && needs.get-version.outputs.release-branch == 'release-0.28' && needs.get-version.outputs.release-branch != 'main' && steps.get_release_commit.outputs.file_changes && !contains(inputs.RELEASE_VERSION, 'alpha') && !contains(inputs.CONTENT, 'alpha') }}
         with:
           github_token: ${{ env.GH_TOKEN }}
           branch: ${{ needs.get-version.outputs.release-branch }}
