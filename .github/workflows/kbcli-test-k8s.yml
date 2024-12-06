@@ -1641,7 +1641,7 @@ jobs:
               --send-type "report"
 
       - name: Checkout kubeblocks.io Code
-        if: ${{ inputs.KB_PRE_VERSION == '' && ! contains(inputs.KB_VERSION, '-') && ! contains(inputs.KB_VERSION, 'a') && contains(inputs.ARGS, 'true') && (contains(inputs.ARGS, 'enterprise-addon') || contains(inputs.ARGS, 'kubeblocks-io')) }}
+        if: ${{ inputs.KB_PRE_VERSION == '' && ! contains(inputs.KB_VERSION, '-') && ! contains(inputs.KB_VERSION, 'a') && contains(inputs.ARGS, 'kubeblocks-io') && contains(inputs.ARGS, 'true') }}
         uses: actions/checkout@v4
         with:
           repository: "apecloud/kubeblocks.io"
@@ -1651,7 +1651,7 @@ jobs:
 
       - name: Add test report to kubeblocks.io
         id: add_test_report
-        if: ${{ inputs.KB_PRE_VERSION == '' && ! contains(inputs.KB_VERSION, '-') && ! contains(inputs.KB_VERSION, 'a') && contains(inputs.ARGS, 'true') && (contains(inputs.ARGS, 'enterprise-addon') || contains(inputs.ARGS, 'kubeblocks-io')) }}
+        if: ${{ inputs.KB_PRE_VERSION == '' && ! contains(inputs.KB_VERSION, '-') && ! contains(inputs.KB_VERSION, 'a') && contains(inputs.ARGS, 'kubeblocks-io') && contains(inputs.ARGS, 'true') }}
         run: |
           KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
           if [[ "${KUBEBLOCKS_VERSION}" == "v"*"."*"."* && "${KUBEBLOCKS_VERSION}" != "v"*"."*"."*"-"* ]]; then
@@ -1703,7 +1703,7 @@ jobs:
           fi
 
       - name: Push test report to kubeblocks.io
-        if: ${{ steps.add_test_report.outputs.file_changes != '' && inputs.KB_PRE_VERSION == '' && ! contains(inputs.KB_VERSION, '-') && ! contains(inputs.KB_VERSION, 'a') && contains(inputs.ARGS, 'true') && (contains(inputs.ARGS, 'enterprise-addon') || contains(inputs.ARGS, 'kubeblocks-io')) }}
+        if: ${{ steps.add_test_report.outputs.file_changes != '' && inputs.KB_PRE_VERSION == '' && ! contains(inputs.KB_VERSION, '-') && ! contains(inputs.KB_VERSION, 'a') && contains(inputs.ARGS, 'kubeblocks-io') && contains(inputs.ARGS, 'true') }}
         uses: ad-m/github-push-action@master
         with:
           repository: "apecloud/kubeblocks.io"
