@@ -209,15 +209,23 @@ jobs:
         if: ${{ inputs.CHART_DIR == 'addons' || inputs.CHART_DIR == 'addons-cluster' }}
         run: |
           REF_NAME="${{ github.ref_name }}"
+          IS_ERTERPRISE="false"
           GITHUB_REPO="${{ inputs.GITHUB_REPO }}"
           if [[ -n "${GITHUB_REPO}" ]]; then
               REF_NAME="${{ inputs.GITHUB_REF }}"
+          else
+              GITHUB_REPO="${{ github.repository }}"
+          fi
+          
+          if [[ "${GITHUB_REPO}" == *"apecloud/apecloud-addons"* ]]; then
+              IS_ERTERPRISE="true"
           fi
           
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/update_chart_notes.sh \
               --base-notes "apecloud-cd/chart-values/release-notes.txt" \
               --chart-dir "${{ inputs.CHART_DIR }}" \
-              --ref-name "${REF_NAME}"
+              --ref-name "${REF_NAME}" \
+              --is-ent "${IS_ERTERPRISE}"
 
       - name: Package Helm Chart
         shell: bash
