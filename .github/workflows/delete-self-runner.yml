@@ -78,7 +78,7 @@ jobs:
           bash .github/utils/utils.sh --type 25 \
               --github-token "${{ env.GITHUB_TOKEN }}" \
               --github-repo "${GITHUB_REPO}" \
-              --runner-name "${{ inputs.runner-name }}"
+              --runner-name "${{ inputs.RUNNER_NAME }}"
 
       - uses: azure/setup-kubectl@v3
         with:
@@ -100,7 +100,7 @@ jobs:
           aws eks --region ${{ env.AWS_REGION }} update-kubeconfig --name ${{ env.AWS_CLUSTER }} \
               --role-arn $(aws iam get-role --role-name ${{ env.AWS_CLUSTER }}-admin-role --query 'Role.Arn' --output text)
   
-          runner_pod_exists=$(kubectl get pod -n ${{ inputs.RUNNER_NAMESAPCE }} | (grep "${{ inputs.runner-name }}"||true))
+          runner_pod_exists=$(kubectl get pod -n ${{ inputs.RUNNER_NAMESAPCE }} | (grep "${{ inputs.RUNNER_NAME }}"||true))
           if [[ -n "${runner_pod_exists}" ]]; then
-              kubectl delete pod -n ${{ inputs.RUNNER_NAMESAPCE }} "${{ inputs.runner-name }}" --force
+              kubectl delete pod -n ${{ inputs.RUNNER_NAMESAPCE }} "${{ inputs.RUNNER_NAME }}" --force
           fi
