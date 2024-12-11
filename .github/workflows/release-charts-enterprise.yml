@@ -112,7 +112,7 @@ env:
   PROJECT_ID: 165897
   ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
   ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
-  SKIP_CHECK_IMAGES: "apecloud/dm8_single|apecloud/dmdb_exporter|apecloud/mysql|apecloud/percona-xtrabackup|apecloud/oceanbase-ent|apecloud/yashandb-personal|apecloud/twemproxy|apecloud/xinference|apecloud/neon|apecloud/elasticsearch|apecloud/milvus-operator|apecloud/zookeeper|apecloud/xtrabackup|apecloud/postgres|apecloud/etcd|apecloud/apache-doris|apecloud/oceanbase-ent|apecloud/kingbase|apecloud/kingbase-monitor|apecloud/kafka|apecloud/prometheus-mssql-exporter|apecloud/cn-ubuntu-ent|apecloud/fe-ubuntu-ent|apecloud/kibana|apecloud/vllm-openai|apecloud/rocketmq"
+  SKIP_CHECK_IMAGES: "apecloud/dm8_single|apecloud/dmdb_exporter|apecloud/mysql|apecloud/percona-xtrabackup|apecloud/oceanbase-ent|apecloud/yashandb-personal|apecloud/twemproxy|apecloud/xinference|apecloud/neon|apecloud/elasticsearch|apecloud/milvus-operator|apecloud/zookeeper|apecloud/xtrabackup|apecloud/postgres|apecloud/etcd|apecloud/apache-doris|apecloud/kingbase-monitor|apecloud/kingbase|apecloud/kafka|apecloud/prometheus-mssql-exporter|apecloud/cn-ubuntu-ent||apecloud/fe-ubuntu-ent|apecloud/kibana|apecloud/vllm-openai|apecloud/rocketmq|apecloud/oceanbase-ent|apecloud/kingbase|apecloud/kingbase-monitor|apecloud/kafka|apecloud/prometheus-mssql-exporter|apecloud/cn-ubuntu-ent|apecloud/fe-ubuntu-ent|apecloud/kibana|apecloud/vllm-openai|apecloud/rocketmq"
 
 jobs:
   release-chart:
