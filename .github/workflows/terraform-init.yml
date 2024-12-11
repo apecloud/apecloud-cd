@@ -300,13 +300,14 @@ jobs:
           echo k8s-cluster-name=${K8S_CLUSTER_NAME} >> $GITHUB_OUTPUT
 
       - name: upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
           if-no-files-found: error
           name: ${{ inputs.artifact-name }}
           path: ${{ steps.get_deploy_path.outputs.deploy-path }}
           retention-days: 1
+          overwrite: true
 
       - name: Setup kubectl
         if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
