@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       images_name:
-        description: 'sync images name e.g. apecloud/kubeblocks:0.3.8'
+        description: 'sync image src name (e.g. <namesapce>/<name>:<tag>)'
         required: false
         default: ''
       registry:
-        description: 'sync images registry e.g. docker.io'
+        description: 'sync image src resource registry(e.g. docker.io)'
         required: false
         default: 'docker.io'
 

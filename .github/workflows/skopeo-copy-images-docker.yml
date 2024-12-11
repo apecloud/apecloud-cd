@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       images_name:
-        description: 'copy images name e.g. apecloud/kubeblocks:0.3.8'
+        description: 'copy image src name (e.g. <namesapce>/<name>:<tag>)'
         required: false
         default: ''
       registry:
-        description: 'copy images registry e.g. docker.io'
+        description: 'copy image src registry(e.g. docker.io)'
         required: false
         default: 'docker.io'
 
