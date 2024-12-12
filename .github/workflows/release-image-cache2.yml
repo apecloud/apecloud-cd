@@ -222,7 +222,7 @@ jobs:
           ALIYUN_NEW_PUSH_TAGS="${ALIYUN_REGISTRY_URL_NEW}/${IMAGE_PUSH_TAG}"
           GOOGLE_PUSH_TAGS="${GOOGLE_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
           
-          if [[ "${IMAGE_TAG_NAME}" == "v"*"."*"."* && "${IMAGE_NAME}" == "aapecloud/apecloud-addon-charts" && -d "addons" ]]; then
+          if [[ "${IMAGE_TAG_NAME}" == "v"*"."*"."* && "${IMAGE_NAME}" == "apecloud/apecloud-addon-charts" && -d "addons" ]]; then
               for addon_dir in $(ls addons); do
                   addon_chart_file="addons/${addon_dir}/Chart.yaml"
                   if [[ -f "${addon_chart_file}" ]]; then
