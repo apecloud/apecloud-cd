@@ -33,11 +33,6 @@ on:
         type: string
         required: false
         default: ''
-      GOOGLE_REGISTRY_URL:
-        description: "The GOOGLE REGISTRY URL to use building/pushing image targets (e.g. us-east1-docker.pkg.dev)"
-        type: string
-        required: false
-        default: ''
       GIT_CONFIG:
         description: "InsteadOf git config global url (default: false)"
         type: boolean
@@ -110,7 +105,7 @@ jobs:
       id-token: 'write'
     runs-on: [self-hosted, amd-runner ]
     outputs:
-      tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
+      tag-name: ${{ steps.get_tag_name.outputs.tag-name }}
       runner-name: ${{ steps.get_runner_name.outputs.runner-name }}
     steps:
       - name: Checkout Code
@@ -165,7 +160,7 @@ jobs:
           if [[ "$tag_name" == "v"*  && "${{ inputs.REMOVE_PREFIX }}" == "true" ]]; then
               tag_name="${tag_name/v/}"
           fi
-          echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
+          echo tag-name=$tag_name >> $GITHUB_OUTPUT
 
       - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
         name: Login to Docker Hub
@@ -181,7 +176,7 @@ jobs:
         with:
           context: ${{ inputs.CONTEXT }}
           file: ${{ inputs.DOCKERFILE_PATH }}
-          tags: ${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
+          tags: ${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.tag-name }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
           push: true
@@ -204,7 +199,7 @@ jobs:
         with:
           context: ${{ inputs.CONTEXT }}
           file: ${{ inputs.DOCKERFILE_PATH }}
-          tags: ${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
+          tags: ${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.tag-name }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
           push: true
@@ -227,7 +222,7 @@ jobs:
         with:
           context: ${{ inputs.CONTEXT }}
           file: ${{ inputs.DOCKERFILE_PATH }}
-          tags: ${{ env.ALIYUN_REGISTRY_URL_NEW }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
+          tags: ${{ env.ALIYUN_REGISTRY_URL_NEW }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.tag-name }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
           push: true
@@ -246,10 +241,7 @@ jobs:
       - if: ${{ env.GOOGLE_CREDENTIALS != '' && env.GOOGLE_SERVICE_ACCOUNT != ''  }}
         name: Build and Push to Google Registry
         run: |
-          GOOGLE_REGISTRY_URL=${{ inputs.GOOGLE_REGISTRY_URL }}
-          if [ -z "$GOOGLE_REGISTRY_URL" ]; then
-              GOOGLE_REGISTRY_URL=${{ env.GOOGLE_REGISTRY_URL }}
-          fi
+          GOOGLE_REGISTRY_URL=${{ env.GOOGLE_REGISTRY_URL }}
           
           gcloud auth activate-service-account \
              ${{ env.GOOGLE_SERVICE_ACCOUNT }} \
@@ -263,7 +255,7 @@ jobs:
         with:
           context: ${{ inputs.CONTEXT }}
           file: ${{ inputs.DOCKERFILE_PATH }}
-          tags: ${GOOGLE_REGISTRY_URL}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
+          tags: ${{ env.GOOGLE_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.tag-name }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
           push: true
