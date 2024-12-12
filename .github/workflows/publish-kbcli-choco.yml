@@ -63,6 +63,6 @@ jobs:
           api_key: ${{ secrets.CHOCO_API_KEY }}
       - uses: EndBug/add-and-commit@v7
         with:
-          message: "publish kbcli on Chocolatey ${{ github.event.inputs.version }}"
+          message: "publish kbcli on Chocolatey ${{ inputs.version }}"
           add: "."
           cwd: "chocolatey"

@@ -12,7 +12,7 @@ on:
         required: false
         default: 'infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com'
 
-run-name: sync to aliyun:${{ github.event.inputs.images_name }}
+run-name: sync to aliyun:${{ inputs.images_name }}
 
 env:
   ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
@@ -29,10 +29,10 @@ jobs:
         run: |
           brew install skopeo
           skopeo sync -h
-          if [[ ! -z "${{ github.event.inputs.images_name }}" ]];then
+          if [[ -n "${{ inputs.images_name }}" ]];then
               bash ${{ github.workspace }}/.github/utils/utils.sh \
                   --type 26 \
-                  --images "${{ github.event.inputs.images_name }}" \
+                  --images "${{ inputs.images_name }}" \
                   --images-list ${{ github.workspace }}/.github/utils/images-list.txt
           fi
           

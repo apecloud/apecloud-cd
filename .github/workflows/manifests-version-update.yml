@@ -146,7 +146,7 @@ jobs:
           echo "update manifests version to ${RELEASE_VERSION} done"
           
           FILE_CHANGES=`git diff --name-only ${COMMIT_SHA}`
-          if [[ ! -z "$FILE_CHANGES" ]]; then
+          if [[ -n "$FILE_CHANGES" ]]; then
               echo $FILE_CHANGES
               git config --local user.name "$GITHUB_ACTOR"
               git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
