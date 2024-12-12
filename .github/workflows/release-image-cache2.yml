@@ -33,11 +33,6 @@ on:
         type: string
         required: false
         default: ''
-      GOOGLE_REGISTRY_URL:
-        description: "The GOOGLE REGISTRY URL to use building/pushing image targets (e.g. us-east1-docker.pkg.dev)"
-        type: string
-        required: false
-        default: ''
       GIT_CONFIG:
         description: "InsteadOf git config global url (default: false)"
         type: boolean
@@ -210,6 +205,47 @@ jobs:
           fi
           echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
 
+      - name: get image push tags
+        id: get_image_push_tags
+        run: |
+          IMAGE_TAG_NAME="${{ steps.get_tag_name.outputs.tag-name }}"
+          IMAGE_NAME="${{ inputs.IMG }}"
+          IMAGE_PUSH_TAG="${IMAGE_NAME}:${IMAGE_TAG_NAME}"
+          
+          DOCKER_REGISTRY_URL="${{ env.DOCKER_REGISTRY_URL }}"
+          ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
+          ALIYUN_REGISTRY_URL_NEW="${{ env.ALIYUN_REGISTRY_URL_NEW }}"
+          GOOGLE_REGISTRY_URL="${{ env.GOOGLE_REGISTRY_URL }}"
+          
+          DOCKERHUB_PUSH_TAGS="${DOCKER_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
+          ALIYUN_PUSH_TAGS="${ALIYUN_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
+          ALIYUN_NEW_PUSH_TAGS="${ALIYUN_REGISTRY_URL_NEW}/${IMAGE_PUSH_TAG}"
+          GOOGLE_PUSH_TAGS="${GOOGLE_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
+          
+          if [[ "${IMAGE_TAG_NAME}" == "v"*"."*"."* && "${IMAGE_NAME}" == "aapecloud/apecloud-addon-charts" && -d "addons" ]]; then
+              for addon_dir in $(ls addons); do
+                  addon_chart_file="addons/${addon_dir}/Chart.yaml"
+                  if [[ -f "${addon_chart_file}" ]]; then
+                      addon_chart_name=$(yq eval '.name' "${addon_chart_file}")
+                      addon_chart_version=$(yq eval '.version' "${addon_chart_file}")
+                      if [[ "${addon_chart_version}" == "v"* ]]; then
+                          addon_chart_version="${addon_chart_version/v/}"
+                      fi
+                      IMAGE_PUSH_TAG="${IMAGE_NAME}:${addon_chart_name}-${addon_chart_version}"
+                      DOCKERHUB_PUSH_TAGS="${DOCKERHUB_PUSH_TAGS},${DOCKER_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
+                      ALIYUN_PUSH_TAGS="${ALIYUN_PUSH_TAGS},${ALIYUN_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
+                      ALIYUN_NEW_PUSH_TAGS="${ALIYUN_NEW_PUSH_TAGS},${ALIYUN_REGISTRY_URL_NEW}/${IMAGE_PUSH_TAG}"
+                      GOOGLE_PUSH_TAGS="${GOOGLE_PUSH_TAGS},${GOOGLE_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
+                  fi
+              done
+          fi
+          
+          echo dockerhub-push-tags="${DOCKERHUB_PUSH_TAGS}" >> $GITHUB_OUTPUT
+          echo aliyun-push-tags="${ALIYUN_PUSH_TAGS}" >> $GITHUB_OUTPUT
+          echo aliyun-new-push-tags="${ALIYUN_NEW_PUSH_TAGS}" >> $GITHUB_OUTPUT
+          echo google-push-tags="${GOOGLE_PUSH_TAGS}" >> $GITHUB_OUTPUT
+          
+
       - name: bump image chart version
         if: ${{ (inputs.IMG == 'apecloud/apecloud-charts' || inputs.IMG == 'apecloud/apecloud-addon-charts') }}
         run: |
@@ -259,7 +295,7 @@ jobs:
         with:
           context: ${{ inputs.CONTEXT }}
           file: ${{ inputs.DOCKERFILE_PATH }}
-          tags: ${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
+          tags: ${{ steps.get_image_push_tags.outputs.dockerhub-push-tags }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
           push: true
@@ -289,7 +325,7 @@ jobs:
         with:
           context: ${{ inputs.CONTEXT }}
           file: ${{ inputs.DOCKERFILE_PATH }}
-          tags: ${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
+          tags: ${{ steps.get_image_push_tags.outputs.aliyun-push-tags }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
           push: true
@@ -319,7 +355,7 @@ jobs:
         with:
           context: ${{ inputs.CONTEXT }}
           file: ${{ inputs.DOCKERFILE_PATH }}
-          tags: ${{ env.ALIYUN_REGISTRY_URL_NEW }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
+          tags: ${{ steps.get_image_push_tags.outputs.aliyun-new-push-tags }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
           push: true
@@ -338,10 +374,7 @@ jobs:
       - if: ${{ env.GOOGLE_CREDENTIALS != '' && env.GOOGLE_SERVICE_ACCOUNT != ''  }}
         name: Build and Push to Google Registry
         run: |
-          GOOGLE_REGISTRY_URL=${{ inputs.GOOGLE_REGISTRY_URL }}
-          if [ -z "$GOOGLE_REGISTRY_URL" ]; then
-              GOOGLE_REGISTRY_URL=${{ env.GOOGLE_REGISTRY_URL }}
-          fi
+          GOOGLE_REGISTRY_URL=${{ env.GOOGLE_REGISTRY_URL }}
           
           gcloud auth activate-service-account \
              ${{ env.GOOGLE_SERVICE_ACCOUNT }} \
@@ -355,7 +388,7 @@ jobs:
         with:
           context: ${{ inputs.CONTEXT }}
           file: ${{ inputs.DOCKERFILE_PATH }}
-          tags: ${GOOGLE_REGISTRY_URL}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
+          tags: ${{ steps.get_image_push_tags.outputs.google-push-tags }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
           push: true
