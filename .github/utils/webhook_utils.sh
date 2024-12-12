@@ -111,7 +111,7 @@ release_next_available_tag() {
         ;;
     esac
 
-    if [[ ! -z "$RELEASE_VERSION" ]];then
+    if [[ -n "$RELEASE_VERSION" ]];then
         echo "$RELEASE_VERSION"
     fi
 }

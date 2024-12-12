@@ -1693,7 +1693,7 @@ jobs:
               kubeblocks_io_sha=$(git rev-parse HEAD)
               git add ${{ github.workspace }}/${KUBEBLOCKS_REPORT_DIR}
               FILE_CHANGES=$(git diff --name-only ${kubeblocks_io_sha})
-              if [[ ! -z "$FILE_CHANGES" ]]; then
+              if [[ -n "$FILE_CHANGES" ]]; then
                   echo "FILE_CHANGES:"$FILE_CHANGES
                   git config --local user.name "$GITHUB_ACTOR"
                   git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"

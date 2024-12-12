@@ -163,11 +163,11 @@ jobs:
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
           cmd=$cmd"BUILDX_ARGS=\"${{ inputs.BUILDX_ARGS }}\" "
           
-          if [[ ! -z "${{ inputs.VERSION }}" ]]; then
+          if [[ -n "${{ inputs.VERSION }}" ]]; then
             cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
           fi
           
-          if [[ ! -z "${{ inputs.IMG }}" ]]; then
+          if [[ -n "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }} "
           fi
           

@@ -128,7 +128,7 @@ jobs:
           
           cmd="make ${{ inputs.MAKE_OPS }} "
           
-          if [[ ! -z "${{ inputs.VERSION }}" ]]; then
+          if [[ -n "${{ inputs.VERSION }}" ]]; then
             cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
           fi
           

@@ -12,9 +12,12 @@ on:
         required: false
         default: 'docker.io'
 
-run-name: sync to aliyun and dockerhub:${{ github.event.inputs.images_name }}
+run-name: sync to aliyun and dockerhub:${{ inputs.images_name }}
 
 env:
+  DOCKER_REGISTRY_URL: docker.io
+  ALIYUN_REGISTRY_URL: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
+  ALIYUN_REGISTRY_URL_NEW: infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
@@ -26,26 +29,65 @@ env:
 jobs:
   script:
     runs-on: macos-latest
+    strategy:
+      matrix:
+        registry: [ docker.io, apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com ]
     steps:
       - uses: actions/checkout@v4
       - name : skopeo sync images
         run: |
           brew install skopeo
           skopeo sync -h
-          if [[ ! -z "${{ github.event.inputs.images_name }}" ]];then
+          if [[ -n "${{ inputs.images_name }}" ]];then
               bash ${{ github.workspace }}/.github/utils/utils.sh \
                   --type 26 \
-                  --images "${{ github.event.inputs.images_name }}" \
+                  --images "${{ inputs.images_name }}" \
                   --images-list ${{ github.workspace }}/.github/utils/images-list.txt
           fi
-          
+
+      - name: check ${{ matrix.registry }} images exists
+        id: check_image_exists
+        continue-on-error: true
+        run: |
+          SKEPEO_TOOL="copy"
+          echo "skopeo-tool=${SKEPEO_TOOL}" >> $GITHUB_OUTPUT
+          IMAGE_NAME="${{ inputs.images_name }}"
+          IMAGE_NAME=${IMAGE_NAME##*/}
+          IMAGE_NAME=${IMAGE_NAME%:*}
+          LIST_IMAGE_NAME="${{ matrix.registry }}/apecloud/${IMAGE_NAME}"
+          for i in {1..3}; do
+              LIST_TAGS="$( skopeo list-tags docker://${LIST_IMAGE_NAME} )"
+              if [[ -n "${LIST_TAGS}" ]]; then
+                  SKEPEO_TOOL="sync"
+                  break
+              fi
+              sleep 1
+          done
+          echo "skopeo-tool=${SKEPEO_TOOL}" >> $GITHUB_OUTPUT
+
+      - name: skopeo sync images to dockerhub
+        if: ${{ steps.check_image_exists.outputs.skopeo-tool == 'sync' && matrix.registry == 'docker.io' }}
+        run: |
           bash ${{ github.workspace }}/.github/utils/skopeo_sync_to_docker.sh \
               "${{ env.DOCKER_USER }}" \
               '${{ env.DOCKER_PASSWORD }}' \
               ${{ github.workspace }}/.github/utils/images-list.txt \
               "${{ inputs.registry }}" \
               '${{ env.ECR_PASSWORD }}'
-          
+
+      - name: skopeo copy images to dockerhub
+        if: ${{ steps.check_image_exists.outputs.skopeo-tool == 'copy' && matrix.registry == 'docker.io' }}
+        run: |
+          bash ${{ github.workspace }}/.github/utils/skopeo_copy_to_docker.sh \
+              "${{ env.DOCKER_USER }}" \
+              '${{ env.DOCKER_PASSWORD }}' \
+              ${{ github.workspace }}/.github/utils/images-list.txt \
+              "${{ inputs.registry }}" \
+              '${{ env.ECR_PASSWORD }}'
+
+      - name: skopeo sync images to aliyun
+        if: ${{ steps.check_image_exists.outputs.skopeo-tool == 'sync' && matrix.registry == 'apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com' }}
+        run: |
           bash ${{ github.workspace }}/.github/utils/skopeo_sync_to_aliyun.sh \
               "${{ env.DOCKER_USER }}" \
               '${{ env.DOCKER_PASSWORD }}' \
@@ -55,10 +97,29 @@ jobs:
               "${{ inputs.registry }}" \
               '${{ env.ECR_PASSWORD }}'
           
-          if [[ -n "${{ env.ALIYUN_USER_NEW }}" && -n "${{ env.ALIYUN_PASSWORD_NEW }}" ]]; then
+          if [[ -n "${{ env.ALIYUN_USER_NEW }}" && -n "${{ env.ALIYUN_PASSWORD_NEW }}" && matrix.registry == 'apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com' ]]; then
               bash ${{ github.workspace }}/.github/utils/skopeo_sync_to_aliyun_new.sh \
                   "${{ env.DOCKER_USER }}" \
                   '${{ env.DOCKER_PASSWORD }}' \
+                  "${{ env.ALIYUN_USER_NEW }}" \
+                  "${{ env.ALIYUN_PASSWORD_NEW }}" \
+                  ${{ github.workspace }}/.github/utils/images-list.txt \
+                  "${{ inputs.registry }}" \
+                  '${{ env.ECR_PASSWORD }}'
+          fi
+
+      - name: skopeo copy images to aliyun
+        if: ${{ steps.check_image_exists.outputs.skopeo-tool == 'copy' }}
+        run: |
+          bash ${{ github.workspace }}/.github/utils/skopeo_copy_to_aliyun.sh \
+              "${{ env.ALIYUN_USER }}" \
+              "${{ env.ALIYUN_PASSWORD }}" \
+              ${{ github.workspace }}/.github/utils/images-list.txt \
+              "${{ inputs.registry }}" \
+              '${{ env.ECR_PASSWORD }}'
+          
+          if [[ -n "${{ env.ALIYUN_USER_NEW }}" && -n "${{ env.ALIYUN_PASSWORD_NEW }}" ]]; then
+              bash ${{ github.workspace }}/.github/utils/skopeo_copy_to_aliyun_new.sh \
                   "${{ env.ALIYUN_USER_NEW }}" \
                   "${{ env.ALIYUN_PASSWORD_NEW }}" \
                   ${{ github.workspace }}/.github/utils/images-list.txt \

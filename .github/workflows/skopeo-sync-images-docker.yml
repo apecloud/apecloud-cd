@@ -12,9 +12,10 @@ on:
         required: false
         default: 'docker.io'
 
-run-name: sync to docker.io:${{ github.event.inputs.images_name }}
+run-name: sync to docker.io:${{ inputs.images_name }}
 
 env:
+  DOCKER_REGISTRY_URL: docker.io
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   ECR_PASSWORD: ${{ secrets.ECR_PASSWORD }}
@@ -30,16 +31,49 @@ jobs:
         run: |
           brew install skopeo
           skopeo sync -h
-          if [[ ! -z "${{ github.event.inputs.images_name }}" ]];then
+          if [[ -n "${{ inputs.images_name }}" ]];then
               bash ${{ github.workspace }}/.github/utils/utils.sh \
                   --type 26 \
-                  --images "${{ github.event.inputs.images_name }}" \
+                  --images "${{ inputs.images_name }}" \
                   --images-list ${{ github.workspace }}/.github/utils/images-list.txt
           fi
-          
+
+      - name: check images exists
+        id: check_image_exists
+        continue-on-error: true
+        run: |
+          SKEPEO_TOOL="copy"
+          echo "skopeo-tool=${SKEPEO_TOOL}" >> $GITHUB_OUTPUT
+          IMAGE_NAME="${{ inputs.images_name }}"
+          IMAGE_NAME=${IMAGE_NAME##*/}
+          IMAGE_NAME=${IMAGE_NAME%:*}
+          LIST_IMAGE_NAME="${{ env.DOCKER_REGISTRY_URL }}/apecloud/${IMAGE_NAME}"
+          for i in {1..3}; do
+              LIST_TAGS="$( skopeo list-tags docker://${LIST_IMAGE_NAME} )"
+              if [[ -n "${LIST_TAGS}" ]]; then
+                  SKEPEO_TOOL="sync"
+                  break
+              fi
+              sleep 1
+          done
+          echo "skopeo-tool=${SKEPEO_TOOL}" >> $GITHUB_OUTPUT
+
+      - name: skopeo sync images
+        if: ${{ steps.check_image_exists.outputs.skopeo-tool == 'sync' }}
+        run: |
           bash ${{ github.workspace }}/.github/utils/skopeo_sync_to_docker.sh \
               "${{ env.DOCKER_USER }}" \
               '${{ env.DOCKER_PASSWORD }}' \
               ${{ github.workspace }}/.github/utils/images-list.txt \
               "${{ inputs.registry }}" \
               '${{ env.ECR_PASSWORD }}'
+
+      - name: skopeo copy images
+        if: ${{ steps.check_image_exists.outputs.skopeo-tool == 'copy' }}
+        run: |     
+          bash ${{ github.workspace }}/.github/utils/skopeo_copy_to_docker.sh \
+              "${{ env.DOCKER_USER }}" \
+              '${{ env.DOCKER_PASSWORD }}' \
+              ${{ github.workspace }}/.github/utils/images-list.txt \
+              "${{ inputs.registry }}" \
+              '${{ secrets.ECR_PASSWORD }}'

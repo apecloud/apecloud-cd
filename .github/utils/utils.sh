@@ -119,7 +119,7 @@ trigger_repo_workflow() {
     data='{"ref":"'$BRANCH_NAME'"}'
     if [[ -n "$EXTRA_ARGS" ]]; then
         extra_args_json=""
-        if [[ ! -z "$VERSION" ]]; then
+        if [[ -n "$VERSION" ]]; then
             extra_args_json="\"VERSION\":\"$VERSION\""
         fi
         for extra_arg in $(echo "$EXTRA_ARGS" | sed 's/#/ /g'); do
@@ -136,7 +136,7 @@ trigger_repo_workflow() {
         else
             data='{"ref":"main","inputs":{'$extra_args_json'}}'
         fi
-    elif [[ ! -z "$VERSION" ]]; then
+    elif [[ -n "$VERSION" ]]; then
         if [[ -n "$BRANCH_NAME" ]]; then
             data='{"ref":"'$BRANCH_NAME'","inputs":{"VERSION":"'$VERSION'"}}'
         else
@@ -564,7 +564,7 @@ set_size_label() {
         esac
     done
 
-    if [[ ! -z "$remove_label" ]]; then
+    if [[ -n "$remove_label" ]]; then
         echo "$(tput -T xterm setaf 3)remove $GITHUB_REPO $PR_NUMBER label:$remove_label$(tput -T xterm sgr0)"
         gh pr edit $PR_NUMBER --repo $GITHUB_REPO --remove-label "$remove_label"
     fi

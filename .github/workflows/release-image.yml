@@ -231,7 +231,7 @@ jobs:
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
           cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
           
-          if [[ ! -z "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
+          if [[ -n "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
               if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
                   cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
               else
@@ -241,21 +241,21 @@ jobs:
               cmd=$cmd"EXTRA_BUILD_ARGS=\"--build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
           fi
           
-          if [[ ! -z "${{ inputs.VERSION }}" ]]; then
+          if [[ -n "${{ inputs.VERSION }}" ]]; then
             cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
           fi
           
-          if [[ ! -z "${{ inputs.IMG }}" ]]; then
+          if [[ -n "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }} "
           elif [[ -n "${{ inputs.REPOSITORY }}" ]]; then
             cmd=$cmd"REPOSITORY=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.REPOSITORY }} "
           fi
           
-          if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
+          if [[ -n "${{ inputs.MAKE_ARGS }}" ]]; then
             cmd=$cmd" \"${{ inputs.MAKE_ARGS }}\" "
           fi
           
-          if [[ ! -z "${{ inputs.IMAGE_NAME }}" ]]; then
+          if [[ -n "${{ inputs.IMAGE_NAME }}" ]]; then
             cmd=$cmd"IMAGE_NAME=${{ inputs.IMAGE_NAME }} "
           fi
           
@@ -277,7 +277,7 @@ jobs:
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
           cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
           
-          if [[ ! -z "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
+          if [[ -n "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
               if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
                   cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
               else
@@ -287,21 +287,21 @@ jobs:
               cmd=$cmd"EXTRA_BUILD_ARGS=\"--build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
           fi
           
-          if [[ ! -z "${{ inputs.VERSION }}" ]]; then
+          if [[ -n "${{ inputs.VERSION }}" ]]; then
             cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
           fi
           
-          if [[ ! -z "${{ inputs.IMG }}" ]]; then
+          if [[ -n "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }} "
           elif [[ -n "${{ inputs.REPOSITORY }}" ]]; then
             cmd=$cmd"REPOSITORY=${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.REPOSITORY }} "
           fi
           
-          if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
+          if [[ -n "${{ inputs.MAKE_ARGS }}" ]]; then
             cmd=$cmd" \"${{ inputs.MAKE_ARGS }}\" "
           fi
           
-          if [[ ! -z "${{ inputs.IMAGE_NAME }}" ]]; then
+          if [[ -n "${{ inputs.IMAGE_NAME }}" ]]; then
             cmd=$cmd"IMAGE_NAME=${{ inputs.IMAGE_NAME }} "
           fi
           
@@ -323,7 +323,7 @@ jobs:
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
           cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
           
-          if [[ ! -z "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
+          if [[ -n "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
               if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
                   cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
               else
@@ -333,21 +333,21 @@ jobs:
               cmd=$cmd"EXTRA_BUILD_ARGS=\"--build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
           fi
           
-          if [[ ! -z "${{ inputs.VERSION }}" ]]; then
+          if [[ -n "${{ inputs.VERSION }}" ]]; then
             cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
           fi
           
-          if [[ ! -z "${{ inputs.IMG }}" ]]; then
+          if [[ -n "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=${{ env.ALIYUN_REGISTRY_URL_NEW }}/${{ inputs.IMG }} "
           elif [[ -n "${{ inputs.REPOSITORY }}" ]]; then
             cmd=$cmd"REPOSITORY=${{ env.ALIYUN_REGISTRY_URL_NEW }}/${{ inputs.REPOSITORY }} "
           fi
           
-          if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
+          if [[ -n "${{ inputs.MAKE_ARGS }}" ]]; then
             cmd=$cmd" \"${{ inputs.MAKE_ARGS }}\" "
           fi
           
-          if [[ ! -z "${{ inputs.IMAGE_NAME }}" ]]; then
+          if [[ -n "${{ inputs.IMAGE_NAME }}" ]]; then
             cmd=$cmd"IMAGE_NAME=${{ inputs.IMAGE_NAME }} "
           fi
           
@@ -379,7 +379,7 @@ jobs:
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
           cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
           
-          if [[ ! -z "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
+          if [[ -n "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
               if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
                   cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
               else
@@ -389,21 +389,21 @@ jobs:
               cmd=$cmd"EXTRA_BUILD_ARGS=\"--build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
           fi
           
-          if [[ ! -z "${{ inputs.VERSION }}" ]]; then
+          if [[ -n "${{ inputs.VERSION }}" ]]; then
             cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
           fi
           
-          if [[ ! -z "${{ inputs.IMG }}" ]]; then
+          if [[ -n "${{ inputs.IMG }}" ]]; then
             cmd=$cmd"IMG=$GOOGLE_REGISTRY_URL/${{ inputs.IMG }} "
           elif [[ -n "${{ inputs.REPOSITORY }}" ]]; then
             cmd=$cmd"REPOSITORY=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.REPOSITORY }} "
           fi
           
-          if [[ ! -z "${{ inputs.MAKE_ARGS }}" ]]; then
+          if [[ -n "${{ inputs.MAKE_ARGS }}" ]]; then
             cmd=$cmd" \"${{ inputs.MAKE_ARGS }}\" "
           fi
           
-          if [[ ! -z "${{ inputs.IMAGE_NAME }}" ]]; then
+          if [[ -n "${{ inputs.IMAGE_NAME }}" ]]; then
             cmd=$cmd"IMAGE_NAME=${{ inputs.IMAGE_NAME }} "
           fi
           
