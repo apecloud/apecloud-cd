@@ -26,11 +26,11 @@ env:
   ECR_PASSWORD: ${{ secrets.ECR_PASSWORD }}
 
 jobs:
-  script:
+  skopeo:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: skopeo sync images
+      - name: install skopeo
         run: |
           brew install skopeo
           skopeo sync -h
