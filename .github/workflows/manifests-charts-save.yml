@@ -115,7 +115,7 @@ env:
   OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
   OSS_ENDPOINT: "oss-cn-zhangjiakou.aliyuncs.com"
   OSS_BUCKET: "kubeblocks-oss"
-  HELM_VERSION: "v3.15.4"
+  HELM_VERSION: "v3.16.3"
   CHART_PROJECT_ID: ${{ secrets.GITLAB_PROJECT_ID }}
   CHART_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
   CHART_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
