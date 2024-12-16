@@ -521,17 +521,14 @@ jobs:
       - name: get cloud pre version
         id: cloud_pre_version
         run: |
-          CLOUD_PRE_VERSION="${{ inputs.CLOUD_PRE_VERSION }}"
-          if [[ -z "$CLOUD_PRE_VERSION" ]]; then
-              UPGRADE_VERSION="${{ inputs.CLOUD_VERSION }}"
-              if [[ "$UPGRADE_VERSION" != "v"* ]]; then
-                  UPGRADE_VERSION="v${UPGRADE_VERSION}"
-              fi
-              CLOUD_PRE_VERSION=$(bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 39 \
-                  --github-repo "apecloud/apecloud" \
-                  --github-token "${{ env.GH_TOKEN }}" \
-                  --version "${UPGRADE_VERSION}")
+          UPGRADE_VERSION="${{ needs.get-test-type.outputs.cloud-branch }}"
+          if [[ "$UPGRADE_VERSION" != "v"* ]]; then
+              UPGRADE_VERSION="v${UPGRADE_VERSION}"
           fi
+          CLOUD_PRE_VERSION=$(bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 39 \
+              --github-repo "apecloud/apecloud" \
+              --github-token "${{ env.GH_TOKEN }}" \
+              --version "${UPGRADE_VERSION}")
           echo "CLOUD_PRE_VERSION:$CLOUD_PRE_VERSION"
           echo "cloud-pre-version=${CLOUD_PRE_VERSION}" >> $GITHUB_OUTPUT
 
