@@ -535,12 +535,26 @@ jobs:
       - name: install kb cloud with ${{ steps.cloud_pre_version.outputs.cloud-pre-version }}
         run: |
           helm repo add kb-chart https://apecloud.github.io/helm-charts
+          CLOUD_PRE_VERSION="${{ steps.cloud_pre_version.outputs.cloud-pre-version }}"
+          HELM_CHART_PKG_NAME="kb-cloud-installer-${CLOUD_PRE_VERSION/v/}.tgz"
+          helm_pull_cmd="helm pull kb-chart/kb-cloud-installer --version ${CLOUD_PRE_VERSION}"
+          for i in {1..200}; do
+              eval "$helm_pull_cmd" || true
+              # check helm chart package
+              echo "helm chart package checking..."
+              if [[ -f "${HELM_CHART_PKG_NAME}" ]]; then
+                  echo "found helm chart package ${HELM_CHART_PKG_NAME}"
+                  break
+              fi
+              sleep 1
+              helm repo update kubeblocks-enterprise 
+          done
           
           helm install installer kb-chart/kb-cloud-installer \
               --namespace kb-cloud \
               --create-namespace \
-              --version "${{ steps.cloud_pre_version.outputs.cloud-pre-version }}" \
-              --set "version=${{ steps.cloud_pre_version.outputs.cloud-pre-version }}" \
+              --version "${CLOUD_PRE_VERSION}" \
+              --set "version=${CLOUD_PRE_VERSION}" \
               --set image.registry="docker.io" \
               --set kubernetesProvider=k3d \
               --set fqdn.domain=mytest.kubeblocks.com \
