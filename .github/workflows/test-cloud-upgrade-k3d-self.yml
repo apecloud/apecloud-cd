@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       CLOUD_VERSION:
-        description: 'kb-cloud version (e.g. 0.29.0-alpha.163)'
+        description: 'kb-cloud version (e.g. v0.29.0-alpha.163)'
         type: string
         required: false
-        default: '0.29.0-alpha.163'
+        default: 'v0.29.0-alpha.163'
       CLOUD_PRE_VERSION:
-        description: 'kb-cloud previous version of upgrade (e.g. 0.28.127)'
+        description: 'kb-cloud previous version of upgrade (e.g. v0.28.127)'
         type: string
         required: false
         default: ''
@@ -26,12 +26,12 @@ on:
   workflow_call:
     inputs:
       CLOUD_VERSION:
-        description: 'kb-cloud version (e.g. 0.29.0-alpha.163)'
+        description: 'kb-cloud version (e.g. v0.29.0-alpha.163)'
         type: string
         required: false
-        default: '0.29.0-alpha.163'
+        default: 'v0.29.0-alpha.163'
       CLOUD_PRE_VERSION:
-        description: 'kb-cloud previous version of upgrade (e.g. 0.28.127)'
+        description: 'kb-cloud previous version of upgrade (e.g. v0.28.127)'
         type: string
         required: false
         default: ''
@@ -83,6 +83,13 @@ jobs:
       cloud-pre-version: ${{ steps.cloud_pre_version.outputs.cloud-pre-version }}
       runner-name: ${{ steps.get_runner_name.outputs.runner-name }}
     steps:
+      - name: install gh cli
+        if: ${{ inputs.CLOUD_PRE_VERSION == '' }}
+        run: |
+          curl -sSL https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_linux_amd64.tar.gz | tar -xzf - -C /tmp
+          sudo mv /tmp/gh_2.63.2_linux_amd64/bin/gh /usr/local/bin
+          gh --version
+
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
         with:
