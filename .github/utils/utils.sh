@@ -49,6 +49,7 @@ Usage: $(basename "$0") <options>
                                 36) parse test result
                                 37) update k3d coredns configmap
                                 38) get cloud test result
+                                39) get cloud pre version
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -898,6 +899,45 @@ update_k3d_coredns_cm() {
     echo "K3d coredns configmap NodeHosts updated successfully."
 }
 
+get_cloud_pre_version() {
+    if [[ -z "$VERSION" ]]; then
+        # get latest version
+        LATEST_VERSIONS=$(gh release list --repo $GITHUB_REPO)
+        for latest_version in $(echo "$LATEST_VERSIONS"); do
+            if [[ "$latest_version" == "v"*"."*"."* ]]; then
+                VERSION="$latest_version"
+                break
+            fi
+        done
+    fi
+
+    if [[ -z "$VERSION" ]]; then
+        return
+    fi
+
+    # get pre version
+    FIRST_VERSION="${VERSION%%.*}"
+    SECOND_VERSION="${VERSION#*.}"
+    SECOND_VERSION="${SECOND_VERSION%%.*}"
+    PRE_VERSIONS=""
+    if [[ "$SECOND_VERSION" == "0" ]]; then
+        head_version="${FIRST_VERSION}.${SECOND_VERSION}"
+        PRE_VERSIONS=$( gh release list --repo $GITHUB_REPO --limit 500 | (grep -v "${head_version}" || true))
+    else
+        SECOND_VERSION=$(( $SECOND_VERSION - 1 ))
+        head_version="${FIRST_VERSION}.${SECOND_VERSION}"
+        PRE_VERSIONS=$( gh release list --repo $GITHUB_REPO --limit 500 | (grep "${head_version}" || true))
+    fi
+
+    for pre_version in $(echo "$PRE_VERSIONS"); do
+        if [[ "$pre_version" == "v"*"."*"."* ]]; then
+            PRE_VERSION="$pre_version"
+            break
+        fi
+    done
+    echo "$PRE_VERSION"
+}
+
 parse_command_line() {
     while :; do
         case "${1:-}" in
@@ -1212,6 +1252,9 @@ main() {
         ;;
         38)
             get_cloud_test_result
+        ;;
+        39)
+            get_cloud_pre_version
         ;;
     esac
 }
