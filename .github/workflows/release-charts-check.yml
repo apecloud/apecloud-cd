@@ -92,7 +92,7 @@ on:
 
 env:
   CR_TOKEN: ${{ github.token }}
-  HELM_VERSION: v3.15.4
+  HELM_VERSION: "v3.16.3"
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}

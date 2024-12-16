@@ -64,7 +64,7 @@ run-name: check images ${{ inputs.CHECK_REGISTRY }}
 
 env:
   CR_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  HELM_VERSION: v3.15.4
+  HELM_VERSION: "v3.16.3"
   DOCKER_REGISTRY_URL: docker.io
   ALIYUN_REGISTRY_URL: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
