@@ -9,7 +9,7 @@ on:
         required: false
         default: '0.29.0-alpha.163'
       CLOUD_PRE_VERSION:
-        description: 'kb-cloud previous version of upgrade (e.g. 0.28.125)'
+        description: 'kb-cloud previous version of upgrade (e.g. 0.28.127)'
         type: string
         required: false
         default: ''
@@ -31,7 +31,7 @@ on:
         required: false
         default: '0.29.0-alpha.163'
       CLOUD_PRE_VERSION:
-        description: 'kb-cloud previous version of upgrade (e.g. 0.28.125)'
+        description: 'kb-cloud previous version of upgrade (e.g. 0.28.127)'
         type: string
         required: false
         default: ''
@@ -144,7 +144,7 @@ jobs:
               --namespace kb-cloud \
               --create-namespace \
               --version "${{ steps.cloud_pre_version.outputs.cloud-pre-version }}" \
-              --set version=${{ inputs.CLOUD_VERSION }} \
+              --set "version=${{ steps.cloud_pre_version.outputs.cloud-pre-version }}" \
               --set image.registry="docker.io" \
               --set kubernetesProvider=k3d \
               --set fqdn.domain=mytest.kubeblocks.com \
@@ -194,8 +194,8 @@ jobs:
               --namespace kb-cloud \
               --create-namespace \
               --version ${{ inputs.CLOUD_VERSION }} \
-              --set image.registry="docker.io" \
               --set version=${{ inputs.CLOUD_VERSION }} \
+              --set image.registry="docker.io" \
               --set kubernetesProvider=k3d \
               --set fqdn.domain=mytest.kubeblocks.com \
               --set tls.enabled=true \
