@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       CLOUD_VERSION:
-        description: 'kb-cloud version (e.g. 0.29.0-alpha.163)'
+        description: 'kb-cloud version (e.g. v0.29.0-alpha.163)'
         type: string
         required: false
-        default: '0.29.0-alpha.163'
+        default: 'v0.29.0-alpha.163'
       CLOUD_PRE_VERSION:
-        description: 'kb-cloud previous version of upgrade (e.g. 0.28.127)'
+        description: 'kb-cloud previous version of upgrade (e.g. v0.28.127)'
         type: string
         required: false
         default: ''
@@ -26,12 +26,12 @@ on:
   workflow_call:
     inputs:
       CLOUD_VERSION:
-        description: 'kb-cloud version (e.g. 0.29.0-alpha.163)'
+        description: 'kb-cloud version (e.g. v0.29.0-alpha.163)'
         type: string
         required: false
-        default: '0.29.0-alpha.163'
+        default: 'v0.29.0-alpha.163'
       CLOUD_PRE_VERSION:
-        description: 'kb-cloud previous version of upgrade (e.g. 0.28.127)'
+        description: 'kb-cloud previous version of upgrade (e.g. v0.28.127)'
         type: string
         required: false
         default: ''
