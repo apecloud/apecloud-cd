@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       cloud-version:
-        description: 'kb-cloud version (e.g. 0.29.0-alpha.157)'
+        description: 'kb-cloud version (e.g. 0.29.0-alpha.163)'
         type: string
         required: false
-        default: '0.29.0-alpha.157'
+        default: '0.29.0-alpha.163'
       k3s-version:
         description: 'k3s cluster version (e.g. 1.30)'
         type: string
@@ -16,10 +16,10 @@ on:
   workflow_call:
     inputs:
       cloud-version:
-        description: 'kb-cloud version (e.g. 0.29.0-alpha.157)'
+        description: 'kb-cloud version (e.g. 0.29.0-alpha.163)'
         type: string
         required: false
-        default: '0.29.0-alpha.157'
+        default: '0.29.0-alpha.163'
       k3s-version:
         description: 'k3s cluster version (e.g. 1.30)'
         type: string
