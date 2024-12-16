@@ -178,8 +178,6 @@ jobs:
                     "${{ env.DOCKER_REGISTRY_URL }}" "${{ inputs.CHART_DIR }}"
               ;;
           esac
-          
-          helm repo add bitnami https://charts.bitnami.com/bitnami
 
       - name: Package Helm Chart
         shell: bash

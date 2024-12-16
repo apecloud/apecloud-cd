@@ -204,8 +204,6 @@ jobs:
           echo "set addons chart registry to apecloud and repogistory to ${{ env.DOCKER_REGISTRY_URL }}"
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
             "${{ env.DOCKER_REGISTRY_URL }}" "${{ inputs.CHART_DIR }}"
-          
-          helm repo add bitnami https://charts.bitnami.com/bitnami
 
       - name: update chart notes release info
         if: ${{ inputs.CHART_DIR == 'addons' || inputs.CHART_DIR == 'addons-cluster' }}

@@ -158,8 +158,6 @@ jobs:
           # set addons chart registry to apecloud and repogistory to aliyun
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
             "apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com" "${{ inputs.CHART_DIR }}"
-          
-          helm repo add bitnami https://charts.bitnami.com/bitnami
 
       - name: update chart notes release info
         if: ${{ inputs.CHART_DIR == 'addons' || inputs.CHART_DIR == 'addons-cluster' }}
