@@ -547,7 +547,7 @@ jobs:
                   break
               fi
               sleep 1
-              helm repo update kubeblocks-enterprise 
+              helm repo update kb-chart
           done
           
           helm install installer kb-chart/kb-cloud-installer \
