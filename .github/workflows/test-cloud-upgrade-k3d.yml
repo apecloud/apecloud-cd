@@ -203,7 +203,7 @@ jobs:
       - name: upgrade kb cloud to ${{ inputs.CLOUD_VERSION }}
         run: |
           helm uninstall installer --namespace kb-cloud
-          
+          sleep 2
           helm install installer-upgrade kb-chart/kb-cloud-installer \
               --namespace kb-cloud \
               --create-namespace \

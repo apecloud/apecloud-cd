@@ -596,15 +596,17 @@ jobs:
               echo installer-result="${installer_result}" >> $GITHUB_OUTPUT
           fi
 
-      - name: upgrade kb cloud to ${{ inputs.CLOUD_VERSION }}
+      - name: upgrade kb cloud to ${{ needs.get-test-type.outputs.cloud-branch }}
         run: |
           helm uninstall installer --namespace kb-cloud
+          sleep 2
           
+          CLOUD_VERSION="${{ needs.get-test-type.outputs.cloud-branch }}"
           helm install installer-upgrade kb-chart/kb-cloud-installer \
               --namespace kb-cloud \
               --create-namespace \
-              --version ${{ inputs.CLOUD_VERSION }} \
-              --set version=${{ inputs.CLOUD_VERSION }} \
+              --version ${CLOUD_VERSION} \
+              --set version=${CLOUD_VERSION} \
               --set image.registry="docker.io" \
               --set kubernetesProvider=k3d \
               --set fqdn.domain=mytest.kubeblocks.com \
