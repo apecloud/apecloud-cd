@@ -19,10 +19,10 @@ on:
         required: false
         default: 'main'
       GO_VERSION:
-        description: "The specify version of GO (e.g. 1.22)"
+        description: "The specify version of GO (e.g. 1.23)"
         type: string
         required: false
-        default: '1.22'
+        default: '1.23'
       K3S_VERSION:
         description: 'k3s cluster version (e.g. 1.30)'
         type: string
@@ -51,10 +51,10 @@ on:
         required: false
         default: 'main'
       GO_VERSION:
-        description: "The specify version of GO (e.g. 1.22)"
+        description: "The specify version of GO (e.g. 1.23)"
         type: string
         required: false
-        default: '1.22'
+        default: '1.23'
       K3S_VERSION:
         description: 'k3s cluster version (e.g. 1.30)'
         type: string
@@ -143,14 +143,9 @@ jobs:
         run: |
           GO_VERSION="${{ inputs.GO_VERSION }}"
           if [[ -z "$GO_VERSION" ]]; then
-              GO_VERSION="1.22"
+              GO_VERSION="1.23"
           fi
           echo GO_VERSION="$GO_VERSION" >> $GITHUB_ENV
-
-      - name: Setup Go specify version
-        uses: actions/setup-go@v3
-        with:
-          go-version: "1.23"
 
       - name: Setup Go specify version
         uses: actions/setup-go@v3
