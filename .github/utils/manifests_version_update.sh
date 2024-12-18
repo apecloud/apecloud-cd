@@ -113,6 +113,7 @@ update_manifests_file_version() {
 
         manifests_images=$(yq e ".${chart_name}[0].images[]" ${MANIFESTS_FILE})
         image_num=0
+        update_apecloud_addon_charts=0
         for manifests_image in $(echo "${manifests_images}"); do
             for update_image in "${update_images[@]}"; do
                 if [[ "${manifests_image}" == "apecloud/${update_image}:"* ]]; then
@@ -133,6 +134,11 @@ update_manifests_file_version() {
                         yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${RELEASE_VERSION}\"" "${MANIFESTS_FILE}"
                     elif [[ "${manifests_image}" == "apecloud/apiserver:"*"-jni" ]]; then
                         yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${RELEASE_VERSION}-jni\"" "${MANIFESTS_FILE}"
+                    elif [[ "${manifests_image}" == "apecloud/apecloud-addon-charts:"* ]]; then
+                        if [[ "${update_apecloud_addon_charts}" -eq 0 && "${manifests_image}" == "apecloud/apecloud-addon-charts:v"* ]]; then
+                            yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${RELEASE_VERSION}\"" "${MANIFESTS_FILE}"
+                            update_apecloud_addon_charts=1
+                        fi
                     else
                         yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${RELEASE_VERSION}\"" "${MANIFESTS_FILE}"
                     fi
