@@ -310,6 +310,10 @@ jobs:
           make module
           make install-ginkgo
 
+      - name: port-forward apiserver
+        run: |
+          kubectl port-forward -n kb-cloud svc/apiserver 8080:8080 &
+
       - name: ${{ matrix.test-type }}
         id: get_test_result
         run: |

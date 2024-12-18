@@ -306,6 +306,10 @@ jobs:
         run: |
           git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GH_TOKEN }}@github.com".insteadof "https://github.com"
 
+      - name: port-forward apiserver
+        run: |
+          kubectl port-forward -n kb-cloud svc/apiserver 8080:8080 &
+
       - name: ${{ matrix.test-type }}
         id: get_test_result
         run: |
