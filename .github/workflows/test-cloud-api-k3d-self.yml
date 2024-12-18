@@ -1,0 +1,445 @@
+name: Cloud E2E K3D Self Runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      TEST_TYPE:
+        description: "The specify version of GO (e.g. openapi-test|adminapi-test|engine-test)"
+        type: string
+        required: false
+        default: 'openapi-test'
+      TEST_ENGINES:
+        description: "The specify version of GO (e.g. mysql)"
+        type: string
+        required: false
+        default: 'mysql'
+      CLOUD_BRANCH:
+        description: "The cloud branch name (e.g. main) "
+        type: string
+        required: false
+        default: 'main'
+      GO_VERSION:
+        description: "The specify version of GO (e.g. 1.22)"
+        type: string
+        required: false
+        default: '1.22'
+      K3S_VERSION:
+        description: 'k3s cluster version (e.g. 1.30)'
+        type: string
+        required: false
+        default: '1.30'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+  workflow_call:
+    inputs:
+      TEST_TYPE:
+        description: "The specify version of GO (e.g. openapi-test|adminapi-test|engine-test)"
+        type: string
+        required: false
+        default: 'openapi-test'
+      TEST_ENGINES:
+        description: "The specify version of GO (e.g. mysql)"
+        type: string
+        required: false
+        default: 'mysql'
+      CLOUD_BRANCH:
+        description: "The cloud branch name (e.g. main) "
+        type: string
+        required: false
+        default: 'main'
+      GO_VERSION:
+        description: "The specify version of GO (e.g. 1.22)"
+        type: string
+        required: false
+        default: '1.22'
+      K3S_VERSION:
+        description: 'k3s cluster version (e.g. 1.30)'
+        type: string
+        required: false
+        default: '1.30'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+
+run-name: E2E Test ${{ inputs.TEST_TYPE }} ${{ inputs.TEST_ENGINES }} on Env K3s Ref:${{ inputs.CLOUD_BRANCH }}
+
+env:
+  GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
+  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  K3D_NAME: kbcloud
+  CLOUD_LICENSE: ${{ secrets.CLOUD_LICENSE }}
+  DOCKER_REGISTRY_URL: docker.io
+  DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+
+jobs:
+  get-test-type:
+    runs-on: ubuntu-latest
+    outputs:
+      test-type: ${{ steps.get_test_type.outputs.test-type }}
+      cloud-branch: ${{ steps.get_test_type.outputs.cloud-branch }}
+      test-installer: ${{ steps.get_test_type.outputs.test-installer }}
+    steps:
+      - name: Get test type
+        id: get_test_type
+        run: |
+          TEST_TYPES="${{ inputs.TEST_TYPE }}"
+          test_type=""
+          for test_type_tmp in $(echo "${TEST_TYPES}" | sed 's/|/ /g' ); do
+              if [[ -z "${test_type}" ]]; then
+                  test_type="{\"test-type\":\"${test_type_tmp}\"}"
+              else
+                  test_type="${test_type},{\"test-type\":\"${test_type_tmp}\"}"
+              fi
+          done
+          echo "${test_type}"
+          echo "test-type={\"include\":[${test_type}]}" >> $GITHUB_OUTPUT
+          
+          CLOUD_BRANCH="${{ inputs.CLOUD_BRANCH }}"
+          if [[ -z "$CLOUD_BRANCH" ]]; then
+              CLOUD_BRANCH="main"
+          fi
+          echo cloud-branch="$CLOUD_BRANCH" >> $GITHUB_OUTPUT
+          
+          # check test installer
+          TEST_INSTALLER="false"
+          if [[ "${CLOUD_BRANCH}" == "v"*"."*"."* ]]; then
+              TEST_INSTALLER="true"
+          fi
+          echo test-installer="$TEST_INSTALLER" >> $GITHUB_OUTPUT
+
+  enable-runner:
+    needs: [ get-test-type ]
+    if: ${{ needs.get-test-type.outputs.test-installer == 'true' }}
+    uses: ./.github/workflows/enable-self-runner.yml
+    with:
+      CLOUD_PROVIDER: "eks"
+      GITHUB_REPO: "${{ github.repository }}"
+      RUNNER_NAMESPACE: "default"
+      RUNNER_LABEL: "k3s-runner"
+    secrets: inherit
+
+  e2e-k3s-test:
+    needs: [ get-test-type, enable-runner ]
+    if: ${{ needs.get-test-type.outputs.test-installer == 'true' }}
+    name: ${{ matrix.test-type }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.get-test-type.outputs.test-type) }}
+    outputs:
+      openapi-test-result: ${{ steps.get_test_result.outputs.openapi-test-result }}
+      adminapi-test-result: ${{ steps.get_test_result.outputs.adminapi-test-result }}
+      engine-test-result: ${{ steps.get_test_result.outputs.engine-test-result }}
+      test-result: ${{ steps.get_test_result.outputs.test-result }}
+      runner-name: ${{ steps.get_runner_name.outputs.runner-name }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: get go version
+        run: |
+          GO_VERSION="${{ inputs.GO_VERSION }}"
+          if [[ -z "$GO_VERSION" ]]; then
+              GO_VERSION="1.22"
+          fi
+          echo GO_VERSION="$GO_VERSION" >> $GITHUB_ENV
+
+      - name: Setup Go specify version
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Checkout apecloud Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud
+          path: ./
+          token: ${{ env.GH_TOKEN }}
+          ref: ${{ env.CLOUD_BRANCH }}
+
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: setup k3d k3s
+        uses: nolar/setup-k3d-k3s@v1
+        with:
+          k3d-name: "${{ env.K3D_NAME }}"
+          version: "v${{ inputs.K3S_VERSION }}"
+          github-token: ${{ env.GH_TOKEN }}
+          k3d-args: -p 443:443@loadbalancer -p 80:80@loadbalancer --agents 2
+
+      - name: update k3d coredns cm
+        run: |
+          for i in {1..3}; do
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 37
+              sleep 1
+          done
+
+      - name: install cert-manager
+        run: |
+          helm repo add jetstack https://charts.jetstack.io --force-update
+          helm install \
+              cert-manager jetstack/cert-manager \
+              --namespace cert-manager \
+              --create-namespace \
+              --version v1.16.0 \
+              --set crds.enabled=true
+
+      - name: install kb cloud
+        run: |
+          helm repo add kb-chart https://apecloud.github.io/helm-charts
+          
+          helm install installer kb-chart/kb-cloud-installer \
+              --namespace kb-cloud \
+              --create-namespace \
+              --version ${{ needs.get-test-type.outputs.cloud-branch }} \
+              --set image.registry="docker.io" \
+              --set version=${{ needs.get-test-type.outputs.cloud-branch }} \
+              --set kubernetesProvider=k3d \
+              --set fqdn.domain=mytest.kubeblocks.com \
+              --set tls.enabled=true
+
+      - if: ${{ env.DOCKER_REGISTRY_USER != '' && env.DOCKER_REGISTRY_PASSWORD != '' }}
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY_URL }}
+          username: ${{ env.DOCKER_REGISTRY_USER }}
+          password: ${{ env.DOCKER_REGISTRY_PASSWORD }}
+
+      - name: check kb-cloud-installer pod Completed
+        id: install_kb_cloud
+        run: |
+          sleep 10
+          check_status=0
+          for i in {1..200}; do
+              if kubectl get pods -n kb-cloud | grep "kb-cloud-installer" | grep Completed ; then
+                  echo "KB Cloud is ready"
+                  check_status=1
+                  break
+              fi
+              echo "Waiting for KB Cloud to be ready..."
+              kubectl get pods -n kb-cloud
+              echo ""
+              sleep 5
+          done
+          
+          if [[ $check_status -eq 0 ]]; then
+              echo "KB Cloud is not ready"
+              installer_pods=$(kubectl get pods -n kb-cloud | grep "kb-cloud-installer" )
+              echo "installer pod: $installer_pods"
+              installer_pod_names="$(echo "${installer_pods}" | awk '{print $1}')"
+              for installer_pod_name in $(echo "${installer_pod_names}"); do
+                  echo "==================== pod ${installer_pod_name} logs ===================="
+                  kubectl logs -n kb-cloud ${installer_pod_name}
+              done 
+          
+              exit 1
+          fi
+
+      - name: deploy KB Cloud Env
+        run: |
+          echo "get k8s config"
+          k8s_cluster_name=$(kubectl config get-clusters | sed '1d')
+          kubectl config set-cluster ${k8s_cluster_name} --insecure-skip-tls-verify=true
+          k8s_kubeconfig_yaml=$(kubectl config view --minify -o yaml --raw)
+          kubeconfig_file_name="k8s_kubeconfig_file.yaml"
+          touch ${kubeconfig_file_name}
+          echo "${k8s_kubeconfig_yaml}" > ${kubeconfig_file_name}
+          yq e -i '.clusters[0].cluster.server = "https://kubernetes.default:443"' ${kubeconfig_file_name}
+          k8s_kubeconfig=$(cat ${kubeconfig_file_name})
+          echo "------------------------------------------------------------"
+          echo "${k8s_kubeconfig}"
+          echo "------------------------------------------------------------"
+          K8S_KUBECONFIG="$(echo "${k8s_kubeconfig}" | base64)"
+          
+          CLOUD_LICENSE="${{ env.CLOUD_LICENSE }}"
+          echo "deploy KB Cloud Env"
+          
+          helm install bootstrapper kb-chart/kb-cloud-bootstrapper \
+            --namespace kb-system \
+            --create-namespace \
+            --version ${{ needs.get-test-type.outputs.cloud-branch }} \
+            --set image.registry="docker.io" \
+            --set license="${CLOUD_LICENSE}" \
+            --set kubeconfig="${K8S_KUBECONFIG}"
+
+      - name: check kb-cloud-bootstrapper pod Completed
+        id: deploy_kb_cloud_env
+        run: |
+          sleep 10
+          check_status=0
+          for i in {1..200}; do
+              if kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" | grep Completed ; then
+                  echo "KB Cloud Env is ready"
+                  check_status=1
+                  break
+              fi
+              echo "Waiting for KB Cloud Env to be ready..."
+              kubectl get pods -n kb-system
+              echo ""
+              sleep 5
+          done
+          
+          if [[ $check_status -eq 0 ]]; then
+              echo "KB Cloud Env is not ready"
+          
+              bootstrapper_pods=$(kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" )
+              echo "bootstrapper pod: $bootstrapper_pods"
+              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | awk '{print $1}')"
+              for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
+                  echo "==================== pod ${bootstrapper_pod_name} logs ===================="
+                  kubectl logs -n kb-system ${bootstrapper_pod_name}
+              done 
+          
+              exit 1
+          fi
+
+      - name: git config
+        run: |
+          git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GH_TOKEN }}@github.com".insteadof "https://github.com"
+
+      - name: install ginkgo
+        run: |
+          cd e2e
+          make module
+          make install-ginkgo
+
+      - name: ${{ matrix.test-type }}
+        id: get_test_result
+        run: |
+          cd e2e
+          file_log="test_result.log"
+          touch ${file_log} 
+          
+          TEST_ENGINES="${{ inputs.TEST_ENGINES }}"
+          if [[ -z "$TEST_ENGINES" ]]; then
+              TEST_ENGINES="mysql"
+          fi
+          
+          for env_vars in $(echo "${E2E_ENV_VARS}" | sed 's/|/ /g'); do
+              eval_cmd="export $env_vars"
+              echo "$eval_cmd"
+              eval "$eval_cmd"
+          done
+          
+          if [[ -n "${TEST_ENGINES}" ]]; then
+              echo "export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}"
+              export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}
+          fi
+          
+          TEST_TYPE="${{ matrix.test-type }}"
+          if [[ -z "$TEST_TYPE" ]]; then
+              TEST_TYPE="openapi-test"
+          fi
+          make ${TEST_TYPE} | tee -a ${file_log}
+          
+          test_ret="$( grep "Test Suite Failed" ${file_log} || true )"
+          test_result="[PASSED]"
+          if [[ -n "$test_ret" ]]; then
+              test_result="[FAILED]"
+          fi
+          
+          case "$TEST_TYPE" in
+              openapi-test)
+                  echo openapi-test-result="${test_result}" >> $GITHUB_OUTPUT
+              ;;
+              adminapi-test)
+                  echo adminapi-test-result="${test_result}" >> $GITHUB_OUTPUT
+              ;;
+              engine-test)
+                  echo engine-test-result="${test_result}" >> $GITHUB_OUTPUT
+              ;;
+              *)
+                  echo test-result="${test_result}" >> $GITHUB_OUTPUT
+              ;;
+          esac
+          
+          if [[ -n "$test_ret" ]]; then
+              exit 1
+          fi
+
+      - name: get runner name
+        id: get_runner_name
+        if: ${{ always() }}
+        run: |
+          echo runner-name=${RUNNER_NAME} >> $GITHUB_OUTPUT
+
+  send-message:
+    needs: [ get-test-type, e2e-k3s-test ]
+    runs-on: ubuntu-latest
+    if: ${{ always() && needs.get-test-type.outputs.test-installer == 'true' }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: send test result message
+        run: |
+          CLOUD_BRANCH="${{ needs.get-test-type.outputs.cloud-branch }}"
+          CLOUD_ENV_NAME="${{ needs.get-test-type.outputs.cloud-env-name }}"
+          
+          TEST_RESULT=""
+          TEST_TYPES="${{ inputs.TEST_TYPE }}"
+          for test_type_tmp in $(echo "${TEST_TYPES}" | sed 's/|/ /g' ); do
+              case "$test_type_tmp" in
+                  openapi-test)
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-k3s-test.outputs.openapi-test-result }}"
+                  ;;
+                  adminapi-test)
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-k3s-test.outputs.adminapi-test-result }}"
+                  ;;
+                  engine-test)
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-k3s-test.outputs.engine-test-result }}"
+                  ;;
+                  *)
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-k3s-test.outputs.test-result }}"
+                  ;;
+              esac
+          done
+          
+          echo "TEST_RESULT:${TEST_RESULT}"
+          TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
+              --github-repo "${{ github.repository }}" \
+              --github-token "${{ env.GH_TOKEN }}" \
+              --test-result "${TEST_RESULT}" \
+              --run-id "$GITHUB_RUN_ID" )
+          echo "TEST_RESULT:${TEST_RESULT}"
+          
+          date_ret=$(date +%Y-%m-%d-%T)
+          TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${{ inputs.TEST_ENGINES }} on Env K3s [${date_ret}]"
+          
+          python3 .github/utils/send_mesage.py \
+              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
+              --title "$TEST_TITLE" \
+              --result "$TEST_RESULT"
+
+  delete-self-runner:
+    if: ${{ always() && needs.get-test-type.outputs.test-installer == 'true' }}
+    needs: [ get-test-type, e2e-k3s-test ]
+    uses: ./.github/workflows/delete-self-runner.yml
+    with:
+      RUNNER_NAME: "${{ needs.e2e-k3s-test.outputs.runner-name }}"
+      RUNNER_NAMESAPCE: "default"
+    secrets: inherit
+
+  disable-runner:
+    if: ${{ always() && needs.get-test-type.outputs.test-installer == 'true' }}
+    needs: [ get-test-type, e2e-k3s-test ]
+    uses: ./.github/workflows/enable-self-runner.yml
+    with:
+      CLOUD_PROVIDER: "eks"
+      GITHUB_REPO: "${{ github.repository }}"
+      RUNNER_NAMESPACE: "default"
+      RUNNER_LABEL: "k3s-runner"
+      ENABLE: "disable"
+    secrets: inherit
