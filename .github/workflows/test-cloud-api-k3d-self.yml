@@ -14,10 +14,10 @@ on:
         required: false
         default: 'mysql'
       CLOUD_BRANCH:
-        description: "The cloud branch name (e.g. main) "
+        description: "The cloud branch name (e.g. v0.29.0-alpha.167) "
         type: string
         required: false
-        default: 'main'
+        default: 'v0.29.0-alpha.167'
       GO_VERSION:
         description: "The specify version of GO (e.g. 1.23)"
         type: string
@@ -46,10 +46,10 @@ on:
         required: false
         default: 'mysql'
       CLOUD_BRANCH:
-        description: "The cloud branch name (e.g. main) "
+        description: "The cloud branch name (e.g. v0.29.0-alpha.167) "
         type: string
         required: false
-        default: 'main'
+        default: 'v0.29.0-alpha.167'
       GO_VERSION:
         description: "The specify version of GO (e.g. 1.23)"
         type: string
