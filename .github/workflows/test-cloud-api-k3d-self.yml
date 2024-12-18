@@ -318,6 +318,7 @@ jobs:
               TEST_ENGINES="mysql"
           fi
           
+          E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_K3D }}"
           for env_vars in $(echo "${E2E_ENV_VARS}" | sed 's/|/ /g'); do
               eval_cmd="export $env_vars"
               echo "$eval_cmd"
