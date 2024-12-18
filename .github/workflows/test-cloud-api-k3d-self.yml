@@ -1,4 +1,4 @@
-name: Cloud E2E K3D Self Runner
+name: Test Cloud Api On K3D Self Runner
 
 on:
   workflow_dispatch:
@@ -137,7 +137,7 @@ jobs:
       engine-test-result: ${{ steps.get_test_result.outputs.engine-test-result }}
       test-result: ${{ steps.get_test_result.outputs.test-result }}
       runner-name: ${{ steps.get_runner_name.outputs.runner-name }}
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, k3s-runner ]
     steps:
       - name: get go version
         run: |
@@ -305,12 +305,6 @@ jobs:
       - name: git config
         run: |
           git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GH_TOKEN }}@github.com".insteadof "https://github.com"
-
-      - name: install ginkgo
-        run: |
-          cd e2e
-          make module
-          make install-ginkgo
 
       - name: ${{ matrix.test-type }}
         id: get_test_result

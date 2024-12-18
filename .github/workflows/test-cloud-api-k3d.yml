@@ -1,4 +1,4 @@
-name: Cloud E2E K3D
+name: Test Cloud Api On K3D
 
 on:
   workflow_dispatch:
