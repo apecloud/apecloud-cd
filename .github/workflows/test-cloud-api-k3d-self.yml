@@ -212,7 +212,7 @@ jobs:
 
   disable-runner:
     if: ${{ always() && needs.get-test-type.outputs.test-installer == 'true' }}
-    needs: [ get-test-type, e2e-k3s-test ]
+    needs: [ get-test-type, openapi-test-k3s, adminapi-test-k3s, engine-test-k3s ]
     uses: ./.github/workflows/enable-self-runner.yml
     with:
       CLOUD_PROVIDER: "eks"
