@@ -84,6 +84,7 @@ jobs:
       test-type: ${{ steps.get_test_type.outputs.test-type }}
       cloud-branch: ${{ steps.get_test_type.outputs.cloud-branch }}
       test-installer: ${{ steps.get_test_type.outputs.test-installer }}
+      test-engines: ${{ steps.get_test_type.outputs.test-engines }}
     steps:
       - name: Get test type
         id: get_test_type
@@ -105,6 +106,12 @@ jobs:
               CLOUD_BRANCH="main"
           fi
           echo cloud-branch="$CLOUD_BRANCH" >> $GITHUB_OUTPUT
+          
+          TEST_ENGINES="${{ inputs.TEST_ENGINES }}"
+          if [[ -z "$TEST_ENGINES" ]]; then
+              TEST_ENGINES="mysql"
+          fi
+          echo test-engines="$TEST_ENGINES" >> $GITHUB_OUTPUT
           
           # check test installer
           TEST_INSTALLER="false"

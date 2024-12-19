@@ -49,6 +49,7 @@ env:
 
 jobs:
   e2e-k3s-test:
+    name: ${{ inputs.TEST_TYPE }}-k3s
     outputs:
       test-result: ${{ steps.get_test_result.outputs.test-result }}
       runner-name: ${{ steps.get_runner_name.outputs.runner-name }}
@@ -73,7 +74,7 @@ jobs:
           repository: apecloud/apecloud
           path: ./
           token: ${{ env.GH_TOKEN }}
-          ref: ${{ env.CLOUD_BRANCH }}
+          ref: ${{ inputs.CLOUD_BRANCH }}
 
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -114,9 +115,9 @@ jobs:
           helm install installer kb-chart/kb-cloud-installer \
               --namespace kb-cloud \
               --create-namespace \
-              --version ${{ needs.get-test-type.outputs.cloud-branch }} \
+              --version ${{ inputs.CLOUD_BRANCH }} \
               --set image.registry="docker.io" \
-              --set version=${{ needs.get-test-type.outputs.cloud-branch }} \
+              --set version=${{ inputs.CLOUD_BRANCH }} \
               --set kubernetesProvider=k3d \
               --set fqdn.domain=mytest.kubeblocks.com \
               --set tls.enabled=true
@@ -181,7 +182,7 @@ jobs:
           helm install bootstrapper kb-chart/kb-cloud-bootstrapper \
             --namespace kb-system \
             --create-namespace \
-            --version ${{ needs.get-test-type.outputs.cloud-branch }} \
+            --version ${{ inputs.CLOUD_BRANCH }} \
             --set image.registry="docker.io" \
             --set license="${CLOUD_LICENSE}" \
             --set kubeconfig="${K8S_KUBECONFIG}"
