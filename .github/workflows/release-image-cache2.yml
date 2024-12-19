@@ -88,6 +88,11 @@ on:
         type: string
         required: false
         default: 'main'
+      ADD_ADDONS:
+        description: "The addons of kubeblocks-addons add to apecloud-addons"
+        type: string
+        required: false
+        default: ''
 
 env:
   DOCKER_REGISTRY_URL: docker.io
@@ -134,14 +139,6 @@ jobs:
           path: ./${{ inputs.GITHUB_REPO }}
           token: ${{ env.GITHUB_TOKEN }}
 
-      - name: copy apecloud addons
-        if: ${{ contains(inputs.GITHUB_REPO, 'addons') }}
-        run: |
-          addons_dir="./${{ inputs.GITHUB_REPO }}/addons"
-          if [[ -d "$addons_dir" && -d ./addons ]]; then
-              cp -r $addons_dir/* ./addons
-          fi
-
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
         with:
@@ -149,6 +146,30 @@ jobs:
           path: apecloud-cd
           token: ${{ env.GITHUB_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
+
+      - name: Checkout kubeblocks-addons Code
+        uses: actions/checkout@v4
+        if: ${{ inputs.IMG == 'apecloud/apecloud-addon-charts' && inputs.ADD_ADDONS != '' }}
+        with:
+          repository: apecloud/kubeblocks-addons
+          path: kubeblocks-addons
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ github.ref_name }}
+
+      - name: copy kubeblocks addons ${{ inputs.ADD_ADDONS }}
+        if: ${{ inputs.IMG == 'apecloud/apecloud-addon-charts' && inputs.ADD_ADDONS != '' }}
+        run: |
+          kubeblocks_addons_dir="./kubeblocks-addons/addons"
+          apecloud_addons_dir="./addons"
+          add_addons="${{ inputs.ADD_ADDONS }}"
+          for add_addon in $(echo "$add_addons" | sed 's/|/ /g'); do
+              kb_addon_dir="${kubeblocks_addons_dir}/${add_addon}"
+              ape_addon_dir="${apecloud_addons_dir}/${add_addon}"
+              if [[ -d "${kb_addon_dir}" && ! -d "${ape_addon_dir}" ]]; then
+                  echo "copy $kb_addon_dir to $ape_addon_dir"
+                  cp -r ${kb_addon_dir} ${apecloud_addons_dir}
+              fi
+          done
 
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3

@@ -70,7 +70,7 @@ permissions:
 jobs:
   kbcli-test-k3s:
     name: test ${{ inputs.test-type-name }}
-    runs-on: [ self-hosted, k3d-runner ]
+    runs-on: [ self-hosted, eks-k3d-runner ]
     outputs:
       test-result: ${{ steps.kbcli_test_k3s.outputs.test-result }}
       pre-test-result: ${{ steps.kbcli_test_k3s.outputs.pre-test-result }}

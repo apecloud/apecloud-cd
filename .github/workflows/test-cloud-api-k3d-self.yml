@@ -121,13 +121,13 @@ jobs:
       CLOUD_PROVIDER: "eks"
       GITHUB_REPO: "${{ github.repository }}"
       RUNNER_NAMESPACE: "default"
-      RUNNER_LABEL: "k3s-runner"
+      RUNNER_LABEL: "eks-k3d-runner"
     secrets: inherit
 
   e2e-k3s-test:
     needs: [ get-test-type, enable-runner ]
     if: ${{ needs.get-test-type.outputs.test-installer == 'true' }}
-    name: ${{ matrix.test-type }}
+    name: ${{ matrix.test-type }}-k3s
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.get-test-type.outputs.test-type) }}
@@ -137,7 +137,7 @@ jobs:
       engine-test-result: ${{ steps.get_test_result.outputs.engine-test-result }}
       test-result: ${{ steps.get_test_result.outputs.test-result }}
       runner-name: ${{ steps.get_runner_name.outputs.runner-name }}
-    runs-on: [ self-hosted, k3s-runner ]
+    runs-on: [ self-hosted, eks-k3d-runner ]
     steps:
       - name: get go version
         run: |
@@ -392,16 +392,16 @@ jobs:
           for test_type_tmp in $(echo "${TEST_TYPES}" | sed 's/|/ /g' ); do
               case "$test_type_tmp" in
                   openapi-test)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-k3s-test.outputs.openapi-test-result }}"
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-k3s|${{ needs.e2e-k3s-test.outputs.openapi-test-result }}"
                   ;;
                   adminapi-test)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-k3s-test.outputs.adminapi-test-result }}"
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-k3s|${{ needs.e2e-k3s-test.outputs.adminapi-test-result }}"
                   ;;
                   engine-test)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-k3s-test.outputs.engine-test-result }}"
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-k3s|${{ needs.e2e-k3s-test.outputs.engine-test-result }}"
                   ;;
                   *)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-k3s-test.outputs.test-result }}"
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-k3s|${{ needs.e2e-k3s-test.outputs.test-result }}"
                   ;;
               esac
           done
@@ -439,6 +439,6 @@ jobs:
       CLOUD_PROVIDER: "eks"
       GITHUB_REPO: "${{ github.repository }}"
       RUNNER_NAMESPACE: "default"
-      RUNNER_LABEL: "k3s-runner"
+      RUNNER_LABEL: "eks-k3d-runner"
       ENABLE: "disable"
     secrets: inherit
