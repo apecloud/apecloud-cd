@@ -233,7 +233,6 @@ jobs:
           IDC1_RELEASE_VERSION="${{ vars.IDC1_RELEASE_VERSION }}"
           IDC2_RELEASE_VERSION="${{ vars.IDC2_RELEASE_VERSION }}"
           IDC4_RELEASE_VERSION="${{ vars.IDC4_RELEASE_VERSION }}"
-          VKE_TEST_RELEASE_VERSION="${{ vars.VKE_TEST_RELEASE_VERSION }}"
           if [[ "${{ inputs.VERSION }}" == "${DEMO_RELEASE_VERSION}."* ]]; then
               echo "set PG HOST Env DEMO"
               POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_DEMO }}"
@@ -254,11 +253,6 @@ jobs:
               POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_IDC2 }}"
               POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_IDC2 }}"
               POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_IDC2 }}"
-          elif [[ "${{ inputs.VERSION }}" == "${VKE_TEST_RELEASE_VERSION}."* ]]; then
-              echo "set PG HOST Env VKE TEST"
-              POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_VKE_TEST }}"
-              POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_VKE_TEST }}"
-              POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_VKE_TEST }}"
           else
               echo "set PG HOST Env DEV"
               POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_DEV }}"

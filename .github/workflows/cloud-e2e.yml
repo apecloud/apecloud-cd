@@ -24,10 +24,10 @@ on:
         required: false
         default: 'main'
       GO_VERSION:
-        description: "The specify version of GO (e.g. 1.22)"
+        description: "The specify version of GO (e.g. 1.23)"
         type: string
         required: false
-        default: '1.22'
+        default: '1.23'
       K3S_VERSION:
         description: 'k3s cluster version (e.g. 1.30)'
         type: string
@@ -38,6 +38,11 @@ on:
         type: string
         required: false
         default: 'main'
+      CURRENT_VERSION:
+        description: "The current release version (e.g. v0.30) "
+        type: string
+        required: false
+        default: ''
   workflow_call:
     inputs:
       TEST_TYPE:
@@ -61,10 +66,10 @@ on:
         required: false
         default: 'main'
       GO_VERSION:
-        description: "The specify version of GO (e.g. 1.22)"
+        description: "The specify version of GO (e.g. 1.23)"
         type: string
         required: false
-        default: '1.22'
+        default: '1.23'
       K3S_VERSION:
         description: 'k3s cluster version (e.g. 1.30)'
         type: string
@@ -75,6 +80,11 @@ on:
         type: string
         required: false
         default: 'main'
+      CURRENT_VERSION:
+        description: "The current release version (e.g. v0.30) "
+        type: string
+        required: false
+        default: ''
 
 run-name: E2E Test ${{ inputs.TEST_TYPE }} ${{ inputs.TEST_ENGINES }} on Env:${{ inputs.CLOUD_ENV_NAME }} Ref:${{ inputs.CLOUD_BRANCH }}
 
@@ -102,6 +112,8 @@ jobs:
       test-type: ${{ steps.get_test_type.outputs.test-type }}
       cloud-branch: ${{ steps.get_test_type.outputs.cloud-branch }}
       cloud-env-name: ${{ steps.get_test_type.outputs.cloud-env-name }}
+      test-engines: ${{ steps.get_test_type.outputs.test-engines }}
+      test-e2e: ${{ steps.get_test_type.outputs.test-e2e }}
       test-installer: ${{ steps.get_test_type.outputs.test-installer }}
     steps:
       - name: Get test type
@@ -131,16 +143,37 @@ jobs:
           fi
           echo cloud-env-name="$CLOUD_ENV_NAME" >> $GITHUB_OUTPUT
           
+          TEST_ENGINES="${{ inputs.TEST_ENGINES }}"
+          if [[ -z "$TEST_ENGINES" ]]; then
+              TEST_ENGINES="mysql"
+          fi
+          echo test-engines="$TEST_ENGINES" >> $GITHUB_OUTPUT
+          
           # check test installer
           TEST_INSTALLER="false"
+          TEST_E2E="false"
           if [[ "${CLOUD_BRANCH}" == "v"*"."*"."* ]]; then
               TEST_INSTALLER="true"
+          else
+              TEST_E2E="true"
           fi
           echo test-installer="$TEST_INSTALLER" >> $GITHUB_OUTPUT
+          
+          # check test e2e on dev
+          CURRENT_VERSION="${{ inputs.CURRENT_VERSION }}"
+          if [[ -n "${CURRENT_VERSION}" && "${CURRENT_VERSION}" != "v"* ]]; then
+              CURRENT_VERSION="v${CURRENT_VERSION}"
+          fi
+          
+          if [[ -n "${CURRENT_VERSION}" && "${CLOUD_BRANCH}" == "${CURRENT_VERSION}."* ]]; then
+              TEST_E2E="true"
+          fi
+          echo test-e2e="$TEST_E2E" >> $GITHUB_OUTPUT
 
   e2e-test:
     needs: [ get-test-type ]
-    name: ${{ matrix.test-type }}
+    if: ${{ needs.get-test-type.outputs.test-e2e == 'true' }}
+    name: ${{ matrix.test-type }}-${{ needs.get-test-type.outputs.cloud-env-name }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.get-test-type.outputs.test-type) }}
@@ -155,7 +188,7 @@ jobs:
         run: |
           GO_VERSION="${{ inputs.GO_VERSION }}"
           if [[ -z "$GO_VERSION" ]]; then
-              GO_VERSION="1.22"
+              GO_VERSION="1.23"
           fi
           echo GO_VERSION="$GO_VERSION" >> $GITHUB_ENV
 
@@ -177,7 +210,7 @@ jobs:
       - name: Setup Go specify version
         uses: actions/setup-go@v3
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version: "${{ env.GO_VERSION }}"
 
       - name: git config
         run: |
@@ -244,21 +277,15 @@ jobs:
           file_log="test_result.log"
           touch ${file_log} 
           
-          TEST_ENGINES="${{ inputs.TEST_ENGINES }}"
-          if [[ -z "$TEST_ENGINES" ]]; then
-              TEST_ENGINES="mysql"
-          fi
-          
           for env_vars in $(echo "${E2E_ENV_VARS}" | sed 's/|/ /g'); do
               eval_cmd="export $env_vars"
               echo "$eval_cmd"
               eval "$eval_cmd"
           done
           
-          if [[ -n "${TEST_ENGINES}" ]]; then
-              echo "export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}"
-              export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}
-          fi
+          TEST_ENGINES="${{ needs.get-test-type.outputs.test-engines }}"
+          echo "export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}"
+          export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}
           
           TEST_TYPE="${{ matrix.test-type }}"
           if [[ -z "$TEST_TYPE" ]]; then
@@ -319,10 +346,10 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: "1.22"
+          go-version: "${{ env.GO_VERSION }}"
 
       - name: setup k3d k3s
-        uses: nolar/setup-k3d-k3s@v1
+        uses: apecloud-inc/setup-k3d-k3s@v2
         with:
           k3d-name: "${{ env.K3D_NAME }}"
           version: "v${{ inputs.K3S_VERSION }}"
@@ -496,10 +523,10 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: "1.22"
+          go-version: "${{ env.GO_VERSION }}"
 
       - name: setup k3d k3s
-        uses: nolar/setup-k3d-k3s@v1
+        uses: apecloud-inc/setup-k3d-k3s@v2
         with:
           k3d-name: "${{ env.K3D_NAME }}"
           version: "v${{ inputs.K3S_VERSION }}"
@@ -654,8 +681,58 @@ jobs:
               echo upgrade-result="${upgrade_result}" >> $GITHUB_OUTPUT
           fi
 
+  enable-runner:
+    needs: [ get-test-type ]
+    if: ${{ needs.get-test-type.outputs.test-installer == 'true' }}
+    uses: ./.github/workflows/enable-self-runner.yml
+    with:
+      CLOUD_PROVIDER: "eks"
+      GITHUB_REPO: "${{ github.repository }}"
+      RUNNER_NAMESPACE: "default"
+      RUNNER_LABEL: "eks-k3d-runner"
+    secrets: inherit
+
+  openapi-test-k3s:
+    if: ${{ needs.get-test-type.outputs.test-installer == 'true' && contains(inputs.TEST_TYPE, 'openapi-test') }}
+    needs: [ get-test-type, enable-runner ]
+    uses: ./.github/workflows/cloud-e2e-k3s-test.yml
+    with:
+      TEST_TYPE: "openapi-test"
+      TEST_ENGINES: "${{ needs.get-test-type.outputs.test-engines }}"
+      CLOUD_BRANCH: "${{ needs.get-test-type.outputs.cloud-branch }}"
+      GO_VERSION: "${{ inputs.GO_VERSION }}"
+      K3S_VERSION: "${{ inputs.K3S_VERSION }}"
+      APECD_REF: ${{ inputs.APECD_REF }}
+    secrets: inherit
+
+  adminapi-test-k3s:
+    if: ${{ needs.get-test-type.outputs.test-installer == 'true' && contains(inputs.TEST_TYPE, 'adminapi-test') }}
+    needs: [ get-test-type, enable-runner ]
+    uses: ./.github/workflows/cloud-e2e-k3s-test.yml
+    with:
+      TEST_TYPE: "adminapi-test"
+      TEST_ENGINES: "${{ needs.get-test-type.outputs.test-engines }}"
+      CLOUD_BRANCH: "${{ needs.get-test-type.outputs.cloud-branch }}"
+      GO_VERSION: "${{ inputs.GO_VERSION }}"
+      K3S_VERSION: "${{ inputs.K3S_VERSION }}"
+      APECD_REF: ${{ inputs.APECD_REF }}
+    secrets: inherit
+
+  engine-test-k3s:
+    if: ${{ needs.get-test-type.outputs.test-installer == 'true' && contains(inputs.TEST_TYPE, 'engine-test') }}
+    needs: [ get-test-type, enable-runner ]
+    uses: ./.github/workflows/cloud-e2e-k3s-test.yml
+    with:
+      TEST_TYPE: "engine-test"
+      TEST_ENGINES: "${{ needs.get-test-type.outputs.test-engines }}"
+      CLOUD_BRANCH: "${{ needs.get-test-type.outputs.cloud-branch }}"
+      GO_VERSION: "${{ inputs.GO_VERSION }}"
+      K3S_VERSION: "${{ inputs.K3S_VERSION }}"
+      APECD_REF: ${{ inputs.APECD_REF }}
+    secrets: inherit
+
   send-message:
-    needs: [ get-test-type, e2e-test, installer-test, upgrade-test ]
+    needs: [ get-test-type, e2e-test, openapi-test-k3s, adminapi-test-k3s, engine-test-k3s, installer-test, upgrade-test ]
     runs-on: ubuntu-latest
     if: ${{ always() }}
     steps:
@@ -670,22 +747,23 @@ jobs:
           CLOUD_BRANCH="${{ needs.get-test-type.outputs.cloud-branch }}"
           CLOUD_ENV_NAME="${{ needs.get-test-type.outputs.cloud-env-name }}"
           TEST_INSTALLER="${{ needs.get-test-type.outputs.test-installer }}"
+          TEST_ENGINES="${{ needs.get-test-type.outputs.test-engines }}"
           
           TEST_RESULT=""
           TEST_TYPES="${{ inputs.TEST_TYPE }}"
           for test_type_tmp in $(echo "${TEST_TYPES}" | sed 's/|/ /g' ); do
               case "$test_type_tmp" in
                   openapi-test)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-test.outputs.openapi-test-result }}"
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.openapi-test-result }}"
                   ;;
                   adminapi-test)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-test.outputs.adminapi-test-result }}"
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.adminapi-test-result }}"
                   ;;
                   engine-test)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-test.outputs.engine-test-result }}"
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.engine-test-result }}"
                   ;;
                   *)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-test.outputs.test-result }}"
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.test-result }}"
                   ;;
               esac
           done
@@ -699,7 +777,27 @@ jobs:
           echo "TEST_RESULT:${TEST_RESULT}"
           
           TEST_RESULT_INSTALLER=""
+          TEST_RESULT_K3S=""
           if [[ "${TEST_INSTALLER}" == "true" ]]; then
+              if [[ "$TEST_TYPES" == *"openapi-test"* ]]; then
+                  TEST_RESULT_K3S="${TEST_RESULT_K3S}##openapi-test-k3s|${{ needs.openapi-test-k3s.outputs.test-result }}"
+              fi
+          
+              if [[ "$TEST_TYPES" == *"adminapi-test"* ]]; then
+              TEST_RESULT_K3S="${TEST_RESULT_K3S}##adminapi-test-k3s|${{ needs.adminapi-test-k3s.outputs.test-result }}"
+              fi
+          
+              if [[ "$TEST_TYPES" == *"engine-test"* ]]; then
+              TEST_RESULT_K3S="${TEST_RESULT_K3S}##engine-test-k3s|${{ needs.engine-test-k3s.outputs.test-result }}"
+              fi
+          
+              echo "TEST_RESULT_K3S:${TEST_RESULT_K3S}"
+              TEST_RESULT_K3S=$( bash .github/utils/utils.sh --type 12 \
+                  --github-repo "${{ github.repository }}" \
+                  --github-token "${{ env.GH_TOKEN }}" \
+                  --test-result "${TEST_RESULT_K3S}" \
+                  --run-id "$GITHUB_RUN_ID" )
+          
               echo "get installer test result"
               INSTALLER_RESULT="${{ needs.installer-test.outputs.installer-result }}"
               if [[ -z "${INSTALLER_RESULT}" ]]; then
@@ -721,11 +819,11 @@ jobs:
                   UPGRADE_RESULT="[FAILED]"
               fi
               
-              TEST_RESULT_INSTALLER="installer-test|installer|${INSTALLER_RESULT}"
-              TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##installer-test|bootstrapper|${BOOTSTRAPPER_RESULT}"
+              TEST_RESULT_INSTALLER="installer-test|installer-${CLOUD_BRANCH}|${INSTALLER_RESULT}"
+              TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##installer-test|bootstrapper-${CLOUD_BRANCH}|${BOOTSTRAPPER_RESULT}"
           
               TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##upgrade-test|installer-${CLOUD_PRE_VERSION}|${INSTALLER_PRE_RESULT}"
-              TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##upgrade-test|upgrade|${UPGRADE_RESULT}"
+              TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##upgrade-test|upgrade-${CLOUD_BRANCH}|${UPGRADE_RESULT}"
               echo "TEST_RESULT_INSTALLER:${TEST_RESULT_INSTALLER}" 
           
               TEST_RESULT_INSTALLER=$( bash .github/utils/utils.sh --type 38 \
@@ -735,18 +833,36 @@ jobs:
                   --run-id "$GITHUB_RUN_ID" )
               echo "TEST_RESULT_INSTALLER:$TEST_RESULT_INSTALLER"
           fi
+          
+          if [[ -n "${TEST_RESULT_K3S}" ]]; then
+              TEST_RESULT="${TEST_RESULT_K3S}##${TEST_RESULT}"
+              echo "TEST_RESULT:${TEST_RESULT}"
+          fi
+          
           if [[ -n "${TEST_RESULT_INSTALLER}" ]]; then
               TEST_RESULT="${TEST_RESULT_INSTALLER}##${TEST_RESULT}"
               echo "TEST_RESULT:${TEST_RESULT}"
           fi
           
           date_ret=$(date +%Y-%m-%d-%T)
-          TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${{ inputs.TEST_ENGINES }} on Env:${CLOUD_ENV_NAME} [${date_ret}]"
+          TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${TEST_ENGINES} [${date_ret}]"
           if [[ "${TEST_INSTALLER}" == "true" ]]; then
-              TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${{ inputs.TEST_ENGINES }} on Env:${CLOUD_ENV_NAME}; Installer on Env:K3s [${date_ret}]"
+              TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${TEST_ENGINES} & Cloud Installer [${date_ret}]"
           fi
           
           python3 .github/utils/send_mesage.py \
               --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
+
+  disable-runner:
+    if: ${{ always() && needs.get-test-type.outputs.test-installer == 'true' }}
+    needs: [ get-test-type, openapi-test-k3s, adminapi-test-k3s, engine-test-k3s ]
+    uses: ./.github/workflows/enable-self-runner.yml
+    with:
+      CLOUD_PROVIDER: "eks"
+      GITHUB_REPO: "${{ github.repository }}"
+      RUNNER_NAMESPACE: "default"
+      RUNNER_LABEL: "eks-k3d-runner"
+      ENABLE: "disable"
+    secrets: inherit

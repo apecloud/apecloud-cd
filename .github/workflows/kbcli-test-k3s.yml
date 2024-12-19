@@ -82,7 +82,7 @@ jobs:
       CLOUD_PROVIDER: "eks"
       GITHUB_REPO: "${{ github.repository }}"
       RUNNER_NAMESPACE: "default"
-      RUNNER_LABEL: "k3d-runner"
+      RUNNER_LABEL: "eks-k3d-runner"
     secrets: inherit
 
   test-apecloud-mysql:
@@ -1217,6 +1217,6 @@ jobs:
       CLOUD_PROVIDER: "eks"
       GITHUB_REPO: "${{ github.repository }}"
       RUNNER_NAMESPACE: "default"
-      RUNNER_LABEL: "k3d-runner"
+      RUNNER_LABEL: "eks-k3d-runner"
       ENABLE: "disable"
     secrets: inherit
