@@ -349,7 +349,7 @@ jobs:
           go-version: "${{ env.GO_VERSION }}"
 
       - name: setup k3d k3s
-        uses: nolar/setup-k3d-k3s@v1
+        uses: apecloud-inc/setup-k3d-k3s@v2
         with:
           k3d-name: "${{ env.K3D_NAME }}"
           version: "v${{ inputs.K3S_VERSION }}"
@@ -526,7 +526,7 @@ jobs:
           go-version: "${{ env.GO_VERSION }}"
 
       - name: setup k3d k3s
-        uses: nolar/setup-k3d-k3s@v1
+        uses: apecloud-inc/setup-k3d-k3s@v2
         with:
           k3d-name: "${{ env.K3D_NAME }}"
           version: "v${{ inputs.K3S_VERSION }}"

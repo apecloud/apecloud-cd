@@ -212,7 +212,7 @@ jobs:
 
       - name: setup k3s ${{ inputs.K3S_VERSION }}
         if: inputs.CHART_NAME
-        uses: nolar/setup-k3d-k3s@v1
+        uses: apecloud-inc/setup-k3d-k3s@v2
         with:
           version: ${{ inputs.K3S_VERSION }}
           github-token: ${{ env.CR_TOKEN }}
