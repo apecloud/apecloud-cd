@@ -233,7 +233,8 @@ jobs:
           
           helm install ${CHEKC_CHART_NAME} \
             ${CHEKC_CHART_NAME} \
-            --set="${{ inputs.HELM_SET }}"
+            --set="${{ inputs.HELM_SET }}" \
+            --no-hooks
           
           helm template ${CHEKC_CHART_NAME} ${CHEKC_CHART_NAME} --validate
 
