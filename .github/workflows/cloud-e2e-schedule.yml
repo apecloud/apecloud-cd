@@ -2,7 +2,7 @@ name: Cloud E2E Schedule
 
 on:
   schedule:
-    - cron: '0 17 * * 0-4' # Runs at 01:00 UTC on Mon to Friday
+    - cron: '0 21 * * 0-4' # Runs at 05:00 UTC on Mon to Friday
 
 jobs:
   e2e-test:
