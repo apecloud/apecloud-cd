@@ -238,7 +238,7 @@ jobs:
               POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_DEMO }}"
               POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_DEMO }}"
               POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_DEMO }}"
-          elif [[ "${RELEASE_VERSION}" == "${IDC1_RELEASE_VERSION}" ]]; then
+          elif [[ "${RELEASE_VERSION}" == "${IDC1_RELEASE_VERSION}."* ]]; then
               echo "set PG HOST Env IDC1"
               POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_IDC1 }}"
               POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_IDC1 }}"
