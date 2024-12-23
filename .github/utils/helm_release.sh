@@ -85,6 +85,7 @@ release_charts() {
 }
 
 check_latest_commit() {
+    retry_times=0
     for i in {1..5}; do
         # Get the latest commit hash of the remote branch gh-pages
         remote_commit=$(git ls-remote origin refs/heads/gh-pages | awk '{print $1}')
@@ -95,15 +96,18 @@ check_latest_commit() {
         # Compare the remote and local commit hashes
         if [[ "$remote_commit" == "$local_commit" ]]; then
             echo "The local branch is already up-to-date, no update needed."
-            break
+            if [ $retry_times -eq 1 ]; then
+                break
+            fi
+            retry_times=1
         else
             echo "Detected new commits on the remote branch, updating the local branch..."
             # Try to pull the latest changes from the remote branch
             git pull origin gh-pages
-
             if [ $? -eq 0 ]; then
                 echo "The local branch has been successfully updated to the latest commit."
             fi
+            retry_times=0
         fi
         sleep 1
     done
