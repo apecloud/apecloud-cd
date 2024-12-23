@@ -345,15 +345,23 @@ jobs:
       - name: Upload and Index Helm Charts
         if: inputs.PUSH_ENABLE
         continue-on-error: true
+        id: upload_index_helm_charts
         shell: bash
         run: |
           cd helm-charts
           args=(--owner "apecloud" --repo "helm-charts")
+          UPLOAD_FLAG=0
+          echo "upload-flag=${UPLOAD_FLAG}" >> $GITHUB_OUTPUT
           
           "${{ github.workspace }}/apecloud-cd/.github/utils/helm_release.sh" "${args[@]}"
+          index_ret=$?
+          if [[ $index_ret -eq 0 ]]; then
+              UPLOAD_FLAG=1
+              echo "upload-flag=${UPLOAD_FLAG}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Index Helm Charts retry
-        if: ${{ inputs.PUSH_ENABLE && failure() }}
+        if: ${{ inputs.PUSH_ENABLE && steps.upload_index_helm_charts.outputs.upload-flag == '0' }}
         shell: bash
         run: |
           cd helm-charts
