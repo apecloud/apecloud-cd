@@ -344,12 +344,22 @@ jobs:
 
       - name: Upload and Index Helm Charts
         if: inputs.PUSH_ENABLE
+        continue-on-error: true
         shell: bash
         run: |
           cd helm-charts
           args=(--owner "apecloud" --repo "helm-charts")
           
           "${{ github.workspace }}/apecloud-cd/.github/utils/helm_release.sh" "${args[@]}"
+
+      - name: Index Helm Charts retry
+        if: ${{ inputs.PUSH_ENABLE && failure() }}
+        shell: bash
+        run: |
+          cd helm-charts
+          args=(--owner "apecloud" --repo "helm-charts")
+          
+          "${{ github.workspace }}/apecloud-cd/.github/utils/helm_release_update_index.sh" "${args[@]}"
 
       - name: Set registry and repository ${{ env.ALIYUN_REGISTRY_URL }}
         if: ${{ inputs.SET_REGISTRY || inputs.CHART_DIR == 'addons' }}
