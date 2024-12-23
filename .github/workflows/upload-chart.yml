@@ -91,9 +91,19 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Upload and Index Helm Charts
+        continue-on-error: true
         shell: bash
         run: |
           cd helm-charts
           args=(--owner "apecloud" --repo "helm-charts")
           
           bash ${{ github.workspace }}/.github/utils/helm_release.sh "${args[@]}"
+
+      - name: Index Helm Charts retry
+        if: ${{ failure() }}
+        shell: bash
+        run: |
+          cd helm-charts
+          args=(--owner "apecloud" --repo "helm-charts")
+          
+          bash ${{ github.workspace }}/.github/utils/helm_release_update_index.sh "${args[@]}"

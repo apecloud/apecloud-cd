@@ -5,9 +5,6 @@ set -o nounset
 set -o pipefail
 
 DEFAULT_CHART_RELEASER_VERSION=v1.6.1
-GITHUB_API="https://api.github.com"
-DELETE_CHARTS_DIR=".cr-release-packages"
-DEFAULT_GITHUB_REPO="apecloud/helm-charts"
 
 show_help() {
 cat << EOF
@@ -18,73 +15,11 @@ Usage: $(basename "$0") <options>
     -o, --owner              The repo owner
     -r, --repo               The repo name
     -n, --install-dir        The Path to install the cr tool
-    -gr, --github-repo       Github repo
 EOF
 }
 
-gh_curl() {
-    if [[ -z "$CR_TOKEN" ]]; then
-        curl -H "Accept: application/vnd.github.v3.raw" \
-            $@
-    else
-        curl -H "Authorization: token $CR_TOKEN" \
-            -H "Accept: application/vnd.github.v3.raw" \
-            $@
-    fi
-}
-
-delete_release_version() {
-    release_id=$( gh_curl -s $GITHUB_API/repos/$GITHUB_REPO/releases/tags/$TAG_NAME | jq -r '.id' )
-    if [[ -n "$release_id" && "$release_id" != "null" ]]; then
-        echo "delete $GITHUB_REPO release $TAG_NAME"
-        gh_curl -s -X DELETE $GITHUB_API/repos/$GITHUB_REPO/releases/$release_id
-    fi
-    echo "delete $GITHUB_REPO tag $TAG_NAME"
-    gh_curl -s -X DELETE  $GITHUB_API/repos/$GITHUB_REPO/git/refs/tags/$TAG_NAME
-}
-
-filter_charts() {
-    while read -r chart_name; do
-        TAG_NAME=${chart_name%*.tgz}
-        delete_release_version &
-    done
-    wait
-}
-
-delete_release_charts() {
-    charts_files=$( ls -1 $DELETE_CHARTS_DIR )
-    echo "$charts_files" | filter_charts
-}
-
-release_charts() {
-    local args=( -o "$owner" -r "$repo" -c "$(git rev-parse HEAD)" -t $CR_TOKEN --make-release-latest false --skip-existing )
-
-    echo "Releasing charts..."
-    cr upload "${args[@]}"
-
-    charts_files=$( ls -1 $DELETE_CHARTS_DIR )
-    check_flag=0
-    for i in {1..10}; do
-        check_flag=0
-        for chart_name in $(echo "$charts_files");do
-            tag_name=${chart_name%*.tgz}
-            release_id=$( gh_curl -s $GITHUB_API/repos/$GITHUB_REPO/releases/tags/$tag_name | jq -r '.id' )
-            if [[ -z "$release_id" || "$release_id" == "null" ]]; then
-                echo "$(tput -T xterm setaf 3)"checking chart release $tag_name..."$(tput -T xterm sgr0)"
-                cr upload "${args[@]}"
-                check_flag=1
-                break
-            fi
-        done
-        if [[ $check_flag -eq 0 ]]; then
-            echo "$(tput -T xterm setaf 2)Releasing charts Successfully$(tput -T xterm sgr0)"
-            break
-        fi
-        sleep 1
-    done
-}
-
 check_latest_commit() {
+    retry_times=0
     for i in {1..5}; do
         # Get the latest commit hash of the remote branch gh-pages
         remote_commit=$(git ls-remote origin refs/heads/gh-pages | awk '{print $1}')
@@ -95,7 +30,10 @@ check_latest_commit() {
         # Compare the remote and local commit hashes
         if [[ "$remote_commit" == "$local_commit" ]]; then
             echo "The local branch is already up-to-date, no update needed."
-            break
+            if [ $retry_times -eq 1 ]; then
+                break
+            fi
+            retry_times=1
         else
             echo "Detected new commits on the remote branch, updating the local branch..."
             # Try to pull the latest changes from the remote branch
@@ -103,6 +41,7 @@ check_latest_commit() {
             if [ $? -eq 0 ]; then
                 echo "The local branch has been successfully updated to the latest commit."
             fi
+            retry_times=0
         fi
         sleep 1
     done
@@ -120,8 +59,6 @@ main() {
     local owner=""
     local repo=""
     local install_dir=""
-    local GITHUB_REPO="$DEFAULT_GITHUB_REPO"
-    local TAG_NAME=""
 
     parse_command_line "$@"
 
@@ -130,13 +67,7 @@ main() {
     echo 'Adding install_dir to PATH...'
     export PATH="$install_dir:$PATH"
 
-    if [ -d ../.cr-release-packages ]; then
-        mv ../.cr-release-packages .
-        mv ../.cr-index .
-        delete_release_charts
-        release_charts
-        update_index
-    fi
+    update_index
 }
 
 parse_command_line() {
@@ -170,12 +101,6 @@ parse_command_line() {
                     shift
                 fi
                 ;;
-            -gr|--github-repo)
-                if [[ -n "${2:-}" ]]; then
-                    GITHUB_REPO="$2"
-                    shift
-                fi
-            ;;
             *)
                 break
                 ;;
