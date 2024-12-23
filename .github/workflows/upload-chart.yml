@@ -101,9 +101,11 @@ jobs:
           echo "upload-flag=${UPLOAD_FLAG}" >> $GITHUB_OUTPUT
           
           bash ${{ github.workspace }}/.github/utils/helm_release.sh "${args[@]}"
-          
-          UPLOAD_FLAG=1
-          echo "upload-flag=${UPLOAD_FLAG}" >> $GITHUB_OUTPUT
+          index_ret=$?
+          if [[ $index_ret -eq 0 ]]; then
+              UPLOAD_FLAG=1
+              echo "upload-flag=${UPLOAD_FLAG}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Index Helm Charts retry
         if: ${{ steps.upload_index_helm_charts.outputs.upload-flag == '0' }}
