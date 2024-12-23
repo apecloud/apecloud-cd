@@ -111,7 +111,7 @@ check_latest_commit() {
 
 update_index() {
     local args=(-o "$owner" -r "$repo" -t $CR_TOKEN --push)
-    # check_latest_commit
+    check_latest_commit
     echo 'Updating charts repo index...'
     cr index "${args[@]}"
 }

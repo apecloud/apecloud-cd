@@ -317,6 +317,7 @@ jobs:
           repository: apecloud/helm-charts
           path: helm-charts
           token: ${{ env.CR_TOKEN }}
+          ref: gh-pages
 
       - name: Checkout kubeblocks-addons Code
         if: inputs.PUSH_ENABLE
@@ -407,7 +408,7 @@ jobs:
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
             --type 3  \
             --asset-path ./ \
-            --charts-dir "${{ github.workspace }}/kubeblocks-addons/addons|${{ github.workspace }}/helm-charts/charts|${{ github.workspace }}/deploy" \
+            --charts-dir "${{ github.workspace }}/kubeblocks-addons/addons|${{ github.workspace }}/deploy" \
             --access-token "${{ env.JIHULAB_ACCESS_TOKEN }}" \
             --access-user "${{ env.JIHULAB_ACCESS_USER }}"\
             --project-id "${{ inputs.PROJECT_ID }}"

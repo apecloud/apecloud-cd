@@ -305,6 +305,7 @@ jobs:
           repository: apecloud/helm-charts-enterprise
           path: helm-charts-enterprise
           token: ${{ env.CR_TOKEN }}
+          ref: gh-pages
 
       - name: Fetch helm-charts-enterprise History And Configure Git
         if: inputs.PUSH_ENABLE
