@@ -334,7 +334,7 @@ jobs:
           fi
 
       - name: Index Helm Charts retry
-        if: ${{ steps.upload_index_helm_charts.outputs.upload-flag == '0' }}
+        if: ${{ inputs.PUSH_ENABLE && steps.upload_index_helm_charts.outputs.upload-flag == '0' }}
         shell: bash
         run: |
           cd helm-charts-enterprise
