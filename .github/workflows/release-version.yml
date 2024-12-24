@@ -239,7 +239,7 @@ jobs:
 
       - name: Delete branch support/auto-update-manifests-file-version-${{ env.RELEASE_COMMIT }}
         if: ${{ github.repository == 'apecloud/apecloud' && needs.get-version.outputs.release-branch == 'main' && steps.get_release_commit.outputs.file_changes }}
-        continues-on-error: true
+        continue-on-error: true
         run: |
           git config --global user.name "$GITHUB_ACTOR"
           git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
