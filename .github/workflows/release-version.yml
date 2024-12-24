@@ -148,12 +148,15 @@ jobs:
         with:
           ref: ${{ env.CUR_BRANCH }}
           fetch-depth: 0
+          token: ${{ env.GH_TOKEN }}
 
       - name: checkout branch ${{ github.ref_name }}
         if: ${{ inputs.RELEASE_VERSION != '' || env.CUR_BRANCH == '' }}
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.ref_name }}
           fetch-depth: 0
+          token: ${{ env.GH_TOKEN }}
 
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -208,7 +211,7 @@ jobs:
           echo 'RELEASE_COMMIT='${RELEASE_COMMIT} >> $GITHUB_ENV
 
       - name: push changes to new branch
-        if: ${{ github.repository == 'apecloud/apecloud' && (needs.get-version.outputs.release-branch == 'main' || needs.get-version.outputs.release-branch == 'release-0.28') && steps.get_release_commit.outputs.file_changes }}
+        if: ${{ github.repository == 'apecloud/apecloud' && needs.get-version.outputs.release-branch == 'main' && steps.get_release_commit.outputs.file_changes }}
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ env.GH_TOKEN }}
@@ -221,7 +224,7 @@ jobs:
 
       - name: push changes
         uses: ad-m/github-push-action@master
-        if: ${{ github.repository == 'apecloud/apecloud' && needs.get-version.outputs.release-branch != 'release-0.28' && needs.get-version.outputs.release-branch != 'main' && steps.get_release_commit.outputs.file_changes && !contains(inputs.RELEASE_VERSION, 'alpha') && !contains(inputs.CONTENT, 'alpha') }}
+        if: ${{ github.repository == 'apecloud/apecloud' && needs.get-version.outputs.release-branch != 'main' && steps.get_release_commit.outputs.file_changes && !contains(inputs.RELEASE_VERSION, 'alpha') && !contains(inputs.CONTENT, 'alpha') }}
         with:
           github_token: ${{ env.GH_TOKEN }}
           branch: ${{ needs.get-version.outputs.release-branch }}
@@ -233,6 +236,14 @@ jobs:
           github_token: ${{ env.GH_TOKEN }}
           commit_sha: ${{ env.RELEASE_COMMIT }}
           tag_prefix: ""
+
+      - name: Delete branch support/auto-update-manifests-file-version-${{ env.RELEASE_COMMIT }}
+        if: ${{ github.repository == 'apecloud/apecloud' && needs.get-version.outputs.release-branch == 'main' && steps.get_release_commit.outputs.file_changes }}
+        continues-on-error: true
+        run: |
+          git config --global user.name "$GITHUB_ACTOR"
+          git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git push origin --delete "support/auto-update-manifests-file-version-${{ env.RELEASE_COMMIT }}"
 
   send-message:
     needs: [ get-version, release-version ]
