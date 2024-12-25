@@ -191,9 +191,6 @@ jobs:
           if [[ "${{ github.repository }}" == "apecloud/apecloud" ]]; then
               MANIFESTS_FILE="./manifests/deploy-manifests.yaml"
               RELEASE_VERSION="${{ needs.get-version.outputs.release-version }}"
-              git fetch --prune --unshallow
-              git config user.name "$GITHUB_ACTOR"
-              git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
               COMMIT_SHA="$(git rev-parse HEAD)"
               
               echo "update manifests version to ${RELEASE_VERSION}"
