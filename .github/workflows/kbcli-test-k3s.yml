@@ -450,7 +450,7 @@ jobs:
     secrets: inherit
 
   test-pika:
-    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pika')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pika')) && (contains(inputs.KB_VERSION, 'v0.7.') || contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
