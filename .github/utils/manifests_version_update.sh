@@ -149,7 +149,7 @@ update_manifests_file_version() {
         done
     done
 
-    update_addon_chart_version
+    # update_addon_chart_version
 
     echo "update manifests file ${MANIFESTS_FILE} done!"
 }
