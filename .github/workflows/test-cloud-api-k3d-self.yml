@@ -213,6 +213,7 @@ jobs:
           TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${{ inputs.TEST_ENGINES }} on Env K3s [${date_ret}]"
           
           python3 .github/utils/send_mesage.py \
+              --send-type ginkgo \
               --url "${{ vars.TEST_BOT_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
