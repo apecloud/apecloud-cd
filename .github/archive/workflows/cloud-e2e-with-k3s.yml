@@ -1,4 +1,4 @@
-name: Cloud E2E
+name: Cloud E2E With K3S
 
 on:
   workflow_dispatch:
@@ -681,8 +681,58 @@ jobs:
               echo upgrade-result="${upgrade_result}" >> $GITHUB_OUTPUT
           fi
 
+  enable-runner:
+    needs: [ get-test-type ]
+    if: ${{ needs.get-test-type.outputs.test-installer == 'true' }}
+    uses: ./.github/workflows/enable-self-runner.yml
+    with:
+      CLOUD_PROVIDER: "eks"
+      GITHUB_REPO: "${{ github.repository }}"
+      RUNNER_NAMESPACE: "default"
+      RUNNER_LABEL: "eks-k3d-runner"
+    secrets: inherit
+
+  openapi-test-k3s:
+    if: ${{ needs.get-test-type.outputs.test-installer == 'true' && contains(inputs.TEST_TYPE, 'openapi-test') }}
+    needs: [ get-test-type, enable-runner ]
+    uses: ./.github/workflows/cloud-e2e-k3s-test.yml
+    with:
+      TEST_TYPE: "openapi-test"
+      TEST_ENGINES: "${{ needs.get-test-type.outputs.test-engines }}"
+      CLOUD_BRANCH: "${{ needs.get-test-type.outputs.cloud-branch }}"
+      GO_VERSION: "${{ inputs.GO_VERSION }}"
+      K3S_VERSION: "${{ inputs.K3S_VERSION }}"
+      APECD_REF: ${{ inputs.APECD_REF }}
+    secrets: inherit
+
+  adminapi-test-k3s:
+    if: ${{ needs.get-test-type.outputs.test-installer == 'true' && contains(inputs.TEST_TYPE, 'adminapi-test') }}
+    needs: [ get-test-type, enable-runner ]
+    uses: ./.github/workflows/cloud-e2e-k3s-test.yml
+    with:
+      TEST_TYPE: "adminapi-test"
+      TEST_ENGINES: "${{ needs.get-test-type.outputs.test-engines }}"
+      CLOUD_BRANCH: "${{ needs.get-test-type.outputs.cloud-branch }}"
+      GO_VERSION: "${{ inputs.GO_VERSION }}"
+      K3S_VERSION: "${{ inputs.K3S_VERSION }}"
+      APECD_REF: ${{ inputs.APECD_REF }}
+    secrets: inherit
+
+  engine-test-k3s:
+    if: ${{ needs.get-test-type.outputs.test-installer == 'true' && contains(inputs.TEST_TYPE, 'engine-test') }}
+    needs: [ get-test-type, enable-runner ]
+    uses: ./.github/workflows/cloud-e2e-k3s-test.yml
+    with:
+      TEST_TYPE: "engine-test"
+      TEST_ENGINES: "${{ needs.get-test-type.outputs.test-engines }}"
+      CLOUD_BRANCH: "${{ needs.get-test-type.outputs.cloud-branch }}"
+      GO_VERSION: "${{ inputs.GO_VERSION }}"
+      K3S_VERSION: "${{ inputs.K3S_VERSION }}"
+      APECD_REF: ${{ inputs.APECD_REF }}
+    secrets: inherit
+
   send-message:
-    needs: [ get-test-type, e2e-test, installer-test, upgrade-test ]
+    needs: [ get-test-type, e2e-test, openapi-test-k3s, adminapi-test-k3s, engine-test-k3s, installer-test, upgrade-test ]
     runs-on: ubuntu-latest
     if: ${{ always() }}
     steps:
@@ -719,7 +769,7 @@ jobs:
           done
           
           echo "TEST_RESULT:${TEST_RESULT}"
-          TEST_RESULT=$( bash .github/utils/utils.sh --type 40 \
+          TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
               --github-repo "${{ github.repository }}" \
               --github-token "${{ env.GH_TOKEN }}" \
               --test-result "${TEST_RESULT}" \
@@ -727,7 +777,27 @@ jobs:
           echo "TEST_RESULT:${TEST_RESULT}"
           
           TEST_RESULT_INSTALLER=""
+          TEST_RESULT_K3S=""
           if [[ "${TEST_INSTALLER}" == "true" ]]; then
+              if [[ "$TEST_TYPES" == *"openapi-test"* ]]; then
+                  TEST_RESULT_K3S="${TEST_RESULT_K3S}##openapi-test-k3s|${{ needs.openapi-test-k3s.outputs.test-result }}"
+              fi
+          
+              if [[ "$TEST_TYPES" == *"adminapi-test"* ]]; then
+                  TEST_RESULT_K3S="${TEST_RESULT_K3S}##adminapi-test-k3s|${{ needs.adminapi-test-k3s.outputs.test-result }}"
+              fi
+          
+              if [[ "$TEST_TYPES" == *"engine-test"* ]]; then
+                  TEST_RESULT_K3S="${TEST_RESULT_K3S}##engine-test-k3s|${{ needs.engine-test-k3s.outputs.test-result }}"
+              fi
+          
+              echo "TEST_RESULT_K3S:${TEST_RESULT_K3S}"
+              TEST_RESULT_K3S=$( bash .github/utils/utils.sh --type 12 \
+                  --github-repo "${{ github.repository }}" \
+                  --github-token "${{ env.GH_TOKEN }}" \
+                  --test-result "${TEST_RESULT_K3S}" \
+                  --run-id "$GITHUB_RUN_ID" )
+          
               echo "get installer test result"
               INSTALLER_RESULT="${{ needs.installer-test.outputs.installer-result }}"
               if [[ -z "${INSTALLER_RESULT}" ]]; then
@@ -764,6 +834,11 @@ jobs:
               echo "TEST_RESULT_INSTALLER:$TEST_RESULT_INSTALLER"
           fi
           
+          if [[ -n "${TEST_RESULT_K3S}" ]]; then
+              TEST_RESULT="${TEST_RESULT_K3S}##${TEST_RESULT}"
+              echo "TEST_RESULT:${TEST_RESULT}"
+          fi
+          
           if [[ -n "${TEST_RESULT_INSTALLER}" ]]; then
               TEST_RESULT="${TEST_RESULT_INSTALLER}##${TEST_RESULT}"
               echo "TEST_RESULT:${TEST_RESULT}"
@@ -780,3 +855,15 @@ jobs:
               --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
+
+  disable-runner:
+    if: ${{ always() && needs.get-test-type.outputs.test-installer == 'true' }}
+    needs: [ get-test-type, openapi-test-k3s, adminapi-test-k3s, engine-test-k3s ]
+    uses: ./.github/workflows/enable-self-runner.yml
+    with:
+      CLOUD_PROVIDER: "eks"
+      GITHUB_REPO: "${{ github.repository }}"
+      RUNNER_NAMESPACE: "default"
+      RUNNER_LABEL: "eks-k3d-runner"
+      ENABLE: "disable"
+    secrets: inherit
