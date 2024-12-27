@@ -20,6 +20,11 @@ job_url = args.job_url
 send_type = args.send_type
 
 
+def remove_ansi_escape_sequences(text):
+    ansi_escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
+    return ansi_escape.sub('', text)
+
+
 def colorize_status(status_str):
     if "[PASSED]" in status_str:
         status_str = status_str.replace(f"[PASSED]", f"<font color='green'>[PASSED]</font>")
@@ -38,6 +43,7 @@ def colorize_status(status_str):
 
 
 def get_status_str_color(status_str):
+    status_str = remove_ansi_escape_sequences(status_str)
     if "SUCCESS!" in status_str or "Passed" in status_str:
         status_str = status_str.replace(f"" + status_str + "",
                                         f"<font color='green'>" + status_str + "</font>")
