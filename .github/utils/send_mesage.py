@@ -37,6 +37,45 @@ def colorize_status(status_str):
     return status_str
 
 
+def get_status_str_color(status_str):
+    if "SUCCESS!" in status_str or "Passed" in status_str:
+        status_str = status_str.replace(f"" + status_str + "",
+                                        f"<font color='green'>" + status_str + "</font>")
+    elif "FAIL!" in status_str or "Failed" in status_str:
+        status_str = status_str.replace(f"" + status_str + "",
+                                        f"<font color='red'>" + status_str + "</font>")
+    elif "Pending" in status_str :
+        status_str = status_str.replace(f"" + status_str + "",
+                                        f"<font color='orange'>" + status_str + "</font>")
+    elif "Skipped" in status_str :
+        status_str = status_str.replace(f"" + status_str + "",
+                                        f"<font color='blue'>" + status_str + "</font>")
+    else:
+        status_str = status_str.replace(f"" + status_str + "",
+                                        f"<font color='grey'>" + status_str + "</font>")
+    return status_str
+
+
+def colorize_ginkgo_status(status_rets):
+    status_str_ret = ""
+    for i in range(len(status_rets)):
+        status_str = status_rets[i]
+        if "FAIL! --" in status_str or "SUCCESS! --" in status_str:
+            status_strs = status_str.split("--")
+            status_str_head = get_status_str_color(status_strs[0])
+            status_str_end = get_status_str_color(status_strs[-1])
+            status_str = status_str_head + "--" + status_str_end
+        elif "Passed" in status_str or "Failed" in status_str or "Pending" in status_str or "Skipped" in status_str:
+            status_str = get_status_str_color(status_str)
+        else:
+            continue
+        if status_str_ret == "":
+            status_str_ret = status_str
+        else:
+            status_str_ret = status_str_ret + "|" + status_str
+    return status_str_ret
+
+
 def send_message(url_v, result_v, title_v):
     print("send message")
     json_results = []
@@ -414,6 +453,104 @@ def send_e2e_message(url_v, result_v, title_v):
     print(response.text)
 
 
+def send_ginkgo_message(url_v, result_v, title_v):
+    print("send message")
+    json_results = []
+    json_ret = {
+        "tag": "column_set",
+        "flex_mode": "none",
+        "background_style": "grey",
+        "columns": [
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 1,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Test Type**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 2,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Test Result**",
+                        "text_align": "center"
+                    }
+                ]
+            }
+        ]
+    }
+    json_results.append(json_ret)
+
+    if result_v:
+        result_array = result_v.split("##")
+        for results in result_array:
+            if results:
+                ret = results.split("|")
+                if "FAIL! --" in results or "SUCCESS! --" in results:
+                    ret_4 = colorize_ginkgo_status(ret)
+                else:
+                    ret_4 = colorize_status(ret[1])
+                json_ret = {
+                    "tag": "column_set",
+                    "flex_mode": "none",
+                    "background_style": "default",
+                    "columns": [
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 1,
+                            "vertical_align": "top",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<a href='" + ret[-1] + "'>" + ret[0] + "</a>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 2,
+                            "vertical_align": "top",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": ret_4,
+                                    "text_align": "center"
+                                }
+                            ]
+                        }
+                    ],
+                }
+                json_results.append(json_ret)
+
+    card = json.dumps({
+        "header": {
+            "template": "blue",
+            "title": {
+                "tag": "plain_text",
+                "content": title_v
+            }
+        },
+        "elements": json_results
+    })
+    body = json.dumps({"msg_type": "interactive", "card": card})
+    headers = {"Content-Type": "application/json"}
+    res = requests.post(url=url_v, data=body, headers=headers)
+    print(res.text)
+
+
 def parse_result(result_v):
     print(result_v)
     parts = result_v.split('|')
@@ -432,6 +569,8 @@ if __name__ == '__main__':
         send_report_message(url, result, title)
     elif send_type == "e2e":
         send_e2e_message(url, result, title)
+    elif send_type == "ginkgo":
+        send_ginkgo_message(url, result, title)
     else:
         send_message(url, result, title)
 
