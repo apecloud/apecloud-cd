@@ -294,9 +294,9 @@ jobs:
           make ${TEST_TYPE} | tee -a ${file_log}
           
           test_ret="$( grep "Test Suite Failed" ${file_log} || true )"
-          test_result="$( grep "SUCCESS! --" ${file_log} || true )"
+          test_result="$(cat ${file_log} | (grep 'SUCCESS!' | grep '\-\-' || true))"
           if [[ -z "$test_result" ]]; then
-              test_result="$( grep "FAIL! --" ${file_log} || true )"
+              test_result="$(cat ${file_log} | (grep 'FAIL!' | grep '\-\-' || true))"
           fi
           if [[ -z "$test_result" ]]; then
               test_result="[PASSED]"
