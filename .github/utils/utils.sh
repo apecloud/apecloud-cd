@@ -50,6 +50,7 @@ Usage: $(basename "$0") <options>
                                 37) update k3d coredns configmap
                                 38) get cloud test result
                                 39) get cloud pre version
+                                40) get ginkgo test result
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -374,6 +375,44 @@ get_e2e_test_result() {
             jobs_name=$( echo "$jobs_list" | jq ".jobs[$i].steps[7].name" --raw-output )
             jobs_url=$( echo "$jobs_list" | jq ".jobs[$i].html_url" --raw-output )
             set_e2e_runs_jobs "$jobs_name" "$jobs_url"
+        done
+    done
+    echo "$TEST_RET"
+}
+
+set_ginkgo_runs_jobs() {
+    jobs_name=$1
+    jobs_url=$2
+
+    ginkgo_test=0
+    if [[ "$TEST_RESULT" == *"SUCCESS!"*"--"* || "$TEST_RESULT" == *"FAIL!"*"--"* ]]; then
+        TEST_RESULT="$(echo "${TEST_RESULT}" | sed 's/ /#/g')"
+        ginkgo_test=1
+    fi
+    for test_ret in `echo "$TEST_RESULT" | sed 's/##/ /g'`; do
+        test_type=${test_ret%%|*}
+
+        if [[ "$jobs_name" == *"$test_type" && "$jobs_name" != *"-${test_type}" ]]; then
+            if [[ $ginkgo_test -eq 1 ]]; then
+                test_ret="$(echo "${test_ret}" | sed 's/#/ /g')"
+            fi
+            TEST_RET=$TEST_RET"##$test_ret|$jobs_url"
+        fi
+    done
+}
+
+get_ginkgo_test_result() {
+    for i in {1..2}; do
+        jobs_url="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=$i"
+        jobs_list=$( gh_curl -s $jobs_url )
+        total_count=$( echo "$jobs_list" | jq '.total_count' )
+        for i in $(seq 0 $total_count); do
+            if [[ "$i" == "$total_count" ]]; then
+                break
+            fi
+            jobs_name=$( echo "$jobs_list" | jq ".jobs[$i].name" --raw-output )
+            jobs_url=$( echo "$jobs_list" | jq ".jobs[$i].html_url" --raw-output )
+            set_ginkgo_runs_jobs "$jobs_name" "$jobs_url"
         done
     done
     echo "$TEST_RET"
@@ -1255,6 +1294,9 @@ main() {
         ;;
         39)
             get_cloud_pre_version
+        ;;
+        40)
+            get_ginkgo_test_result
         ;;
     esac
 }
