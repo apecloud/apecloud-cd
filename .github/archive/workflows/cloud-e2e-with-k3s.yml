@@ -769,7 +769,7 @@ jobs:
           done
           
           echo "TEST_RESULT:${TEST_RESULT}"
-          TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
+          TEST_RESULT=$( bash .github/utils/utils.sh --type 40 \
               --github-repo "${{ github.repository }}" \
               --github-token "${{ env.GH_TOKEN }}" \
               --test-result "${TEST_RESULT}" \
@@ -792,7 +792,7 @@ jobs:
               fi
           
               echo "TEST_RESULT_K3S:${TEST_RESULT_K3S}"
-              TEST_RESULT_K3S=$( bash .github/utils/utils.sh --type 12 \
+              TEST_RESULT_K3S=$( bash .github/utils/utils.sh --type 40 \
                   --github-repo "${{ github.repository }}" \
                   --github-token "${{ env.GH_TOKEN }}" \
                   --test-result "${TEST_RESULT_K3S}" \
