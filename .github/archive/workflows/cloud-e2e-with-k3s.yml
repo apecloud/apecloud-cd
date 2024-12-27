@@ -151,21 +151,18 @@ jobs:
           
           # check test installer
           TEST_INSTALLER="false"
-          TEST_E2E="false"
           if [[ "${CLOUD_BRANCH}" == "v"*"."*"."* ]]; then
               TEST_INSTALLER="true"
-          else
-              TEST_E2E="true"
           fi
           echo test-installer="$TEST_INSTALLER" >> $GITHUB_OUTPUT
           
-          # check test e2e on dev
+          # check test e2e
+          TEST_E2E="false"
           CURRENT_VERSION="${{ inputs.CURRENT_VERSION }}"
-          if [[ -n "${CURRENT_VERSION}" && "${CURRENT_VERSION}" != "v"* ]]; then
-              CURRENT_VERSION="v${CURRENT_VERSION}"
-          fi
-          
-          if [[ -n "${CURRENT_VERSION}" && "${CLOUD_BRANCH}" == "${CURRENT_VERSION}."* ]]; then
+          if [[ -n "${CURRENT_VERSION}" ]]; then
+              if [[ "${CURRENT_VERSION}" != "v"* ]]; then
+                  CURRENT_VERSION="v${CURRENT_VERSION}"
+              fi
               TEST_E2E="true"
           fi
           echo test-e2e="$TEST_E2E" >> $GITHUB_OUTPUT
