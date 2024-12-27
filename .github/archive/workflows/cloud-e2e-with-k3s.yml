@@ -292,6 +292,7 @@ jobs:
           
           test_ret="$( grep "Test Suite Failed" ${file_log} || true )"
           test_result="$(cat ${file_log} | (egrep 'SUCCESS!|FAIL!' | grep '\-\-' || true) | tail -n 1)"
+          test_result=$(python3 .github/utils/remove_ansi.py --ansi-str "$test_result")
           if [[ -z "$test_result" ]]; then
               test_result="[PASSED]"
               if [[ -n "$test_ret" ]]; then
