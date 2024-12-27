@@ -267,6 +267,11 @@ jobs:
           make module
           make install-ginkgo
 
+      - name: install python dateutil
+        run: |
+          apt-get install pip -y
+          pip3 install python-dateutil
+
       - name: ${{ matrix.test-type }}
         id: get_test_result
         run: |

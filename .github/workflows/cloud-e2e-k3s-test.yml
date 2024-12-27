@@ -55,6 +55,11 @@ jobs:
       runner-name: ${{ steps.get_runner_name.outputs.runner-name }}
     runs-on: [ self-hosted, eks-k3d-runner ]
     steps:
+      - name: install python dateutil
+        run: |
+          apt-get install pip -y
+          pip3 install python-dateutil
+
       - name: get go version
         run: |
           GO_VERSION="${{ inputs.GO_VERSION }}"
