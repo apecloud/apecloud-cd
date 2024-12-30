@@ -262,8 +262,18 @@ jobs:
           make ${TEST_TYPE} | tee -a ${file_log}
           
           test_ret="$( grep "Test Suite Failed" ${file_log} || true )"
-          test_result="$(cat ${file_log} | (egrep 'SUCCESS!|FAIL!' | grep '\-\-' || true) | tail -n 1)"
-          test_result=$(python3 ${{ github.workspace }}/apecloud-cd/.github/utils/remove_ansi.py --ansi-str "$test_result")
+          
+          TEST_RESULT_ALL="$(cat ${file_log} | (egrep 'SUCCESS!|FAIL!' | grep -- '--' || true))"
+          echo "test result all:${TEST_RESULT_ALL}"
+          TEST_RESULT_ALL=$(python3 ${{ github.workspace }}/apecloud-cd/.github/utils/remove_ansi.py --ansi-str "$TEST_RESULT_ALL")
+          test_result=$(bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 41 --test-result "${TEST_RESULT_ALL}")
+          echo "test result total:${test_result}"
+          
+          if [[ -z "$test_result" ]]; then
+              test_result="$(cat ${file_log} | (egrep 'SUCCESS!|FAIL!' | grep -- '--' || true) | tail -n 1)"
+              test_result=$(python3 ${{ github.workspace }}/apecloud-cd/.github/utils/remove_ansi.py --ansi-str "$test_result")
+          fi
+          
           if [[ -z "$test_result" ]]; then
               test_result="[PASSED]"
               if [[ -n "$test_ret" ]]; then

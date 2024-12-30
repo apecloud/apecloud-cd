@@ -51,6 +51,7 @@ Usage: $(basename "$0") <options>
                                 38) get cloud test result
                                 39) get cloud pre version
                                 40) get ginkgo test result
+                                41) get ginkgo test result total
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -977,6 +978,41 @@ get_cloud_pre_version() {
     echo "$PRE_VERSION"
 }
 
+get_ginkgo_test_result_total() {
+    if [[ -z "${TEST_RESULT}" ]]; then
+        return
+    fi
+    total_passed=0
+    total_failed=0
+    total_pending=0
+    total_skipped=0
+    for test_result in $(echo "${TEST_RESULT}"); do
+        case $test_result in
+            Passed)
+                total_passed=$(($total_passed + $test_result_tmp))
+                ;;
+            Failed)
+                total_failed=$(($total_failed + $test_result_tmp))
+                ;;
+            Pending)
+                total_pending=$(($total_pending + $test_result_tmp))
+                ;;
+            Skipped)
+                total_skipped=$(($total_skipped + $test_result_tmp))
+                ;;
+            *)
+                test_result_tmp=$test_result
+                ;;
+        esac
+    done
+
+    if [ $total_failed -gt 0 ]; then
+        echo "FAIL! -- ${total_passed} Passed | ${total_failed} Failed | ${total_pending} Pending | ${total_skipped} Skipped"
+    else
+        echo "SUCCESS! -- ${total_passed} Passed | ${total_failed} Failed | ${total_pending} Pending | ${total_skipped} Skipped"
+    fi
+}
+
 parse_command_line() {
     while :; do
         case "${1:-}" in
@@ -1297,6 +1333,9 @@ main() {
         ;;
         40)
             get_ginkgo_test_result
+        ;;
+        41)
+            get_ginkgo_test_result_total
         ;;
     esac
 }
