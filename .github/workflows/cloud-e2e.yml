@@ -109,7 +109,7 @@ jobs:
   get-test-type:
     runs-on: ubuntu-latest
     outputs:
-      test-type: ${{ steps.get_test_type.outputs.test-type }}
+      matrix: ${{ steps.get_test_type.outputs.matrix }}
       cloud-branch: ${{ steps.get_test_type.outputs.cloud-branch }}
       cloud-env-name: ${{ steps.get_test_type.outputs.cloud-env-name }}
       test-engines: ${{ steps.get_test_type.outputs.test-engines }}
@@ -129,7 +129,7 @@ jobs:
               fi
           done
           echo "{\"include\":[${test_type}]}"
-          echo "test-type={\"include\":[${test_type}]}" >> $GITHUB_OUTPUT
+          echo "matrix={\"include\":[${test_type}]}" >> $GITHUB_OUTPUT
           
           CLOUD_BRANCH="${{ inputs.CLOUD_BRANCH }}"
           if [[ -z "$CLOUD_BRANCH" ]]; then
@@ -173,7 +173,7 @@ jobs:
     name: ${{ matrix.test-type }}-${{ needs.get-test-type.outputs.cloud-env-name }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.get-test-type.outputs.test-type) }}
+      matrix: ${{ fromJSON(needs.get-test-type.outputs.matrix) }}
     outputs:
       openapi-test-result: ${{ steps.get_test_result.outputs.openapi-test-result }}
       adminapi-test-result: ${{ steps.get_test_result.outputs.adminapi-test-result }}
