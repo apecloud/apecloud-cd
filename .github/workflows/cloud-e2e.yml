@@ -128,7 +128,7 @@ jobs:
                   test_type="${test_type},{\"test-type\":\"${test_type_tmp}\"}"
               fi
           done
-          echo "${test_type}"
+          echo "{\"include\":[${test_type}]}"
           echo "test-type={\"include\":[${test_type}]}" >> $GITHUB_OUTPUT
           
           CLOUD_BRANCH="${{ inputs.CLOUD_BRANCH }}"
