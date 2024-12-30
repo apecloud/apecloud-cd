@@ -195,7 +195,7 @@ jobs:
           repository: apecloud/apecloud
           path: ./
           token: ${{ env.GH_TOKEN }}
-          ref: ${{ env.CLOUD_BRANCH }}
+          ref: ${{ needs.get-test-type.outputs.cloud-branch }}
 
       - name: checkout apecloud-cd code
         uses: actions/checkout@v4
