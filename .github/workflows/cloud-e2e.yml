@@ -269,7 +269,6 @@ jobs:
 
       - name: install python dateutil
         run: |
-          apt-get install pip -y
           pip3 install python-dateutil
 
       - name: ${{ matrix.test-type }}
