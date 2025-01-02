@@ -16,7 +16,6 @@ jobs:
       DOCKERFILE_PATH: "./e2e/Dockerfile"
       VERSION: "main"
       GO_VERSION: "1.22"
-      BUILDX_ENABLED: true
       REMOVE_PREFIX: false
       BUILDX_ARGS: |
         ALPINE_IMAGE=apecloud/alpine:3.16
