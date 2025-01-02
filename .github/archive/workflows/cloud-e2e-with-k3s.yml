@@ -289,7 +289,7 @@ jobs:
                   echo "Cloud E2E Test is Done"
                   break
               fi
-              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=10
+              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=5
               sleep 1
           done
 

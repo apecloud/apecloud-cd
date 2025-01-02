@@ -299,7 +299,7 @@ jobs:
                   echo "Cloud E2E Test is Done"
                   break
               fi
-              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=10
+              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=5
               sleep 1
           done
 
@@ -813,6 +813,6 @@ jobs:
           
           python3 .github/utils/send_mesage.py \
               --send-type ginkgo \
-              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
+              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
