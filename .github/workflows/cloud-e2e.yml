@@ -44,7 +44,7 @@ on:
         required: false
         default: true
       TEST_E2E:
-        description: "Test e2e (default: true)"
+        description: "Test e2e (default: false)"
         type: boolean
         required: false
         default: false
@@ -91,7 +91,7 @@ on:
         required: false
         default: true
       TEST_E2E:
-        description: "Test e2e (default: true)"
+        description: "Test e2e (default: false)"
         type: boolean
         required: false
         default: false
