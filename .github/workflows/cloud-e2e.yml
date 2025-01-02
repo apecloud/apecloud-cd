@@ -282,7 +282,7 @@ jobs:
           
           # run cloud e2e test
           bash test/cloud/test_cloud_e2e.sh \
-              --test-type="${TEST_TYPE}" \
+              --test-type "${TEST_TYPE}" \
               --release-version "${{ needs.get-test-type.outputs.cloud-branch }}" | tee -a ${file_log}
           
           CLOUD_E2E_TEST_POD_NAME="$(cat ${file_log} | grep '\[CLOUD-E2E-TEST-POD-NAME\]' || true )"
