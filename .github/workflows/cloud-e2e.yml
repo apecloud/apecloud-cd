@@ -23,11 +23,6 @@ on:
         type: string
         required: false
         default: 'main'
-      GO_VERSION:
-        description: "The specify version of GO (e.g. 1.23)"
-        type: string
-        required: false
-        default: '1.23'
       K3S_VERSION:
         description: 'k3s cluster version (e.g. 1.30)'
         type: string
@@ -45,6 +40,11 @@ on:
         default: ''
       TEST_INSTALLER:
         description: "Test installer (default: true)"
+        type: boolean
+        required: false
+        default: true
+      TEST_E2E:
+        description: "Test e2e (default: true)"
         type: boolean
         required: false
         default: true
@@ -70,11 +70,6 @@ on:
         type: string
         required: false
         default: 'main'
-      GO_VERSION:
-        description: "The specify version of GO (e.g. 1.23)"
-        type: string
-        required: false
-        default: '1.23'
       K3S_VERSION:
         description: 'k3s cluster version (e.g. 1.30)'
         type: string
@@ -92,6 +87,11 @@ on:
         default: ''
       TEST_INSTALLER:
         description: "Test installer (default: true)"
+        type: boolean
+        required: false
+        default: true
+      TEST_E2E:
+        description: "Test e2e (default: true)"
         type: boolean
         required: false
         default: true
@@ -169,7 +169,7 @@ jobs:
           # check test e2e
           TEST_E2E="false"
           CURRENT_VERSION="${{ inputs.CURRENT_VERSION }}"
-          if [[ -n "${CURRENT_VERSION}" ]]; then
+          if [[ -n "${CURRENT_VERSION}" && "${{ inputs.TEST_E2E }}" == "true" ]]; then
               if [[ "${CURRENT_VERSION}" != "v"* ]]; then
                   CURRENT_VERSION="v${CURRENT_VERSION}"
               fi
@@ -191,14 +191,6 @@ jobs:
       test-result: ${{ steps.get_test_result.outputs.test-result }}
     runs-on: ubuntu-latest
     steps:
-      - name: get go version
-        run: |
-          GO_VERSION="${{ inputs.GO_VERSION }}"
-          if [[ -z "$GO_VERSION" ]]; then
-              GO_VERSION="1.23"
-          fi
-          echo GO_VERSION="$GO_VERSION" >> $GITHUB_ENV
-
       - name: Checkout apecloud Code
         uses: actions/checkout@v4
         with:
@@ -213,15 +205,6 @@ jobs:
           repository: apecloud/apecloud-cd
           path: ./apecloud-cd
           ref: ${{ inputs.APECD_REF }}
-
-      - name: Setup Go specify version
-        uses: actions/setup-go@v3
-        with:
-          go-version: "${{ env.GO_VERSION }}"
-
-      - name: git config
-        run: |
-          git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GH_TOKEN }}@github.com".insteadof "https://github.com"
 
       - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
         id: cloud_env
@@ -274,12 +257,6 @@ jobs:
           esac
           echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
 
-      - name: install ginkgo
-        run: |
-          cd e2e
-          make module
-          make install-ginkgo
-
       - name: install python dateutil
         run: |
           pip3 install python-dateutil
@@ -287,7 +264,6 @@ jobs:
       - name: ${{ matrix.test-type }}
         id: get_test_result
         run: |
-          cd e2e
           file_log="test_result.log"
           touch ${file_log} 
           
@@ -370,11 +346,6 @@ jobs:
         uses: azure/setup-helm@v3
         with:
           version: "v3.16.3"
-
-      - name: Setup Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: "${{ env.GO_VERSION }}"
 
       - name: setup k3d k3s
         uses: apecloud-inc/setup-k3d-k3s@v2
@@ -547,11 +518,6 @@ jobs:
         uses: azure/setup-helm@v3
         with:
           version: "v3.16.3"
-
-      - name: Setup Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: "${{ env.GO_VERSION }}"
 
       - name: setup k3d k3s
         uses: apecloud-inc/setup-k3d-k3s@v2
@@ -805,6 +771,6 @@ jobs:
           
           python3 .github/utils/send_mesage.py \
               --send-type ginkgo \
-              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"

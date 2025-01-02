@@ -18,11 +18,6 @@ on:
         type: string
         required: false
         default: 'v0.29.0-alpha.167'
-      GO_VERSION:
-        description: "The specify version of GO (e.g. 1.23)"
-        type: string
-        required: false
-        default: '1.23'
       K3S_VERSION:
         description: 'k3s cluster version (e.g. 1.30)'
         type: string
@@ -59,19 +54,6 @@ jobs:
         run: |
           apt-get install pip -y
           pip3 install python-dateutil
-
-      - name: get go version
-        run: |
-          GO_VERSION="${{ inputs.GO_VERSION }}"
-          if [[ -z "$GO_VERSION" ]]; then
-              GO_VERSION="1.23"
-          fi
-          echo GO_VERSION="$GO_VERSION" >> $GITHUB_ENV
-
-      - name: Setup Go specify version
-        uses: actions/setup-go@v3
-        with:
-          go-version: "${{ env.GO_VERSION }}"
 
       - name: Checkout apecloud Code
         uses: actions/checkout@v4
@@ -223,18 +205,9 @@ jobs:
               exit 1
           fi
 
-      - name: git config
-        run: |
-          git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GH_TOKEN }}@github.com".insteadof "https://github.com"
-
-      - name: port-forward apiserver
-        run: |
-          kubectl port-forward -n kb-cloud svc/apiserver 8080:8080 &
-
       - name: ${{ inputs.TEST_TYPE }}
         id: get_test_result
         run: |
-          cd e2e
           file_log="test_result.log"
           touch ${file_log} 
           

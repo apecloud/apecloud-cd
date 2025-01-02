@@ -18,11 +18,6 @@ on:
         type: string
         required: false
         default: 'v0.29.0-alpha.167'
-      GO_VERSION:
-        description: "The specify version of GO (e.g. 1.23)"
-        type: string
-        required: false
-        default: '1.23'
       K3S_VERSION:
         description: 'k3s cluster version (e.g. 1.30)'
         type: string
@@ -55,11 +50,6 @@ on:
         type: string
         required: false
         default: 'v0.29.0-alpha.167'
-      GO_VERSION:
-        description: "The specify version of GO (e.g. 1.23)"
-        type: string
-        required: false
-        default: '1.23'
       K3S_VERSION:
         description: 'k3s cluster version (e.g. 1.30)'
         type: string
@@ -75,6 +65,7 @@ on:
         type: boolean
         required: false
         default: true
+
 
 run-name: E2E Test ${{ inputs.TEST_TYPE }} ${{ inputs.TEST_ENGINES }} on Env K3s Ref:${{ inputs.CLOUD_BRANCH }}
 
@@ -149,7 +140,6 @@ jobs:
       TEST_TYPE: "openapi-test"
       TEST_ENGINES: "${{ needs.get-test-type.outputs.test-engines }}"
       CLOUD_BRANCH: "${{ needs.get-test-type.outputs.cloud-branch }}"
-      GO_VERSION: "${{ inputs.GO_VERSION }}"
       K3S_VERSION: "${{ inputs.K3S_VERSION }}"
       APECD_REF: ${{ inputs.APECD_REF }}
     secrets: inherit
@@ -162,7 +152,6 @@ jobs:
       TEST_TYPE: "adminapi-test"
       TEST_ENGINES: "${{ needs.get-test-type.outputs.test-engines }}"
       CLOUD_BRANCH: "${{ needs.get-test-type.outputs.cloud-branch }}"
-      GO_VERSION: "${{ inputs.GO_VERSION }}"
       K3S_VERSION: "${{ inputs.K3S_VERSION }}"
       APECD_REF: ${{ inputs.APECD_REF }}
     secrets: inherit
@@ -175,7 +164,6 @@ jobs:
       TEST_TYPE: "engine-test"
       TEST_ENGINES: "${{ needs.get-test-type.outputs.test-engines }}"
       CLOUD_BRANCH: "${{ needs.get-test-type.outputs.cloud-branch }}"
-      GO_VERSION: "${{ inputs.GO_VERSION }}"
       K3S_VERSION: "${{ inputs.K3S_VERSION }}"
       APECD_REF: ${{ inputs.APECD_REF }}
     secrets: inherit
