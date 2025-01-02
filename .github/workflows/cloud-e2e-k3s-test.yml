@@ -245,7 +245,7 @@ jobs:
                   echo "Cloud E2E Test is Done"
                   break
               fi
-              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=1
+              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=10
               sleep 1
           done
 
@@ -257,6 +257,7 @@ jobs:
           touch ${file_log} 
           kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${file_log}
           kubectl delete pod -n default ${CLOUD_E2E_TEST_POD_NAME} --force
+          cat ${file_log}
           
           test_ret="$( grep "Test Suite Failed" ${file_log} || true )"
           

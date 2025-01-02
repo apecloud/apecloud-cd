@@ -299,7 +299,7 @@ jobs:
                   echo "Cloud E2E Test is Done"
                   break
               fi
-              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=1
+              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=10
               sleep 1
           done
 
@@ -311,6 +311,7 @@ jobs:
           touch ${file_log} 
           kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${file_log}
           kubectl delete pod -n default ${CLOUD_E2E_TEST_POD_NAME} --force
+          cat ${file_log}
           
           TEST_TYPE="${{ matrix.test-type }}"
           if [[ -z "$TEST_TYPE" ]]; then
@@ -802,7 +803,7 @@ jobs:
           
           date_ret=$(date +%Y-%m-%d-%T)
           TEST_TITLE=""
-          if if [[ "${TEST_E2E}" == "true" &&  "${TEST_INSTALLER}" != "true" ]]; then
+          if [[ "${TEST_E2E}" == "true" &&  "${TEST_INSTALLER}" != "true" ]]; then
               TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${TEST_ENGINES} [${date_ret}]"
           elif [[ "${TEST_E2E}" != "true" && "${TEST_INSTALLER}" == "true" ]]; then
               TEST_TITLE="[${CLOUD_BRANCH}] Cloud Installer & Upgrade [${date_ret}]"
