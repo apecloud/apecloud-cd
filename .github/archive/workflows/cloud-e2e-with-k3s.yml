@@ -181,13 +181,12 @@ jobs:
       test-result: ${{ steps.get_test_result.outputs.test-result }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout apecloud Code
+      - name: Checkout testinfra Code
         uses: actions/checkout@v4
         with:
-          repository: apecloud/apecloud
+          repository: apecloud/testinfra
           path: ./
           token: ${{ env.GH_TOKEN }}
-          ref: ${{ env.CLOUD_BRANCH }}
 
       - name: checkout apecloud-cd code
         uses: actions/checkout@v4
@@ -249,27 +248,59 @@ jobs:
           apt-get install pip -y
           pip3 install python-dateutil
 
-      - name: ${{ matrix.test-type }}
-        id: get_test_result
+      - name: run ${{ inputs.TEST_TYPE }}
         run: |
-          file_log="test_result.log"
+          file_log="run_e2e_test_result.log"
           touch ${file_log} 
           
+          TEST_ENGINES="${{ inputs.TEST_ENGINES }}"
+          if [[ -z "$TEST_ENGINES" ]]; then
+              TEST_ENGINES="mysql"
+          fi
+          
+          E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_K3D }}"
           for env_vars in $(echo "${E2E_ENV_VARS}" | sed 's/|/ /g'); do
               eval_cmd="export $env_vars"
               echo "$eval_cmd"
               eval "$eval_cmd"
           done
           
-          TEST_ENGINES="${{ needs.get-test-type.outputs.test-engines }}"
-          echo "export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}"
-          export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}
-          
-          TEST_TYPE="${{ matrix.test-type }}"
-          if [[ -z "$TEST_TYPE" ]]; then
-              TEST_TYPE="openapi-test"
+          if [[ -n "${TEST_ENGINES}" ]]; then
+              echo "export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}"
+              export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}
           fi
-          make ${TEST_TYPE} | tee -a ${file_log}
+          
+          # run cloud e2e test
+          bash test/cloud/test_cloud_e2e.sh \
+              --test-type="${TEST_TYPE}" \
+              --release-version "${{ inputs.CLOUD_BRANCH }}" | tee -a ${file_log}
+          
+          CLOUD_E2E_TEST_POD_NAME="$(cat ${file_log} | grep '\[CLOUD-E2E-TEST-POD-NAME\]' || true )"
+          if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" && "$CLOUD_E2E_TEST_POD_NAME" == "[CLOUD-E2E-TEST-POD-NAME]"* ]]; then
+              CLOUD_E2E_TEST_POD_NAME=${CLOUD_E2E_TEST_POD_NAME#*"[CLOUD-E2E-TEST-POD-NAME]"}      
+          fi
+          echo CLOUD_E2E_TEST_POD_NAME="$CLOUD_E2E_TEST_POD_NAME" >> $GITHUB_ENV
+
+      - name: Waiting for Cloud E2E to be Completed
+        run: |
+          sleep 10
+          while true; do
+              if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" ; then
+                  echo "Cloud E2E Test is Done"
+                  break
+              fi
+              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=1
+              sleep 1
+          done
+
+      - name: Get Test Result
+        if: ${{ always() }}
+        id: get_test_result
+        run: |
+          file_log="test_result.log"
+          touch ${file_log} 
+          kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${file_log}
+          kubectl delete pod -n default ${CLOUD_E2E_TEST_POD_NAME} --force
           
           test_ret="$( grep "Test Suite Failed" ${file_log} || true )"
           
@@ -291,20 +322,7 @@ jobs:
               fi
           fi
           
-          case "$TEST_TYPE" in
-              openapi-test)
-                  echo openapi-test-result="${test_result}" >> $GITHUB_OUTPUT
-              ;;
-              adminapi-test)
-                  echo adminapi-test-result="${test_result}" >> $GITHUB_OUTPUT
-              ;;
-              engine-test)
-                  echo engine-test-result="${test_result}" >> $GITHUB_OUTPUT
-              ;;
-              *)
-                  echo test-result="${test_result}" >> $GITHUB_OUTPUT
-              ;;
-          esac
+          echo test-result="${test_result}" >> $GITHUB_OUTPUT
           
           if [[ -n "$test_ret" ]]; then
               exit 1

@@ -191,13 +191,12 @@ jobs:
       test-result: ${{ steps.get_test_result.outputs.test-result }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout apecloud Code
+      - name: Checkout testinfra Code
         uses: actions/checkout@v4
         with:
-          repository: apecloud/apecloud
+          repository: apecloud/testinfra
           path: ./
           token: ${{ env.GH_TOKEN }}
-          ref: ${{ needs.get-test-type.outputs.cloud-branch }}
 
       - name: checkout apecloud-cd code
         uses: actions/checkout@v4
@@ -261,10 +260,9 @@ jobs:
         run: |
           pip3 install python-dateutil
 
-      - name: ${{ matrix.test-type }}
-        id: get_test_result
+      - name: run ${{ matrix.test-type }}
         run: |
-          file_log="test_result.log"
+          file_log="run_e2e_test_result.log"
           touch ${file_log} 
           
           for env_vars in $(echo "${E2E_ENV_VARS}" | sed 's/|/ /g'); do
@@ -281,7 +279,43 @@ jobs:
           if [[ -z "$TEST_TYPE" ]]; then
               TEST_TYPE="openapi-test"
           fi
-          make ${TEST_TYPE} | tee -a ${file_log}
+          
+          # run cloud e2e test
+          bash test/cloud/test_cloud_e2e.sh \
+              --test-type="${TEST_TYPE}" \
+              --release-version "${{ needs.get-test-type.outputs.cloud-branch }}" | tee -a ${file_log}
+          
+          CLOUD_E2E_TEST_POD_NAME="$(cat ${file_log} | grep '\[CLOUD-E2E-TEST-POD-NAME\]' || true )"
+          if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" && "$CLOUD_E2E_TEST_POD_NAME" == "[CLOUD-E2E-TEST-POD-NAME]"* ]]; then
+              CLOUD_E2E_TEST_POD_NAME=${CLOUD_E2E_TEST_POD_NAME#*"[CLOUD-E2E-TEST-POD-NAME]"}      
+          fi
+          echo CLOUD_E2E_TEST_POD_NAME="$CLOUD_E2E_TEST_POD_NAME" >> $GITHUB_ENV
+
+      - name: Waiting for Cloud E2E to be Completed
+        run: |
+          sleep 10
+          while true; do
+              if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" ; then
+                  echo "Cloud E2E Test is Done"
+                  break
+              fi
+              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=1
+              sleep 1
+          done
+
+      - name: Get Test Result
+        if: ${{ always() }}
+        id: get_test_result
+        run: |
+          file_log="test_result.log"
+          touch ${file_log} 
+          kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${file_log}
+          kubectl delete pod -n default ${CLOUD_E2E_TEST_POD_NAME} --force
+          
+          TEST_TYPE="${{ matrix.test-type }}"
+          if [[ -z "$TEST_TYPE" ]]; then
+              TEST_TYPE="openapi-test"
+          fi
           
           test_ret="$( grep "Test Suite Failed" ${file_log} || true )"
           
@@ -691,34 +725,37 @@ jobs:
           CLOUD_BRANCH="${{ needs.get-test-type.outputs.cloud-branch }}"
           CLOUD_ENV_NAME="${{ needs.get-test-type.outputs.cloud-env-name }}"
           TEST_INSTALLER="${{ needs.get-test-type.outputs.test-installer }}"
+          TEST_E2E="${{ needs.get-test-type.outputs.test-e2e }}"
           TEST_ENGINES="${{ needs.get-test-type.outputs.test-engines }}"
           
           TEST_RESULT=""
-          TEST_TYPES="${{ inputs.TEST_TYPE }}"
-          for test_type_tmp in $(echo "${TEST_TYPES}" | sed 's/|/ /g' ); do
-              case "$test_type_tmp" in
-                  openapi-test)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.openapi-test-result }}"
-                  ;;
-                  adminapi-test)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.adminapi-test-result }}"
-                  ;;
-                  engine-test)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.engine-test-result }}"
-                  ;;
-                  *)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.test-result }}"
-                  ;;
-              esac
-          done
-          
-          echo "TEST_RESULT:${TEST_RESULT}"
-          TEST_RESULT=$( bash .github/utils/utils.sh --type 40 \
-              --github-repo "${{ github.repository }}" \
-              --github-token "${{ env.GH_TOKEN }}" \
-              --test-result "${TEST_RESULT}" \
-              --run-id "$GITHUB_RUN_ID" )
-          echo "TEST_RESULT:${TEST_RESULT}"
+          if [[ "${TEST_E2E}" == "true" ]]; then
+              TEST_TYPES="${{ inputs.TEST_TYPE }}"
+              for test_type_tmp in $(echo "${TEST_TYPES}" | sed 's/|/ /g' ); do
+                  case "$test_type_tmp" in
+                      openapi-test)
+                          TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.openapi-test-result }}"
+                      ;;
+                      adminapi-test)
+                          TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.adminapi-test-result }}"
+                      ;;
+                      engine-test)
+                          TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.engine-test-result }}"
+                      ;;
+                      *)
+                          TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.test-result }}"
+                      ;;
+                  esac
+              done
+              
+              echo "TEST_RESULT:${TEST_RESULT}"
+              TEST_RESULT=$( bash .github/utils/utils.sh --type 40 \
+                  --github-repo "${{ github.repository }}" \
+                  --github-token "${{ env.GH_TOKEN }}" \
+                  --test-result "${TEST_RESULT}" \
+                  --run-id "$GITHUB_RUN_ID" )
+              echo "TEST_RESULT:${TEST_RESULT}"
+          fi
           
           TEST_RESULT_INSTALLER=""
           if [[ "${TEST_INSTALLER}" == "true" ]]; then
@@ -764,8 +801,12 @@ jobs:
           fi
           
           date_ret=$(date +%Y-%m-%d-%T)
-          TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${TEST_ENGINES} [${date_ret}]"
-          if [[ "${TEST_INSTALLER}" == "true" ]]; then
+          TEST_TITLE=""
+          if if [[ "${TEST_E2E}" == "true" &&  "${TEST_INSTALLER}" != "true" ]]; then
+              TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${TEST_ENGINES} [${date_ret}]"
+          elif [[ "${TEST_E2E}" != "true" && "${TEST_INSTALLER}" == "true" ]]; then
+              TEST_TITLE="[${CLOUD_BRANCH}] Cloud Installer & Upgrade [${date_ret}]"
+          else
               TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${TEST_ENGINES} & Cloud Installer [${date_ret}]"
           fi
           
