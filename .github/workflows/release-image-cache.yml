@@ -3,6 +3,16 @@ name: RELEASE-IMAGE-CACHE
 on:
   workflow_call:
     inputs:
+      GITHUB_REPO:
+        description: "The github repo to release image"
+        type: string
+        required: false
+        default: ''
+      GITHUB_REF:
+        description: "The github repo ref to release image"
+        type: string
+        required: false
+        default: 'main'
       MAKE_OPS_PRE:
         description: "The pre ops name of makefile (e.g. generate)"
         type: string
@@ -108,15 +118,35 @@ jobs:
       tag-name: ${{ steps.get_tag_name.outputs.tag-name }}
     steps:
       - name: Checkout Code
-        if: ${{ ! inputs.ENABLE_SUBMODULE }}
+        if: ${{ ! inputs.ENABLE_SUBMODULE && inputs.GITHUB_REPO == '' }}
         uses: actions/checkout@v4
 
+      - name: Checkout ${{ inputs.GITHUB_REPO }} Code
+        if: ${{ ! inputs.ENABLE_SUBMODULE && inputs.GITHUB_REPO != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.GITHUB_REPO }}
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.GITHUB_REF }}
+
       - name: Checkout Code With Submodule
-        if: inputs.ENABLE_SUBMODULE
+        if: ${{ inputs.ENABLE_SUBMODULE && inputs.GITHUB_REPO == '' }}
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
           token: ${{ env.GITHUB_TOKEN }}
+
+      - name: Checkout ${{ inputs.GITHUB_REPO }} Code With Submodule
+        if: ${{ inputs.ENABLE_SUBMODULE && inputs.GITHUB_REPO != '' }}
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          repository: ${{ inputs.GITHUB_REPO }}
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.GITHUB_REF }}
+
 
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3

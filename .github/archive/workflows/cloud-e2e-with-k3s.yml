@@ -23,11 +23,6 @@ on:
         type: string
         required: false
         default: 'main'
-      GO_VERSION:
-        description: "The specify version of GO (e.g. 1.23)"
-        type: string
-        required: false
-        default: '1.23'
       K3S_VERSION:
         description: 'k3s cluster version (e.g. 1.30)'
         type: string
@@ -70,11 +65,6 @@ on:
         type: string
         required: false
         default: 'main'
-      GO_VERSION:
-        description: "The specify version of GO (e.g. 1.23)"
-        type: string
-        required: false
-        default: '1.23'
       K3S_VERSION:
         description: 'k3s cluster version (e.g. 1.30)'
         type: string
@@ -191,21 +181,12 @@ jobs:
       test-result: ${{ steps.get_test_result.outputs.test-result }}
     runs-on: ubuntu-latest
     steps:
-      - name: get go version
-        run: |
-          GO_VERSION="${{ inputs.GO_VERSION }}"
-          if [[ -z "$GO_VERSION" ]]; then
-              GO_VERSION="1.23"
-          fi
-          echo GO_VERSION="$GO_VERSION" >> $GITHUB_ENV
-
-      - name: Checkout apecloud Code
+      - name: Checkout testinfra Code
         uses: actions/checkout@v4
         with:
-          repository: apecloud/apecloud
+          repository: apecloud/testinfra
           path: ./
           token: ${{ env.GH_TOKEN }}
-          ref: ${{ env.CLOUD_BRANCH }}
 
       - name: checkout apecloud-cd code
         uses: actions/checkout@v4
@@ -213,15 +194,6 @@ jobs:
           repository: apecloud/apecloud-cd
           path: ./apecloud-cd
           ref: ${{ inputs.APECD_REF }}
-
-      - name: Setup Go specify version
-        uses: actions/setup-go@v3
-        with:
-          go-version: "${{ env.GO_VERSION }}"
-
-      - name: git config
-        run: |
-          git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GH_TOKEN }}@github.com".insteadof "https://github.com"
 
       - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
         id: cloud_env
@@ -271,39 +243,65 @@ jobs:
           esac
           echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
 
-      - name: install ginkgo
-        run: |
-          cd e2e
-          make module
-          make install-ginkgo
-
       - name: install python dateutil
         run: |
           apt-get install pip -y
           pip3 install python-dateutil
 
-      - name: ${{ matrix.test-type }}
-        id: get_test_result
+      - name: run ${{ inputs.TEST_TYPE }}
         run: |
-          cd e2e
-          file_log="test_result.log"
+          file_log="run_e2e_test_result.log"
           touch ${file_log} 
           
+          TEST_ENGINES="${{ inputs.TEST_ENGINES }}"
+          if [[ -z "$TEST_ENGINES" ]]; then
+              TEST_ENGINES="mysql"
+          fi
+          
+          E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_K3D }}"
           for env_vars in $(echo "${E2E_ENV_VARS}" | sed 's/|/ /g'); do
               eval_cmd="export $env_vars"
               echo "$eval_cmd"
               eval "$eval_cmd"
           done
           
-          TEST_ENGINES="${{ needs.get-test-type.outputs.test-engines }}"
-          echo "export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}"
-          export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}
-          
-          TEST_TYPE="${{ matrix.test-type }}"
-          if [[ -z "$TEST_TYPE" ]]; then
-              TEST_TYPE="openapi-test"
+          if [[ -n "${TEST_ENGINES}" ]]; then
+              echo "export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}"
+              export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}
           fi
-          make ${TEST_TYPE} | tee -a ${file_log}
+          
+          # run cloud e2e test
+          bash test/cloud/test_cloud_e2e.sh \
+              --test-type "${TEST_TYPE}" \
+              --release-version "${{ inputs.CLOUD_BRANCH }}" | tee -a ${file_log}
+          
+          CLOUD_E2E_TEST_POD_NAME="$(cat ${file_log} | grep '\[CLOUD-E2E-TEST-POD-NAME\]' || true )"
+          if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" && "$CLOUD_E2E_TEST_POD_NAME" == "[CLOUD-E2E-TEST-POD-NAME]"* ]]; then
+              CLOUD_E2E_TEST_POD_NAME=${CLOUD_E2E_TEST_POD_NAME#*"[CLOUD-E2E-TEST-POD-NAME]"}      
+          fi
+          echo CLOUD_E2E_TEST_POD_NAME="$CLOUD_E2E_TEST_POD_NAME" >> $GITHUB_ENV
+
+      - name: Waiting for Cloud E2E to be Completed
+        run: |
+          sleep 10
+          while true; do
+              if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" ; then
+                  echo "Cloud E2E Test is Done"
+                  break
+              fi
+              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=5
+              sleep 1
+          done
+
+      - name: Get Test Result
+        if: ${{ always() }}
+        id: get_test_result
+        run: |
+          file_log="test_result.log"
+          touch ${file_log} 
+          kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${file_log}
+          kubectl delete pod -n default ${CLOUD_E2E_TEST_POD_NAME} --force
+          cat ${file_log}
           
           test_ret="$( grep "Test Suite Failed" ${file_log} || true )"
           
@@ -325,20 +323,7 @@ jobs:
               fi
           fi
           
-          case "$TEST_TYPE" in
-              openapi-test)
-                  echo openapi-test-result="${test_result}" >> $GITHUB_OUTPUT
-              ;;
-              adminapi-test)
-                  echo adminapi-test-result="${test_result}" >> $GITHUB_OUTPUT
-              ;;
-              engine-test)
-                  echo engine-test-result="${test_result}" >> $GITHUB_OUTPUT
-              ;;
-              *)
-                  echo test-result="${test_result}" >> $GITHUB_OUTPUT
-              ;;
-          esac
+          echo test-result="${test_result}" >> $GITHUB_OUTPUT
           
           if [[ -n "$test_ret" ]]; then
               exit 1
@@ -368,11 +353,6 @@ jobs:
         uses: azure/setup-helm@v3
         with:
           version: "v3.16.3"
-
-      - name: Setup Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: "${{ env.GO_VERSION }}"
 
       - name: setup k3d k3s
         uses: apecloud-inc/setup-k3d-k3s@v2
@@ -545,11 +525,6 @@ jobs:
         uses: azure/setup-helm@v3
         with:
           version: "v3.16.3"
-
-      - name: Setup Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: "${{ env.GO_VERSION }}"
 
       - name: setup k3d k3s
         uses: apecloud-inc/setup-k3d-k3s@v2
@@ -726,7 +701,6 @@ jobs:
       TEST_TYPE: "openapi-test"
       TEST_ENGINES: "${{ needs.get-test-type.outputs.test-engines }}"
       CLOUD_BRANCH: "${{ needs.get-test-type.outputs.cloud-branch }}"
-      GO_VERSION: "${{ inputs.GO_VERSION }}"
       K3S_VERSION: "${{ inputs.K3S_VERSION }}"
       APECD_REF: ${{ inputs.APECD_REF }}
     secrets: inherit
@@ -739,7 +713,6 @@ jobs:
       TEST_TYPE: "adminapi-test"
       TEST_ENGINES: "${{ needs.get-test-type.outputs.test-engines }}"
       CLOUD_BRANCH: "${{ needs.get-test-type.outputs.cloud-branch }}"
-      GO_VERSION: "${{ inputs.GO_VERSION }}"
       K3S_VERSION: "${{ inputs.K3S_VERSION }}"
       APECD_REF: ${{ inputs.APECD_REF }}
     secrets: inherit
@@ -752,7 +725,6 @@ jobs:
       TEST_TYPE: "engine-test"
       TEST_ENGINES: "${{ needs.get-test-type.outputs.test-engines }}"
       CLOUD_BRANCH: "${{ needs.get-test-type.outputs.cloud-branch }}"
-      GO_VERSION: "${{ inputs.GO_VERSION }}"
       K3S_VERSION: "${{ inputs.K3S_VERSION }}"
       APECD_REF: ${{ inputs.APECD_REF }}
     secrets: inherit

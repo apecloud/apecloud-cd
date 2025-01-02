@@ -18,11 +18,6 @@ on:
         type: string
         required: false
         default: 'v0.29.0-alpha.167'
-      GO_VERSION:
-        description: "The specify version of GO (e.g. 1.23)"
-        type: string
-        required: false
-        default: '1.23'
       K3S_VERSION:
         description: 'k3s cluster version (e.g. 1.30)'
         type: string
@@ -60,26 +55,12 @@ jobs:
           apt-get install pip -y
           pip3 install python-dateutil
 
-      - name: get go version
-        run: |
-          GO_VERSION="${{ inputs.GO_VERSION }}"
-          if [[ -z "$GO_VERSION" ]]; then
-              GO_VERSION="1.23"
-          fi
-          echo GO_VERSION="$GO_VERSION" >> $GITHUB_ENV
-
-      - name: Setup Go specify version
-        uses: actions/setup-go@v3
-        with:
-          go-version: "${{ env.GO_VERSION }}"
-
-      - name: Checkout apecloud Code
+      - name: Checkout testinfra Code
         uses: actions/checkout@v4
         with:
-          repository: apecloud/apecloud
+          repository: apecloud/testinfra
           path: ./
           token: ${{ env.GH_TOKEN }}
-          ref: ${{ inputs.CLOUD_BRANCH }}
 
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -223,19 +204,9 @@ jobs:
               exit 1
           fi
 
-      - name: git config
+      - name: run ${{ inputs.TEST_TYPE }}
         run: |
-          git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GH_TOKEN }}@github.com".insteadof "https://github.com"
-
-      - name: port-forward apiserver
-        run: |
-          kubectl port-forward -n kb-cloud svc/apiserver 8080:8080 &
-
-      - name: ${{ inputs.TEST_TYPE }}
-        id: get_test_result
-        run: |
-          cd e2e
-          file_log="test_result.log"
+          file_log="run_e2e_test_result.log"
           touch ${file_log} 
           
           TEST_ENGINES="${{ inputs.TEST_ENGINES }}"
@@ -255,11 +226,38 @@ jobs:
               export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}
           fi
           
-          TEST_TYPE="${{ inputs.TEST_TYPE }}"
-          if [[ -z "$TEST_TYPE" ]]; then
-              TEST_TYPE="openapi-test"
+          # run cloud e2e test
+          bash test/cloud/test_cloud_e2e.sh \
+              --test-type "${TEST_TYPE}" \
+              --release-version "${{ inputs.CLOUD_BRANCH }}" | tee -a ${file_log}
+          
+          CLOUD_E2E_TEST_POD_NAME="$(cat ${file_log} | grep '\[CLOUD-E2E-TEST-POD-NAME\]' || true )"
+          if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" && "$CLOUD_E2E_TEST_POD_NAME" == "[CLOUD-E2E-TEST-POD-NAME]"* ]]; then
+              CLOUD_E2E_TEST_POD_NAME=${CLOUD_E2E_TEST_POD_NAME#*"[CLOUD-E2E-TEST-POD-NAME]"}      
           fi
-          make ${TEST_TYPE} | tee -a ${file_log}
+          echo CLOUD_E2E_TEST_POD_NAME="$CLOUD_E2E_TEST_POD_NAME" >> $GITHUB_ENV
+
+      - name: Waiting for Cloud E2E to be Completed
+        run: |
+          sleep 10
+          while true; do
+              if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" ; then
+                  echo "Cloud E2E Test is Done"
+                  break
+              fi
+              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=5
+              sleep 1
+          done
+
+      - name: Get Test Result
+        if: ${{ always() }}
+        id: get_test_result
+        run: |
+          file_log="test_result.log"
+          touch ${file_log} 
+          kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${file_log}
+          kubectl delete pod -n default ${CLOUD_E2E_TEST_POD_NAME} --force
+          cat ${file_log}
           
           test_ret="$( grep "Test Suite Failed" ${file_log} || true )"
           

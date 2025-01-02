@@ -5,7 +5,24 @@ on:
     - cron: '30 18 * * 0-4' # Runs at 02:30 UTC on Mon to Friday
 
 jobs:
+  release-e2e-image:
+    uses: ./.github/workflows/release-image-cache.yml
+    with:
+      GITHUB_REPO: "apecloud/apecloud"
+      GITHUB_REF: "main"
+      IMG: "apecloud/e2e"
+      CONTEXT: "./e2e"
+      DOCKERFILE_PATH: "./e2e/Dockerfile"
+      VERSION: "main"
+      GO_VERSION: "1.22"
+      BUILDX_ENABLED: true
+      REMOVE_PREFIX: false
+      BUILDX_ARGS: |
+        ALPINE_IMAGE=apecloud/alpine:3.16
+    secrets: inherit
+
   e2e-test:
+    needs: [ release-e2e-image ]
     uses: ./.github/workflows/trigger-workflow.yml
     with:
       GITHUB_REPO: "apecloud/apecloud-cd"
