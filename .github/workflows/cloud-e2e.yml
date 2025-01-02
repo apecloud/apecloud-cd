@@ -47,7 +47,7 @@ on:
         description: "Test e2e (default: true)"
         type: boolean
         required: false
-        default: true
+        default: false
   workflow_call:
     inputs:
       TEST_TYPE:
@@ -94,7 +94,7 @@ on:
         description: "Test e2e (default: true)"
         type: boolean
         required: false
-        default: true
+        default: false
 
 run-name: E2E Test ${{ inputs.TEST_TYPE }} ${{ inputs.TEST_ENGINES }} on Env:${{ inputs.CLOUD_ENV_NAME }} Ref:${{ inputs.CLOUD_BRANCH }}
 

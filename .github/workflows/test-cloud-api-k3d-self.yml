@@ -28,11 +28,6 @@ on:
         type: string
         required: false
         default: 'main'
-      TEST_INSTALLER:
-        description: "Test installer (default: true)"
-        type: boolean
-        required: false
-        default: true
   workflow_call:
     inputs:
       TEST_TYPE:
@@ -60,12 +55,6 @@ on:
         type: string
         required: false
         default: 'main'
-      TEST_INSTALLER:
-        description: "Test installer (default: true)"
-        type: boolean
-        required: false
-        default: true
-
 
 run-name: E2E Test ${{ inputs.TEST_TYPE }} ${{ inputs.TEST_ENGINES }} on Env K3s Ref:${{ inputs.CLOUD_BRANCH }}
 
@@ -116,7 +105,7 @@ jobs:
           
           # check test installer
           TEST_INSTALLER="false"
-          if [[ "${CLOUD_BRANCH}" == "v"*"."*"."* && "${{ inputs.TEST_INSTALLER }}" == "true" ]]; then
+          if [[ "${CLOUD_BRANCH}" == "v"*"."*"."* ]]; then
               TEST_INSTALLER="true"
           fi
           echo test-installer="$TEST_INSTALLER" >> $GITHUB_OUTPUT
