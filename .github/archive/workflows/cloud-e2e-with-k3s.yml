@@ -169,7 +169,7 @@ jobs:
           # check test e2e
           TEST_E2E="false"
           CURRENT_VERSION="${{ inputs.CURRENT_VERSION }}"
-          if [[ -n "${CURRENT_VERSION}" ]]; then
+          if [[ -n "${CURRENT_VERSION}" && "${{ inputs.TEST_E2E }}" == "true" ]]; then
               if [[ "${CURRENT_VERSION}" != "v"* ]]; then
                   CURRENT_VERSION="v${CURRENT_VERSION}"
               fi

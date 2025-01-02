@@ -48,6 +48,11 @@ on:
         type: boolean
         required: false
         default: true
+      TEST_E2E:
+        description: "Test e2e (default: true)"
+        type: boolean
+        required: false
+        default: true
   workflow_call:
     inputs:
       TEST_TYPE:
@@ -92,6 +97,11 @@ on:
         default: ''
       TEST_INSTALLER:
         description: "Test installer (default: true)"
+        type: boolean
+        required: false
+        default: true
+      TEST_E2E:
+        description: "Test e2e (default: true)"
         type: boolean
         required: false
         default: true
@@ -169,7 +179,7 @@ jobs:
           # check test e2e
           TEST_E2E="false"
           CURRENT_VERSION="${{ inputs.CURRENT_VERSION }}"
-          if [[ -n "${CURRENT_VERSION}" ]]; then
+          if [[ -n "${CURRENT_VERSION}" && "${{ inputs.TEST_E2E }}" == "true" ]]; then
               if [[ "${CURRENT_VERSION}" != "v"* ]]; then
                   CURRENT_VERSION="v${CURRENT_VERSION}"
               fi
