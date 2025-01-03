@@ -245,7 +245,11 @@ jobs:
                   echo "Cloud E2E Test is Done"
                   break
               fi
-              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=5
+              if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Running|Error" ; then
+                  kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=5
+              else
+                  echo "Waiting for Cloud E2E to be Running..."
+              fi
               sleep 1
           done
 
