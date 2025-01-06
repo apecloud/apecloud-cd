@@ -18,7 +18,7 @@ on:
         default: ''
       TEST_TYPE:
         description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|mysqlscale|weaviate|qdrant|smartengine|
-        greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|orioledb|official-pg|asmysql|openldap|
+        greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|orioledb|vanilla-pg|asmysql|openldap|
         polardbx|opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
         oracle|opengauss|influxdb|flink|solr|mogdb|oceanbase-ent|starrocks-ent|apecloud-postgresql|yashandb|
         redis-cluster|camellia-redis-proxy|dmdb|minio|orchestrator|rabbitmq|damengdb|kingbase)'
@@ -482,8 +482,8 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
-  test-official-pg:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'official-pg')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+  test-vanilla-pg:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'vanilla-pg')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -492,7 +492,7 @@ jobs:
       release-version: "${{ inputs.KB_VERSION }}"
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "20"
-      test-type-name: "official-pg"
+      test-type-name: "vanilla-pg"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
@@ -1123,7 +1123,7 @@ jobs:
              test-etcd, test-oceanbase, test-foxlake, test-asmysql,
              test-openldap, test-polardbx, test-tdengine, test-milvus, test-clickhouse,
              test-pika, test-opensearch, test-elasticsearch, test-vllm, test-orioledb,
-             test-official-pg, test-ggml, test-zookeeper, test-mariadb , test-tidb,
+             test-vanilla-pg, test-ggml, test-zookeeper, test-mariadb , test-tidb,
              test-xinference, test-oracle , test-opengauss, test-influxdb, test-flink,
              test-solr, test-mogdb, test-oceanbase-ent, test-starrocks-ent,
              test-apecloud-postgresql, test-yashandb, test-redis-cluster, test-camellia-redis-proxy,
@@ -1283,9 +1283,9 @@ jobs:
                   cmd="${cmd_head} \"${{ needs.test-orioledb.outputs.test-result-report }}\" "
                   eval "$cmd"
               fi
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"official-pg"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##official-pg|${{ needs.test-official-pg.outputs.test-result }}"
-                  cmd="${cmd_head} \"${{ needs.test-official-pg.outputs.test-result-report }}\" "
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"vanilla-pg"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##vanilla-pg|${{ needs.test-vanilla-pg.outputs.test-result }}"
+                  cmd="${cmd_head} \"${{ needs.test-vanilla-pg.outputs.test-result-report }}\" "
                   eval "$cmd"
               fi 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"ggml"* ]]; then
