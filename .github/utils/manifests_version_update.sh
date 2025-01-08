@@ -135,7 +135,7 @@ update_manifests_file_version() {
                     elif [[ "${manifests_image}" == "apecloud/apiserver:"*"-jni" ]]; then
                         yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${RELEASE_VERSION}-jni\"" "${MANIFESTS_FILE}"
                     elif [[ "${manifests_image}" == "apecloud/apecloud-addon-charts:"* ]]; then
-                        if [[ "${update_apecloud_addon_charts}" -eq 0 && "${manifests_image}" == "apecloud/apecloud-addon-charts:v"* ]]; then
+                        if [[ "${update_apecloud_addon_charts}" -eq 0 && "${manifests_image}" =~ ^apecloud/apecloud-addon-charts:v[0-9]+ ]]; then
                             yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${RELEASE_VERSION}\"" "${MANIFESTS_FILE}"
                             update_apecloud_addon_charts=1
                         fi
