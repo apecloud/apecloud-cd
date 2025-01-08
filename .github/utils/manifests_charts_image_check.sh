@@ -137,6 +137,11 @@ check_charts_images() {
             gemini)
                 set_values="${set_values} --set cr-exporter.enabled=true "
             ;;
+            kubebench)
+                set_values="${set_values} --set image.tag=0.0.10 "
+                set_values="${set_values} --set kubebenchImages.exporter=apecloud/kubebench:0.0.10"
+                set_values="${set_values} --set kubebenchImages.tools=apecloud/kubebench:0.0.10"
+            ;;
         esac
         check_images "$is_enterprise" "$chart_version" "$chart_name" "$chart_images" "$set_values" &
     done
