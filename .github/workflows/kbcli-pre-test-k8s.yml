@@ -28,7 +28,8 @@ on:
         greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|orioledb|vanilla-pg|asmysql|openldap|
         polardbx|opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
         oracle|opengauss|influxdb|flink|solr|halo|mogdb|oceanbase-ent|starrocks-ent|apecloud-postgresql|yashandb|
-        redis-cluster|camellia-redis-proxy|dmdb|minio|orchestrator|rabbitmq|damengdb|kingbase)'
+        redis-cluster|camellia-redis-proxy|dmdb|minio|orchestrator|rabbitmq|loki|victoria-metrics|gaussdb|damengdb|
+        kingbase|vastbase|mssql|rocketmq)'
         type: string
         required: false
         default: '0'
@@ -951,6 +952,57 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
+  loki-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'loki')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "54"
+      test-type-name: "loki-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  victoria-metrics-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'victoria-metrics')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "55"
+      test-type-name: "victoria-metrics-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  gaussdb-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'gaussdb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "56"
+      test-type-name: "gaussdb-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
   damengdb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'damengdb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
@@ -985,6 +1037,57 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
+  vastbase-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'vastbase')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "59"
+      test-type-name: "vastbase-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  mssql-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mssql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "60"
+      test-type-name: "mssql-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  rocketmq-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'rocketmq')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "61"
+      test-type-name: "rocketmq-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
   send-message:
     if: ${{ inputs.previous-version && always() }}
     runs-on: ubuntu-latest
@@ -999,7 +1102,8 @@ jobs:
              opengauss-pre, influxdb-pre, flink-pre, solr-pre, halo-pre,
              mogdb-pre, oceanbase-ent-pre, starrocks-ent-pre, apecloud-postgresql-pre,
              yashandb-pre, redis-cluster-pre, camellia-redis-proxy-pre, dmdb-pre, minio-pre,
-             orchestrator-pre, rabbitmq-pre, damengdb-pre, kingbase-pre  ]
+             orchestrator-pre, rabbitmq-pre, loki-pre, victoria-metrics-pre, gaussdb-pre,
+             damengdb-pre, kingbase-pre, vastbase-pre, mssql-pre, rocketmq-pre  ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1221,12 +1325,36 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##rabbitmq-pre|${{ needs.rabbitmq-pre.outputs.test-result }}"
               fi 
 
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"loki"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##loki-pre|${{ needs.loki-pre.outputs.test-result }}"
+              fi 
+
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"victoria-metrics"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##victoria-metrics-pre|${{ needs.victoria-metrics-pre.outputs.test-result }}"
+              fi 
+
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"gaussdb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##gaussdb-pre|${{ needs.gaussdb-pre.outputs.test-result }}"
+              fi 
+
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"damengdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##damengdb-pre|${{ needs.damengdb-pre.outputs.test-result }}"
               fi 
 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"kingbase"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##kingbase-pre|${{ needs.kingbase-pre.outputs.test-result }}"
+              fi 
+
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"vastbase"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##vastbase-pre|${{ needs.vastbase-pre.outputs.test-result }}"
+              fi 
+
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mssql"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##mssql-pre|${{ needs.mssql-pre.outputs.test-result }}"
+              fi 
+
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"rocketmq"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##rocketmq-pre|${{ needs.rocketmq-pre.outputs.test-result }}"
               fi 
           fi
           
@@ -1244,7 +1372,7 @@ jobs:
               --url "${{ vars.TEST_BOT_WEBHOOK }}" \
               --title "$test_title" \
               --result "$TEST_RESULT"
-          
+
   install-kubeblocks:
     if: ${{ always() }}
     needs: [ install-kubeblocks-pre, send-message ]
