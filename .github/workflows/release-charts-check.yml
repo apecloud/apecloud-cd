@@ -99,7 +99,7 @@ env:
   ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
   DOCKER_REGISTRY_URL: docker.io
   ALIYUN_REGISTRY_URL: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
-  SKIP_CHECK_IMAGES: "apecloud/dm8_single|apecloud/dmdb_exporter|apecloud/mysql|apecloud/percona-xtrabackup|apecloud/oceanbase-ent|apecloud/yashandb-personal|apecloud/twemproxy|apecloud/xinference|apecloud/neon|apecloud/elasticsearch|apecloud/milvus-operator|apecloud/zookeeper|apecloud/xtrabackup|apecloud/postgres|apecloud/etcd|apecloud/apache-doris|apecloud/kingbase-monitor|apecloud/kingbase|apecloud/kafka|apecloud/prometheus-mssql-exporter|apecloud/cn-ubuntu-ent||apecloud/fe-ubuntu-ent|apecloud/kibana|apecloud/vllm-openai|apecloud/rocketmq"
+  SKIP_CHECK_IMAGES: "apecloud/dm8_single|apecloud/dmdb_exporter|apecloud/mysql|apecloud/percona-xtrabackup|apecloud/oceanbase-ent|apecloud/yashandb-personal|apecloud/twemproxy|apecloud/xinference|apecloud/neon|apecloud/elasticsearch|apecloud/milvus-operator|apecloud/zookeeper|apecloud/xtrabackup|apecloud/postgres|apecloud/etcd|apecloud/apache-doris|apecloud/kingbase-monitor|apecloud/kingbase|apecloud/kafka|apecloud/prometheus-mssql-exporter|apecloud/cn-ubuntu-ent||apecloud/fe-ubuntu-ent|apecloud/kibana|apecloud/vllm-openai|apecloud/rocketmq|apecloud/goldendb-dn|apecloud/goldendb-cn|apecloud/goldendb-gtm|apecloud/goldendb-control|goldendb-lds|apecloud/goldendb-zk"
 
 
 jobs:
