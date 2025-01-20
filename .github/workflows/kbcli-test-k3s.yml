@@ -338,7 +338,7 @@ jobs:
     secrets: inherit
 
   test-asmysql:
-    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'asmysql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'asmysql|') || endsWith(inputs.TEST_TYPE, 'asmysql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
@@ -347,6 +347,48 @@ jobs:
       test-type: "21"
       test-type-name: "asmysql"
       test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-asmysql-proxy:
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'asmysql-proxy|') || endsWith(inputs.TEST_TYPE, 'asmysql-proxy')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
+    needs: [ enable-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "21"
+      test-type-name: "asmysql-proxy"
+      test-args: "--enable-proxy true ${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-asmysql-orc:
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'asmysql-orc|') || endsWith(inputs.TEST_TYPE, 'asmysql-orc')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
+    needs: [ enable-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "21"
+      test-type-name: "asmysql-orc"
+      test-args: "--enable-orchestrator true ${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
+  test-asmysql-orc-proxy:
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'asmysql-orc-proxy|') || endsWith(inputs.TEST_TYPE, 'asmysql-orc-proxy')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
+    needs: [ enable-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "21"
+      test-type-name: "asmysql-orc-proxy"
+      test-args: "--enable-proxy true --enable-orchestrator true ${{ inputs.ARGS }}"
       branch-name: ${{ inputs.BRANCH_NAME }}
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
     secrets: inherit
@@ -767,7 +809,8 @@ jobs:
              test-vllm, test-tdengine, test-orioledb, test-vanilla-pg, test-ggml, test-zookeeper,
              test-mariadb, test-tidb, test-xinference, test-oracle, test-opengauss, test-influxdb,
              test-flink, test-solr, test-halo, test-mogdb, test-starrocks-ent, test-apecloud-postgresql,
-             test-yashandb, test-polardbx, test-redis-cluster, test-camellia-redis-proxy, test-dmdb, test-minio, test-orchestrator]
+             test-yashandb, test-polardbx, test-redis-cluster, test-camellia-redis-proxy, test-dmdb,
+             test-minio, test-orchestrator, test-asmysql-proxy, test-asmysql-orc, test-asmysql-orc-proxy]
     steps:
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -1061,7 +1104,7 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##foxlake|${{ needs.test-foxlake.outputs.test-result }}"
               fi
             
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"asmysql"* ]]; then
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"asmysql|"* || "${{ inputs.TEST_TYPE }}" == *"asmysql" ]]; then
                   TEST_RESULT="${TEST_RESULT}##asmysql|${{ needs.test-asmysql.outputs.test-result }}"
               fi
           
@@ -1193,6 +1236,17 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##orchestrator|${{ needs.test-orchestrator.outputs.test-result }}"
               fi 
           fi 
+          if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* && "${{ inputs.KB_VERSION }}" != "v0.9."* ]]; then
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"asmysql-proxy|"* || "${{ inputs.TEST_TYPE }}" == *"asmysql-proxy" ]]; then
+                  TEST_RESULT="${TEST_RESULT}##asmysql-proxy|${{ needs.test-asmysql-proxy.outputs.test-result }}"
+              fi
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"asmysql-orc|"* || "${{ inputs.TEST_TYPE }}" == *"asmysql-orc" ]]; then
+                  TEST_RESULT="${TEST_RESULT}##asmysql-orc|${{ needs.test-asmysql-orc.outputs.test-result }}"
+              fi
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"asmysql-orc-proxy|"* || "${{ inputs.TEST_TYPE }}" == *"asmysql-orc-proxy" ]]; then
+                  TEST_RESULT="${TEST_RESULT}##asmysql-orc-proxy|${{ needs.test-asmysql-orc-proxy.outputs.test-result }}"
+              fi
+          fi
           
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
               --github-repo "${{ github.repository }}" \

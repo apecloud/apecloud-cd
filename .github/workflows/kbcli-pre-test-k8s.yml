@@ -409,7 +409,7 @@ jobs:
     secrets: inherit
 
   asmysql-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'asmysql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'asmysql|') || endsWith(inputs.TEST_TYPE, 'asmysql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -419,6 +419,57 @@ jobs:
       test-type: "21"
       test-type-name: "asmysql-pre"
       test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  asmysql-proxy-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'asmysql-proxy|') || endsWith(inputs.TEST_TYPE, 'asmysql-proxy')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "21"
+      test-type-name: "asmysql-proxy-pre"
+      test-args: "--enable-proxy true ${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  asmysql-orc-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'asmysql-orc|') || endsWith(inputs.TEST_TYPE, 'asmysql-orc')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "21"
+      test-type-name: "asmysql-orc-pre"
+      test-args: "--enable-orchestrator true ${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  asmysql-orc-proxy-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'asmysql-orc-proxy|') || endsWith(inputs.TEST_TYPE, 'asmysql-orc-proxy')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "21"
+      test-type-name: "asmysql-orc-proxy-pre"
+      test-args: "--enable-proxy true --enable-orchestrator true ${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
       artifact-name: ${{ inputs.artifact-name }}
       branch-name: ${{ inputs.branch-name }}
@@ -1103,7 +1154,8 @@ jobs:
              mogdb-pre, oceanbase-ent-pre, starrocks-ent-pre, apecloud-postgresql-pre,
              yashandb-pre, redis-cluster-pre, camellia-redis-proxy-pre, dmdb-pre, minio-pre,
              orchestrator-pre, rabbitmq-pre, loki-pre, victoria-metrics-pre, gaussdb-pre,
-             damengdb-pre, kingbase-pre, vastbase-pre, mssql-pre, rocketmq-pre  ]
+             damengdb-pre, kingbase-pre, vastbase-pre, mssql-pre, rocketmq-pre,
+             asmysql-proxy-pre, asmysql-orc-pre, asmysql-orc-proxy-pre]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1186,7 +1238,7 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##foxlake-pre|${{ needs.foxlake-pre.outputs.test-result }}"
               fi
 
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"asmysql"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"asmysql|"* || "$TEST_TYPE" == *"asmysql" ]]; then
                   TEST_RESULT="${TEST_RESULT}##asmysql-pre|${{ needs.asmysql-pre.outputs.test-result }}"
               fi
           
@@ -1356,6 +1408,17 @@ jobs:
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"rocketmq"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##rocketmq-pre|${{ needs.rocketmq-pre.outputs.test-result }}"
               fi 
+          fi
+          if [[ "${{ inputs.release-version }}" != "v0.5."* && "${{ inputs.release-version }}" != "v0.6."* && "${{ inputs.release-version }}" != "v0.7."* && "${{ inputs.release-version }}" != "v0.8."* && "${{ inputs.release-version }}" != "v0.9."* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"asmysql-proxy|"* || "$TEST_TYPE" == *"asmysql-proxy" ]]; then
+                  TEST_RESULT="${TEST_RESULT}##asmysql-proxy-pre|${{ needs.asmysql-proxy-pre.outputs.test-result }}"
+              fi
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"asmysql-orc|"* || "$TEST_TYPE" == *"asmysql-orc" ]]; then
+                  TEST_RESULT="${TEST_RESULT}##asmysql-orc-pre|${{ needs.asmysql-orc-pre.outputs.test-result }}"
+              fi
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"asmysql-orc-proxy|"* || "$TEST_TYPE" == *"asmysql-orc-proxy" ]]; then
+                  TEST_RESULT="${TEST_RESULT}##asmysql-orc-proxy-pre|${{ needs.asmysql-orc-proxy-pre.outputs.test-result }}"
+              fi
           fi
           
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
