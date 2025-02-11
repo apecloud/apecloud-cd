@@ -362,9 +362,11 @@ jobs:
               VERSION="${{ inputs.VERSION }}"
               case "${VERSION}" in
                 *-console)
+                  echo "set BASE_PATH env /console"
                   echo 'BASE_PATH=/console' >> $GITHUB_ENV
                 ;;
                 *-admin)
+                  echo "set BASE_PATH env /admin"
                   echo 'BASE_PATH=/admin' >> $GITHUB_ENV
                 ;;
               esac
