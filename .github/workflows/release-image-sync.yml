@@ -356,6 +356,19 @@ jobs:
           
           if [[ -n "${{ inputs.MAKE_ARGS }}" ]]; then
             cmd=$cmd" ${{ inputs.MAKE_ARGS }} "
+          
+            TARGETS="${{ inputs.MAKE_ARGS }}"
+            if [[ "${TARGETS}" == *"TARGETS=openconsole"* ]]; then
+              VERSION="${{ inputs.VERSION }}"
+              case "${VERSION}" in
+                *-console)
+                  echo 'BASE_PATH=/console' >> $GITHUB_ENV
+                ;;
+                *-admin)
+                  echo 'BASE_PATH=/admin' >> $GITHUB_ENV
+                ;;
+              esac
+            fi
           fi
           
           if [[ -n "${{ inputs.IMAGE_NAME }}" ]]; then
