@@ -114,6 +114,7 @@ update_charts_notes() {
     for update_charts_dir in $(echo "${CHART_DIR}" | sed 's/|/ /g' ); do
         echo "find ${update_charts_dir} NOTES.txt"
         for update_chart_dir in $(ls ${update_charts_dir}); do
+            update_chart_addon_dir=$update_chart_dir
             update_chart_dir_tmp="${update_charts_dir}/${update_chart_dir}"
             update_chart_dir="${update_chart_dir_tmp}/templates"
             if [[ ! -d ${update_chart_dir} ]]; then
@@ -128,6 +129,7 @@ update_charts_notes() {
             fi
             chart_log_info=$(git log -n 1 --pretty="format:%H %ad" --date="iso8601" -- "${update_chart_dir_tmp}")
             IFS=' ' read -r commit_id commit_time <<< "$chart_log_info"
+            echo $update_chart_addon_dir $commit_id $commit_time
             update_chart_notes "${chart_notes_path}" "${commit_id}" "${commit_time}"
         done
     done
