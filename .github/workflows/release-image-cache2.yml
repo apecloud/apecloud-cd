@@ -122,11 +122,14 @@ jobs:
       - name: Checkout Code
         if: ${{ ! inputs.ENABLE_SUBMODULE }}
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Checkout Code With Submodule
         if: inputs.ENABLE_SUBMODULE
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           submodules: 'recursive'
           token: ${{ env.GITHUB_TOKEN }}
 
@@ -134,6 +137,7 @@ jobs:
         if: ${{ inputs.GITHUB_REPO != '' }}
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           repository: ${{ inputs.GITHUB_REPO }}
           ref: ${{ inputs.GITHUB_REF }}
           path: ./${{ inputs.GITHUB_REPO }}
