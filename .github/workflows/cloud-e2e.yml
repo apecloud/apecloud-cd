@@ -48,6 +48,11 @@ on:
         type: boolean
         required: false
         default: false
+      TEST_REPORT:
+        description: "Test report (default: false)"
+        type: boolean
+        required: false
+        default: false
   workflow_call:
     inputs:
       TEST_TYPE:
@@ -92,6 +97,11 @@ on:
         default: true
       TEST_E2E:
         description: "Test e2e (default: false)"
+        type: boolean
+        required: false
+        default: false
+      TEST_REPORT:
+        description: "Test report (default: false)"
         type: boolean
         required: false
         default: false
@@ -190,6 +200,10 @@ jobs:
       adminapi-test-result: ${{ steps.get_test_result.outputs.adminapi-test-result }}
       engine-test-result: ${{ steps.get_test_result.outputs.engine-test-result }}
       test-result: ${{ steps.get_test_result.outputs.test-result }}
+      openapi-summary: ${{ steps.get_test_result.outputs.openapi-summary }}
+      adminapi-summary: ${{ steps.get_test_result.outputs.adminapi-summary }}
+      engine-summary: ${{ steps.get_test_result.outputs.engine-summary }}
+      api-summary: ${{ steps.get_test_result.outputs.api-summary }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout testinfra Code
@@ -205,6 +219,14 @@ jobs:
           repository: apecloud/apecloud-cd
           path: ./apecloud-cd
           ref: ${{ inputs.APECD_REF }}
+
+      - name: Checkout apecloud Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud
+          path: ./apecloud
+          token: ${{ env.GH_TOKEN }}
+          ref: "${{ needs.get-test-type.outputs.cloud-branch }}"
 
       - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
         id: cloud_env
@@ -348,18 +370,52 @@ jobs:
               fi
           fi
           
+          API_COVERAGE_SUMMARY=""
+          CLOUD_E2E_HACK_DIR="${{ github.workspace }}/apecloud/e2e/hack"
+          if [[ -d "${CLOUD_E2E_HACK_DIR}" ]]; then
+              cd ${CLOUD_E2E_HACK_DIR}
+              if [[ -f "${CLOUD_E2E_HACK_DIR}/api-coverage.sh" ]]; then
+                  # api coverage summary
+                  API_TYPE="openapi"
+                  if [[ -n "$TEST_TYPE" && "$TEST_TYPE" == "adminapi" ]]; then
+                      API_TYPE="adminapi"
+                  fi
+                  API_COVERAGE_SUMMARY=$(bash ./api-coverage.sh --type ${API_TYPE} --log ${file_log})
+                  
+                  TOTAL_APIS=$(echo "${API_COVERAGE_SUMMARY}" | grep "Total APIs: ")
+                  COVERED_APIS=$(echo "${API_COVERAGE_SUMMARY}" | grep "Covered APIs: ")
+                  COVERAGE=$(echo "${API_COVERAGE_SUMMARY}" | grep "Coverage: ")
+                  DEPRECATED_APIS=$(echo "${API_COVERAGE_SUMMARY}" | grep "Deprecated APIs: ")
+                  
+                  TOTAL_APIS=$(echo "$TOTAL_APIS" | grep -oE '[0-9]+')
+                  COVERED_APIS=$(echo "$COVERED_APIS" | grep -oE '[0-9]+')
+                  COVERAGE=$(echo "$COVERAGE" | grep -oE '[0-9]+%')
+                  DEPRECATED_APIS=$(echo "$DEPRECATED_APIS" | grep -oE '[0-9]+')
+                  
+                  echo "Total APIs: $TOTAL_APIS"
+                  echo "Covered APIs: $COVERED_APIS"
+                  echo "Coverage: $COVERAGE"
+                  echo "Deprecated APIs: $DEPRECATED_APIS"
+                  API_COVERAGE_SUMMARY="${TOTAL_APIS}|${COVERED_APIS}|${COVERAGE}|${DEPRECATED_APIS}"
+              fi
+          fi
+          
           case "$TEST_TYPE" in
               openapi-test)
                   echo openapi-test-result="${test_result}" >> $GITHUB_OUTPUT
+                  echo openapi-summary="${API_COVERAGE_SUMMARY}" >> $GITHUB_OUTPUT
               ;;
               adminapi-test)
                   echo adminapi-test-result="${test_result}" >> $GITHUB_OUTPUT
+                  echo adminapi-summary="${API_COVERAGE_SUMMARY}" >> $GITHUB_OUTPUT
               ;;
               engine-test)
                   echo engine-test-result="${test_result}" >> $GITHUB_OUTPUT
+                  echo engine-summary="${API_COVERAGE_SUMMARY}" >> $GITHUB_OUTPUT
               ;;
               *)
                   echo test-result="${test_result}" >> $GITHUB_OUTPUT
+                  echo api-summary="${API_COVERAGE_SUMMARY}" >> $GITHUB_OUTPUT
               ;;
           esac
           
@@ -740,21 +796,34 @@ jobs:
           TEST_ENGINES="${{ needs.get-test-type.outputs.test-engines }}"
           
           TEST_RESULT=""
+          API_COVERAGE_SUMMARY=""
           if [[ "${TEST_E2E}" == "true" ]]; then
               TEST_TYPES="${{ inputs.TEST_TYPE }}"
               for test_type_tmp in $(echo "${TEST_TYPES}" | sed 's/|/ /g' ); do
                   case "$test_type_tmp" in
                       openapi-test)
                           TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.openapi-test-result }}"
+                          if [[ -n "${{ needs.e2e-test.outputs.openapi-summary }}" ]]; then
+                              API_COVERAGE_SUMMARY="${API_COVERAGE_SUMMARY}##openapi|${{ needs.e2e-test.outputs.openapi-summary }}"
+                          fi
                       ;;
                       adminapi-test)
                           TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.adminapi-test-result }}"
+                          if [[ -n "${{ needs.e2e-test.outputs.adminapi-summary }}" ]]; then
+                              API_COVERAGE_SUMMARY="${API_COVERAGE_SUMMARY}##adminapi|${{ needs.e2e-test.outputs.adminapi-summary }}"
+                          fi
                       ;;
                       engine-test)
                           TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.engine-test-result }}"
+                          if [[ -n "${{ needs.e2e-test.outputs.engine-summary }}" ]]; then
+                              API_COVERAGE_SUMMARY="${API_COVERAGE_SUMMARY}##engine|${{ needs.e2e-test.outputs.engine-summary }}"
+                          fi
                       ;;
                       *)
                           TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.test-result }}"
+                          if [[ -n "${{ needs.e2e-test.outputs.api-summary }}" ]]; then
+                              API_COVERAGE_SUMMARY="${API_COVERAGE_SUMMARY}##api|${{ needs.e2e-test.outputs.api-summary }}"
+                          fi
                       ;;
                   esac
               done
@@ -826,3 +895,12 @@ jobs:
               --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
+          
+          TEST_TITLE_SUMMARY="[${CLOUD_BRANCH}] Cloud E2E API Coverage Summary [${date_ret}]"
+          if [[ -n "${API_COVERAGE_SUMMARY}" ]]; then
+              python3 .github/utils/send_mesage.py \
+                  --send-type summary \
+                  --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+                  --title "$TEST_TITLE_SUMMARY" \
+                  --result "$API_COVERAGE_SUMMARY"
+          fi
