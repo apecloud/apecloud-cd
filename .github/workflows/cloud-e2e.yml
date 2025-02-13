@@ -372,7 +372,7 @@ jobs:
           
           API_COVERAGE_SUMMARY=""
           CLOUD_E2E_HACK_DIR="${{ github.workspace }}/apecloud/e2e/hack"
-          if [[ -d "${CLOUD_E2E_HACK_DIR}" ]]; then
+          if [[ -d "${CLOUD_E2E_HACK_DIR}" && "${{ inputs.TEST_REPORT }}" == "true" ]]; then
               cd ${CLOUD_E2E_HACK_DIR}
               if [[ -f "${CLOUD_E2E_HACK_DIR}/api-coverage.sh" ]]; then
                   # api coverage summary
@@ -897,7 +897,7 @@ jobs:
               --result "$TEST_RESULT"
           
           TEST_TITLE_SUMMARY="[${CLOUD_BRANCH}] Cloud E2E API Coverage Summary [${date_ret}]"
-          if [[ -n "${API_COVERAGE_SUMMARY}" ]]; then
+          if [[ -n "${API_COVERAGE_SUMMARY}" && "${{ inputs.TEST_REPORT }}" == "true" ]]; then
               python3 .github/utils/send_mesage.py \
                   --send-type summary \
                   --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
