@@ -377,10 +377,10 @@ jobs:
               if [[ -f "${CLOUD_E2E_HACK_DIR}/api-coverage.sh" ]]; then
                   # api coverage summary
                   API_TYPE="openapi"
-                  if [[ -n "$TEST_TYPE" && "$TEST_TYPE" == "adminapi" ]]; then
+                  if [[ -n "$TEST_TYPE" && "$TEST_TYPE" == "adminapi"* ]]; then
                       API_TYPE="adminapi"
                   fi
-                  API_COVERAGE_SUMMARY=$(bash ./api-coverage.sh --type ${API_TYPE} --log ${file_log})
+                  API_COVERAGE_SUMMARY=$(bash ./api-coverage.sh --type ${API_TYPE} --log ${{ github.workspace }}/${file_log})
                   
                   TOTAL_APIS=$(echo "${API_COVERAGE_SUMMARY}" | grep "Total APIs: ")
                   COVERED_APIS=$(echo "${API_COVERAGE_SUMMARY}" | grep "Covered APIs: ")
