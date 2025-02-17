@@ -30,6 +30,7 @@ jobs:
   skopeo:
     runs-on: macos-latest
     strategy:
+      fail-fast: false
       matrix:
         registry: [ docker.io, apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com ]
     steps:
