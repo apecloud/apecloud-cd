@@ -52,6 +52,7 @@ Usage: $(basename "$0") <options>
                                 39) get cloud pre version
                                 40) get ginkgo test result
                                 41) get ginkgo test result total
+                                42) set api coverage result url
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -63,6 +64,7 @@ Usage: $(basename "$0") <options>
     -df, --delete-force       Force to delete stable release (default: DEFAULT_DELETE_FORCE)
     -ri, --run-id             The github run id
     -tr, --test-result        The test result
+    -cr, --coverage-result    The api coverage result
     -cp, --chart-path         The chart path
     -in, --issue-number       The issue number
     -ic, --issue-comment      The issue comment body
@@ -1013,6 +1015,23 @@ get_ginkgo_test_result_total() {
     fi
 }
 
+set_api_coverage_result_url() {
+    TEST_RESULT="$(echo "${TEST_RESULT}" | sed 's/ /#/g')"
+    COVERAGE_RESULT_TEMP=""
+    for coverage_result in $(echo "$COVERAGE_RESULT" | sed 's/##/ /g'); do
+        api_type=${coverage_result%%|*}
+        for test_result in `echo "$TEST_RESULT" | sed 's/##/ /g'`; do
+            test_type=${test_result%%-*}
+            job_url=${test_result##*|}
+            if [[ "$test_type" == "$api_type" ]]; then
+                COVERAGE_RESULT_TEMP="${COVERAGE_RESULT_TEMP}##${coverage_result}|${job_url}"
+                break
+            fi
+        done
+    done
+    echo "$COVERAGE_RESULT_TEMP"
+}
+
 parse_command_line() {
     while :; do
         case "${1:-}" in
@@ -1089,6 +1108,12 @@ parse_command_line() {
             -tr|--test-result)
                 if [[ -n "${2:-}" ]]; then
                     TEST_RESULT="$2"
+                    shift
+                fi
+            ;;
+            -cr|--coverage-result)
+                if [[ -n "${2:-}" ]]; then
+                    COVERAGE_RESULT="$2"
                     shift
                 fi
             ;;
@@ -1182,6 +1207,7 @@ main() {
     local DELETE_FORCE=$DEFAULT_DELETE_FORCE
     local RUN_ID=""
     local TEST_RESULT=""
+    local COVERAGE_RESULT=""
     local TEST_RET=""
     local CHART_PATH=""
     local DELETE_RELEASE=""
@@ -1336,6 +1362,9 @@ main() {
         ;;
         41)
             get_ginkgo_test_result_total
+        ;;
+        42)
+            set_api_coverage_result_url
         ;;
     esac
 }

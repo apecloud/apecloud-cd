@@ -651,7 +651,7 @@ def send_summary_message(url_v, result_v, title_v):
                             "elements": [
                                 {
                                     "tag": "markdown",
-                                    "content": "<font color='blue'>" + ret[0] + "</font>",
+                                    "content": "<a href='" + ret[5] + "'>" + ret[0] + "</a>",
                                     "text_align": "center"
                                 }
                             ]
