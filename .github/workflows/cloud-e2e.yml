@@ -383,7 +383,7 @@ jobs:
                   if [[ -n "$TEST_TYPE" && "$TEST_TYPE" == "adminapi"* ]]; then
                       API_TYPE="adminapi"
                   fi
-                  bash ./api-coverage.sh --type ${API_TYPE} --log ${{ github.workspace }}/${file_log} | tee -a ${coverage_file_log_path}
+                  bash ./api-coverage.sh --type ${API_TYPE} --log ${{ github.workspace }}/${file_log} > ${coverage_file_log_path}
                   API_COVERAGE_SUMMARY=$(cat ${coverage_file_log_path})
                   
                   TOTAL_APIS=$(echo "${API_COVERAGE_SUMMARY}" | grep "Total APIs: ")
