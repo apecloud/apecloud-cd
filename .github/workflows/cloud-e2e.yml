@@ -912,10 +912,10 @@ jobs:
           TEST_TITLE_SUMMARY="[${CLOUD_BRANCH}] Cloud E2E API Coverage Summary [${date_ret}]"
           if [[ -n "${API_COVERAGE_SUMMARY}" && "${{ inputs.TEST_REPORT }}" == "true" ]]; then
               echo "API_COVERAGE_SUMMARY:${API_COVERAGE_SUMMARY}"
-              API_COVERAGE_SUMMARY_TMP="$(bash .github/utils/utils.s \
+              API_COVERAGE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
                   --type 42 \
                   --test-result "${TEST_RESULT}" \
-                  --coverage-result "${API_COVERAGE_SUMMARY}"
+                  --coverage-result "${API_COVERAGE_SUMMARY}")"
               echo "API_COVERAGE_SUMMARY:${API_COVERAGE_SUMMARY_TMP}"
           
               python3 .github/utils/send_mesage.py \
