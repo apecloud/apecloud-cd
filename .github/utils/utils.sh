@@ -53,6 +53,7 @@ Usage: $(basename "$0") <options>
                                 40) get ginkgo test result
                                 41) get ginkgo test result total
                                 42) set api coverage result url
+                                43) set engine summary result url
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -1032,6 +1033,23 @@ set_api_coverage_result_url() {
     echo "$COVERAGE_RESULT_TEMP"
 }
 
+set_engine_summary_result_url() {
+    TEST_RESULT="$(echo "${TEST_RESULT}" | sed 's/ /#/g')"
+    job_url="null"
+    for test_result in `echo "$TEST_RESULT" | sed 's/##/ /g'`; do
+        test_type=${test_result%%-*}
+        if [[ "$test_type" == "engine" ]]; then
+            job_url=${test_result##*|}
+        fi
+    done
+    ENGINE_SUMMARY_RESULT_TEMP=""
+    for coverage_result in $(echo "$COVERAGE_RESULT" | sed 's/##/ /g'); do
+        coverage_result=${coverage_result/\#/ }
+        ENGINE_SUMMARY_RESULT_TEMP="${ENGINE_SUMMARY_RESULT_TEMP}##${coverage_result}|${job_url}"
+    done
+    echo "$ENGINE_SUMMARY_RESULT_TEMP"
+}
+
 parse_command_line() {
     while :; do
         case "${1:-}" in
@@ -1365,6 +1383,9 @@ main() {
         ;;
         42)
             set_api_coverage_result_url
+        ;;
+        43)
+            set_engine_summary_result_url
         ;;
     esac
 }
