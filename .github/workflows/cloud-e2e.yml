@@ -365,7 +365,7 @@ jobs:
           
           if [[ -z "$test_result" ]]; then
               test_result="[PASSED]"
-              if [[ -n "$test_ret" ]]; then
+              if [[ -n "$test_ret" || -z "${TEST_RESULT_ALL}" ]]; then
                   test_result="[FAILED]"
               fi
           fi
