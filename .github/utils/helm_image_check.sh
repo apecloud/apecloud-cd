@@ -55,7 +55,7 @@ main() {
                 continue
             fi
 
-            if [[ -z "$repository" || "$repository" == "image:" || "$repository" == *':$('*')' ]]; then
+            if [[ -z "$repository" || "$repository" == "image:" || "$repository" == *':$('*')' || "$repository" == *'--'* || "$repository" == *'='* ]]; then
                 repository=""
                 continue
             fi
