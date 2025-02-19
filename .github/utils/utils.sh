@@ -79,6 +79,7 @@ Usage: $(basename "$0") <options>
     -r, --registry            Docker image registry (default: $REGISTRY_DEFAULT)
     -lb, --label-name         The pr label name
     -lo, --label-ops          The pr label ops (add/remove)
+    -ru, --report-url         The test report url
 EOF
 }
 
@@ -1045,7 +1046,7 @@ set_engine_summary_result_url() {
     ENGINE_SUMMARY_RESULT_TEMP=""
     for coverage_result in $(echo "$COVERAGE_RESULT" | sed 's/##/ /g'); do
         coverage_result=${coverage_result/\#/ }
-        ENGINE_SUMMARY_RESULT_TEMP="${ENGINE_SUMMARY_RESULT_TEMP}##${coverage_result}|${job_url}"
+        ENGINE_SUMMARY_RESULT_TEMP="${ENGINE_SUMMARY_RESULT_TEMP}##${coverage_result}|${REPORT_URL}|${job_url}"
     done
     echo "$ENGINE_SUMMARY_RESULT_TEMP"
 }
@@ -1201,6 +1202,10 @@ parse_command_line() {
                 LABEL_OPS="$2"
                 shift
             ;;
+            -ru|--report-url)
+                REPORT_URL="$2"
+                shift
+            ;;
             *)
                 break
             ;;
@@ -1241,6 +1246,7 @@ main() {
     local REGISTRY=$REGISTRY_DEFAULT
     local LABEL_NAME=""
     local LABEL_OPS=""
+    local REPORT_URL=""
     local UNAME="$(uname -s)"
 
     parse_command_line "$@"

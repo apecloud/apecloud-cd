@@ -125,6 +125,10 @@ env:
   DOCKER_REGISTRY_URL: docker.io
   DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
+  OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
+  OSS_ENDPOINT: "oss-cn-zhangjiakou.aliyuncs.com"
+  OSS_BUCKET: "kubeblocks-oss"
 
 jobs:
   get-test-type:
@@ -136,6 +140,7 @@ jobs:
       test-engines: ${{ steps.get_test_type.outputs.test-engines }}
       test-e2e: ${{ steps.get_test_type.outputs.test-e2e }}
       test-installer: ${{ steps.get_test_type.outputs.test-installer }}
+      current-version: ${{ steps.get_test_type.outputs.current-version }}
     steps:
       - name: Get test type
         id: get_test_type
@@ -184,6 +189,7 @@ jobs:
               if [[ "${CURRENT_VERSION}" != "v"* ]]; then
                   CURRENT_VERSION="v${CURRENT_VERSION}"
               fi
+              echo current-version="$CURRENT_VERSION" >> $GITHUB_OUTPUT
               TEST_E2E="true"
           fi
           echo test-e2e="$TEST_E2E" >> $GITHUB_OUTPUT
@@ -204,6 +210,7 @@ jobs:
       adminapi-summary: ${{ steps.get_test_result.outputs.adminapi-summary }}
       engine-summary: ${{ steps.get_test_result.outputs.engine-summary }}
       api-summary: ${{ steps.get_test_result.outputs.api-summary }}
+      test-date: ${{ steps.upload_test_result.outputs.test-date }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout testinfra Code
@@ -227,6 +234,7 @@ jobs:
           path: ./apecloud
           token: ${{ env.GH_TOKEN }}
           ref: "${{ needs.get-test-type.outputs.cloud-branch }}"
+          fetch-depth: 0
 
       - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
         id: cloud_env
@@ -341,6 +349,7 @@ jobs:
         run: |
           file_log="test_result.log"
           touch ${file_log} 
+          test_file_log_path="${{ github.workspace }}/${file_log}"
           kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${file_log}
           kubectl delete pod -n default ${CLOUD_E2E_TEST_POD_NAME} --force
           cat ${file_log}
@@ -376,7 +385,27 @@ jobs:
           API_COVERAGE_SUMMARY=""
           CLOUD_E2E_HACK_DIR="${{ github.workspace }}/apecloud/e2e/hack"
           if [[ "${{ inputs.TEST_REPORT }}" == "true" && "${TEST_TYPE}" == "engine-test" ]]; then
-              API_COVERAGE_SUMMARY=$(python3 test/report/parse_ginkgo.py summary ${{ github.workspace }}/${file_log})
+              API_COVERAGE_SUMMARY=$(python3 test/report/parse_ginkgo.py summary ${test_file_log_path})
+          
+              engine_file_log="test_engine_api_result.txt"
+              engine_file_log_path="${{ github.workspace }}/${engine_file_log}"
+              touch ${engine_file_log_path} 
+              python3 test/report/parse_ginkgo.py summary ${test_file_log_path} > ${engine_file_log_path}
+          
+              cd test/report
+              bash update_test_period.sh ./md
+              mkdir -p reports/cn
+              for i in $(seq 1 3); do
+                  python3 ./report.py \
+                      --type=engine \
+                      --raw=${engine_file_log_path} \
+                      --main_report=TEST_REPORT_CLOUD_API_ENGINE.pdf
+                  gen_ret=$?
+                  if [[ $gen_ret -eq 0 ]]; then
+                      break
+                  fi
+                  sleep 1
+              done
           elif [[ -d "${CLOUD_E2E_HACK_DIR}" && "${{ inputs.TEST_REPORT }}" == "true" ]]; then
               cd ${CLOUD_E2E_HACK_DIR}
               if [[ -f "${CLOUD_E2E_HACK_DIR}/api-coverage.sh" ]]; then
@@ -385,7 +414,7 @@ jobs:
                   if [[ -n "$TEST_TYPE" && "$TEST_TYPE" == "adminapi"* ]]; then
                       API_TYPE="adminapi"
                   fi
-                  bash ./api-coverage.sh --type ${API_TYPE} --log ${{ github.workspace }}/${file_log} > ${coverage_file_log_path}
+                  bash ./api-coverage.sh --type ${API_TYPE} --log ${test_file_log_path} > ${coverage_file_log_path}
                   API_COVERAGE_SUMMARY=$(cat ${coverage_file_log_path})
                   
                   TOTAL_APIS=$(echo "${API_COVERAGE_SUMMARY}" | grep "Total APIs: ")
@@ -430,13 +459,42 @@ jobs:
           fi
 
       - name: Get ${{ matrix.test-type }} API Coverage List
-        if: ${{ always() }}
+        if: ${{ always() && matrix.test-type != 'engine-test' }}
         run: |
           coverage_file_log="test_api_coverage_result.log"
           coverage_file_log_path="${{ github.workspace }}/${coverage_file_log}"
           if [[ -f ${coverage_file_log_path} ]]; then
               cat ${coverage_file_log_path}
           fi
+
+      - name: Setup ossutil
+        uses: manyuanrong/setup-ossutil@v2.0
+        if: ${{ always() && matrix.test-type == 'engine-test' }}
+        with:
+          access-key-id: "${{ env.OSS_KEY_ID }}"
+          access-key-secret: "${{ env.OSS_KEY_SECRET }}"
+          endpoint: "${{ env.OSS_ENDPOINT }}"
+
+      - name: Upload engine report to oss
+        if: ${{ always() && matrix.test-type == 'engine-test' }}
+        id: upload_test_result
+        run: |
+          TEST_DATE="$(date +%Y%m%d)"
+          echo test-date=${TEST_DATE} >> $GITHUB_OUTPUT
+          APECLOUD_CURRENT_VERSION="${{ needs.get-test-type.outputs.current-version }}"
+          OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/apecloud/${APECLOUD_CURRENT_VERSION}/${TEST_DATE}"
+          upload_file_name="${{ github.workspace }}/test/report/reports/cn/TEST_REPORT_CLOUD_API_ENGINE.pdf"
+          for i in $(seq 1 3); do
+              ossutil cp -rf "${upload_file_name}" "${OSS_DIR}/${upload_file_name}"
+              upload_ret=$?
+              if [[ $upload_ret -eq 0 ]]; then
+                  echo "$(tput -T xterm setaf 2)upload ${upload_file_name} to oss successfully$(tput -T xterm sgr0)"
+                  break
+              else
+                  echo "$(tput -T xterm setaf 3)::warning title=upload ${upload_file_name} to oss failure$(tput -T xterm sgr0)"
+              fi
+              sleep 1
+          done
 
   installer-test:
     needs: [ get-test-type ]
@@ -930,9 +988,15 @@ jobs:
           
           TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}] Cloud E2E Engine API Summary [${date_ret}]"
           if [[ -n "${ENGINE_API_SUMMARY}" && "${{ inputs.TEST_REPORT }}" == "true" ]]; then
+              APECLOUD_CURRENT_VERSION="${{ needs.get-test-type.outputs.current-version }}"
+              TEST_DATE=${{ needs.e2e-test.outputs.test-date }}
+              OSS_URL="https://${{ env.OSS_BUCKET }}.${{ env.OSS_ENDPOINT }}/reports/apecloud/${APECLOUD_CURRENT_VERSION}/${TEST_DATE}"
+              TEST_REPORT_URL="${OSS_URL}/TEST_REPORT_CLOUD_API_ENGINE.pdf"
+          
               echo "ENGINE_API_SUMMARY:${ENGINE_API_SUMMARY}"
               ENGINE_API_SUMMARY_TMP="$(bash .github/utils/utils.sh \
                   --type 43 \
+                  --report-url "${TEST_REPORT_URL}" \
                   --test-result "${TEST_RESULT}" \
                   --coverage-result "${ENGINE_API_SUMMARY}")"
               echo "ENGINE_API_SUMMARY:${ENGINE_API_SUMMARY_TMP}"
