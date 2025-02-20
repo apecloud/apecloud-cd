@@ -1784,8 +1784,10 @@ jobs:
 
       - name: generate report
         run: |
+          sudo locale-gen zh_CN.UTF-8
+          sudo update-locale
+          locale -a
           cd test/report
-          
           bash update_test_period.sh ./md
           
           mkdir -p reports/cn
