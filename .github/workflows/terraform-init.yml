@@ -317,10 +317,29 @@ jobs:
           overwrite: true
 
       - name: Setup kubectl
-        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
+        if: ${{ (inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat') || inputs.cloud-provider == 'aks' }}
         uses: azure/setup-kubectl@v3
         with:
           version: "v1.28.3"
+
+      - if: ${{ inputs.cloud-provider == 'aks' && env.AZURE_CREDENTIALS != '' }}
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS }}
+
+      - if: ${{ inputs.cloud-provider == 'aks' && env.AZURE_CREDENTIALS != ''}}
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: '${{ inputs.k8s-cluster-name }}-group'
+          cluster-name: '${{ inputs.k8s-cluster-name }}'
+
+      - name: enbale coredns log
+        if: ${{ inputs.cloud-provider == 'aks' && env.AZURE_CREDENTIALS != ''}}
+        run: |
+          if [[ -f "${{ steps.get_deploy_path.outputs.deploy-path }}/coredns-custom.yaml" ]]; then
+              kubectl apply -f ${{ steps.get_deploy_path.outputs.deploy-path }}/coredns-custom.yaml
+              kubectl delete pod -n kube-system -l k8s-app=kube-dns
+          fi
 
       - name: Setup gcloud
         if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
