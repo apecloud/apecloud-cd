@@ -257,6 +257,7 @@ jobs:
               --job-name "sysbench-run" \
               --run-id "$GITHUB_RUN_ID" )
           
+          export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
           TEST_TITLE="[${{ inputs.KB_VERSION }}] performance ${{ inputs.TEST_TYPE }} ${{ inputs.NODE_TYPE }} ${{ inputs.PERFORMANCE_TYPE }} [${date_ret}]"
           TEST_RESULT="${{ needs.performance-run.outputs.perfromance-result }}"

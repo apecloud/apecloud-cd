@@ -206,6 +206,7 @@ jobs:
           
           echo "$TEST_RESULT"
           
+          export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
           test_title="[${{ inputs.CLOUD_VERSION }}] Test Cloud on K8S:${{ inputs.CLOUD_PROVIDER }} ${{ inputs.CLUSTER_VERSION }} [${date_ret}]"
           python3 .github/utils/send_mesage.py \

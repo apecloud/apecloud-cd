@@ -199,12 +199,14 @@ jobs:
         run: |
           KB_VERSION=$( bash .github/utils/get_kb_latest_version.sh ${{ inputs.release-version }})
           
+          export TZ='Asia/Shanghai'
           TEST_DATE=$(date +%Y%m%d%T | sed 's/://g')
           if [[ -n "${{ inputs.test-date }}" ]]; then
               TEST_DATE="${{ inputs.test-date }}"
           fi
           echo test-date=$TEST_DATE >> $GITHUB_OUTPUT
           
+          export TZ='Asia/Shanghai'
           file_log="$(date +%Y-%m-%d-%T)".log
           touch ${file_log}
           echo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> ${file_log}

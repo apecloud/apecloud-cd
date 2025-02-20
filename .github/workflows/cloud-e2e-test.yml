@@ -242,7 +242,7 @@ jobs:
               --run-id "$GITHUB_RUN_ID" \
               --github-token ${{ github.token }} )
           
-          
+          export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
           test_title="[${{ inputs.CLOUD_ENV }}] Test KBCLI on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
           test_title="[Cloud test env:${{ inputs.CLOUD_ENV }}] [EngineType:${{ inputs.ENGINE_TYPE }}] [EngineMode:${{ inputs.ENGINE_MODE }}] [${date_ret}]"

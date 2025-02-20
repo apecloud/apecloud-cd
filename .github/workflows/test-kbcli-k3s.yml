@@ -115,6 +115,7 @@ jobs:
           PREVIOUS_VERSION="${{ inputs.previous-version }}"
           PREVIOUS_VERSION="${PREVIOUS_VERSION/v/}"
           
+          export TZ='Asia/Shanghai'
           rand_suffix=""
           if [[ -n "${PREVIOUS_VERSION}" ]]; then
               file_log_pre_install="$(date +%Y-%m-%d-%T)".log

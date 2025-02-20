@@ -193,6 +193,8 @@ jobs:
           if [[ -d kubeblocks-addons/examples ]]; then
               cp -r kubeblocks-addons/examples ./
           fi 
+          
+          export TZ='Asia/Shanghai'
           file_log="$(date +%Y-%m-%d-%T)".log
           touch ${file_log}
           echo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> ${file_log}

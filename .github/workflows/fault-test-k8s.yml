@@ -250,6 +250,7 @@ jobs:
               --test-result "${TEST_RESULT}" \
               --run-id "$GITHUB_RUN_ID" )
           
+          export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
           test_title="[${{ inputs.KB_VERSION }}] Fault Test on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
           

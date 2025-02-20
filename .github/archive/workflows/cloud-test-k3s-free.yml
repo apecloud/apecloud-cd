@@ -118,6 +118,7 @@ jobs:
               --test-result "${TEST_RESULT}" \
               --run-id "$GITHUB_RUN_ID" )
           
+          export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
           test_title="[${{ inputs.APECLOUD_VERSION }}] Test ApeCloud on K3S:${{ inputs.K3S_VERSION }} [${date_ret}]"
           python3 .github/utils/send_mesage.py \

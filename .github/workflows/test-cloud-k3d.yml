@@ -244,6 +244,7 @@ jobs:
               --run-id "$GITHUB_RUN_ID" )
           echo $TEST_RESULT
           
+          export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
           TEST_TITLE="[${{ inputs.CLOUD_VERSION }}] Cloud E2E Test installer & bootstrapper on Env:K3s [${date_ret}]"
           

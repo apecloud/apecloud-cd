@@ -846,6 +846,7 @@ jobs:
               echo "TEST_RESULT:${TEST_RESULT}"
           fi
           
+          export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
           TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${TEST_ENGINES} [${date_ret}]"
           if [[ "${TEST_INSTALLER}" == "true" ]]; then

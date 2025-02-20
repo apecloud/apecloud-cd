@@ -136,6 +136,7 @@ jobs:
         id: deploy_kubechat
         if: ${{ inputs.test-type == '0' }}
         run: |
+          export TZ='Asia/Shanghai'
           file_log="$(date +%Y-%m-%d-%T)".log
           touch ${file_log}
           echo 'FILE_LOG='${file_log} >> $GITHUB_ENV
@@ -195,6 +196,7 @@ jobs:
         if: ${{ inputs.test-type != '0' }}
         id: kubechat_test
         run: |
+          export TZ='Asia/Shanghai'
           file_log="$(date +%Y-%m-%d-%T)".log
           touch ${file_log}
           echo 'FILE_LOG='${file_log} >> $GITHUB_ENV

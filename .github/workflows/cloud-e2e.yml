@@ -479,6 +479,7 @@ jobs:
         if: ${{ always() && matrix.test-type == 'engine-test' }}
         id: upload_test_result
         run: |
+          export TZ='Asia/Shanghai'
           TEST_DATE="$(date +%Y%m%d)"
           echo test-date=${TEST_DATE} >> $GITHUB_OUTPUT
           APECLOUD_CURRENT_VERSION="${{ needs.get-test-type.outputs.current-version }}"
@@ -954,6 +955,7 @@ jobs:
               echo "TEST_RESULT:${TEST_RESULT}"
           fi
           
+          export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
           TEST_TITLE=""
           if [[ "${TEST_E2E}" == "true" &&  "${TEST_INSTALLER}" != "true" ]]; then
