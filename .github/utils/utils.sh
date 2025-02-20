@@ -54,6 +54,7 @@ Usage: $(basename "$0") <options>
                                 41) get ginkgo test result total
                                 42) set api coverage result url
                                 43) set engine summary result url
+                                44) get github actions job url
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -1051,6 +1052,26 @@ set_engine_summary_result_url() {
     echo "$ENGINE_SUMMARY_RESULT_TEMP"
 }
 
+get_gh_job_url() {
+    gh_job_url="https://github.com/$GITHUB_REPO/actions/runs/$RUN_ID"
+    for i in {1..2}; do
+        jobs_url="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=$i"
+        jobs_list=$( gh_curl -s $jobs_url )
+        total_count=$( echo "$jobs_list" | jq '.total_count' )
+        for i in $(seq 0 $total_count); do
+            if [[ "$i" == "$total_count" ]]; then
+                break
+            fi
+            jobs_name=$( echo "$jobs_list" | jq ".jobs[$i].name" --raw-output )
+            if [[ "$jobs_name" == *"${TEST_RESULT}" && "$jobs_name" != *"-${TEST_RESULT}" ]]; then
+                jobs_url=$( echo "$jobs_list" | jq ".jobs[$i].html_url" --raw-output )
+                gh_job_url="${jobs_url}"
+            fi
+        done
+    done
+    echo "${gh_job_url}"
+}
+
 parse_command_line() {
     while :; do
         case "${1:-}" in
@@ -1392,6 +1413,9 @@ main() {
         ;;
         43)
             set_engine_summary_result_url
+        ;;
+        44)
+            get_gh_job_url
         ;;
     esac
 }
