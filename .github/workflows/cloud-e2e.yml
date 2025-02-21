@@ -450,7 +450,7 @@ jobs:
           fi
 
       - name: Check e2e log and create issue
-        if: ${{ always() && matrix.test-type == 'openapi-testt' }}
+        if: ${{ always() && matrix.test-type == 'openapi-test' }}
         run: |
           file_log="test_result.log"
           test_file_log_path="${{ github.workspace }}/${file_log}"
@@ -470,13 +470,13 @@ jobs:
 
       - name: Setup Python
         uses: actions/setup-python@v4
-        if: ${{ always() && matrix.test-type == 'engine-test' && inputs.TEST_REPORT == 'true' }}
+        if: ${{ always() && matrix.test-type == 'engine-test' && inputs.TEST_REPORT }}
         with:
           python-version: "${{ env.PYTHON_VERSION }}"
 
       - name: checkout pystan2
         uses: actions/checkout@v4
-        if: ${{ always() && matrix.test-type == 'engine-test' && inputs.TEST_REPORT == 'true' }}
+        if: ${{ always() && matrix.test-type == 'engine-test' && inputs.TEST_REPORT }}
         with:
           submodules: 'recursive'
           repository: stan-dev/pystan2
@@ -484,7 +484,7 @@ jobs:
           path: pystan2
 
       - name: install gen report env
-        if: ${{ always() && matrix.test-type == 'engine-test' && inputs.TEST_REPORT == 'true' }}
+        if: ${{ always() && matrix.test-type == 'engine-test' && inputs.TEST_REPORT }}
         run: |
           # locale gen zh_CN.UTF-8
           sudo locale-gen zh_CN.UTF-8
@@ -510,14 +510,14 @@ jobs:
 
       - name: Setup ossutil
         uses: manyuanrong/setup-ossutil@v2.0
-        if: ${{ always() && matrix.test-type == 'engine-test' && inputs.TEST_REPORT == 'true' }}
+        if: ${{ always() && matrix.test-type == 'engine-test' && inputs.TEST_REPORT }}
         with:
           access-key-id: "${{ env.OSS_KEY_ID }}"
           access-key-secret: "${{ env.OSS_KEY_SECRET }}"
           endpoint: "${{ env.OSS_ENDPOINT }}"
 
       - name: Upload engine report to oss
-        if: ${{ always() && matrix.test-type == 'engine-test' && inputs.TEST_REPORT == 'true' }}
+        if: ${{ always() && matrix.test-type == 'engine-test' && inputs.TEST_REPORT }}
         id: upload_test_result
         run: |
           file_log="test_result.log"
