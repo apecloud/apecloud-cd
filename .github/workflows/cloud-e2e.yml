@@ -131,6 +131,7 @@ env:
   OSS_ENDPOINT: "oss-cn-zhangjiakou.aliyuncs.com"
   OSS_BUCKET: "kubeblocks-oss"
   PYTHON_VERSION: "3.11"
+  ENGINE_REPORT_FILE_NAME: "TEST_REPORT_CLOUD_API_ENGINE.pdf"
 
 jobs:
   get-test-type:
@@ -525,8 +526,9 @@ jobs:
           engine_file_log="test_engine_api_result.txt"
           engine_file_log_path="${{ github.workspace }}/${engine_file_log}"
           touch ${engine_file_log_path} 
-          python3 test/report/parse_ginkgo.py summary ${test_file_log_path} > ${engine_file_log_path}
+          python3 test/report/parse_ginkgo.py "engine" ${test_file_log_path} > ${engine_file_log_path}
           
+          ENGINE_REPORT_FILE_NAME="${{ env.ENGINE_REPORT_FILE_NAME }}"
           cd test/report
           bash update_test_period.sh ./md
           mkdir -p reports/cn
@@ -534,7 +536,7 @@ jobs:
               python3 ./report.py \
                   --type=engine \
                   --raw=${engine_file_log_path} \
-                  --main_report=TEST_REPORT_CLOUD_API_ENGINE.pdf
+                  --main_report=${ENGINE_REPORT_FILE_NAME}
               gen_ret=$?
               if [[ $gen_ret -eq 0 ]]; then
                   break
@@ -547,19 +549,19 @@ jobs:
           echo test-date=${TEST_DATE} >> $GITHUB_OUTPUT
           APECLOUD_CURRENT_VERSION="${{ needs.get-test-type.outputs.current-version }}"
           OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/apecloud/${APECLOUD_CURRENT_VERSION}/${TEST_DATE}"
-          upload_file_name="${{ github.workspace }}/test/report/reports/cn/TEST_REPORT_CLOUD_API_ENGINE.pdf"
+          upload_file_name="${{ github.workspace }}/test/report/reports/cn/${ENGINE_REPORT_FILE_NAME}"
           if [[ ! -f "${upload_file_name}" ]]; then
               echo "$(tput -T xterm setaf 3)::warning title=not found upload file$(tput -T xterm sgr0)"
               exit 1
           fi
           for i in $(seq 1 3); do
-              ossutil cp -rf "${upload_file_name}" "${OSS_DIR}/${upload_file_name}"
+              ossutil cp -rf "${upload_file_name}" "${OSS_DIR}/${ENGINE_REPORT_FILE_NAME}"
               upload_ret=$?
               if [[ $upload_ret -eq 0 ]]; then
-                  echo "$(tput -T xterm setaf 2)upload ${upload_file_name} to oss successfully$(tput -T xterm sgr0)"
+                  echo "$(tput -T xterm setaf 2)upload ${ENGINE_REPORT_FILE_NAME} to oss successfully$(tput -T xterm sgr0)"
                   break
               else
-                  echo "$(tput -T xterm setaf 3)::warning title=upload ${upload_file_name} to oss failure$(tput -T xterm sgr0)"
+                  echo "$(tput -T xterm setaf 3)::warning title=upload ${ENGINE_REPORT_FILE_NAME} to oss failure$(tput -T xterm sgr0)"
               fi
               sleep 1
           done
@@ -1056,11 +1058,12 @@ jobs:
           fi
           
           TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}] Cloud E2E Engine API Summary [${date_ret}]"
+          ENGINE_REPORT_FILE_NAME="${{ env.ENGINE_REPORT_FILE_NAME }}"
           if [[ -n "${ENGINE_API_SUMMARY}" && "${{ inputs.TEST_REPORT }}" == "true" ]]; then
               APECLOUD_CURRENT_VERSION="${{ needs.get-test-type.outputs.current-version }}"
               TEST_DATE=${{ needs.e2e-test.outputs.test-date }}
               OSS_URL="https://${{ env.OSS_BUCKET }}.${{ env.OSS_ENDPOINT }}/reports/apecloud/${APECLOUD_CURRENT_VERSION}/${TEST_DATE}"
-              TEST_REPORT_URL="${OSS_URL}/TEST_REPORT_CLOUD_API_ENGINE.pdf"
+              TEST_REPORT_URL="${OSS_URL}/${ENGINE_REPORT_FILE_NAME}"
           
               echo "ENGINE_API_SUMMARY:${ENGINE_API_SUMMARY}"
               ENGINE_API_SUMMARY_TMP="$(bash .github/utils/utils.sh \
