@@ -351,27 +351,33 @@ jobs:
         id: get_test_result
         run: |
           file_log="test_result.log"
-          touch ${file_log} 
+          file_log_tmp="test_result_tmp.log"
           test_file_log_path="${{ github.workspace }}/${file_log}"
-          kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${file_log}
+          test_file_log_path_tmp="${{ github.workspace }}/${file_log_tmp}"
+          touch ${test_file_log_path} ${test_file_log_path_tmp}
+          kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${test_file_log_path_tmp}
+          cp -r ${test_file_log_path_tmp} ${test_file_log_path}
+          echo "======================="
+          du -sh ${test_file_log_path} 
+          echo "======================="
           kubectl delete pod -n default ${CLOUD_E2E_TEST_POD_NAME} --force
-          cat ${file_log}
+          cat ${test_file_log_path}
           
           TEST_TYPE="${{ matrix.test-type }}"
           if [[ -z "$TEST_TYPE" ]]; then
               TEST_TYPE="openapi-test"
           fi
           
-          test_ret="$( grep "Test Suite Failed" ${file_log} || true )"
+          test_ret="$( grep "Test Suite Failed" ${test_file_log_path} || true )"
           
-          TEST_RESULT_ALL="$(cat ${file_log} | (egrep 'SUCCESS!|FAIL!' | grep -- '--' || true))"
+          TEST_RESULT_ALL="$(cat ${test_file_log_path} | (egrep 'SUCCESS!|FAIL!' | grep -- '--' || true))"
           echo "test result all:${TEST_RESULT_ALL}"
           TEST_RESULT_ALL=$(python3 ${{ github.workspace }}/apecloud-cd/.github/utils/remove_ansi.py --ansi-str "$TEST_RESULT_ALL")
           test_result=$(bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 41 --test-result "${TEST_RESULT_ALL}")
           echo "test result total:${test_result}"
           
           if [[ -z "$test_result" ]]; then
-              test_result="$(cat ${file_log} | (egrep 'SUCCESS!|FAIL!' | grep -- '--' || true) | tail -n 1)"
+              test_result="$(cat ${test_file_log_path} | (egrep 'SUCCESS!|FAIL!' | grep -- '--' || true) | tail -n 1)"
               test_result=$(python3 ${{ github.workspace }}/apecloud-cd/.github/utils/remove_ansi.py --ansi-str "$test_result")
           fi
           
@@ -454,7 +460,13 @@ jobs:
         if: ${{ always() && matrix.test-type == 'openapi-test' }}
         run: |
           file_log="test_result.log"
+          file_log_tmp="test_result_tmp.log"
           test_file_log_path="${{ github.workspace }}/${file_log}"
+          test_file_log_path_tmp="${{ github.workspace }}/${file_log_tmp}"
+          cp -r ${test_file_log_path_tmp} ${test_file_log_path}
+          echo "======================="
+          du -sh ${test_file_log_path} 
+          echo "======================="
           CLOUD_E2E_HACK_DIR="${{ github.workspace }}/apecloud/e2e/hack"
           if [[ -d "${CLOUD_E2E_HACK_DIR}" && -f "${CLOUD_E2E_HACK_DIR}/log-checker.sh" ]]; then
               CI_JOB_URL=$(bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
@@ -465,7 +477,7 @@ jobs:
                   --test-result "openapi-test-dev")
               export CI_JOB_URL="${CI_JOB_URL}"
               cd ${CLOUD_E2E_HACK_DIR}
-              cp -r ${test_file_log_path} ./e2e.log
+              cp -r ${test_file_log_path} ${CLOUD_E2E_HACK_DIR}/e2e.log
               bash ./log-checker.sh
           fi
 
@@ -522,12 +534,18 @@ jobs:
         id: upload_test_result
         run: |
           file_log="test_result.log"
+          file_log_tmp="test_result_tmp.log"
           test_file_log_path="${{ github.workspace }}/${file_log}"
+          test_file_log_path_tmp="${{ github.workspace }}/${file_log_tmp}"
+          cp -r ${test_file_log_path_tmp} ${test_file_log_path}
+          echo "======================="
+          du -sh ${test_file_log_path} 
+          echo "======================="
           engine_file_log="test_engine_api_result.txt"
           engine_file_log_path="${{ github.workspace }}/${engine_file_log}"
           touch ${engine_file_log_path} 
           python3 test/report/parse_ginkgo.py "engine" ${test_file_log_path} > ${engine_file_log_path}
-          
+          cat "${engine_file_log_path}"
           ENGINE_REPORT_FILE_NAME="${{ env.ENGINE_REPORT_FILE_NAME }}"
           cd test/report
           bash update_test_period.sh ./md
