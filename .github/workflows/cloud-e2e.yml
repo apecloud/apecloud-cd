@@ -301,8 +301,8 @@ jobs:
 
       - name: run ${{ matrix.test-type }}
         run: |
-          file_log="run_e2e_test_result.log"
-          touch ${file_log} 
+          run_file_log="run_e2e_test_result.log"
+          touch ${run_file_log} 
           
           for env_vars in $(echo "${E2E_ENV_VARS}" | sed 's/|/ /g'); do
               eval_cmd="export $env_vars"
@@ -322,9 +322,9 @@ jobs:
           # run cloud e2e test
           bash test/cloud/test_cloud_e2e.sh \
               --test-type "${TEST_TYPE}" \
-              --release-version "${{ needs.get-test-type.outputs.cloud-branch }}" | tee -a ${file_log}
+              --release-version "${{ needs.get-test-type.outputs.cloud-branch }}" | tee -a ${run_file_log}
           
-          CLOUD_E2E_TEST_POD_NAME="$(cat ${file_log} | grep '\[CLOUD-E2E-TEST-POD-NAME\]' || true )"
+          CLOUD_E2E_TEST_POD_NAME="$(cat ${run_file_log} | grep '\[CLOUD-E2E-TEST-POD-NAME\]' || true )"
           if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" && "$CLOUD_E2E_TEST_POD_NAME" == "[CLOUD-E2E-TEST-POD-NAME]"* ]]; then
               CLOUD_E2E_TEST_POD_NAME=${CLOUD_E2E_TEST_POD_NAME#*"[CLOUD-E2E-TEST-POD-NAME]"}      
           fi
