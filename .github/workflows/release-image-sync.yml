@@ -48,6 +48,11 @@ on:
         type: string
         required: false
         default: ''
+      NODE_VERSION:
+        description: "Install the specify version of node"
+        type: string
+        required: false
+        default: ''
       GOOGLE_IMG:
         description: "The URL to use building/pushing gcr image targets (e.g. apecloud-prod/controller-manager/apecloud)"
         type: string
@@ -283,6 +288,12 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ${{ inputs.GO_VERSION }}
+
+      - name: Setup Node.js
+        if: inputs.NODE_VERSION
+        uses: actions/setup-node@v3
+        with:
+          node-version: "${{ inputs.NODE_VERSION }}"
 
       - name: Setup Python specify version
         if: inputs.PYTHON_VERSION
