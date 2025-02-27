@@ -119,7 +119,7 @@ permissions:
 
 jobs:
   test-playground:
-    if: ${{ inputs.TEST_TYPE == '' && inputs.KB_PRE_VERSION == '' && inputs.CLOUD_PROVIDER != 'vke' }}
+    if: ${{ inputs.TEST_TYPE == '' && inputs.KB_PRE_VERSION == '' && inputs.CLOUD_PROVIDER != 'vke' && inputs.CLOUD_PROVIDER != 'aks' }}
     uses: ./.github/workflows/test-kbcli.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
