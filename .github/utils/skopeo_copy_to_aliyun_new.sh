@@ -11,6 +11,16 @@ if [[ -z "$REGISTRY" ]]; then
     REGISTRY=docker.io
 fi
 
+SRC_USERNAME="${DOCKER_USERNAME}"
+SRC_PASSWORD="${DOCKER_PASSWORD}"
+if [[ "${REGISTRY}" == *"ecr"* ]]; then
+    SRC_USERNAME="${ECR_USER}"
+    SRC_PASSWORD="${ECR_PASSWORD}"
+elif [[ "${REGISTRY}" == *"docker.io"* ]]; then
+    SRC_USERNAME="${DOCKER_USERNAME}"
+    SRC_PASSWORD="${DOCKER_PASSWORD}"
+fi
+
 while read -r image
 do
     image_name=${image##*/}
@@ -19,20 +29,12 @@ do
     skopeo_flag=0
     ret_msg=""
     for i in {1..10}; do
-        if [[ "${REGISTRY}" == *"ecr"* ]]; then
+        if [[ "${REGISTRY}" == *"ecr"* || "${REGISTRY}" == *"docker.io"* ]]; then
             ret_msg=$(skopeo copy --all \
+                --src-username "$SRC_USERNAME" \
+                --src-password "$SRC_PASSWORD" \
                 --dest-username "$ALIYUN_USERNAME" \
                 --dest-password "$ALIYUN_PASSWORD" \
-                --src-username "$ECR_USER" \
-                --src-password "$ECR_PASSWORD" \
-                docker://$REGISTRY/$image \
-                docker://infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/$image_name)
-        elif [[ "${REGISTRY}" == *"docker.io"* ]]; then
-            ret_msg=$(skopeo copy --all \
-                --dest-username "$ALIYUN_USERNAME" \
-                --dest-password "$ALIYUN_PASSWORD" \
-                --src-username "${DOCKER_USER}" \
-                --src-password "${DOCKER_PASSWORD}" \
                 docker://$REGISTRY/$image \
                 docker://infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/$image_name)
         else

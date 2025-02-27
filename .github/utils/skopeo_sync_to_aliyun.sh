@@ -13,6 +13,16 @@ if [[ -z "$REGISTRY" ]]; then
     REGISTRY=docker.io
 fi
 
+SRC_USERNAME="${DOCKER_USERNAME}"
+SRC_PASSWORD="${DOCKER_PASSWORD}"
+if [[ "${REGISTRY}" == *"ecr"* ]]; then
+    SRC_USERNAME="${ECR_USER}"
+    SRC_PASSWORD="${ECR_PASSWORD}"
+elif [[ "${REGISTRY}" == *"apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com"* ]]; then
+    SRC_USERNAME="${ALIYUN_USERNAME}"
+    SRC_PASSWORD="${ALIYUN_PASSWORD}"
+fi
+
 while read -r image
 do
     skopeo_msg="skopeo sync $REGISTRY/$image to apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud"
@@ -22,8 +32,8 @@ do
     for i in {1..10}; do
         if [[ "${REGISTRY}" == *"ecr"* ]]; then
             ret_msg=$(skopeo sync --all \
-                --src-username "$ECR_USER" \
-                --src-password "$ECR_PASSWORD" \
+                --src-username "$SRC_USERNAME" \
+                --src-password "$SRC_PASSWORD" \
                 --dest-username "$ALIYUN_USERNAME" \
                 --dest-password "$ALIYUN_PASSWORD" \
                 --src docker \
@@ -32,8 +42,8 @@ do
                 apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud)
         else
             ret_msg=$(skopeo sync --all \
-                --src-username "$DOCKER_USERNAME" \
-                --src-password "$DOCKER_PASSWORD" \
+                --src-username "$SRC_USERNAME" \
+                --src-password "$SRC_PASSWORD" \
                 --dest-username "$ALIYUN_USERNAME" \
                 --dest-password "$ALIYUN_PASSWORD" \
                 --src docker \

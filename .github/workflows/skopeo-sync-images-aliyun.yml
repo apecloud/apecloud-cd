@@ -81,6 +81,8 @@ jobs:
                   "${{ env.ALIYUN_PASSWORD_NEW }}" \
                   ${{ github.workspace }}/.github/utils/images-list.txt \
                   "${{ inputs.registry }}" \
+                  "${{ env.ALIYUN_USER }}" \
+                  "${{ env.ALIYUN_PASSWORD }}" \
                   '${{ env.ECR_PASSWORD }}'
           fi
 

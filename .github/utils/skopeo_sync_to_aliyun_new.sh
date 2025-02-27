@@ -2,15 +2,27 @@
 
 DOCKER_USERNAME=$1
 DOCKER_PASSWORD=$2
-ALIYUN_USERNAME=$3
-ALIYUN_PASSWORD=$4
+ALIYUN_USERNAME_NEW=$3
+ALIYUN_PASSWORD_NEW=$4
 FILE_NAME=$5
 REGISTRY=$6
-ECR_PASSWORD=$7
+ALIYUN_USERNAME=$7
+ALIYUN_PASSWORD=$8
+ECR_PASSWORD=$9
 ECR_USER=AWS
 
 if [[ -z "$REGISTRY" ]]; then
     REGISTRY=docker.io
+fi
+
+SRC_USERNAME="${DOCKER_USERNAME}"
+SRC_PASSWORD="${DOCKER_PASSWORD}"
+if [[ "${REGISTRY}" == *"ecr"* ]]; then
+    SRC_USERNAME="${ECR_USER}"
+    SRC_PASSWORD="${ECR_PASSWORD}"
+elif [[ "${REGISTRY}" == *"apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com"* ]]; then
+    SRC_USERNAME="${ALIYUN_USERNAME}"
+    SRC_PASSWORD="${ALIYUN_PASSWORD}"
 fi
 
 while read -r image
@@ -22,20 +34,20 @@ do
     for i in {1..10}; do
         if [[ "${REGISTRY}" == *"ecr"* ]]; then
             ret_msg=$(skopeo sync --all \
-                --src-username "$ECR_USER" \
-                --src-password "$ECR_PASSWORD" \
-                --dest-username "$ALIYUN_USERNAME" \
-                --dest-password "$ALIYUN_PASSWORD" \
+                --src-username "$SRC_USERNAME" \
+                --src-password "$SRC_PASSWORD" \
+                --dest-username "$ALIYUN_USERNAME_NEW" \
+                --dest-password "$ALIYUN_PASSWORD_NEW" \
                 --src docker \
                 --dest docker \
                 $REGISTRY/$image \
                 infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud)
         else
             ret_msg=$( skopeo sync --all \
-                --src-username "$DOCKER_USERNAME" \
-                --src-password "$DOCKER_PASSWORD" \
-                --dest-username "$ALIYUN_USERNAME" \
-                --dest-password "$ALIYUN_PASSWORD" \
+                --src-username "$SRC_USERNAME" \
+                --src-password "$SRC_PASSWORD" \
+                --dest-username "$ALIYUN_USERNAME_NEW" \
+                --dest-password "$ALIYUN_PASSWORD_NEW" \
                 --src docker \
                 --dest docker \
                 $REGISTRY/$image \
