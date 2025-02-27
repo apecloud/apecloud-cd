@@ -330,10 +330,10 @@ jobs:
       - if: ${{ inputs.cloud-provider == 'aks' && env.AZURE_CREDENTIALS != ''}}
         uses: azure/aks-set-context@v3
         with:
-          resource-group: '${{ inputs.k8s-cluster-name }}-group'
-          cluster-name: '${{ inputs.k8s-cluster-name }}'
+          resource-group: '${{ steps.terraform_init.outputs.k8s-cluster-name }}-group'
+          cluster-name: '${{ steps.terraform_init.outputs.k8s-cluster-name }}'
 
-      - name: enbale coredns log
+      - name: enable coredns log
         if: ${{ inputs.cloud-provider == 'aks' && env.AZURE_CREDENTIALS != ''}}
         run: |
           if [[ -f "${{ steps.get_deploy_path.outputs.deploy-path }}/coredns-custom.yaml" ]]; then
