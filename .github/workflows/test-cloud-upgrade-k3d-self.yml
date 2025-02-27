@@ -198,6 +198,15 @@ jobs:
                   kubectl logs -n kb-cloud ${installer_pod_name}
               done 
           
+              # logs kb-cloud error pod 
+              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | awk '{print $1}')
+              echo "kb-cloud error pod: $kb_cloud_error_pods"
+              for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
+                  echo "==================== pod ${kb_cloud_error_pod} logs ===================="
+                  kubectl logs -n kb-cloud ${kb_cloud_error_pod}
+                  echo ""
+              done
+          
               exit 1
           else
               echo installer-result="${installer_result}" >> $GITHUB_OUTPUT
@@ -248,6 +257,15 @@ jobs:
                   echo "==================== pod ${installer_pod_name} logs ===================="
                   kubectl logs -n kb-cloud ${installer_pod_name}
               done 
+          
+              # logs kb-cloud error pod 
+              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | awk '{print $1}')
+              echo "kb-cloud error pod: $kb_cloud_error_pods"
+              for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
+                  echo "==================== pod ${kb_cloud_error_pod} logs ===================="
+                  kubectl logs -n kb-cloud ${kb_cloud_error_pod}
+                  echo ""
+              done
           
               exit 1
           else
