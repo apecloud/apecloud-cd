@@ -223,7 +223,7 @@ jobs:
           path: ./
           token: ${{ env.GH_TOKEN }}
 
-      - name: checkout apecloud-cd code
+      - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
         with:
           repository: apecloud/apecloud-cd
@@ -238,6 +238,15 @@ jobs:
           token: ${{ env.GH_TOKEN }}
           ref: "${{ needs.get-test-type.outputs.cloud-branch }}"
           fetch-depth: 0
+
+      - name: Checkout pystan2 Code
+        uses: actions/checkout@v4
+        if: ${{ always() && matrix.test-type == 'engine-test' && inputs.TEST_REPORT }}
+        with:
+          submodules: 'recursive'
+          repository: stan-dev/pystan2
+          ref: "v2.19.1.1"
+          path: pystan2
 
       - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
         id: cloud_env
@@ -351,15 +360,9 @@ jobs:
         id: get_test_result
         run: |
           file_log="test_result.log"
-          file_log_tmp="test_result_tmp.log"
           test_file_log_path="${{ github.workspace }}/${file_log}"
-          test_file_log_path_tmp="${{ github.workspace }}/${file_log_tmp}"
-          touch ${test_file_log_path} ${test_file_log_path_tmp}
-          kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${test_file_log_path_tmp}
-          cp -r ${test_file_log_path_tmp} ${test_file_log_path}
-          echo "======================="
-          du -sh ${test_file_log_path} 
-          echo "======================="
+          touch ${test_file_log_path}
+          kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${test_file_log_path}
           kubectl delete pod -n default ${CLOUD_E2E_TEST_POD_NAME} --force
           cat ${test_file_log_path}
           
@@ -395,6 +398,15 @@ jobs:
           CLOUD_E2E_HACK_DIR="${{ github.workspace }}/apecloud/e2e/hack"
           if [[ ("${{ inputs.TEST_REPORT }}" == "true" || "${{ needs.get-test-type.outputs.cloud-branch }}" == "main") && "${TEST_TYPE}" == "engine-test" ]]; then
               API_COVERAGE_SUMMARY=$(python3 test/report/parse_ginkgo.py summary ${test_file_log_path})
+
+              engine_file_log="test_engine_api_result.txt"
+              engine_file_log_path="${{ github.workspace }}/${engine_file_log}"
+              touch ${engine_file_log_path} 
+              ENGINE_TEST_RESULT=$(python3 test/report/parse_ginkgo.py "engine" ${test_file_log_path})
+              echo "${ENGINE_TEST_RESULT}" > ${engine_file_log_path}
+              echo "======================="
+              du -sh ${engine_file_log_path} 
+              echo "======================="
           elif [[ -d "${CLOUD_E2E_HACK_DIR}" && ("${{ inputs.TEST_REPORT }}" == "true" || "${{ needs.get-test-type.outputs.cloud-branch }}" == "main") ]]; then
               cd ${CLOUD_E2E_HACK_DIR}
               if [[ -f "${CLOUD_E2E_HACK_DIR}/api-coverage.sh" ]]; then
@@ -428,6 +440,15 @@ jobs:
               openapi-test)
                   echo openapi-test-result="${test_result}" >> $GITHUB_OUTPUT
                   echo openapi-summary="${API_COVERAGE_SUMMARY}" >> $GITHUB_OUTPUT
+                  if [[ -d "${CLOUD_E2E_HACK_DIR}" ]]; then
+                      check_e2e_log="e2e.log"
+                      check_e2e_log_path="${CLOUD_E2E_HACK_DIR}/${check_e2e_log}"
+                      touch ${check_e2e_log_path}
+                      cp -r ${test_file_log_path} ${check_e2e_log_path}
+                      echo "======================="
+                      du -sh ${check_e2e_log_path} 
+                      echo "======================="
+                  fi
               ;;
               adminapi-test)
                   echo adminapi-test-result="${test_result}" >> $GITHUB_OUTPUT
@@ -459,14 +480,6 @@ jobs:
       - name: Check e2e log and create issue
         if: ${{ always() && matrix.test-type == 'openapi-test' }}
         run: |
-          file_log="test_result.log"
-          file_log_tmp="test_result_tmp.log"
-          test_file_log_path="${{ github.workspace }}/${file_log}"
-          test_file_log_path_tmp="${{ github.workspace }}/${file_log_tmp}"
-          cp -r ${test_file_log_path_tmp} ${test_file_log_path}
-          echo "======================="
-          du -sh ${test_file_log_path} 
-          echo "======================="
           CLOUD_E2E_HACK_DIR="${{ github.workspace }}/apecloud/e2e/hack"
           if [[ -d "${CLOUD_E2E_HACK_DIR}" && -f "${CLOUD_E2E_HACK_DIR}/log-checker.sh" ]]; then
               CI_JOB_URL=$(bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
@@ -477,7 +490,7 @@ jobs:
                   --test-result "openapi-test-dev")
               export CI_JOB_URL="${CI_JOB_URL}"
               cd ${CLOUD_E2E_HACK_DIR}
-              bash ./log-checker.sh --type openapi --log ${test_file_log_path}
+              bash ./log-checker.sh
           fi
 
       - name: Setup Python
@@ -485,15 +498,6 @@ jobs:
         if: ${{ always() && matrix.test-type == 'engine-test' && inputs.TEST_REPORT }}
         with:
           python-version: "${{ env.PYTHON_VERSION }}"
-
-      - name: checkout pystan2
-        uses: actions/checkout@v4
-        if: ${{ always() && matrix.test-type == 'engine-test' && inputs.TEST_REPORT }}
-        with:
-          submodules: 'recursive'
-          repository: stan-dev/pystan2
-          ref: "v2.19.1.1"
-          path: pystan2
 
       - name: install gen report env
         if: ${{ always() && matrix.test-type == 'engine-test' && inputs.TEST_REPORT }}
@@ -529,61 +533,48 @@ jobs:
           endpoint: "${{ env.OSS_ENDPOINT }}"
 
       - name: Upload engine report to oss
-        if: ${{ always() && matrix.test-type == 'engine-test' && (inputs.TEST_REPORT || needs.get-test-type.outputs.cloud-branch == 'main') }}
+        if: ${{ always() && matrix.test-type == 'engine-test' && inputs.TEST_REPORT }}
         id: upload_test_result
         run: |
-          file_log="test_result.log"
-          file_log_tmp="test_result_tmp.log"
-          test_file_log_path="${{ github.workspace }}/${file_log}"
-          test_file_log_path_tmp="${{ github.workspace }}/${file_log_tmp}"
-          cp -r ${test_file_log_path_tmp} ${test_file_log_path}
-          echo "======================="
-          du -sh ${test_file_log_path} 
-          echo "======================="
           engine_file_log="test_engine_api_result.txt"
           engine_file_log_path="${{ github.workspace }}/${engine_file_log}"
-          touch ${engine_file_log_path} 
-          python3 test/report/parse_ginkgo.py "engine" ${test_file_log_path} > ${engine_file_log_path}
-          cat "${engine_file_log_path}"
-          if [[ "${{ inputs.TEST_REPORT }}" == "true" ]]; then
-              ENGINE_REPORT_FILE_NAME="${{ env.ENGINE_REPORT_FILE_NAME }}"
-              cd test/report
-              bash update_test_period.sh ./md
-              mkdir -p reports/cn
-              for i in $(seq 1 3); do
-                  python3 ./report.py \
-                      --type=engine \
-                      --raw=${engine_file_log_path} \
-                      --main_report=${ENGINE_REPORT_FILE_NAME}
-                  gen_ret=$?
-                  if [[ $gen_ret -eq 0 ]]; then
-                      break
-                  fi
-                  sleep 1
-              done
-              
-              export TZ='Asia/Shanghai'
-              TEST_DATE="$(date +%Y%m%d)"
-              echo test-date=${TEST_DATE} >> $GITHUB_OUTPUT
-              APECLOUD_CURRENT_VERSION="${{ needs.get-test-type.outputs.current-version }}"
-              OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/apecloud/${APECLOUD_CURRENT_VERSION}/${TEST_DATE}"
-              upload_file_name="${{ github.workspace }}/test/report/reports/cn/${ENGINE_REPORT_FILE_NAME}"
-              if [[ ! -f "${upload_file_name}" ]]; then
-                  echo "$(tput -T xterm setaf 3)::warning title=not found upload file$(tput -T xterm sgr0)"
-                  exit 1
+          ENGINE_REPORT_FILE_NAME="${{ env.ENGINE_REPORT_FILE_NAME }}"
+          cd test/report
+          bash update_test_period.sh ./md
+          mkdir -p reports/cn
+          for i in $(seq 1 3); do
+              python3 ./report.py \
+                  --type=engine \
+                  --raw=${engine_file_log_path} \
+                  --main_report=${ENGINE_REPORT_FILE_NAME}
+              gen_ret=$?
+              if [[ $gen_ret -eq 0 ]]; then
+                  break
               fi
-              for i in $(seq 1 3); do
-                  ossutil cp -rf "${upload_file_name}" "${OSS_DIR}/${ENGINE_REPORT_FILE_NAME}"
-                  upload_ret=$?
-                  if [[ $upload_ret -eq 0 ]]; then
-                      echo "$(tput -T xterm setaf 2)upload ${ENGINE_REPORT_FILE_NAME} to oss successfully$(tput -T xterm sgr0)"
-                      break
-                  else
-                      echo "$(tput -T xterm setaf 3)::warning title=upload ${ENGINE_REPORT_FILE_NAME} to oss failure$(tput -T xterm sgr0)"
-                  fi
-                  sleep 1
-              done
+              sleep 1
+          done
+              
+          export TZ='Asia/Shanghai'
+          TEST_DATE="$(date +%Y%m%d)"
+          echo test-date=${TEST_DATE} >> $GITHUB_OUTPUT
+          APECLOUD_CURRENT_VERSION="${{ needs.get-test-type.outputs.current-version }}"
+          OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/apecloud/${APECLOUD_CURRENT_VERSION}/${TEST_DATE}"
+          upload_file_name="${{ github.workspace }}/test/report/reports/cn/${ENGINE_REPORT_FILE_NAME}"
+          if [[ ! -f "${upload_file_name}" ]]; then
+              echo "$(tput -T xterm setaf 3)::warning title=not found upload file$(tput -T xterm sgr0)"
+              exit 1
           fi
+          for i in $(seq 1 3); do
+              ossutil cp -rf "${upload_file_name}" "${OSS_DIR}/${ENGINE_REPORT_FILE_NAME}"
+              upload_ret=$?
+              if [[ $upload_ret -eq 0 ]]; then
+                  echo "$(tput -T xterm setaf 2)upload ${ENGINE_REPORT_FILE_NAME} to oss successfully$(tput -T xterm sgr0)"
+                  break
+              else
+                  echo "$(tput -T xterm setaf 3)::warning title=upload ${ENGINE_REPORT_FILE_NAME} to oss failure$(tput -T xterm sgr0)"
+              fi
+              sleep 1
+          done
 
   installer-test:
     needs: [ get-test-type ]
