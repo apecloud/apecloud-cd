@@ -123,7 +123,7 @@ jobs:
           repository: apecloud/kubeblocks-addons
           path: kubeblocks-addons
           token:  ${{ env.GITHUB_TOKEN }}
-          ref: ${{ env.KUBEBLOCKS_RELEASE_VERSION }}
+          ref: "v${{ env.KUBEBLOCKS_RELEASE_VERSION }}"
 
       - name: Install Helm
         uses: azure/setup-helm@v3

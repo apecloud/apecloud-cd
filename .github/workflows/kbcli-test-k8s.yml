@@ -1631,6 +1631,11 @@ jobs:
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
           test_title="[${{ inputs.KB_VERSION }}] Test KBCLI on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
+          
+          if [[ -n "${{ inputs.ARG }}" && "${{ inputs.ARG }}" == *"--only-kubectl true"* ]]; then
+              test_title="[${{ inputs.KB_VERSION }}] Test KB-Addons Examples on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
+          fi
+          
           if [[ -n "${{ inputs.KB_PRE_VERSION }}" ]]; then
               test_title="[${{ inputs.KB_PRE_VERSION }}] upgrade to "$test_title
           fi 
@@ -1641,6 +1646,7 @@ jobs:
               --result "$TEST_RESULT"
 
       - name: Setup ossutil
+        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') && ! contains(inputs.ARGS, 'true') }}
         uses: manyuanrong/setup-ossutil@v2.0
         with:
           access-key-id: "${{ env.OSS_KEY_ID }}"
@@ -1648,6 +1654,7 @@ jobs:
           endpoint: "${{ env.OSS_ENDPOINT }}"
 
       - name: Upload test result log to oss
+        if: ${{ ! (contains(inputs.ARGS, 'only-kubectl') && contains(inputs.ARGS, 'true')) }}
         id: upload_test_result
         run: |
           export TZ='Asia/Shanghai'
@@ -1701,7 +1708,7 @@ jobs:
     secrets: inherit
     
   upload-test-report:
-    if: ${{ always() }}
+    if: ${{ always() && ! (contains(inputs.ARGS, 'only-kubectl') && contains(inputs.ARGS, 'true')) }}
     runs-on: ubuntu-latest
     needs: [ send-message ]
     steps:
