@@ -1074,7 +1074,10 @@ jobs:
               fi
               
               TEST_RESULT_INSTALLER="installer-test|installer-${CLOUD_BRANCH}|${INSTALLER_RESULT}"
-              TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##installer-test|bootstrapper-${CLOUD_BRANCH}|${BOOTSTRAPPER_RESULT}"
+              
+              if [[ "${{ inputs.CURRENT_VERSION }}" != 'v0.28' ]]; then
+                  TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##installer-test|bootstrapper-${CLOUD_BRANCH}|${BOOTSTRAPPER_RESULT}"
+              fi
           
               TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##upgrade-test|installer-${CLOUD_PRE_VERSION}|${INSTALLER_PRE_RESULT}"
               TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##upgrade-test|upgrade-${CLOUD_BRANCH}|${UPGRADE_RESULT}"
