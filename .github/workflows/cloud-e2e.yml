@@ -7,7 +7,7 @@ on:
         description: "The specify version of GO (e.g. openapi-test|adminapi-test|engine-test)"
         type: string
         required: false
-        default: 'openapi-test'
+        default: 'engine-testt'
       TEST_ENGINES:
         description: "The specify version of GO (e.g. mysql)"
         type: string
@@ -37,22 +37,22 @@ on:
         description: "The current release version (e.g. v0.30) "
         type: string
         required: false
-        default: ''
+        default: 'v0.31'
       TEST_INSTALLER:
         description: "Test installer (default: true)"
         type: boolean
         required: false
-        default: true
+        default: false
       TEST_E2E:
         description: "Test e2e (default: false)"
         type: boolean
         required: false
-        default: false
+        default: true
       TEST_REPORT:
         description: "Test report (default: false)"
         type: boolean
         required: false
-        default: false
+        default: true
   workflow_call:
     inputs:
       TEST_TYPE:
@@ -84,7 +84,7 @@ on:
         description: "The branch name of apecloud-cd"
         type: string
         required: false
-        default: 'main'
+        default: 'test_upload_oss'
       CURRENT_VERSION:
         description: "The current release version (e.g. v0.30) "
         type: string
@@ -248,122 +248,16 @@ jobs:
           ref: "v2.19.1.1"
           path: pystan2
 
-      - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
-        id: cloud_env
-        run: |
-          mkdir -p $HOME/.kube
-          touch $HOME/.kube/config
-          CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
-          if [[ -z "$CLOUD_ENV_NAME" ]]; then
-              CLOUD_ENV_NAME="dev"
-          fi
-          echo CLOUD_ENV_NAME="$CLOUD_ENV_NAME" >> $GITHUB_ENV
-          
-          E2E_ENV_VARS=""
-          case "$CLOUD_ENV_NAME" in
-              dev)
-                  echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
-                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_DEV }}"
-              ;;
-              demo)
-                  echo '${{ env.ACK_KUBECONFIG_DEMO }}' > $HOME/.kube/config
-                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_DEMO }}"
-              ;;
-              idc)
-                  echo '${{ env.IDC_KUBECONFIG }}' > $HOME/.kube/config
-                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC }}"
-                  kubectl port-forward -n kb-cloud svc/apiserver 8080:8080 &
-              ;;
-              idc1)
-                  echo '${{ env.IDC_KUBECONFIG_1 }}' > $HOME/.kube/config
-                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC1 }}"
-                  kubectl port-forward -n kb-cloud svc/apiserver 8080:8080 &
-              ;;
-              idc2)
-                  echo '${{ env.IDC_KUBECONFIG_2 }}' > $HOME/.kube/config
-                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC2 }}"
-                  kubectl port-forward -n kb-cloud svc/apiserver 8080:8080 &
-              ;;
-              idc4)
-                  echo '${{ env.IDC_KUBECONFIG_4 }}' > $HOME/.kube/config
-                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC4 }}"
-                  kubectl port-forward -n kb-cloud svc/apiserver 8080:8080 &
-              ;;
-              prod)
-                  echo '${{ env.ACK_KUBECONFIG_PROD }}' > $HOME/.kube/config
-                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_PROD }}"
-              ;;
-              intl_prod)
-                  echo '${{ env.ACK_KUBECONFIG_INTL_PROD }}' > $HOME/.kube/config
-                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_INTL_PROD }}"
-              ;;
-              vke_test)
-                  echo '${{ env.VKE_KUBECONFIG_TEST }}' > $HOME/.kube/config
-                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_VKE_TEST }}"
-              ;;
-          esac
-          echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
-
       - name: install python dateutil
         run: |
           pip3 install python-dateutil
-
-      - name: run ${{ matrix.test-type }}
-        run: |
-          run_file_log="run_e2e_test_result.log"
-          touch ${run_file_log} 
-          
-          for env_vars in $(echo "${E2E_ENV_VARS}" | sed 's/|/ /g'); do
-              eval_cmd="export $env_vars"
-              echo "$eval_cmd"
-              eval "$eval_cmd"
-          done
-          
-          TEST_ENGINES="${{ needs.get-test-type.outputs.test-engines }}"
-          echo "export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}"
-          export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}
-          
-          TEST_TYPE="${{ matrix.test-type }}"
-          if [[ -z "$TEST_TYPE" ]]; then
-              TEST_TYPE="openapi-test"
-          fi
-          
-          # run cloud e2e test
-          bash test/cloud/test_cloud_e2e.sh \
-              --test-type "${TEST_TYPE}" \
-              --release-version "${{ needs.get-test-type.outputs.cloud-branch }}" | tee -a ${run_file_log}
-          
-          CLOUD_E2E_TEST_POD_NAME="$(cat ${run_file_log} | grep '\[CLOUD-E2E-TEST-POD-NAME\]' || true )"
-          if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" && "$CLOUD_E2E_TEST_POD_NAME" == "[CLOUD-E2E-TEST-POD-NAME]"* ]]; then
-              CLOUD_E2E_TEST_POD_NAME=${CLOUD_E2E_TEST_POD_NAME#*"[CLOUD-E2E-TEST-POD-NAME]"}      
-          fi
-          echo CLOUD_E2E_TEST_POD_NAME="$CLOUD_E2E_TEST_POD_NAME" >> $GITHUB_ENV
-
-      - name: Waiting for Cloud E2E to be Completed
-        run: |
-          sleep 10
-          while true; do
-              if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" ; then
-                  echo "Cloud E2E Test is Done"
-                  break
-              fi
-              if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Running|Error" ; then
-                  kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=5
-              else
-                  echo "Waiting for Cloud E2E to be Running..."
-              fi
-              sleep 1
-          done
 
       - name: Get Test Result
         if: ${{ always() }}
         id: get_test_result
         run: |
           file_log="test_result.log"
-          test_file_log_path="${{ github.workspace }}/${file_log}"
-          touch ${test_file_log_path}
-          kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${test_file_log_path}
-          kubectl delete pod -n default ${CLOUD_E2E_TEST_POD_NAME} --force
+          test_file_log_path="${{ github.workspace }}/apecloud-cd/.github/utils/${file_log}"
           cat ${test_file_log_path}
           
           TEST_TYPE="${{ matrix.test-type }}"
@@ -398,12 +292,15 @@ jobs:
           CLOUD_E2E_HACK_DIR="${{ github.workspace }}/apecloud/e2e/hack"
           if [[ ("${{ inputs.TEST_REPORT }}" == "true" || "${{ needs.get-test-type.outputs.cloud-branch }}" == "main") && "${TEST_TYPE}" == "engine-test" ]]; then
               API_COVERAGE_SUMMARY=$(python3 test/report/parse_ginkgo.py summary ${test_file_log_path})
-
+              echo ${API_COVERAGE_SUMMARY}
+              
               engine_file_log="test_engine_api_result.txt"
+              ENGINE_TEST_RESULT=$(python3 test/report/parse_ginkgo.py engine ${test_file_log_path})
+              echo "${ENGINE_TEST_RESULT}"
               engine_file_log_path="${{ github.workspace }}/${engine_file_log}"
               touch ${engine_file_log_path} 
-              ENGINE_TEST_RESULT=$(python3 test/report/parse_ginkgo.py "engine" ${test_file_log_path})
               echo "${ENGINE_TEST_RESULT}" > ${engine_file_log_path}
+              cat ${engine_file_log_path}
               echo "======================="
               du -sh ${engine_file_log_path} 
               echo "======================="
@@ -469,7 +366,7 @@ jobs:
           fi
 
       - name: Get ${{ matrix.test-type }} API Coverage List
-        if: ${{ always() && matrix.test-type != 'engine-test' }}
+        if: ${{ always() && matrix.test-type == 'engine-test' }}
         run: |
           coverage_file_log="test_api_coverage_result.log"
           coverage_file_log_path="${{ github.workspace }}/${coverage_file_log}"
@@ -478,7 +375,7 @@ jobs:
           fi
 
       - name: Check e2e log and create issue
-        if: ${{ always() && matrix.test-type == 'openapi-test' }}
+        if: ${{ always() && matrix.test-type == 'engine-test' }}
         run: |
           CLOUD_E2E_HACK_DIR="${{ github.workspace }}/apecloud/e2e/hack"
           if [[ -d "${CLOUD_E2E_HACK_DIR}" && -f "${CLOUD_E2E_HACK_DIR}/log-checker.sh" ]]; then
@@ -538,6 +435,7 @@ jobs:
         run: |
           engine_file_log="test_engine_api_result.txt"
           engine_file_log_path="${{ github.workspace }}/${engine_file_log}"
+          cat ${engine_file_log_path}
           ENGINE_REPORT_FILE_NAME="${{ env.ENGINE_REPORT_FILE_NAME }}"
           cd test/report
           bash update_test_period.sh ./md
@@ -576,552 +474,3 @@ jobs:
               sleep 1
           done
 
-  installer-test:
-    needs: [ get-test-type ]
-    if: ${{ needs.get-test-type.outputs.test-installer == 'true' }}
-    runs-on: ubuntu-latest
-    outputs:
-      installer-result: ${{ steps.install_kb_cloud.outputs.installer-result }}
-      bootstrapper-result: ${{ steps.deploy_kb_cloud_env.outputs.bootstrapper-result }}
-    steps:
-      - name: Checkout apecloud-cd Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud-cd
-          path: apecloud-cd
-          ref: ${{ inputs.APECD_REF }}
-
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: "v1.30.4"
-
-      - name: Install Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: "v3.16.3"
-
-      - name: setup k3d k3s
-        uses: apecloud-inc/setup-k3d-k3s@v2
-        with:
-          k3d-name: "${{ env.K3D_NAME }}"
-          version: "v${{ inputs.K3S_VERSION }}"
-          github-token: ${{ env.GH_TOKEN }}
-          k3d-args: -p 443:443@loadbalancer -p 80:80@loadbalancer --agents 2
-
-      - name: update k3d coredns cm
-        run: |
-          for i in {1..3}; do
-              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 37
-              sleep 1
-          done
-
-      - name: install cert-manager
-        run: |
-          helm repo add jetstack https://charts.jetstack.io --force-update
-          helm install \
-              cert-manager jetstack/cert-manager \
-              --namespace cert-manager \
-              --create-namespace \
-              --version v1.16.0 \
-              --set crds.enabled=true
-
-      - name: install kb cloud
-        run: |
-          helm repo add kb-chart https://apecloud.github.io/helm-charts
-          
-          helm install installer kb-chart/kb-cloud-installer \
-              --namespace kb-cloud \
-              --create-namespace \
-              --version ${{ needs.get-test-type.outputs.cloud-branch }} \
-              --set image.registry="docker.io" \
-              --set version=${{ needs.get-test-type.outputs.cloud-branch }} \
-              --set kubernetesProvider=k3d \
-              --set fqdn.domain=mytest.kubeblocks.com \
-              --set tls.enabled=true
-
-      - if: ${{ env.DOCKER_REGISTRY_USER != '' && env.DOCKER_REGISTRY_PASSWORD != '' }}
-        name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.DOCKER_REGISTRY_URL }}
-          username: ${{ env.DOCKER_REGISTRY_USER }}
-          password: ${{ env.DOCKER_REGISTRY_PASSWORD }}
-
-      - name: check kb-cloud-installer pod Completed
-        id: install_kb_cloud
-        run: |
-          sleep 10
-          check_status=0
-          for i in {1..200}; do
-              if kubectl get pods -n kb-cloud | grep "kb-cloud-installer" | grep Completed ; then
-                  echo "KB Cloud is ready"
-                  check_status=1
-                  break
-              fi
-              echo "Waiting for KB Cloud to be ready..."
-              kubectl get pods -n kb-cloud
-              echo ""
-              sleep 5
-          done
-          
-          installer_result="[PASSED]"
-          if [[ $check_status -eq 0 ]]; then
-              echo "KB Cloud is not ready"
-              installer_result="[FAILED]"
-              echo installer-result="${installer_result}" >> $GITHUB_OUTPUT
-          
-              installer_pods=$(kubectl get pods -n kb-cloud | grep "kb-cloud-installer" )
-              echo "installer pod: $installer_pods"
-              installer_pod_names="$(echo "${installer_pods}" | awk '{print $1}')"
-              for installer_pod_name in $(echo "${installer_pod_names}"); do
-                  echo "==================== pod ${installer_pod_name} logs ===================="
-                  kubectl logs -n kb-cloud ${installer_pod_name}
-              done 
-          
-              # logs kb-cloud error pod 
-              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | awk '{print $1}')
-              echo "kb-cloud error pod: $kb_cloud_error_pods"
-              for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
-                  echo "==================== pod ${kb_cloud_error_pod} logs ===================="
-                  kubectl logs -n kb-cloud ${kb_cloud_error_pod}
-                  echo ""
-              done
-          
-              exit 1
-          else
-              echo installer-result="${installer_result}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: deploy KB Cloud Env
-        run: |
-          echo "get k8s config"
-          k8s_cluster_name=$(kubectl config get-clusters | sed '1d')
-          kubectl config set-cluster ${k8s_cluster_name} --insecure-skip-tls-verify=true
-          k8s_kubeconfig_yaml=$(kubectl config view --minify -o yaml --raw)
-          kubeconfig_file_name="k8s_kubeconfig_file.yaml"
-          touch ${kubeconfig_file_name}
-          echo "${k8s_kubeconfig_yaml}" > ${kubeconfig_file_name}
-          yq e -i '.clusters[0].cluster.server = "https://kubernetes.default:443"' ${kubeconfig_file_name}
-          k8s_kubeconfig=$(cat ${kubeconfig_file_name})
-          echo "------------------------------------------------------------"
-          echo "${k8s_kubeconfig}"
-          echo "------------------------------------------------------------"
-          K8S_KUBECONFIG="$(echo "${k8s_kubeconfig}" | base64)"
-          
-          CLOUD_LICENSE="${{ env.CLOUD_LICENSE }}"
-          echo "deploy KB Cloud Env"
-          
-          helm install bootstrapper kb-chart/kb-cloud-bootstrapper \
-            --namespace kb-system \
-            --create-namespace \
-            --version ${{ needs.get-test-type.outputs.cloud-branch }} \
-            --set image.registry="docker.io" \
-            --set license="${CLOUD_LICENSE}" \
-            --set kubeconfig="${K8S_KUBECONFIG}"
-
-      - name: check kb-cloud-bootstrapper pod Completed
-        id: deploy_kb_cloud_env
-        run: |
-          sleep 10
-          check_status=0
-          for i in {1..200}; do
-              if kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" | grep Completed ; then
-                  echo "KB Cloud Env is ready"
-                  check_status=1
-                  break
-              fi
-              echo "Waiting for KB Cloud Env to be ready..."
-              kubectl get pods -n kb-system
-              echo ""
-              sleep 5
-          done
-          
-          bootstrapper_result="[PASSED]"
-          if [[ $check_status -eq 0 ]]; then
-              echo "KB Cloud Env is not ready"
-              bootstrapper_result="[FAILED]"
-              echo bootstrapper-result="${bootstrapper_result}" >> $GITHUB_OUTPUT
-          
-              bootstrapper_pods=$(kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" )
-              echo "bootstrapper pod: $bootstrapper_pods"
-              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | awk '{print $1}')"
-              for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
-                  echo "==================== pod ${bootstrapper_pod_name} logs ===================="
-                  kubectl logs -n kb-system ${bootstrapper_pod_name}
-              done 
-          
-              # logs kb-system error pod 
-              kb_system_error_pods=$(kubectl get pods -n kb-system | grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | awk '{print $1}')
-              echo "kb-system error pod: $kb_system_error_pods"
-              for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
-                  echo "==================== pod ${kb_system_error_pod} logs ===================="
-                  kubectl logs -n kb-system ${kb_system_error_pod}
-                  echo ""
-              done
-          
-              exit 1
-          else
-              echo bootstrapper-result="${bootstrapper_result}" >> $GITHUB_OUTPUT
-          fi
-
-  upgrade-test:
-    needs: [ get-test-type ]
-    if: ${{ needs.get-test-type.outputs.test-installer == 'true' }}
-    runs-on: ubuntu-latest
-    outputs:
-      installer-result: ${{ steps.install_kb_cloud.outputs.installer-result }}
-      upgrade-result: ${{ steps.upgrade_kb_cloud.outputs.upgrade-result }}
-      cloud-pre-version: ${{ steps.cloud_pre_version.outputs.cloud-pre-version }}
-    steps:
-      - name: Checkout apecloud-cd Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud-cd
-          path: apecloud-cd
-          ref: ${{ inputs.APECD_REF }}
-
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: "v1.30.4"
-
-      - name: Install Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: "v3.16.3"
-
-      - name: setup k3d k3s
-        uses: apecloud-inc/setup-k3d-k3s@v2
-        with:
-          k3d-name: "${{ env.K3D_NAME }}"
-          version: "v${{ inputs.K3S_VERSION }}"
-          github-token: ${{ env.GH_TOKEN }}
-          k3d-args: -p 443:443@loadbalancer -p 80:80@loadbalancer --agents 2
-
-      - name: update k3d coredns cm
-        run: |
-          for i in {1..3}; do
-              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 37
-              sleep 1
-          done
-
-      - name: install cert-manager
-        run: |
-          helm repo add jetstack https://charts.jetstack.io --force-update
-          helm install \
-              cert-manager jetstack/cert-manager \
-              --namespace cert-manager \
-              --create-namespace \
-              --version v1.16.0 \
-              --set crds.enabled=true
-
-      - name: get cloud pre version
-        id: cloud_pre_version
-        run: |
-          UPGRADE_VERSION="${{ needs.get-test-type.outputs.cloud-branch }}"
-          if [[ "$UPGRADE_VERSION" != "v"* ]]; then
-              UPGRADE_VERSION="v${UPGRADE_VERSION}"
-          fi
-          CLOUD_PRE_VERSION=$(bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 39 \
-              --github-repo "apecloud/apecloud" \
-              --github-token "${{ env.GH_TOKEN }}" \
-              --version "${UPGRADE_VERSION}")
-          echo "CLOUD_PRE_VERSION:$CLOUD_PRE_VERSION"
-          echo "cloud-pre-version=${CLOUD_PRE_VERSION}" >> $GITHUB_OUTPUT
-
-      - name: install kb cloud with ${{ steps.cloud_pre_version.outputs.cloud-pre-version }}
-        run: |
-          helm repo add kb-chart https://apecloud.github.io/helm-charts
-          CLOUD_PRE_VERSION="${{ steps.cloud_pre_version.outputs.cloud-pre-version }}"
-          HELM_CHART_PKG_NAME="kb-cloud-installer-${CLOUD_PRE_VERSION/v/}.tgz"
-          helm_pull_cmd="helm pull kb-chart/kb-cloud-installer --version ${CLOUD_PRE_VERSION}"
-          for i in {1..200}; do
-              eval "$helm_pull_cmd" || true
-              # check helm chart package
-              echo "helm chart package checking..."
-              if [[ -f "${HELM_CHART_PKG_NAME}" ]]; then
-                  echo "found helm chart package ${HELM_CHART_PKG_NAME}"
-                  break
-              fi
-              sleep 1
-              helm repo update kb-chart
-          done
-          
-          helm install installer kb-chart/kb-cloud-installer \
-              --namespace kb-cloud \
-              --create-namespace \
-              --version "${CLOUD_PRE_VERSION}" \
-              --set "version=${CLOUD_PRE_VERSION}" \
-              --set image.registry="docker.io" \
-              --set kubernetesProvider=k3d \
-              --set fqdn.domain=mytest.kubeblocks.com \
-              --set tls.enabled=true
-
-      - name: check kb-cloud-installer pod Completed
-        id: install_kb_cloud
-        run: |
-          sleep 10
-          check_status=0
-          for i in {1..200}; do
-              if kubectl get pods -n kb-cloud | grep "kb-cloud-installer" | grep Completed ; then
-                  echo "KB Cloud is ready"
-                  check_status=1
-                  break
-              fi
-              echo "Waiting for KB Cloud to be ready..."
-              kubectl get pods -n kb-cloud
-              echo ""
-              sleep 5
-          done
-          
-          installer_result="[PASSED]"
-          if [[ $check_status -eq 0 ]]; then
-              echo "KB Cloud is not ready"
-              installer_result="[FAILED]"
-              echo installer-result="${installer_result}" >> $GITHUB_OUTPUT
-          
-              installer_pods=$(kubectl get pods -n kb-cloud | grep "kb-cloud-installer" )
-              echo "installer pod: $installer_pods"
-              installer_pod_names="$(echo "${installer_pods}" | awk '{print $1}')"
-              for installer_pod_name in $(echo "${installer_pod_names}"); do
-                  echo "==================== pod ${installer_pod_name} logs ===================="
-                  kubectl logs -n kb-cloud ${installer_pod_name}
-              done 
-          
-              # logs kb-cloud error pod 
-              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | awk '{print $1}')
-              echo "kb-cloud error pod: $kb_cloud_error_pods"
-              for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
-                  echo "==================== pod ${kb_cloud_error_pod} logs ===================="
-                  kubectl logs -n kb-cloud ${kb_cloud_error_pod}
-                  echo ""
-              done
-          
-              exit 1
-          else
-              echo installer-result="${installer_result}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: upgrade kb cloud to ${{ needs.get-test-type.outputs.cloud-branch }}
-        run: |
-          helm uninstall installer --namespace kb-cloud
-          sleep 2
-          
-          CLOUD_VERSION="${{ needs.get-test-type.outputs.cloud-branch }}"
-          helm install installer-upgrade kb-chart/kb-cloud-installer \
-              --namespace kb-cloud \
-              --create-namespace \
-              --version ${CLOUD_VERSION} \
-              --set version=${CLOUD_VERSION} \
-              --set image.registry="docker.io" \
-              --set kubernetesProvider=k3d \
-              --set fqdn.domain=mytest.kubeblocks.com \
-              --set tls.enabled=true \
-              --set action=upgrade
-
-      - name: check kb-cloud-installer upgrade pod Completed
-        id: upgrade_kb_cloud
-        run: |
-          sleep 10
-          check_status=0
-          for i in {1..200}; do
-              if kubectl get pods -n kb-cloud | grep "kb-cloud-installer" | grep Completed ; then
-                  echo "KB Cloud is ready"
-                  check_status=1
-                  break
-              fi
-              echo "Waiting for KB Cloud to be ready..."
-              kubectl get pods -n kb-cloud
-              echo ""
-              sleep 5
-          done
-          
-          upgrade_result="[PASSED]"
-          if [[ $check_status -eq 0 ]]; then
-              echo "KB Cloud is not ready"
-              upgrade_result="[FAILED]"
-              echo upgrade-result="${upgrade_result}" >> $GITHUB_OUTPUT
-          
-              installer_pods=$(kubectl get pods -n kb-cloud | grep "kb-cloud-installer" )
-              echo "installer pod: $installer_pods"
-              installer_pod_names="$(echo "${installer_pods}" | awk '{print $1}')"
-              for installer_pod_name in $(echo "${installer_pod_names}"); do
-                  echo "==================== pod ${installer_pod_name} logs ===================="
-                  kubectl logs -n kb-cloud ${installer_pod_name}
-              done 
-          
-              # logs kb-cloud error pod 
-              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | awk '{print $1}')
-              echo "kb-cloud error pod: $kb_cloud_error_pods"
-              for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
-                  echo "==================== pod ${kb_cloud_error_pod} logs ===================="
-                  kubectl logs -n kb-cloud ${kb_cloud_error_pod}
-                  echo ""
-              done
-          
-              exit 1
-          else
-              echo upgrade-result="${upgrade_result}" >> $GITHUB_OUTPUT
-          fi
-
-  send-message:
-    needs: [ get-test-type, e2e-test, installer-test, upgrade-test ]
-    runs-on: ubuntu-latest
-    if: ${{ always() }}
-    steps:
-      - name: Checkout apecloud-cd Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud-cd
-          ref: ${{ inputs.APECD_REF }}
-
-      - name: send test result message
-        run: |
-          CLOUD_BRANCH="${{ needs.get-test-type.outputs.cloud-branch }}"
-          CLOUD_ENV_NAME="${{ needs.get-test-type.outputs.cloud-env-name }}"
-          TEST_INSTALLER="${{ needs.get-test-type.outputs.test-installer }}"
-          TEST_E2E="${{ needs.get-test-type.outputs.test-e2e }}"
-          TEST_ENGINES="${{ needs.get-test-type.outputs.test-engines }}"
-          
-          TEST_RESULT=""
-          API_COVERAGE_SUMMARY=""
-          ENGINE_API_SUMMARY=""
-          if [[ "${TEST_E2E}" == "true" ]]; then
-              TEST_TYPES="${{ inputs.TEST_TYPE }}"
-              for test_type_tmp in $(echo "${TEST_TYPES}" | sed 's/|/ /g' ); do
-                  case "$test_type_tmp" in
-                      openapi-test)
-                          TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.openapi-test-result }}"
-                          if [[ -n "${{ needs.e2e-test.outputs.openapi-summary }}" ]]; then
-                              API_COVERAGE_SUMMARY="${API_COVERAGE_SUMMARY}##openapi|${{ needs.e2e-test.outputs.openapi-summary }}"
-                          fi
-                      ;;
-                      adminapi-test)
-                          TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.adminapi-test-result }}"
-                          if [[ -n "${{ needs.e2e-test.outputs.adminapi-summary }}" ]]; then
-                              API_COVERAGE_SUMMARY="${API_COVERAGE_SUMMARY}##adminapi|${{ needs.e2e-test.outputs.adminapi-summary }}"
-                          fi
-                      ;;
-                      engine-test)
-                          TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.engine-test-result }}"
-                          if [[ -n "${{ needs.e2e-test.outputs.engine-summary }}" ]]; then
-                              ENGINE_API_SUMMARY="${{ needs.e2e-test.outputs.engine-summary }}"
-                          fi
-                      ;;
-                      *)
-                          TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-test.outputs.test-result }}"
-                          if [[ -n "${{ needs.e2e-test.outputs.api-summary }}" ]]; then
-                              API_COVERAGE_SUMMARY="${API_COVERAGE_SUMMARY}##api|${{ needs.e2e-test.outputs.api-summary }}"
-                          fi
-                      ;;
-                  esac
-              done
-              
-              echo "TEST_RESULT:${TEST_RESULT}"
-              TEST_RESULT=$( bash .github/utils/utils.sh --type 40 \
-                  --github-repo "${{ github.repository }}" \
-                  --github-token "${{ env.GH_TOKEN }}" \
-                  --test-result "${TEST_RESULT}" \
-                  --run-id "$GITHUB_RUN_ID" )
-              echo "TEST_RESULT:${TEST_RESULT}"
-          fi
-          
-          TEST_RESULT_INSTALLER=""
-          if [[ "${TEST_INSTALLER}" == "true" ]]; then
-              echo "get installer test result"
-              INSTALLER_RESULT="${{ needs.installer-test.outputs.installer-result }}"
-              if [[ -z "${INSTALLER_RESULT}" ]]; then
-                  INSTALLER_RESULT="[FAILED]"
-              fi
-              BOOTSTRAPPER_RESULT="${{ needs.installer-test.outputs.bootstrapper-result }}"
-              if [[ -z "${BOOTSTRAPPER_RESULT}" ]]; then
-                  BOOTSTRAPPER_RESULT="[FAILED]"
-              fi
-              
-              echo "get upgrade test result"
-              CLOUD_PRE_VERSION="${{ needs.upgrade-test.outputs.cloud-pre-version }}"
-              INSTALLER_PRE_RESULT="${{ needs.upgrade-test.outputs.installer-result }}"
-              if [[ -z "${INSTALLER_PRE_RESULT}" ]]; then
-                  INSTALLER_PRE_RESULT="[FAILED]"
-              fi
-              UPGRADE_RESULT="${{ needs.upgrade-test.outputs.upgrade-result }}"
-              if [[ -z "${UPGRADE_RESULT}" ]]; then
-                  UPGRADE_RESULT="[FAILED]"
-              fi
-              
-              TEST_RESULT_INSTALLER="installer-test|installer-${CLOUD_BRANCH}|${INSTALLER_RESULT}"
-              TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##installer-test|bootstrapper-${CLOUD_BRANCH}|${BOOTSTRAPPER_RESULT}"
-          
-              TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##upgrade-test|installer-${CLOUD_PRE_VERSION}|${INSTALLER_PRE_RESULT}"
-              TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##upgrade-test|upgrade-${CLOUD_BRANCH}|${UPGRADE_RESULT}"
-              echo "TEST_RESULT_INSTALLER:${TEST_RESULT_INSTALLER}" 
-          
-              TEST_RESULT_INSTALLER=$( bash .github/utils/utils.sh --type 38 \
-                  --github-repo "${{ github.repository }}" \
-                  --github-token "${{ env.GH_TOKEN }}" \
-                  --test-result "${TEST_RESULT_INSTALLER}" \
-                  --run-id "$GITHUB_RUN_ID" )
-              echo "TEST_RESULT_INSTALLER:$TEST_RESULT_INSTALLER"
-          fi
-          
-          if [[ -n "${TEST_RESULT_INSTALLER}" ]]; then
-              TEST_RESULT="${TEST_RESULT_INSTALLER}##${TEST_RESULT}"
-              echo "TEST_RESULT:${TEST_RESULT}"
-          fi
-          
-          export TZ='Asia/Shanghai'
-          date_ret=$(date +%Y-%m-%d-%T)
-          TEST_TITLE=""
-          if [[ "${TEST_E2E}" == "true" &&  "${TEST_INSTALLER}" != "true" ]]; then
-              TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${TEST_ENGINES} [${date_ret}]"
-          elif [[ "${TEST_E2E}" != "true" && "${TEST_INSTALLER}" == "true" ]]; then
-              TEST_TITLE="[${CLOUD_BRANCH}] Cloud Installer & Upgrade [${date_ret}]"
-          else
-              TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Test ${TEST_ENGINES} & Cloud Installer [${date_ret}]"
-          fi
-          
-          python3 .github/utils/send_mesage.py \
-              --send-type ginkgo \
-              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
-              --title "$TEST_TITLE" \
-              --result "$TEST_RESULT"
-          
-          TEST_TITLE_SUMMARY="[${CLOUD_BRANCH}] Cloud E2E API Coverage Summary [${date_ret}]"
-          if [[ -n "${API_COVERAGE_SUMMARY}" && ("${{ inputs.TEST_REPORT }}" == "true" || "${{ needs.get-test-type.outputs.cloud-branch }}" == "main") ]]; then
-              echo "API_COVERAGE_SUMMARY:${API_COVERAGE_SUMMARY}"
-              API_COVERAGE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
-                  --type 42 \
-                  --test-result "${TEST_RESULT}" \
-                  --coverage-result "${API_COVERAGE_SUMMARY}")"
-              echo "API_COVERAGE_SUMMARY:${API_COVERAGE_SUMMARY_TMP}"
-          
-              python3 .github/utils/send_mesage.py \
-                  --send-type summary \
-                  --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
-                  --title "$TEST_TITLE_SUMMARY" \
-                  --result "$API_COVERAGE_SUMMARY_TMP"
-          fi
-          
-          TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}] Cloud E2E Engine API Summary [${date_ret}]"
-          ENGINE_REPORT_FILE_NAME="${{ env.ENGINE_REPORT_FILE_NAME }}"
-          if [[ -n "${ENGINE_API_SUMMARY}" && ("${{ inputs.TEST_REPORT }}" == "true" || "${{ needs.get-test-type.outputs.cloud-branch }}" == "main") ]]; then
-              APECLOUD_CURRENT_VERSION="${{ needs.get-test-type.outputs.current-version }}"
-              TEST_DATE=${{ needs.e2e-test.outputs.test-date }}
-              OSS_URL="https://${{ env.OSS_BUCKET }}.${{ env.OSS_ENDPOINT }}/reports/apecloud/${APECLOUD_CURRENT_VERSION}/${TEST_DATE}"
-              TEST_REPORT_URL="${OSS_URL}/${ENGINE_REPORT_FILE_NAME}"
-          
-              echo "ENGINE_API_SUMMARY:${ENGINE_API_SUMMARY}"
-              ENGINE_API_SUMMARY_TMP="$(bash .github/utils/utils.sh \
-                  --type 43 \
-                  --report-url "${TEST_REPORT_URL}" \
-                  --test-result "${TEST_RESULT}" \
-                  --coverage-result "${ENGINE_API_SUMMARY}")"
-              echo "ENGINE_API_SUMMARY:${ENGINE_API_SUMMARY_TMP}"
-          
-              python3 .github/utils/send_mesage.py \
-                  --send-type "engine-summary" \
-                  --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
-                  --title "$TEST_TITLE_ENGINE_SUMMARY" \
-                  --result "$ENGINE_API_SUMMARY_TMP"
-          fi
