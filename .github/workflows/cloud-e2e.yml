@@ -715,6 +715,7 @@ jobs:
           fi
 
       - name: deploy KB Cloud Env
+        if: ${{ needs.get-test-type.outputs.current-version != 'v0.28' }}
         run: |
           echo "get k8s config"
           k8s_cluster_name=$(kubectl config get-clusters | sed '1d')
@@ -742,6 +743,7 @@ jobs:
             --set kubeconfig="${K8S_KUBECONFIG}"
 
       - name: check kb-cloud-bootstrapper pod Completed
+        if: ${{ needs.get-test-type.outputs.current-version != 'v0.28' }}
         id: deploy_kb_cloud_env
         run: |
           sleep 10
