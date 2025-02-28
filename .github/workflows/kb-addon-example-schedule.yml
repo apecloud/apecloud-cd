@@ -5,6 +5,8 @@ on:
   schedule:
     - cron: '30 17 * * 0-4' # Runs at 02:30 UTC on Mon to Friday
 
+run-name: KubeBlocks:${{ vars.KUBEBLOCKS_VERSION }} Addons Examples Test on ${{ vars.CLOUD_PROVIDER }}:${{ vars.KUBEBLOCKS_TEST_TYPE }}
+
 jobs:
   e2e:
     name: ${{ vars.CLOUD_PROVIDER }}
