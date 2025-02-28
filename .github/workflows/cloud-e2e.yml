@@ -32,7 +32,7 @@ on:
         description: "The branch name of apecloud-cd"
         type: string
         required: false
-        default: 'main'
+        default: 'test_upload_oss'
       CURRENT_VERSION:
         description: "The current release version (e.g. v0.30) "
         type: string
