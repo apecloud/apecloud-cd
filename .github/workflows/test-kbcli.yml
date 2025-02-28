@@ -112,12 +112,18 @@ jobs:
           path: ./
           token: ${{ env.GITHUB_TOKEN }}
 
+      - name: get release version
+        run: |
+          KUBEBLOCKS_RELEASE_VERSION=$(bash .github/utils/get_kb_latest_version.sh ${{ inputs.release-version }})
+          echo KUBEBLOCKS_RELEASE_VERSION="$KUBEBLOCKS_RELEASE_VERSION" >> $GITHUB_ENV
+
       - name: Checkout kubeblocks-addons Code
         uses: actions/checkout@v4
         with:
           repository: apecloud/kubeblocks-addons
           path: kubeblocks-addons
           token:  ${{ env.GITHUB_TOKEN }}
+          ref: ${{ env.KUBEBLOCKS_RELEASE_VERSION }}
 
       - name: Install Helm
         uses: azure/setup-helm@v3
@@ -223,8 +229,7 @@ jobs:
           echo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> ${file_log}
           echo 'FILE_LOG='${file_log} >> $GITHUB_ENV
           
-          KB_VERSION=$( bash .github/utils/get_kb_latest_version.sh \
-              ${{ inputs.release-version }} )
+          KB_VERSION="${{ env.KUBEBLOCKS_RELEASE_VERSION }}"
           
           PREVIOUS_VERSION="${{ inputs.previous-version }}"
           PREVIOUS_VERSION="${PREVIOUS_VERSION/v/}"
@@ -263,6 +268,11 @@ jobs:
           
           if [[ -n "${{ inputs.cluster-test-type }}" ]]; then
               cmd="${cmd} --test-type '${{ inputs.cluster-test-type }}' "
+          fi
+          
+          if [[ -n "${{ inputs.test-args }}" && "${{ inputs.test-args }}" == *"--only-kubectl true"* ]]; then
+              EXAMPLE_DIR="${{ github.workspace }}/examples"
+              cmd="${cmd} --example-dir '${EXAMPLE_DIR}' "
           fi
           
           if [[ -n "${{ env.AWS_ACCESS_KEY_ID }}" && -n "${{ env.AWS_SECRET_ACCESS_KEY }}" ]]; then
