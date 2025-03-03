@@ -116,14 +116,32 @@ jobs:
         run: |
           KUBEBLOCKS_RELEASE_VERSION=$(bash .github/utils/get_kb_latest_version.sh ${{ inputs.release-version }})
           echo KUBEBLOCKS_RELEASE_VERSION="$KUBEBLOCKS_RELEASE_VERSION" >> $GITHUB_ENV
+          
+          KUBEBLOCKS_RELEASE_BRANCH=""
+          case ${KUBEBLOCKS_RELEASE_VERSION} in
+              0.8.*)
+                  KUBEBLOCKS_RELEASE_BRANCH="release-0.8"
+              ;;
+              0.9.*)
+                  KUBEBLOCKS_RELEASE_BRANCH="release-0.9"
+              ;;
+              1.0.*)
+                  KUBEBLOCKS_RELEASE_BRANCH="release-1.0-beta"
+              ;;
+              *)
+                  KUBEBLOCKS_RELEASE_BRANCH="main"
+              ;;
+          esac
+          echo KUBEBLOCKS_RELEASE_BRANCH="$KUBEBLOCKS_RELEASE_BRANCH" >> $GITHUB_ENV
 
       - name: Checkout kubeblocks-addons Code
+        if: ${{ env.KUBEBLOCKS_RELEASE_BRANCH != '' }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/kubeblocks-addons
           path: kubeblocks-addons
           token:  ${{ env.GITHUB_TOKEN }}
-          ref: "v${{ env.KUBEBLOCKS_RELEASE_VERSION }}"
+          ref: "${{ env.KUBEBLOCKS_RELEASE_BRANCH }}"
 
       - name: Install Helm
         uses: azure/setup-helm@v3
