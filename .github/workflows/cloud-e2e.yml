@@ -400,7 +400,7 @@ jobs:
               API_COVERAGE_SUMMARY=$(python3 test/report/parse_ginkgo.py summary ${test_file_log_path})
               echo "API_COVERAGE_SUMMARY:${API_COVERAGE_SUMMARY}"
 
-              ls -ll ${test_file_log_path})
+              ls -ll ${test_file_log_path}
               echo "======================="
               du -sh ${test_file_log_path}
               echo "======================="
