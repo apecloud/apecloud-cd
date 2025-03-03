@@ -1632,7 +1632,7 @@ jobs:
           date_ret=$(date +%Y-%m-%d-%T)
           test_title="[${{ inputs.KB_VERSION }}] Test KBCLI on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
           
-          if [[ -n "${{ inputs.ARG }}" && "${{ inputs.ARG }}" == *"--only-kubectl true"* ]]; then
+          if [[ -n "${{ inputs.ARGS }}" && "${{ inputs.ARGS }}" == *"--only-kubectl true"* ]]; then
               test_title="[${{ inputs.KB_VERSION }}] Test KB-Addons Examples on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
           fi
           

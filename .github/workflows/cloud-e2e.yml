@@ -188,12 +188,14 @@ jobs:
           # check test e2e
           TEST_E2E="false"
           CURRENT_VERSION="${{ inputs.CURRENT_VERSION }}"
-          if [[ -n "${CURRENT_VERSION}" && "${{ inputs.TEST_E2E }}" == "true" ]]; then
+          if [[ -n "${CURRENT_VERSION}" ]]; then
               if [[ "${CURRENT_VERSION}" != "v"* ]]; then
                   CURRENT_VERSION="v${CURRENT_VERSION}"
               fi
               echo current-version="$CURRENT_VERSION" >> $GITHUB_OUTPUT
-              TEST_E2E="true"
+              if [[ "${{ inputs.TEST_E2E }}" == "true" ]]; then
+                  TEST_E2E="true"
+              fi
           fi
           echo test-e2e="$TEST_E2E" >> $GITHUB_OUTPUT
 
@@ -715,7 +717,7 @@ jobs:
           fi
 
       - name: deploy KB Cloud Env
-        if: ${{ inputs.CURRENT_VERSION != 'v0.28' }}
+        if: ${{ inputs.CURRENT_VERSION != 'v0.28' && inputs.CURRENT_VERSION != '0.28' }}
         run: |
           echo "get k8s config"
           k8s_cluster_name=$(kubectl config get-clusters | sed '1d')
@@ -743,7 +745,7 @@ jobs:
             --set kubeconfig="${K8S_KUBECONFIG}"
 
       - name: check kb-cloud-bootstrapper pod Completed
-        if: ${{ inputs.CURRENT_VERSION != 'v0.28' }}
+        if: ${{ inputs.CURRENT_VERSION != 'v0.28' && inputs.CURRENT_VERSION != '0.28' }}
         id: deploy_kb_cloud_env
         run: |
           sleep 10
@@ -1075,7 +1077,7 @@ jobs:
               
               TEST_RESULT_INSTALLER="installer-test|installer-${CLOUD_BRANCH}|${INSTALLER_RESULT}"
               
-              if [[ "${{ inputs.CURRENT_VERSION }}" != 'v0.28' ]]; then
+              if [[ "${{ inputs.CURRENT_VERSION }}" != 'v0.28' && "${{ inputs.CURRENT_VERSION }}" != '0.28' ]]; then
                   TEST_RESULT_INSTALLER="${TEST_RESULT_INSTALLER}##installer-test|bootstrapper-${CLOUD_BRANCH}|${BOOTSTRAPPER_RESULT}"
               fi
           
