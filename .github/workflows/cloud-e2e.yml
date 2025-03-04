@@ -399,15 +399,21 @@ jobs:
           API_COVERAGE_SUMMARY=""
           CLOUD_E2E_HACK_DIR="${{ github.workspace }}/apecloud/e2e/hack"
           if [[ ("${{ inputs.TEST_REPORT }}" == "true" || "${{ needs.get-test-type.outputs.cloud-branch }}" == "main") && "${TEST_TYPE}" == "engine-test" ]]; then
-              API_COVERAGE_SUMMARY=$(python3 test/report/parse_ginkgo.py summary ${test_file_log_path})
+              file_log_tmp="test_result_tmp.log"
+              test_file_log_tmp_path="${{ github.workspace }}/${file_log_tmp}"
+              touch ${test_file_log_tmp_path}
+              E2E_TEST_RESULT_LOG=$(python3 ${{ github.workspace }}/apecloud-cd/.github/utils/remove_ansi_file.py ${test_file_log_path}) 
+              echo "${E2E_TEST_RESULT_LOG}" > ${test_file_log_tmp_path}
+              
+              API_COVERAGE_SUMMARY=$(python3 test/report/parse_ginkgo.py summary ${test_file_log_tmp_path})
               echo "API_COVERAGE_SUMMARY:${API_COVERAGE_SUMMARY}"
 
-              ls -ll ${test_file_log_path}
+              ls -ll ${test_file_log_tmp_path}
               echo "======================="
-              du -sh ${test_file_log_path}
+              du -sh ${test_file_log_tmp_path}
               echo "======================="
               
-              ENGINE_TEST_RESULT=$(python3 test/report/parse_ginkgo.py engine ${test_file_log_path})
+              ENGINE_TEST_RESULT=$(python3 test/report/parse_ginkgo.py engine ${test_file_log_tmp_path})
               echo "${ENGINE_TEST_RESULT}"
           
               engine_file_log="test_engine_api_result.txt"
@@ -454,16 +460,19 @@ jobs:
                   echo openapi-test-result="${test_result}" >> $GITHUB_OUTPUT
                   echo openapi-summary="${API_COVERAGE_SUMMARY}" >> $GITHUB_OUTPUT
                   if [[ -d "${CLOUD_E2E_HACK_DIR}" ]]; then
+                      file_log_tmp="test_result_tmp.log"
+                      test_file_log_tmp_path="${{ github.workspace }}/${file_log_tmp}"
                       check_e2e_log="e2e.log"
                       check_e2e_log_path="${CLOUD_E2E_HACK_DIR}/${check_e2e_log}"
-                      touch ${check_e2e_log_path}
+                      touch ${test_file_log_tmp_path} ${check_e2e_log_path}
+                      E2E_TEST_RESULT_LOG=$(python3 ${{ github.workspace }}/apecloud-cd/.github/utils/remove_ansi_file.py ${test_file_log_path}) 
+                      echo "${E2E_TEST_RESULT_LOG}" > ${test_file_log_tmp_path}
                       ls -ll ${check_e2e_log_path}
-                      cp -r ${test_file_log_path} ${check_e2e_log_path}
+                      cp -r ${test_file_log_tmp_path} ${check_e2e_log_path}
                       ls -ll ${check_e2e_log_path}
                       echo "======================="
                       du -sh ${check_e2e_log_path} 
                       echo "======================="
-                      cat ${check_e2e_log_path}
                   fi
               ;;
               adminapi-test)
@@ -510,7 +519,6 @@ jobs:
               ls -ll 
               check_e2e_log="e2e.log"
               check_e2e_log_path="${CLOUD_E2E_HACK_DIR}/${check_e2e_log}"
-              cat ${check_e2e_log_path}
               bash ./log-checker.sh
           fi
 
