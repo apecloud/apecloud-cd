@@ -1,0 +1,67 @@
+name: Pull Request Label Pick
+
+on:
+  workflow_call:
+
+
+env:
+  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  label-pick:
+    name: label pick
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+
+      - name: set appprove label
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          COMMENT_BODYS="${{ github.event.comment.body }}" 
+          LABEL_NAME=""
+          
+          case "${COMMENT_BODYS}" in
+              /pick)
+                  LABEL_NAME="pick"
+              ;;
+              /nopick)
+                  LABEL_NAME="no-pick"
+              ;;
+              /pick*)
+                  for comment_body in $(echo "${COMMENT_BODYS}" | sed 's/,/ /g' | sed 's/\|/ /g' | sed 's/\// /g') ; do
+                      if [[ "${comment_body}" == "pick" ]]; then
+                          continue
+                      fi
+          
+                      if [[ "${comment_body}" == "release-"* ]]; then
+                          label_name_tmp="pick-${comment_body/release-/}"
+                      elif [[ "${comment_body}" == "pick-"* ]]; then
+                          label_name_tmp="${comment_body}"
+                      fi 
+          
+                      if [[ -n "${label_name_tmp}" ]]; then
+                          if [[ -z "${LABEL_NAME}" ]]; then
+                            LABEL_NAME=${label_name_tmp}
+                          else
+                            LABEL_NAME="${LABEL_NAME},${label_name_tmp}"
+                          fi
+                      fi
+                  done
+              ;;
+              *)
+                  echo "No match found."
+                  exit 1
+              ;;
+          esac
+          
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+              --type 33 \
+              --github-repo "${{ github.repository }}" \
+              --github-token "${{ env.GH_TOKEN }}" \
+              --pr-number "${PR_NUMBER}" \
+              --label-name "${LABEL_NAME}" \
+              --label-ops "ADD"
