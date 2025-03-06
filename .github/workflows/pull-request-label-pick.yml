@@ -53,18 +53,13 @@ jobs:
                   done
               ;;
               /pick*)
-                  case "${COMMENT_BODYS}" in
-                      *,*)
-                          COMMENT_BODYS=$(echo "${COMMENT_BODYS}" | sed 's/,/ /g')
-                      ;;
-                      *|*)
-                          COMMENT_BODYS=$(echo "${COMMENT_BODYS}" | sed 's/|/ /g')
-                      ;;
-                      */*)
-                          COMMENT_BODYS=$(echo "${COMMENT_BODYS}" | sed 's/\// /g')
-                      ;;
-                  esac
-          
+                  if [[ "${COMMENT_BODYS}" == *"-"*"/"* || "${COMMENT_BODYS}" == *"."*"/"*  ]]; then
+                      COMMENT_BODYS=$(echo "${COMMENT_BODYS}" | sed 's/\// /g')
+                  elif [[ "${COMMENT_BODYS}" == *"-"*"|"* || "${COMMENT_BODYS}" == *"."*"|"* ]]; then
+                      COMMENT_BODYS=$(echo "${COMMENT_BODYS}" | sed 's/|/ /g')
+                  elif [[ "${COMMENT_BODYS}" == *"-"*","* || "${COMMENT_BODYS}" == *"."*","* ]]; then
+                      COMMENT_BODYS=$(echo "${COMMENT_BODYS}" | sed 's/,/ /g')
+                  fi
                   for comment_body in $(echo "${COMMENT_BODYS}") ; do
                       echo "comment_body:$comment_body"
                       if [[ "${comment_body}" == "pick" ]]; then
@@ -73,7 +68,7 @@ jobs:
           
                       if [[ "${comment_body}" == "release-"* ]]; then
                           label_name_tmp="pick-${comment_body/release-/}"
-                      elif [[ "${comment_body}" == "pick-"* ]]; then
+                      elif [[ "${comment_body}" == "pick-"* || "${comment_body}" =~ ^([0-9]+)\.([0-9]+)$ ]]; then
                           label_name_tmp="${comment_body}"
                       fi 
           
