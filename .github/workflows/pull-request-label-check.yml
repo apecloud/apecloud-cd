@@ -24,7 +24,7 @@ jobs:
           CHECK_LABLE="${{ inputs.CHECK_LABLE }}"
           label_exists=0
           for pr_lable in $(echo "${PR_LABELS}"); do
-              if [[ "${pr_lable}" == "${CHECK_LABLE}" || "${pr_lable}" == "no${CHECK_LABLE}" || "${pr_lable}" == *"-${CHECK_LABLE}" || "${pr_lable}" == "${CHECK_LABLE}-"* ]]; then
+              if [[ "${pr_lable}" == "${CHECK_LABLE}" || "${pr_lable}" == "no${CHECK_LABLE}" || "${pr_lable}" == "${CHECK_LABLE}-"* ]]; then
                   label_exists=1
                   break
               fi

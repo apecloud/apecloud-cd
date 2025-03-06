@@ -9,7 +9,6 @@ env:
 
 jobs:
   label-pick:
-    name: label pick
     runs-on: ubuntu-latest
     steps:
       - name: Checkout apecloud-cd Code
@@ -30,7 +29,7 @@ jobs:
                   LABEL_NAME="pick"
                   PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
                   for pr_lable in $(echo "${PR_LABELS}"); do
-                      if [[ "${pr_lable}" == "nopick" || "${pr_lable}" == *"-pick" || "${pr_lable}" == "pick-"* ]]; then
+                      if [[ "${pr_lable}" == "nopick" || "${pr_lable}" == "pick-"* ]]; then
                           if [[ -z "${REMOVE_LABEL_NAME}" ]]; then
                               REMOVE_LABEL_NAME=${pr_lable}
                           else
@@ -40,7 +39,7 @@ jobs:
                   done
               ;;
               /nopick)
-                  LABEL_NAME="no-pick"
+                  LABEL_NAME="nopick"
                   PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
                   for pr_lable in $(echo "${PR_LABELS}"); do
                       if [[ "${pr_lable}" == "pick" || "${pr_lable}" == "pick-"* ]]; then
@@ -72,9 +71,10 @@ jobs:
                           fi
                       fi
                   done
+          
                   PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
                   for pr_lable in $(echo "${PR_LABELS}"); do
-                      if [[ "${pr_lable}" == "nopick" || "${pr_lable}" == *"-pick" || "${pr_lable}" == "pick" || "${pr_lable}" == "pick-"* ]]; then
+                      if [[ "${pr_lable}" == "nopick" || "${pr_lable}" == "pick" || "${pr_lable}" == "pick-"* ]]; then
                           if [[ -z "${REMOVE_LABEL_NAME}" ]]; then
                               REMOVE_LABEL_NAME=${pr_lable}
                           else
