@@ -1,0 +1,38 @@
+name: Pull Request Label Check
+
+on:
+  workflow_call:
+    inputs:
+      CHECK_LABLE:
+        description: "The name of pr label check (e.g. pick)"
+        type: string
+        required: false
+        default: 'pick'
+
+
+env:
+  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  label-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: pr label check
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
+          
+          label_exists=0
+          for pr_lable in $(echo "${PR_LABELS}"); do
+              if [[ "${pr_lable}" == "${CHECK_LABLE}" || "${pr_lable}" == "no${CHECK_LABLE}" || "${pr_lable}" == *"-${CHECK_LABLE}" || "${pr_lable}" == "${CHECK_LABLE}-"* ]]; then
+                  label_exists=1
+                  break
+              fi
+          done
+          
+          if [[ $label_exists -eq 0 ]]; then
+              echo "$(tput -T xterm setaf 1)::error title=Not found pick lable! $(tput -T xterm sgr0)"
+              exit 1
+          else
+              echo "$(tput -T xterm setaf 2)Check pick lable successfully!(tput -T xterm sgr0)"
+          fi
