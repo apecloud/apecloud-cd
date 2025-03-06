@@ -125,7 +125,7 @@ jobs:
                       done
                   done
                   echo "checking remove label: ${PR_LABELS}"
-                  if [[ ${check_remove_label} -eq 1 ]]; then
+                  if [[ ${check_remove_label} -eq 0 ]]; then
                       echo "remove label ${PR_LABELS} successfully"
                       break
                   fi
