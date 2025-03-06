@@ -97,6 +97,7 @@ jobs:
                   --pr-number "${PR_NUMBER}" \
                   --label-name "${REMOVE_LABEL_NAME}" \
                   --label-ops "REMOVE"
+              sleep 5
           fi
           
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
