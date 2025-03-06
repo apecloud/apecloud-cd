@@ -21,7 +21,7 @@ jobs:
         run: |
           PR_NUMBER="${{ github.event.pull_request.number }}"
           PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
-          
+          CHECK_LABLE="${{ inputs.CHECK_LABLE }}"
           label_exists=0
           for pr_lable in $(echo "${PR_LABELS}"); do
               if [[ "${pr_lable}" == "${CHECK_LABLE}" || "${pr_lable}" == "no${CHECK_LABLE}" || "${pr_lable}" == *"-${CHECK_LABLE}" || "${pr_lable}" == "${CHECK_LABLE}-"* ]]; then

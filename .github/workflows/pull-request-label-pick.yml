@@ -20,16 +20,37 @@ jobs:
 
       - name: set appprove label
         run: |
-          PR_NUMBER="${{ github.event.pull_request.number }}"
+          PR_NUMBER="${{ github.event.issue.number }}"
           COMMENT_BODYS="${{ github.event.comment.body }}" 
           LABEL_NAME=""
+          REMOVE_LABEL_NAME=""
           
           case "${COMMENT_BODYS}" in
               /pick)
                   LABEL_NAME="pick"
+                  PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
+                  for pr_lable in $(echo "${PR_LABELS}"); do
+                      if [[ "${pr_lable}" == "nopick" || "${pr_lable}" == *"-pick" || "${pr_lable}" == "pick-"* ]]; then
+                          if [[ -z "${REMOVE_LABEL_NAME}" ]]; then
+                              REMOVE_LABEL_NAME=${pr_lable}
+                          else
+                              REMOVE_LABEL_NAME="${REMOVE_LABEL_NAME},${pr_lable}"
+                          fi
+                      fi
+                  done
               ;;
               /nopick)
                   LABEL_NAME="no-pick"
+                  PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
+                  for pr_lable in $(echo "${PR_LABELS}"); do
+                      if [[ "${pr_lable}" == "pick" || "${pr_lable}" == "pick-"* ]]; then
+                          if [[ -z "${REMOVE_LABEL_NAME}" ]]; then
+                              REMOVE_LABEL_NAME=${pr_lable}
+                          else
+                              REMOVE_LABEL_NAME="${REMOVE_LABEL_NAME},${pr_lable}"
+                          fi
+                      fi
+                  done
               ;;
               /pick*)
                   for comment_body in $(echo "${COMMENT_BODYS}" | sed 's/,/ /g' | sed 's/\|/ /g' | sed 's/\// /g') ; do
@@ -51,12 +72,32 @@ jobs:
                           fi
                       fi
                   done
+                  PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
+                  for pr_lable in $(echo "${PR_LABELS}"); do
+                      if [[ "${pr_lable}" == "nopick" || "${pr_lable}" == *"-pick" || "${pr_lable}" == "pick" || "${pr_lable}" == "pick-"* ]]; then
+                          if [[ -z "${REMOVE_LABEL_NAME}" ]]; then
+                              REMOVE_LABEL_NAME=${pr_lable}
+                          else
+                              REMOVE_LABEL_NAME="${REMOVE_LABEL_NAME},${pr_lable}"
+                          fi
+                      fi
+                  done
               ;;
               *)
                   echo "No match found."
                   exit 1
               ;;
           esac
+          
+          if [[ -n "${REMOVE_LABEL_NAME}" ]]; then
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+                  --type 33 \
+                  --github-repo "${{ github.repository }}" \
+                  --github-token "${{ env.GH_TOKEN }}" \
+                  --pr-number "${PR_NUMBER}" \
+                  --label-name "${REMOVE_LABEL_NAME}" \
+                  --label-ops "REMOVE"
+          fi
           
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
               --type 33 \
