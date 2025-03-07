@@ -29,8 +29,8 @@ jobs:
           PR_NUMBER="${{ github.event.pull_request.number }}"
           PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
           # check nopick label
-          for pr_lable in $(echo "${PR_LABELS}"); do
-              if [[ "${pr_lable}" == "nopick" ]]; then
+          for pr_label in $(echo "${PR_LABELS}"); do
+              if [[ "${pr_label}" == "nopick" ]]; then
                   echo "$(tput -T xterm setaf 3)nopick label found, skip cherry pick! $(tput -T xterm sgr0)"
                   exit 0
               fi
@@ -38,8 +38,8 @@ jobs:
           
           # check pick label
           CHERRY_PICK_BRANCH_TMP=""
-          for pr_lable in $(echo "${PR_LABELS}"); do
-              if [[ "${pr_lable}" == "pick" ]]; then
+          for pr_label in $(echo "${PR_LABELS}"); do
+              if [[ "${pr_label}" == "pick" ]]; then
                   echo "$(tput -T xterm setaf 2)pick label found, cherry pick branch: ${CHERRY_PICK_BRANCH_DEFAULT}! $(tput -T xterm sgr0)"
                   CHERRY_PICK_BRANCH_TMP="${CHERRY_PICK_BRANCH_DEFAULT}"
               fi
@@ -47,14 +47,14 @@ jobs:
           
           if [[ -z "${CHERRY_PICK_BRANCH_TMP}" ]]; then
               # check pick label specify
-              for pr_lable in $(echo "${PR_LABELS}"); do
-                  if [[ "${pr_lable}" == "pick-"* ]]; then
-                      echo "$(tput -T xterm setaf 2)${pr_lable} label found, cherry pick branch: ${pr_lable}! $(tput -T xterm sgr0)"
-                      pr_lable_tmp="release-${pr_lable/pick-/}"
+              for pr_label in $(echo "${PR_LABELS}"); do
+                  if [[ "${pr_label}" == "pick-"* ]]; then
+                      echo "$(tput -T xterm setaf 2)${pr_label} label found, cherry pick branch: ${pr_label}! $(tput -T xterm sgr0)"
+                      pr_label_tmp="release-${pr_label/pick-/}"
                       if [[ -z "${CHERRY_PICK_BRANCH_TMP}" ]]; then
-                          CHERRY_PICK_BRANCH_TMP="${pr_lable_tmp}"
+                          CHERRY_PICK_BRANCH_TMP="${pr_label_tmp}"
                       else
-                          CHERRY_PICK_BRANCH_TMP="${CHERRY_PICK_BRANCH_TMP}|${pr_lable_tmp}"
+                          CHERRY_PICK_BRANCH_TMP="${CHERRY_PICK_BRANCH_TMP}|${pr_label_tmp}"
                       fi
                   fi
               done
