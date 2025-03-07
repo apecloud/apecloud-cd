@@ -38,6 +38,11 @@ on:
         type: string
         required: false
         default: ''
+      PR_NUMBER:
+        description: 'The pull request number'
+        type: string
+        required: false
+        default: ""
 
 env:
   RELEASE_BOT_WEBHOOK: ${{ secrets.RELEASE_BOT_WEBHOOK }}
@@ -86,6 +91,10 @@ jobs:
           
           if [[ -n "${{ inputs.VERSION }}" ]]; then
               cmd="${cmd} --version '${{ inputs.VERSION }}' "
+          fi
+          
+          if [[ -n "${{ inputs.PR_NUMBER }}" ]]; then
+              cmd="${cmd} --pr-number '${{ inputs.PR_NUMBER }}' "
           fi
           
           echo "$cmd"

@@ -3,7 +3,7 @@ name: Pull Request Label Check
 on:
   workflow_call:
     inputs:
-      CHECK_LABLE:
+      CHECK_LABEL:
         description: "The name of pr label check (e.g. pick)"
         type: string
         required: false
@@ -22,18 +22,18 @@ jobs:
           PR_NUMBER="${{ github.event.pull_request.number }}"
           PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
           echo "PR_LABELS: ${PR_LABELS}"
-          CHECK_LABLE="${{ inputs.CHECK_LABLE }}"
+          CHECK_LABEL="${{ inputs.CHECK_LABEL }}"
           label_exists=0
-          for pr_lable in $(echo "${PR_LABELS}"); do
-              if [[ "${pr_lable}" == "${CHECK_LABLE}" || "${pr_lable}" == "no${CHECK_LABLE}" || "${pr_lable}" == "${CHECK_LABLE}-"* ]]; then
+          for pr_label in $(echo "${PR_LABELS}"); do
+              if [[ "${pr_label}" == "${CHECK_LABEL}" || "${pr_label}" == "no${CHECK_LABEL}" || "${pr_label}" == "${CHECK_LABEL}-"* ]]; then
                   label_exists=1
                   break
               fi
           done
           
           if [[ $label_exists -eq 0 ]]; then
-              echo "$(tput -T xterm setaf 1)::error title=Not found ${CHECK_LABLE} lable! $(tput -T xterm sgr0)"
+              echo "$(tput -T xterm setaf 1)::error title=Not found ${CHECK_LABEL} label! $(tput -T xterm sgr0)"
               exit 1
           else
-              echo "$(tput -T xterm setaf 2)Check ${CHECK_LABLE} lable on ${PR_LABELS} successfully! $(tput -T xterm sgr0)"
+              echo "$(tput -T xterm setaf 2)Check ${CHECK_LABEL} label on ${PR_LABELS} successfully! $(tput -T xterm sgr0)"
           fi

@@ -29,12 +29,12 @@ jobs:
               /pick)
                   ADD_LABEL_NAME="pick"
                   PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
-                  for pr_lable in $(echo "${PR_LABELS}"); do
-                      if [[ "${pr_lable}" == "nopick" || "${pr_lable}" == "pick-"* ]]; then
+                  for pr_label in $(echo "${PR_LABELS}"); do
+                      if [[ "${pr_label}" == "nopick" || "${pr_label}" == "pick-"* ]]; then
                           if [[ -z "${REMOVE_LABEL_NAME}" ]]; then
-                              REMOVE_LABEL_NAME=${pr_lable}
+                              REMOVE_LABEL_NAME=${pr_label}
                           else
-                              REMOVE_LABEL_NAME="${REMOVE_LABEL_NAME},${pr_lable}"
+                              REMOVE_LABEL_NAME="${REMOVE_LABEL_NAME},${pr_label}"
                           fi
                       fi
                   done
@@ -42,12 +42,12 @@ jobs:
               /nopick)
                   ADD_LABEL_NAME="nopick"
                   PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
-                  for pr_lable in $(echo "${PR_LABELS}"); do
-                      if [[ "${pr_lable}" == "pick" || "${pr_lable}" == "pick-"* ]]; then
+                  for pr_label in $(echo "${PR_LABELS}"); do
+                      if [[ "${pr_label}" == "pick" || "${pr_label}" == "pick-"* ]]; then
                           if [[ -z "${REMOVE_LABEL_NAME}" ]]; then
-                              REMOVE_LABEL_NAME=${pr_lable}
+                              REMOVE_LABEL_NAME=${pr_label}
                           else
-                              REMOVE_LABEL_NAME="${REMOVE_LABEL_NAME},${pr_lable}"
+                              REMOVE_LABEL_NAME="${REMOVE_LABEL_NAME},${pr_label}"
                           fi
                       fi
                   done
@@ -82,12 +82,12 @@ jobs:
                   done
           
                   PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
-                  for pr_lable in $(echo "${PR_LABELS}"); do
-                      if [[ "${pr_lable}" == "nopick" || "${pr_lable}" == "pick" || "${pr_lable}" == "pick-"* ]]; then
+                  for pr_label in $(echo "${PR_LABELS}"); do
+                      if [[ "${pr_label}" == "nopick" || "${pr_label}" == "pick" || "${pr_label}" == "pick-"* ]]; then
                           if [[ -z "${REMOVE_LABEL_NAME}" ]]; then
-                              REMOVE_LABEL_NAME=${pr_lable}
+                              REMOVE_LABEL_NAME=${pr_label}
                           else
-                              REMOVE_LABEL_NAME="${REMOVE_LABEL_NAME},${pr_lable}"
+                              REMOVE_LABEL_NAME="${REMOVE_LABEL_NAME},${pr_label}"
                           fi
                       fi
                   done
@@ -111,9 +111,9 @@ jobs:
               for i in $(seq 1 60); do
                   sleep 1
                   PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
-                  for pr_lable in $(echo "${PR_LABELS}"); do
+                  for pr_label in $(echo "${PR_LABELS}"); do
                       for remove_label in $(echo "${REMOVE_LABEL_NAME} | sed 's/,/ /g'"); do
-                          if [[ "${remove_label}" == "${pr_lable}" ]]; then
+                          if [[ "${remove_label}" == "${pr_label}" ]]; then
                               check_remove_label=1
                               break
                           fi
