@@ -47,6 +47,7 @@ on:
 env:
   RELEASE_BOT_WEBHOOK: ${{ secrets.RELEASE_BOT_WEBHOOK }}
   PACKAGE_BOT_WEBHOOK: ${{ secrets.PACKAGE_BOT_WEBHOOK }}
+  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
 permissions:
   id-token: write
@@ -66,10 +67,19 @@ jobs:
       - name: send message
         run: |
           sleep ${{ inputs.WAIT_TIME }}
+          CI_JOB_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          if [[ "${{ inputs.TYPE }}" == "5" ]]; then
+            CI_JOB_URL=$(bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+              --type 44 \
+              --github-repo "${{ github.repository }}" \
+              --github-token "${{ env.GH_TOKEN }}" \
+              --run-id "$GITHUB_RUN_ID" \
+              --test-result "cherry-pick")
+          fi
           
           cmd="bash apecloud-cd/.github/utils/webhook_utils.sh --type ${{ inputs.TYPE }} \
               --github-repo ${{ github.repository }} \
-              --run-url $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID "
+              --run-url ${CI_JOB_URL} "
           
           if [[ "${{ inputs.BOT_TYPE }}" == "package" ]]; then
               if [[ -n "${{ env.PACKAGE_BOT_WEBHOOK }}" ]]; then
