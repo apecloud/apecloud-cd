@@ -1,4 +1,4 @@
-name: COMMENT-ISSUE
+name: comment issue
 
 on:
   workflow_call:
