@@ -21,6 +21,7 @@ jobs:
         run: |
           PR_NUMBER="${{ github.event.pull_request.number }}"
           PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
+          echo "PR_LABELS:  "
           CHECK_LABLE="${{ inputs.CHECK_LABLE }}"
           label_exists=0
           for pr_lable in $(echo "${PR_LABELS}"); do
@@ -31,8 +32,8 @@ jobs:
           done
           
           if [[ $label_exists -eq 0 ]]; then
-              echo "$(tput -T xterm setaf 1)::error title=Not found pick lable! $(tput -T xterm sgr0)"
+              echo "$(tput -T xterm setaf 1)::error title=Not found ${CHECK_LABLE} lable! $(tput -T xterm sgr0)"
               exit 1
           else
-              echo "$(tput -T xterm setaf 2)Check pick lable successfully! $(tput -T xterm sgr0)"
+              echo "$(tput -T xterm setaf 2)Check ${CHECK_LABLE} lable on ${PR_LABELS} successfully! $(tput -T xterm sgr0)"
           fi
