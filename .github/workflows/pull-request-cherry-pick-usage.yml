@@ -19,6 +19,12 @@ jobs:
 
       - name: comment issue
         run: |
+          EXAMPLE_RELEASE_BRANCH="release-0.30"
+          if [[ "${{ github.repository }}" == "apecloud/kubeblocks-addons" || "${{ github.repository }}" == "apecloud/apecloud-addons" ]]; then
+              EXAMPLE_RELEASE_BRANCH="release-0.9"
+          fi
+          
+          
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
               --type 15 \
               --github-repo "${{ github.repository }}" \
@@ -33,5 +39,5 @@ jobs:
           Example:
             - /nopick
             - /pick
-            - /pick release-0.30
+            - /pick ${EXAMPLE_RELEASE_BRANCH}
           \`\`\`"
