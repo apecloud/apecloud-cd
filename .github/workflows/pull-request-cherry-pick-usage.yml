@@ -7,22 +7,31 @@ env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
 jobs:
-  cherry-pick-usage:
-    uses: ./.github/workflows/comment-issue.yml
-    with:
-      GITHUB_REPO: "${{ github.repository }}"
-      ISSUE_NUMBER: "${{ github.event.pull_request.number }}"
-      ISSUE_COMMENT_BODY: |
-       **Auto Cherry-pick Instructions**
-       \`\`\`
-       Usage:
-       - /nopick: Not auto cherry-pick this PR.
-       - /pick: Cherry-pick this PR to (${{ vars.CHERRY_PICK_BRANCH }}).
-       - /pick release-x.x [release-x.x]: Cherry-pick this PR to the specified branch.
-       
-       Example:
-       - /nopick
-       - /pick
-       - /pick release-0.30
-       \`\`\`
-    secrets: inherit
+  usage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: comment issue
+        run: |
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+              --type 15 \
+              --github-repo "${{ github.repository }}" \
+              --issue-number "${{ github.event.pull_request.number }}" \
+              --issue-comment "**Auto Cherry-pick Instructions**
+          \`\`\`
+          Usage:
+            - /nopick: Not auto cherry-pick this PR.
+            - /pick: Cherry-pick this PR to (${{ vars.CHERRY_PICK_BRANCH }}).
+            - /pick: release-x.x [release-x.x]: Cherry-pick this PR to the specified branch.
+          
+          Example:
+            - /nopick
+            - /pick
+            - /pick release-0.30
+          \`\`\`"

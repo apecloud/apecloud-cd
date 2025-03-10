@@ -13,7 +13,7 @@ env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
 jobs:
-  get-branch:
+  pick-branch:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.get_check_pick_branch.outputs.matrix }}
@@ -72,15 +72,25 @@ jobs:
           
           echo "matrix={\"include\":[$CHERRY_PICK_BRANCH]}" >> $GITHUB_OUTPUT
 
-  comment-pr:
-    needs: [ get-branch ]
+  comment:
+    needs: [ pick-branch ]
     name: ${{ matrix.cherry-pick-branch }}
-    uses: ./.github/workflows/comment-issue.yml
-    if: ${{ needs.get-branch.outputs.matrix != '' }}
+    runs-on: ubuntu-latest
+    if: ${{ needs.pick-branch.outputs.matrix != '' }}
     strategy:
-      matrix: ${{ fromJSON(needs.get-branch.outputs.matrix) }}
-    with:
-      GITHUB_REPO: "${{ github.repository }}"
-      ISSUE_NUMBER: "${{ github.event.pull_request.number }}"
-      ISSUE_COMMENT_BODY: "/cherry-pick ${{ matrix.cherry-pick-branch }}"
-    secrets: inherit
+      matrix: ${{ fromJSON(needs.pick-branch.outputs.matrix) }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+
+      - name: comment issue
+        if: ${{ inputs.GITHUB_REPO != '' && inputs.ISSUE_NUMBER != '' && inputs.ISSUE_COMMENT_BODY != '' }}
+        run: |
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+              --type 15 \
+              --github-repo "${{ github.repository }}" \
+              --issue-number "${{ github.event.pull_request.number }}" \
+              --issue-comment "/cherry-pick ${{ matrix.cherry-pick-branch }}"
