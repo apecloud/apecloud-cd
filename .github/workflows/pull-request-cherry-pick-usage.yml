@@ -26,9 +26,9 @@ jobs:
               --issue-comment "**Auto Cherry-pick Instructions**
           \`\`\`
           Usage:
-            - /nopick: Not auto cherry-pick this PR.
-            - /pick: Cherry-pick this PR to (${{ vars.CHERRY_PICK_BRANCH }}).
-            - /pick: release-x.x [release-x.x]: Cherry-pick this PR to the specified branch.
+            - /nopick: Not auto cherry-pick when PR merged.
+            - /pick: Auto cherry-pick to all default branches when PR merged (${{ vars.CHERRY_PICK_BRANCH }}).
+            - /pick: release-x.x [release-x.x]: Auto cherry-pick to the specified branch when PR merged.
           
           Example:
             - /nopick
