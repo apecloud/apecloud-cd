@@ -13,7 +13,7 @@ env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
 jobs:
-  cherry-pick-branch:
+  get-branch:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.get_check_pick_branch.outputs.matrix }}
@@ -72,12 +72,13 @@ jobs:
           
           echo "matrix={\"include\":[$CHERRY_PICK_BRANCH]}" >> $GITHUB_OUTPUT
 
-  cherry-pick-comment:
-    needs: [ cherry-pick-branch ]
-    if: ${{ needs.cherry-pick-branch.outputs.matrix != '' }}
+  comment-pr:
+    needs: [ get-branch ]
+    name: ${{ matrix.cherry-pick-branch }}
     uses: ./.github/workflows/comment-issue.yml
+    if: ${{ needs.get-branch.outputs.matrix != '' }}
     strategy:
-      matrix: ${{ fromJSON(needs.cherry-pick-branch.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.get-branch.outputs.matrix) }}
     with:
       GITHUB_REPO: "${{ github.repository }}"
       ISSUE_NUMBER: "${{ github.event.pull_request.number }}"
