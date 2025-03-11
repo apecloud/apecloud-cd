@@ -23,6 +23,7 @@ Usage: $(basename "$0") <options>
     -ru, --run-url            The workflow run url
     -cv, --current-version    The current release version
     -pn, --pr-number          The pull request number
+    -pa, --pr-author          The pull request author
 EOF
 }
 
@@ -182,7 +183,7 @@ send_cherry_pick_message() {
     PR_NUMBER_TMP="#${PR_NUMBER}"
     PR_URL="https://github.com/${GITHUB_REPO}/pull/${PR_NUMBER}"
     curl -H "Content-Type: application/json" -X POST $BOT_WEBHOOK \
-        -d '{"msg_type":"post","content":{"post":{"zh_cn":{"title":"Cherry Pick '${PR_NUMBER_TMP}' Error:","content":[[{"tag":"a","text":"['${PR_NUMBER_TMP}']","href":"'$PR_URL'"},{"tag":"a","text":"'$CONTENT'","href":"'$RUN_URL'"}]]}}}}'
+        -d '{"msg_type":"post","content":{"post":{"zh_cn":{"title":"Cherry Pick '${PR_NUMBER_TMP}' Error:","content":[[{"tag":"a","text":"['${PR_NUMBER_TMP}']",{"tag":"text","text":" Author:'${PR_AUTHOR}' "},"href":"'$PR_URL'"},{"tag":"a","text":"'$CONTENT'","href":"'$RUN_URL'"}]]}}}}'
 }
 
 parse_command_line() {
@@ -247,6 +248,12 @@ parse_command_line() {
                     shift
                 fi
                 ;;
+            -pa|--pr-author)
+                if [[ -n "${2:-}" ]]; then
+                    PR_AUTHOR="$2"
+                    shift
+                fi
+            ;;
             *)
                 break
                 ;;
@@ -269,6 +276,7 @@ main() {
     local R_SPACE='\u00a0'
     local CUR_VERSION=""
     local PR_NUMBER=""
+    local PR_AUTHOR=""
 
     parse_command_line "$@"
 

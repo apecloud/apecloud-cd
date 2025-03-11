@@ -34,7 +34,7 @@ jobs:
           path: apecloud-cd
           ref: ${{ inputs.APECD_REF }}
 
-      - name: set appprove label
+      - name: set approve label
         run: |
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
               --type 33 \
