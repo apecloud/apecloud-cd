@@ -17,13 +17,18 @@ jobs:
           repository: apecloud/apecloud-cd
           path: apecloud-cd
 
-      - name: set appprove label
+      - name: set pick label
         run: |
           PR_NUMBER="${{ github.event.issue.number }}"
           COMMENT_BODYS="${{ github.event.comment.body }}" 
           echo "COMMENT_BODYS:${COMMENT_BODYS}"
           ADD_LABEL_NAME=""
           REMOVE_LABEL_NAME=""
+          
+          if [[ "${COMMENT_BODYS}" == *"Auto Cherry-pick Instructions"* ]]; then
+              echo "Auto Cherry-pick Instructions"
+              exit 0
+          fi
           
           case "${COMMENT_BODYS}" in
               /pick)

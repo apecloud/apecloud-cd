@@ -43,6 +43,11 @@ on:
         type: string
         required: false
         default: ""
+      PR_AUTHOR:
+        description: 'The pull request author'
+        type: string
+        required: false
+        default: ""
 
 env:
   RELEASE_BOT_WEBHOOK: ${{ secrets.RELEASE_BOT_WEBHOOK }}
@@ -105,6 +110,13 @@ jobs:
           
           if [[ -n "${{ inputs.PR_NUMBER }}" ]]; then
               cmd="${cmd} --pr-number '${{ inputs.PR_NUMBER }}' "
+          fi
+          if [[ "${{ inputs.TYPE }}" == "5" ]]; then
+              if [[ -n "${{ inputs.PR_AUTHOR }}" ]]; then
+                  cmd="${cmd} --pr-author '${{ inputs.PR_AUTHOR }}' "
+              else
+                  cmd="${cmd} --pr-author '${{ github.event.pull_request.user.login }}' "
+              fi
           fi
           
           echo "$cmd"
