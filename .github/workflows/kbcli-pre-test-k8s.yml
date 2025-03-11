@@ -27,7 +27,7 @@ on:
         description: 'test type (apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|mysqlscale|weaviate|qdrant|smartengine|
         greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|foxlake|orioledb|vanilla-pg|asmysql|openldap|
         polardbx|opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
-        oracle|opengauss|influxdb|flink|solr|halo|mogdb|oceanbase-ent|starrocks-ent|apecloud-postgresql|yashandb|
+        oracle|opengauss|influxdb|flink|solr|mogdb|oceanbase-ent|starrocks-ent|apecloud-postgresql|yashandb|
         redis-cluster|camellia-redis-proxy|dmdb|minio|orchestrator|rabbitmq|loki|victoria-metrics|gaussdb|damengdb|
         kingbase|vastbase|mssql|rocketmq)'
         type: string
@@ -799,23 +799,6 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
-  halo-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'halo')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v1.0.') }}
-    needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
-    with:
-      cloud-provider: ${{ inputs.cloud-provider }}
-      region: ${{ inputs.region }}
-      release-version: "${{ inputs.previous-version }}"
-      test-type: "42"
-      test-type-name: "halo-pre"
-      test-args: "${{ inputs.test-args }}"
-      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
-      artifact-name: ${{ inputs.artifact-name }}
-      branch-name: ${{ inputs.branch-name }}
-      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
-    secrets: inherit
-
   mogdb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mogdb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
     needs: [ install-kubeblocks-pre ]
@@ -1150,7 +1133,7 @@ jobs:
              tdengine-pre, milvus-pre, clickhouse-pre, pika-pre, opensearch-pre,
              elasticsearch-pre, vllm-pre, orioledb-pre, vanilla-pg-pre, ggml-pre,
              zookeeper-pre, mariadb-pre , tidb-pre, xinference-pre, oracle-pre, 
-             opengauss-pre, influxdb-pre, flink-pre, solr-pre, halo-pre,
+             opengauss-pre, influxdb-pre, flink-pre, solr-pre,
              mogdb-pre, oceanbase-ent-pre, starrocks-ent-pre, apecloud-postgresql-pre,
              yashandb-pre, redis-cluster-pre, camellia-redis-proxy-pre, dmdb-pre, minio-pre,
              orchestrator-pre, rabbitmq-pre, loki-pre, victoria-metrics-pre, gaussdb-pre,
@@ -1347,10 +1330,6 @@ jobs:
           if [[ "${{ inputs.release-version }}" != "v0.5."* && "${{ inputs.release-version }}" != "v0.6."* && "${{ inputs.release-version }}" != "v0.7."* && "${{ inputs.release-version }}" != "v0.8."* ]]; then
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"solr"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##solr-pre|${{ needs.solr-pre.outputs.test-result }}"
-              fi 
-          
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"halo"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##halo-pre|${{ needs.halo-pre.outputs.test-result }}"
               fi 
           
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase-ent"* ]]; then

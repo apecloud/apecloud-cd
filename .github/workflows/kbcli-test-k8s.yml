@@ -250,7 +250,7 @@ jobs:
     secrets: inherit
 
   test-pulsar:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pulsar|') || endsWith(inputs.TEST_TYPE, 'pulsar')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pulsar|') || endsWith(inputs.TEST_TYPE, 'pulsar')) && (contains(inputs.KB_VERSION, 'v0.6.') || contains(inputs.KB_VERSION, 'v0.7.') || contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -448,7 +448,7 @@ jobs:
     secrets: inherit
 
   test-foxlake:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'foxlake')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v1.0.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'foxlake')) && (contains(inputs.KB_VERSION, 'v0.7.') || contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -914,24 +914,6 @@ jobs:
       branch-name: ${{ inputs.BRANCH_NAME }}
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
-
-#  test-halo:
-#    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'halo')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v1.0.') }}
-#    needs: [ terraform-init-k8s, test-kubeblocks ]
-#    uses: ./.github/workflows/test-kbcli.yml
-#    with:
-#      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
-#      region: ${{ inputs.REGION }}
-#      release-version: "${{ inputs.KB_VERSION }}"
-#      previous-version: "${{ inputs.KB_PRE_VERSION }}"
-#      test-type: "42"
-#      test-type-name: "halo"
-#      test-args: "${{ inputs.ARGS }}"
-#      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
-#      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
-#      branch-name: ${{ inputs.BRANCH_NAME }}
-#      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
-#    secrets: inherit
 
   test-mogdb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mogdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}

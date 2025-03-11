@@ -16,7 +16,7 @@ on:
         description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|mysqlscale|weaviate|qdrant|smartengine|
         greptimedb|nebula|risingwave|starrocks|etcd|foxlake|orioledb|vanilla-pg|asmysql|openldap|
         opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
-        oracle|opengauss|influxdb|flink|solr|halo|mogdb|starrocks-ent|apecloud-postgresql|yashandb|polardbx|
+        oracle|opengauss|influxdb|flink|solr|mogdb|starrocks-ent|apecloud-postgresql|yashandb|polardbx|
         redis-cluster|camellia-redis-proxy|dmdb|minio|orchestrator)'
         type: string
         required: false
@@ -156,7 +156,7 @@ jobs:
     secrets: inherit
 
   test-pulsar:
-    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pulsar|') || endsWith(inputs.TEST_TYPE, 'pulsar')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pulsar|') || endsWith(inputs.TEST_TYPE, 'pulsar')) && (contains(inputs.KB_VERSION, 'v0.6.') || contains(inputs.KB_VERSION, 'v0.7.') || contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
@@ -296,7 +296,7 @@ jobs:
     secrets: inherit
 
   test-foxlake:
-    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'foxlake')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v1.0.') }}
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'foxlake')) && (contains(inputs.KB_VERSION, 'v0.7.') || contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ enable-runner ]
     uses: ./.github/workflows/test-kbcli-k3s.yml
     with:
@@ -645,20 +645,6 @@ jobs:
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
     secrets: inherit
 
-  test-halo:
-    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'halo')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v1.0.')  }}
-    needs: [ enable-runner ]
-    uses: ./.github/workflows/test-kbcli-k3s.yml
-    with:
-      release-version: "${{ inputs.KB_VERSION }}"
-      previous-version: "${{ inputs.KB_PRE_VERSION }}"
-      test-type: "42"
-      test-type-name: "halo"
-      test-args: "${{ inputs.ARGS }}"
-      branch-name: ${{ inputs.BRANCH_NAME }}
-      k3s-version: ${{ inputs.CLUSTER_VERSION }}
-    secrets: inherit
-
   test-mogdb:
     if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mogdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.')  }}
     needs: [ enable-runner ]
@@ -808,7 +794,7 @@ jobs:
              test-openldap, test-milvus, test-clickhouse, test-pika, test-opensearch, test-elasticsearch,
              test-vllm, test-tdengine, test-orioledb, test-vanilla-pg, test-ggml, test-zookeeper,
              test-mariadb, test-tidb, test-xinference, test-oracle, test-opengauss, test-influxdb,
-             test-flink, test-solr, test-halo, test-mogdb, test-starrocks-ent, test-apecloud-postgresql,
+             test-flink, test-solr, test-mogdb, test-starrocks-ent, test-apecloud-postgresql,
              test-yashandb, test-polardbx, test-redis-cluster, test-camellia-redis-proxy, test-dmdb,
              test-minio, test-orchestrator, test-asmysql-proxy, test-asmysql-orc, test-asmysql-orc-proxy]
     steps:
@@ -988,10 +974,6 @@ jobs:
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"solr"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##solr|${{ needs.test-solr.outputs.pre-test-result }}"
               fi 
-          
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"halo"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##halo|${{ needs.test-halo.outputs.pre-test-result }}"
-              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"starrocks-ent"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##starrocks-ent|${{ needs.test-starrocks-ent.outputs.pre-test-result }}"
@@ -1204,10 +1186,6 @@ jobs:
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"solr"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##solr|${{ needs.test-solr.outputs.test-result }}"
               fi 
-          
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"halo"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##halo|${{ needs.test-halo.outputs.test-result }}"
-              fi  
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"starrocks-ent"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##starrocks-ent|${{ needs.test-starrocks-ent.outputs.test-result }}"
