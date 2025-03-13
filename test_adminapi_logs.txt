@@ -1,0 +1,2705 @@
+Defaulted container "e2e-test" out of: e2e-test, init-e2e (init)
+Warning: Immediate deletion does not wait for confirmation that the running resource has been terminated. The resource may continue to run on the cluster indefinitely.
+pod "cloud-e2e-test-adminapi-main" force deleted
+go: downloading k8s.io/klog/v2 v2.130.1
+go: downloading github.com/apecloud/kb-cloud-client-go v0.31.0-alpha.20.0.20250310023321-8cbf2a946cb2
+go: downloading github.com/evanphx/json-patch v5.9.0+incompatible
+go: downloading k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340
+go: downloading k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
+go: downloading github.com/imdario/mergo v0.3.16
+go: downloading github.com/google/gnostic-models v0.6.9-0.20230804172637-c7be7c783f49
+go: downloading google.golang.org/protobuf v1.36.4
+go: downloading github.com/go-openapi/swag v0.23.0
+go: downloading github.com/go-openapi/jsonreference v0.21.0
+go: downloading github.com/go-openapi/jsonpointer v0.21.0
+
+Running Suite: KubeBlocks Cloud Admin API Test Suite - /e2e/test/adminapi
+=========================================================================
+Random Seed: 1741804876
+
+Will run 0 of 0 specs
+
+Ran 0 of 0 Specs in 0.000 seconds
+SUCCESS! -- 0 Passed | 0 Failed | 0 Pending | 0 Skipped
+PASS
+go: downloading golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
+
+Running Suite: KubeBlocks Cloud Alert API Test Suite - /e2e/test/adminapi/alert
+===============================================================================
+Random Seed: 1741804876
+
+Will run 22 of 22 specs
+------------------------------
+[BeforeSuite]
+/e2e/test/adminapi/alert/suite_test.go:23
+[BeforeSuite] PASSED [0.000 seconds]
+------------------------------
+Alert API Alert Strategy Operations should perform full lifecycle of alert strategy
+/e2e/test/adminapi/alert/alert_test.go:50
+  STEP: Creating a new webhook alert receiver @ 03/12/25 18:42:32.592
+[API] POST /admin/v1/organizations/{orgName}/receivers alertReceiver.createAlertReceiver
+[API] POST /admin/v1/organizations/{orgName}/receivers alertReceiver.createAlertReceiver
+  STEP: Creating a new alert strategy @ 03/12/25 18:42:32.598
+[API] POST /admin/v1/organizations/{orgName}/alerts/strategies alertStrategy.createAlertStrategy
+  STEP: Listing alert strategies @ 03/12/25 18:42:32.893
+[API] GET /admin/v1/alerts/strategies alertStrategy.listAlertStrategies
+  STEP: Checking AlertManager config @ 03/12/25 18:42:32.896
+  [SKIPPED] in [It] - /e2e/test/adminapi/alert/alert_test.go:747 @ 03/12/25 18:42:32.896
+[API] DELETE /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.deleteAlertStrategy
+[API] DELETE /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.deleteAlertReceiver
+S [SKIPPED] [0.546 seconds]
+Alert API Alert Strategy Operations [It] should perform full lifecycle of alert strategy
+/e2e/test/adminapi/alert/alert_test.go:50
+
+  [SKIPPED] k8sCli is empty, skipping test
+  In [It] at: /e2e/test/adminapi/alert/alert_test.go:747 @ 03/12/25 18:42:32.896
+------------------------------
+Alert API Alert Strategy Operations should handle invalid alert strategy creation
+/e2e/test/adminapi/alert/alert_test.go:119
+[API] POST /admin/v1/organizations/{orgName}/alerts/strategies alertStrategy.createAlertStrategy
+• [0.001 seconds]
+------------------------------
+Alert API Alert Strategy Operations should handle non-existent strategy operations
+/e2e/test/adminapi/alert/alert_test.go:131
+  STEP: Attempting to update non-existent strategy @ 03/12/25 18:42:33.139
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.updateAlertStrategy
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.updateAlertStrategy
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.updateAlertStrategy
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.updateAlertStrategy
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.updateAlertStrategy
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.updateAlertStrategy
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.updateAlertStrategy
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.updateAlertStrategy
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.updateAlertStrategy
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.updateAlertStrategy
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.updateAlertStrategy
+  STEP: Attempting to delete non-existent strategy @ 03/12/25 18:42:33.172
+[API] DELETE /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.deleteAlertStrategy
+[API] DELETE /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.deleteAlertStrategy
+[API] DELETE /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.deleteAlertStrategy
+[API] DELETE /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.deleteAlertStrategy
+[API] DELETE /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.deleteAlertStrategy
+[API] DELETE /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.deleteAlertStrategy
+[API] DELETE /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.deleteAlertStrategy
+[API] DELETE /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.deleteAlertStrategy
+[API] DELETE /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.deleteAlertStrategy
+[API] DELETE /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.deleteAlertStrategy
+[API] DELETE /admin/v1/organizations/{orgName}/alerts/strategies/{strategyId} alertStrategy.deleteAlertStrategy
+• [0.066 seconds]
+------------------------------
+Alert API Alert Receiver Operations should perform full lifecycle of alert receiver
+/e2e/test/adminapi/alert/alert_test.go:166
+  STEP: Creating a new webhook alert receiver @ 03/12/25 18:42:33.205
+[API] POST /admin/v1/organizations/{orgName}/receivers alertReceiver.createAlertReceiver
+  STEP: Listing alert receivers @ 03/12/25 18:42:33.207
+[API] GET /admin/v1/alerts/receivers alertReceiver.listAlertReceivers
+  STEP: Updating the alert receiver @ 03/12/25 18:42:33.209
+[API] PATCH /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.patchAlertReceiver
+[API] DELETE /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.deleteAlertReceiver
+• [0.009 seconds]
+------------------------------
+Alert API Alert Receiver Operations should handle invalid alert receiver creation
+/e2e/test/adminapi/alert/alert_test.go:210
+[API] POST /admin/v1/organizations/{orgName}/receivers alertReceiver.createAlertReceiver
+• [0.001 seconds]
+------------------------------
+Alert API Alert Receiver Operations should handle non-existent receiver operations
+/e2e/test/adminapi/alert/alert_test.go:222
+  STEP: Attempting to get non-existent receiver @ 03/12/25 18:42:33.216
+[API] GET /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.getAlertReceiver
+  STEP: Attempting to update non-existent receiver @ 03/12/25 18:42:33.216
+[API] PATCH /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.patchAlertReceiver
+[API] PATCH /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.patchAlertReceiver
+[API] PATCH /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.patchAlertReceiver
+[API] PATCH /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.patchAlertReceiver
+[API] PATCH /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.patchAlertReceiver
+[API] PATCH /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.patchAlertReceiver
+[API] PATCH /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.patchAlertReceiver
+[API] PATCH /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.patchAlertReceiver
+[API] PATCH /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.patchAlertReceiver
+[API] PATCH /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.patchAlertReceiver
+[API] PATCH /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.patchAlertReceiver
+  STEP: Attempting to delete non-existent receiver @ 03/12/25 18:42:33.245
+[API] DELETE /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.deleteAlertReceiver
+[API] DELETE /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.deleteAlertReceiver
+[API] DELETE /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.deleteAlertReceiver
+[API] DELETE /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.deleteAlertReceiver
+[API] DELETE /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.deleteAlertReceiver
+[API] DELETE /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.deleteAlertReceiver
+[API] DELETE /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.deleteAlertReceiver
+[API] DELETE /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.deleteAlertReceiver
+[API] DELETE /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.deleteAlertReceiver
+[API] DELETE /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.deleteAlertReceiver
+[API] DELETE /admin/v1/organizations/{orgName}/receivers/{receiverId} alertReceiver.deleteAlertReceiver
+• [0.062 seconds]
+------------------------------
+Alert API Alert Rule Operations should perform full lifecycle of alert rule
+/e2e/test/adminapi/alert/alert_test.go:260
+  STEP: Creating a new alert rule @ 03/12/25 18:42:33.277
+[API] POST /admin/v1/organizations/{orgName}/alerts/rules alertRule.createAlertRule
+  STEP: Getting the alert rule @ 03/12/25 18:42:33.385
+[API] GET /admin/v1/organizations/{orgName}/alerts/rules/{alertName} alertRule.getAlertRule
+  STEP: Listing alert rules @ 03/12/25 18:42:33.397
+[API] GET /admin/v1/alerts/rules alertRule.listAlertRules
+  STEP: Updating the alert rule @ 03/12/25 18:42:33.414
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/rules/{alertName} alertRule.updateAlertRule
+  STEP: Getting updated rule from API @ 03/12/25 18:42:33.5
+[API] GET /admin/v1/organizations/{orgName}/alerts/rules/{alertName} alertRule.getAlertRule
+[API] DELETE /admin/v1/organizations/{orgName}/alerts/rules/{alertName} alertRule.deleteAlertRule
+• [0.321 seconds]
+------------------------------
+Alert API Alert Rule Operations should handle invalid alert rule creation
+/e2e/test/adminapi/alert/alert_test.go:313
+[API] POST /admin/v1/organizations/{orgName}/alerts/rules alertRule.createAlertRule
+• [0.002 seconds]
+------------------------------
+Alert API Alert Rule Operations should handle non-existent rule operations
+/e2e/test/adminapi/alert/alert_test.go:325
+  STEP: Attempting to get non-existent rule @ 03/12/25 18:42:33.601
+[API] GET /admin/v1/organizations/{orgName}/alerts/rules/{alertName} alertRule.getAlertRule
+[API] GET /admin/v1/organizations/{orgName}/alerts/rules/{alertName} alertRule.getAlertRule
+[API] GET /admin/v1/organizations/{orgName}/alerts/rules/{alertName} alertRule.getAlertRule
+[API] GET /admin/v1/organizations/{orgName}/alerts/rules/{alertName} alertRule.getAlertRule
+[API] GET /admin/v1/organizations/{orgName}/alerts/rules/{alertName} alertRule.getAlertRule
+[API] GET /admin/v1/organizations/{orgName}/alerts/rules/{alertName} alertRule.getAlertRule
+[API] GET /admin/v1/organizations/{orgName}/alerts/rules/{alertName} alertRule.getAlertRule
+[API] GET /admin/v1/organizations/{orgName}/alerts/rules/{alertName} alertRule.getAlertRule
+[API] GET /admin/v1/organizations/{orgName}/alerts/rules/{alertName} alertRule.getAlertRule
+[API] GET /admin/v1/organizations/{orgName}/alerts/rules/{alertName} alertRule.getAlertRule
+[API] GET /admin/v1/organizations/{orgName}/alerts/rules/{alertName} alertRule.getAlertRule
+• [0.143 seconds]
+------------------------------
+Alert API Alert Rule Operations should list rules with disabled filter
+/e2e/test/adminapi/alert/alert_test.go:334
+  STEP: Creating disabled rule @ 03/12/25 18:42:33.744
+[API] POST /admin/v1/organizations/{orgName}/alerts/rules alertRule.createAlertRule
+  STEP: Listing only disabled rules @ 03/12/25 18:42:33.833
+[API] GET /admin/v1/alerts/rules alertRule.listAlertRules
+[API] DELETE /admin/v1/organizations/{orgName}/alerts/rules/{alertName} alertRule.deleteAlertRule
+• [0.194 seconds]
+------------------------------
+Alert API Alert Object Operations should list and manage alert objects
+/e2e/test/adminapi/alert/alert_test.go:361
+  STEP: Listing alert objects @ 03/12/25 18:42:33.938
+[API] GET /admin/v1/alerts/objects alertObject.listAlertObjects
+  STEP: Setting single alert object status @ 03/12/25 18:42:33.941
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/objects/{alertId} alertObject.setAlertObjectStatus
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/objects/{alertId} alertObject.setAlertObjectStatus
+• [0.008 seconds]
+------------------------------
+Alert API Alert Object Operations should handle invalid alert object operations
+/e2e/test/adminapi/alert/alert_test.go:398
+  STEP: Attempting to update non-existent alert object @ 03/12/25 18:42:33.946
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/objects/{alertId} alertObject.setAlertObjectStatus
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/objects/{alertId} alertObject.setAlertObjectStatus
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/objects/{alertId} alertObject.setAlertObjectStatus
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/objects/{alertId} alertObject.setAlertObjectStatus
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/objects/{alertId} alertObject.setAlertObjectStatus
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/objects/{alertId} alertObject.setAlertObjectStatus
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/objects/{alertId} alertObject.setAlertObjectStatus
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/objects/{alertId} alertObject.setAlertObjectStatus
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/objects/{alertId} alertObject.setAlertObjectStatus
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/objects/{alertId} alertObject.setAlertObjectStatus
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/objects/{alertId} alertObject.setAlertObjectStatus
+• [0.050 seconds]
+------------------------------
+Alert API Alert Config Operations should get and set alert config
+/e2e/test/adminapi/alert/alert_test.go:412
+  STEP: Getting current alert config @ 03/12/25 18:42:33.996
+[API] GET /admin/v1/organizations/{orgName}/alerts/config alertConfig.getAlertConfig
+  STEP: Setting new alert config @ 03/12/25 18:42:33.998
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/config alertConfig.setAlertConfig
+  STEP: Verifying the updated config @ 03/12/25 18:42:34
+[API] GET /admin/v1/organizations/{orgName}/alerts/config alertConfig.getAlertConfig
+  STEP: Restoring original config @ 03/12/25 18:42:34.002
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/config alertConfig.setAlertConfig
+• [0.010 seconds]
+------------------------------
+Alert API Alert Config Operations should handle invalid alert config operations
+/e2e/test/adminapi/alert/alert_test.go:449
+  STEP: Attempting to set invalid timezone offset @ 03/12/25 18:42:34.005
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/config alertConfig.setAlertConfig
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/config alertConfig.setAlertConfig
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/config alertConfig.setAlertConfig
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/config alertConfig.setAlertConfig
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/config alertConfig.setAlertConfig
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/config alertConfig.setAlertConfig
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/config alertConfig.setAlertConfig
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/config alertConfig.setAlertConfig
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/config alertConfig.setAlertConfig
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/config alertConfig.setAlertConfig
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/config alertConfig.setAlertConfig
+  STEP: Attempting to get config for non-existent organization @ 03/12/25 18:42:34.054
+[API] GET /admin/v1/organizations/{orgName}/alerts/config alertConfig.getAlertConfig
+• [0.051 seconds]
+------------------------------
+Alert API Alert Template Operations should perform full lifecycle of alert template
+/e2e/test/adminapi/alert/alert_test.go:490
+  STEP: Creating a new alert template @ 03/12/25 18:42:34.056
+[API] POST /admin/v1/alertTemplates alertTemplate.createAlertTemplate
+  STEP: Getting the alert template @ 03/12/25 18:42:34.061
+[API] GET /admin/v1/alertTemplates/{templateId} alertTemplate.getAlertTemplate
+  STEP: Listing alert templates @ 03/12/25 18:42:34.068
+[API] GET /admin/v1/alertTemplates alertTemplate.listAlertTemplates
+  STEP: Updating the alert template @ 03/12/25 18:42:34.077
+[API] PATCH /admin/v1/alertTemplates/{templateId} alertTemplate.patchAlertTemplate
+[API] DELETE /admin/v1/alertTemplates/{templateId} alertTemplate.deleteAlertTemplate
+• [0.026 seconds]
+------------------------------
+Alert API Alert Template Operations should handle invalid alert template creation
+/e2e/test/adminapi/alert/alert_test.go:545
+[API] POST /admin/v1/alertTemplates alertTemplate.createAlertTemplate
+[API] POST /admin/v1/alertTemplates alertTemplate.createAlertTemplate
+[API] POST /admin/v1/alertTemplates alertTemplate.createAlertTemplate
+[API] POST /admin/v1/alertTemplates alertTemplate.createAlertTemplate
+[API] POST /admin/v1/alertTemplates alertTemplate.createAlertTemplate
+[API] POST /admin/v1/alertTemplates alertTemplate.createAlertTemplate
+[API] POST /admin/v1/alertTemplates alertTemplate.createAlertTemplate
+[API] POST /admin/v1/alertTemplates alertTemplate.createAlertTemplate
+[API] POST /admin/v1/alertTemplates alertTemplate.createAlertTemplate
+[API] POST /admin/v1/alertTemplates alertTemplate.createAlertTemplate
+[API] POST /admin/v1/alertTemplates alertTemplate.createAlertTemplate
+• [0.034 seconds]
+------------------------------
+Alert API Alert Template Operations should handle non-existent template operations
+/e2e/test/adminapi/alert/alert_test.go:557
+  STEP: Attempting to get non-existent template @ 03/12/25 18:42:34.116
+[API] GET /admin/v1/alertTemplates/{templateId} alertTemplate.getAlertTemplate
+  STEP: Attempting to update non-existent template @ 03/12/25 18:42:34.118
+[API] PATCH /admin/v1/alertTemplates/{templateId} alertTemplate.patchAlertTemplate
+[API] PATCH /admin/v1/alertTemplates/{templateId} alertTemplate.patchAlertTemplate
+[API] PATCH /admin/v1/alertTemplates/{templateId} alertTemplate.patchAlertTemplate
+[API] PATCH /admin/v1/alertTemplates/{templateId} alertTemplate.patchAlertTemplate
+[API] PATCH /admin/v1/alertTemplates/{templateId} alertTemplate.patchAlertTemplate
+[API] PATCH /admin/v1/alertTemplates/{templateId} alertTemplate.patchAlertTemplate
+[API] PATCH /admin/v1/alertTemplates/{templateId} alertTemplate.patchAlertTemplate
+[API] PATCH /admin/v1/alertTemplates/{templateId} alertTemplate.patchAlertTemplate
+[API] PATCH /admin/v1/alertTemplates/{templateId} alertTemplate.patchAlertTemplate
+[API] PATCH /admin/v1/alertTemplates/{templateId} alertTemplate.patchAlertTemplate
+[API] PATCH /admin/v1/alertTemplates/{templateId} alertTemplate.patchAlertTemplate
+  STEP: Attempting to delete non-existent template @ 03/12/25 18:42:34.147
+[API] DELETE /admin/v1/alertTemplates/{templateId} alertTemplate.deleteAlertTemplate
+[API] DELETE /admin/v1/alertTemplates/{templateId} alertTemplate.deleteAlertTemplate
+[API] DELETE /admin/v1/alertTemplates/{templateId} alertTemplate.deleteAlertTemplate
+[API] DELETE /admin/v1/alertTemplates/{templateId} alertTemplate.deleteAlertTemplate
+[API] DELETE /admin/v1/alertTemplates/{templateId} alertTemplate.deleteAlertTemplate
+[API] DELETE /admin/v1/alertTemplates/{templateId} alertTemplate.deleteAlertTemplate
+[API] DELETE /admin/v1/alertTemplates/{templateId} alertTemplate.deleteAlertTemplate
+[API] DELETE /admin/v1/alertTemplates/{templateId} alertTemplate.deleteAlertTemplate
+[API] DELETE /admin/v1/alertTemplates/{templateId} alertTemplate.deleteAlertTemplate
+[API] DELETE /admin/v1/alertTemplates/{templateId} alertTemplate.deleteAlertTemplate
+[API] DELETE /admin/v1/alertTemplates/{templateId} alertTemplate.deleteAlertTemplate
+• [0.065 seconds]
+------------------------------
+Alert API Alert Template Operations should handle default template operations
+/e2e/test/adminapi/alert/alert_test.go:580
+  STEP: Creating a default template @ 03/12/25 18:42:34.181
+[API] POST /admin/v1/alertTemplates alertTemplate.createAlertTemplate
+  STEP: Verifying only one default template exists @ 03/12/25 18:42:34.185
+[API] GET /admin/v1/alertTemplates alertTemplate.listAlertTemplates
+[API] DELETE /admin/v1/alertTemplates/{templateId} alertTemplate.deleteAlertTemplate
+• [0.016 seconds]
+------------------------------
+Alert API Alert Metrics Operations should list alert metrics successfully
+/e2e/test/adminapi/alert/alert_test.go:610
+  STEP: Listing all alert metrics @ 03/12/25 18:42:34.197
+[API] GET /admin/v1/organizations/{orgName}/alerts/metrics alertMetrics.listAlertMetrics
+• [0.005 seconds]
+------------------------------
+Alert API Alert Metrics Operations should handle non-existent organization
+/e2e/test/adminapi/alert/alert_test.go:623
+  STEP: Listing alert metrics for non-existent organization @ 03/12/25 18:42:34.203
+[API] GET /admin/v1/organizations/{orgName}/alerts/metrics alertMetrics.listAlertMetrics
+• [0.005 seconds]
+------------------------------
+Alert API Cluster Alert Switch Operations should get and set cluster alert switch status
+/e2e/test/adminapi/alert/alert_test.go:670
+  STEP: Creating a test cluster @ 03/12/25 18:42:34.208
+[API] GET /api/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] GET /api/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] GET /api/v1/environments/{environmentName}/engines/{engineName}/serviceVersion engine.ListServiceVersion
+
+  Engine: mysql
+  Mode: standalone
+  Version: 8.0.39
+
+  Components:
+    - mysql:
+        Replicas: 1-1 (default: 1)
+        Storages:
+          - data: 20-0Gi (default: 20Gi)
+
+  Engine Features:
+  ================
+    ✓ account:
+    ✓ database:
+    ✓ dms:
+    ✓ bench:
+    ✓ backup:
+    ✓ metrics:
+    ✗ license:
+    ✓ alert:
+
+  Component Features:
+  ==================
+  mysql:
+    ✓ dashboard
+    ✓ log
+    ✓ parameter
+    ✗ promote: replicas range is 1-1
+    ✓ rebuildInstance
+    ✓ restart
+    ✓ start
+    ✓ stop
+    ✓ upgrade: confirm by upgradeable versions
+    ✓ volumeExpansion
+    ✓ vscale
+  STEP: build mysql cluster @ 03/12/25 18:42:34.257
+  STEP: set mode standalone @ 03/12/25 18:42:34.257
+  STEP: set version 8.0.39 @ 03/12/25 18:42:34.257
+  STEP: set extra according to env @ 03/12/25 18:42:34.257
+  STEP: build components @ 03/12/25 18:42:34.257
+[API] GET /api/v1/classes class.listClasses
+  STEP: set cluster backup @ 03/12/25 18:42:34.281
+  STEP: set cluster availability zone @ 03/12/25 18:42:34.281
+  STEP: get test environment info @ 03/12/25 18:42:34.281
+[API] GET /api/v1/organizations/{orgName}/environments/{environmentName} environment.getEnvironment
+  STEP: set cluster termination policy to delete @ 03/12/25 18:42:34.284
+  STEP: build cluster request body @ 03/12/25 18:42:34.285
+  {"components":[{"classCode":"mysql.standalone.mysql.1c1g.general","classSeries":"general","component":"mysql","replicas":1,"volumes":[{"name":"data","storage":20}]}],"engine":"mysql","environmentName":"cloud-dev","mode":"standalone","name":"e2e-alert-test-m2gswe7n","orgName":"e2e-test","project":"kubeblocks-cloud-ns","singleZone":true,"terminationPolicy":"WipeOut","version":"8.0.39"}
+  STEP: create cluster @ 03/12/25 18:42:34.285
+[API] POST /api/v1/organizations/{orgName}/clusters cluster.createCluster
+go: downloading github.com/apecloud/kubeblocks v0.9.3
+
+  STEP: wait cluster running @ 03/12/25 18:42:34.449
+  STEP: waiting for cluster to reach status: Running @ 03/12/25 18:42:34.45
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-alert-test-m2gswe7n status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-alert-test-m2gswe7n status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-alert-test-m2gswe7n status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-alert-test-m2gswe7n status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-alert-test-m2gswe7n status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-alert-test-m2gswe7n status: Running
+  STEP: get cluster again @ 03/12/25 18:43:24.578
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  {"availabilityZones":["cn-zhangjiakou-a"],"backup":{"retentionPolicy":"LastOne"},"cloudProvider":"aliyun","cloudRegion":"cn-zhangjiakou","clusterType":"Normal","codeShort":"1c1g","components":[{"classCode":"mysql.standalone.mysql.1c1g.general","classSeries":"general","codeShort":"1c1g","component":"mysql","cpu":1,"memory":1,"replicas":1,"storageClass":"ape-local-hostpath-sc","volumes":[{"name":"data","storage":20}]}],"createdAt":"2025-03-12T18:42:34.448Z","engine":"mysql","environmentId":"8c26c3c0-0f52-4127-8396-24a86ac4331f","environmentName":"cloud-dev","environmentType":"public","hash":"kubeblocks-cloud-ns/e2e-a-768ddb8585","id":"433818799548924066","mode":"standalone","name":"e2e-alert-test-m2gswe7n","orgName":"e2e-test","parentId":0,"podAntiAffinityEnabled":true,"project":"kubeblocks-cloud-ns","singleZone":true,"status":"Running","terminationPolicy":"WipeOut","tlsEnabled":false,"updatedAt":"2025-03-12T18:43:17.465Z","version":"8.0.39"}
+  STEP: Getting initial cluster alert status @ 03/12/25 18:43:24.591
+[API] GET /admin/v1/organizations/{orgName}/alerts/cluster/{clusterName} clusterAlertSwitch.getClusterAlertDisabled
+  STEP: Setting cluster alert to disabled @ 03/12/25 18:43:24.593
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/cluster/{clusterName} clusterAlertSwitch.setClusterAlertDisabled
+  STEP: Verifying cluster alert is disabled @ 03/12/25 18:43:24.596
+[API] GET /admin/v1/organizations/{orgName}/alerts/cluster/{clusterName} clusterAlertSwitch.getClusterAlertDisabled
+  STEP: Setting cluster alert back to enabled @ 03/12/25 18:43:24.598
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/cluster/{clusterName} clusterAlertSwitch.setClusterAlertDisabled
+  STEP: Verifying cluster alert is enabled @ 03/12/25 18:43:24.601
+[API] GET /admin/v1/organizations/{orgName}/alerts/cluster/{clusterName} clusterAlertSwitch.getClusterAlertDisabled
+  STEP: deleting cluster e2e-alert-test-m2gswe7n @ 03/12/25 18:43:24.603
+[API] DELETE /admin/v1/organizations/{orgName}/clusters/{clusterName} cluster.deleteCluster
+  STEP: verifying cluster is deleted @ 03/12/25 18:43:24.706
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+• [50.501 seconds]
+------------------------------
+Alert API Cluster Alert Switch Operations should handle invalid cluster operations
+/e2e/test/adminapi/alert/alert_test.go:720
+  STEP: Creating a test cluster @ 03/12/25 18:43:24.708
+[API] GET /api/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] GET /api/v1/environments/{environmentName}/engines/{engineName}/serviceVersion engine.ListServiceVersion
+
+  Engine: mysql
+  Mode: standalone
+  Version: 8.0.39
+
+  Components:
+    - mysql:
+        Replicas: 1-1 (default: 1)
+        Storages:
+          - data: 20-0Gi (default: 20Gi)
+
+  Engine Features:
+  ================
+    ✓ account:
+    ✓ database:
+    ✓ dms:
+    ✓ bench:
+    ✓ backup:
+    ✓ metrics:
+    ✗ license:
+    ✓ alert:
+
+  Component Features:
+  ==================
+  mysql:
+    ✓ dashboard
+    ✓ log
+    ✓ parameter
+    ✗ promote: replicas range is 1-1
+    ✓ rebuildInstance
+    ✓ restart
+    ✓ start
+    ✓ stop
+    ✓ upgrade: confirm by upgradeable versions
+    ✓ volumeExpansion
+    ✓ vscale
+  STEP: build mysql cluster @ 03/12/25 18:43:24.735
+  STEP: set mode standalone @ 03/12/25 18:43:24.735
+  STEP: set version 8.0.39 @ 03/12/25 18:43:24.735
+  STEP: set extra according to env @ 03/12/25 18:43:24.735
+  STEP: build components @ 03/12/25 18:43:24.735
+[API] GET /api/v1/classes class.listClasses
+  STEP: set cluster backup @ 03/12/25 18:43:24.752
+  STEP: set cluster availability zone @ 03/12/25 18:43:24.752
+  STEP: get test environment info @ 03/12/25 18:43:24.752
+[API] GET /api/v1/organizations/{orgName}/environments/{environmentName} environment.getEnvironment
+  STEP: set cluster termination policy to delete @ 03/12/25 18:43:24.754
+  STEP: build cluster request body @ 03/12/25 18:43:24.754
+  {"components":[{"classCode":"mysql.standalone.mysql.1c1g.general","classSeries":"general","component":"mysql","replicas":1,"volumes":[{"name":"data","storage":20}]}],"engine":"mysql","environmentName":"cloud-dev","mode":"standalone","name":"e2e-alert-test-niqqpw6q","orgName":"e2e-test","project":"kubeblocks-cloud-ns","singleZone":true,"terminationPolicy":"WipeOut","version":"8.0.39"}
+  STEP: create cluster @ 03/12/25 18:43:24.754
+[API] POST /api/v1/organizations/{orgName}/clusters cluster.createCluster
+  STEP: wait cluster running @ 03/12/25 18:43:24.992
+  STEP: waiting for cluster to reach status: Running @ 03/12/25 18:43:24.992
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-alert-test-niqqpw6q status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-alert-test-niqqpw6q status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-alert-test-niqqpw6q status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-alert-test-niqqpw6q status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-alert-test-niqqpw6q status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-alert-test-niqqpw6q status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-alert-test-niqqpw6q status: Running
+  STEP: get cluster again @ 03/12/25 18:44:25.143
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  {"availabilityZones":["cn-zhangjiakou-a"],"backup":{"retentionPolicy":"LastOne"},"cloudProvider":"aliyun","cloudRegion":"cn-zhangjiakou","clusterType":"Normal","codeShort":"1c1g","components":[{"classCode":"mysql.standalone.mysql.1c1g.general","classSeries":"general","codeShort":"1c1g","component":"mysql","cpu":1,"memory":1,"replicas":1,"storageClass":"ape-local-hostpath-sc","volumes":[{"name":"data","storage":20}]}],"createdAt":"2025-03-12T18:43:24.990Z","engine":"mysql","environmentId":"8c26c3c0-0f52-4127-8396-24a86ac4331f","environmentName":"cloud-dev","environmentType":"public","hash":"kubeblocks-cloud-ns/e2e-a-7d48b6755b","id":"433818884357750946","mode":"standalone","name":"e2e-alert-test-niqqpw6q","orgName":"e2e-test","parentId":0,"podAntiAffinityEnabled":true,"project":"kubeblocks-cloud-ns","singleZone":true,"status":"Running","terminationPolicy":"WipeOut","tlsEnabled":false,"updatedAt":"2025-03-12T18:44:23.066Z","version":"8.0.39"}
+  STEP: Attempting to get alert status for non-existent cluster @ 03/12/25 18:44:25.158
+[API] GET /admin/v1/organizations/{orgName}/alerts/cluster/{clusterName} clusterAlertSwitch.getClusterAlertDisabled
+  STEP: Attempting to set alert status for non-existent cluster @ 03/12/25 18:44:25.16
+[API] PATCH /admin/v1/organizations/{orgName}/alerts/cluster/{clusterName} clusterAlertSwitch.setClusterAlertDisabled
+  STEP: Attempting to get alert status for non-existent organization @ 03/12/25 18:44:25.162
+[API] GET /admin/v1/organizations/{orgName}/alerts/cluster/{clusterName} clusterAlertSwitch.getClusterAlertDisabled
+  STEP: deleting cluster e2e-alert-test-niqqpw6q @ 03/12/25 18:44:25.164
+[API] DELETE /admin/v1/organizations/{orgName}/clusters/{clusterName} cluster.deleteCluster
+  STEP: verifying cluster is deleted @ 03/12/25 18:44:25.265
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+• [60.558 seconds]
+------------------------------
+[AfterSuite]
+/e2e/test/adminapi/alert/suite_test.go:27
+[AfterSuite] PASSED [0.000 seconds]
+------------------------------
+
+Ran 21 of 22 Specs in 112.675 seconds
+SUCCESS! -- 21 Passed | 0 Failed | 0 Pending | 1 Skipped
+PASS
+Running Suite: KubeBlocks Cloud BackupRepo API Test Suite - /e2e/test/adminapi/backuprepo
+=========================================================================================
+Random Seed: 1741804876
+
+Will run 29 of 29 specs
+------------------------------
+[BeforeSuite]
+/e2e/test/adminapi/backuprepo/suite_test.go:30
+[BeforeSuite] PASSED [0.000 seconds]
+------------------------------
+BackupRepo Tests create backuprepo basic create backuprepo [backuprepo]
+/e2e/test/adminapi/backuprepo/backuprepo_test.go:154
+[API] GET /api/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] GET /api/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] GET /api/v1/environments/{environmentName}/engines/{engineName}/serviceVersion engine.ListServiceVersion
+
+  Engine: minio
+  Mode: distributed
+  Version: 2024.6.29
+
+  Components:
+    - minio:
+        Replicas: 2-8 (default: 2)
+        Storages:
+          - data: 20-0Gi (default: 20Gi)
+
+  Engine Features:
+  ================
+    ✓ account:
+    ✓ database:
+    ✗ dms:
+    ✓ bench:
+    ✗ backup:
+    ✗ metrics:
+    ✗ license:
+    ✓ alert:
+
+  Component Features:
+  ==================
+  minio:
+    ✓ dashboard
+    ✓ hscale
+    ✓ promote
+    ✓ restart
+    ✓ start
+    ✓ stop
+    ✓ upgrade: confirm by upgradeable versions
+    ✓ vscale
+  STEP: build minio cluster @ 03/12/25 18:44:25.317
+  STEP: set mode distributed @ 03/12/25 18:44:25.317
+  STEP: set version 2024.6.29 @ 03/12/25 18:44:25.317
+  STEP: set extra according to env @ 03/12/25 18:44:25.317
+  STEP: build components @ 03/12/25 18:44:25.317
+[API] GET /api/v1/classes class.listClasses
+  STEP: set cluster backup @ 03/12/25 18:44:25.334
+  STEP: set cluster availability zone @ 03/12/25 18:44:25.334
+  STEP: get test environment info @ 03/12/25 18:44:25.334
+[API] GET /api/v1/organizations/{orgName}/environments/{environmentName} environment.getEnvironment
+  STEP: determine the availability zone of the environment @ 03/12/25 18:44:25.337
+  STEP: set cluster termination policy to delete @ 03/12/25 18:44:25.337
+  STEP: build cluster request body @ 03/12/25 18:44:25.337
+  {"components":[{"classCode":"minio.distributed.minio.1c1g.general","classSeries":"general","component":"minio","replicas":2,"volumes":[{"name":"data","storage":20}]}],"engine":"minio","environmentName":"cloud-dev","mode":"distributed","name":"e2e-storage-evxjg9ur","orgName":"e2e-test","project":"kubeblocks-cloud-ns","singleZone":true,"terminationPolicy":"WipeOut","version":"2024.6.29"}
+  STEP: create cluster @ 03/12/25 18:44:25.337
+[API] POST /api/v1/organizations/{orgName}/clusters cluster.createCluster
+  STEP: wait cluster running @ 03/12/25 18:44:25.494
+  STEP: waiting for cluster to reach status: Running @ 03/12/25 18:44:25.494
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-evxjg9ur status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-evxjg9ur status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-evxjg9ur status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-evxjg9ur status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-evxjg9ur status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-evxjg9ur status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-evxjg9ur status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-evxjg9ur status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-evxjg9ur status: Running
+  STEP: get cluster again @ 03/12/25 18:45:45.713
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  {"availabilityZones":["cn-zhangjiakou-a"],"backup":{"retentionPolicy":"LastOne"},"cloudProvider":"aliyun","cloudRegion":"cn-zhangjiakou","clusterType":"Normal","codeShort":"1c1g","components":[{"classCode":"minio.distributed.minio.1c1g.general","classSeries":"general","codeShort":"1c1g","component":"minio","cpu":1,"memory":1,"replicas":2,"storageClass":"ape-local-hostpath-sc","volumes":[{"name":"data","storage":20}]}],"createdAt":"2025-03-12T18:44:25.492Z","engine":"minio","environmentId":"8c26c3c0-0f52-4127-8396-24a86ac4331f","environmentName":"cloud-dev","environmentType":"public","hash":"kubeblocks-cloud-ns/e2e-s-6848bf9f79","id":"433818985859907746","mode":"distributed","name":"e2e-storage-evxjg9ur","orgName":"e2e-test","parentId":0,"podAntiAffinityEnabled":true,"project":"kubeblocks-cloud-ns","singleZone":true,"status":"Running","terminationPolicy":"WipeOut","tlsEnabled":false,"updatedAt":"2025-03-12T18:45:36.266Z","version":"2024.6.29"}
+[API] POST /api/v1/organizations/{orgName}/clusters/{clusterName}/expose opsrequest.exposeCluster
+  STEP: waiting for cluster e2e-storage-evxjg9ur's to get endpoint @ 03/12/25 18:45:45.78
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName}/endpoints cluster.listEndpoints
+  cluster e2e-storage-evxjg9ur's endpoint not ready
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName}/endpoints cluster.listEndpoints
+  cluster e2e-storage-evxjg9ur's endpoint not ready
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName}/endpoints cluster.listEndpoints
+  STEP: waiting for cluster to reach status: Running @ 03/12/25 18:46:06.237
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-evxjg9ur status: Updating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-evxjg9ur status: Running
+[API] POST /admin/v1/data/{engineName}/organizations/{orgName}/clusters/{clusterName}/databases database.createDatabase
+[API] POST /admin/v1/data/{engineName}/organizations/{orgName}/clusters/{clusterName}/databases database.createDatabase
+[API] GET /admin/v1/data/{engineName}/organizations/{orgName}/clusters/{clusterName}/databases database.listDatabases
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName}/endpoints cluster.listEndpoints
+[API] GET /admin/v1/data/{engineName}/organizations/{orgName}/clusters/{clusterName}/accounts account.listAccounts
+[API] GET /admin/v1/data/{engineName}/organizations/{orgName}/clusters/{clusterName}/root-password account.getRootAccountPassword
+  STEP: create a minio storage @ 03/12/25 18:46:17.359
+[API] POST /admin/v1/environments/{environmentName}/storages storage.createStorage
+  STEP: create backuprepo @ 03/12/25 18:46:17.364
+[API] POST /admin/v1/environments/{environmentName}/backupRepo backupRepo.createBackupRepo
+• [112.123 seconds]
+------------------------------
+BackupRepo Tests create backuprepo create backuprepo with fake createOption [backuprepo]
+/e2e/test/adminapi/backuprepo/backuprepo_test.go:172
+  STEP: create backuprepo @ 03/12/25 18:46:17.409
+[API] POST /admin/v1/environments/{environmentName}/backupRepo backupRepo.createBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo backupRepo.createBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo backupRepo.createBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo backupRepo.createBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo backupRepo.createBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo backupRepo.createBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo backupRepo.createBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo backupRepo.createBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo backupRepo.createBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo backupRepo.createBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo backupRepo.createBackupRepo
+• [0.067 seconds]
+------------------------------
+BackupRepo Tests list backuprepos basic list backuprepos [backuprepo]
+/e2e/test/adminapi/backuprepo/backuprepo_test.go:180
+  STEP: list backuprepos @ 03/12/25 18:46:17.476
+[API] GET /admin/v1/environments/{environmentName}/backupRepo backupRepo.listBackupRepos
+• [0.004 seconds]
+------------------------------
+BackupRepo Tests get backuprepo basic get backuprepo [backuprepo]
+/e2e/test/adminapi/backuprepo/backuprepo_test.go:189
+  STEP: get backuprepo @ 03/12/25 18:46:17.481
+[API] GET /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName} backupRepo.getBackupRepo
+• [0.004 seconds]
+------------------------------
+BackupRepo Tests get backuprepo get storage with fake backuprepo name [backuprepo]
+/e2e/test/adminapi/backuprepo/backuprepo_test.go:195
+  STEP: get backuprepo @ 03/12/25 18:46:17.484
+[API] GET /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName} backupRepo.getBackupRepo
+• [0.002 seconds]
+------------------------------
+BackupRepo Tests update backuprepo basic update backuprepo [backuprepo]
+/e2e/test/adminapi/backuprepo/backuprepo_test.go:203
+  STEP: update backuprepo @ 03/12/25 18:46:17.486
+[API] POST /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName} backupRepo.updateBackupRepo
+• [0.014 seconds]
+------------------------------
+BackupRepo Tests update backuprepo update backuprepo with fake backuprepo name [backuprepo]
+/e2e/test/adminapi/backuprepo/backuprepo_test.go:212
+  STEP: update backuprepo @ 03/12/25 18:46:17.5
+[API] POST /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName} backupRepo.updateBackupRepo
+• [0.002 seconds]
+------------------------------
+BackupRepo Tests update backuprepo update backuprepo with fake updateOption [backuprepo]
+/e2e/test/adminapi/backuprepo/backuprepo_test.go:221
+  STEP: update backuprepo @ 03/12/25 18:46:17.503
+[API] POST /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName} backupRepo.updateBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName} backupRepo.updateBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName} backupRepo.updateBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName} backupRepo.updateBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName} backupRepo.updateBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName} backupRepo.updateBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName} backupRepo.updateBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName} backupRepo.updateBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName} backupRepo.updateBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName} backupRepo.updateBackupRepo
+[API] POST /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName} backupRepo.updateBackupRepo
+• [0.178 seconds]
+------------------------------
+BackupRepo Tests check backuprepo basic check backuprepo [backuprepo]
+/e2e/test/adminapi/backuprepo/backuprepo_test.go:232
+  STEP: check backuprepo @ 03/12/25 18:46:17.68
+[API] GET /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName}/check backupRepo.checkBackupRepo
+• [0.005 seconds]
+------------------------------
+BackupRepo Tests check backuprepo check storage with fake backuprepo name [backuprepo]
+/e2e/test/adminapi/backuprepo/backuprepo_test.go:238
+  STEP: check backuprepo @ 03/12/25 18:46:17.686
+[API] GET /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName}/check backupRepo.checkBackupRepo
+• [0.002 seconds]
+------------------------------
+BackupRepo Tests view backuprepo basic view backuprepo [backuprepo]
+/e2e/test/adminapi/backuprepo/backuprepo_test.go:247
+  STEP: view backuprepo @ 03/12/25 18:46:17.687
+[API] POST /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName}/view backupRepo.viewBackupRepo
+• [0.006 seconds]
+------------------------------
+BackupRepo Tests view backuprepo view backuprepo with fake backuprepo name [backuprepo]
+/e2e/test/adminapi/backuprepo/backuprepo_test.go:257
+  STEP: view backuprepo @ 03/12/25 18:46:17.694
+[API] POST /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName}/view backupRepo.viewBackupRepo
+• [0.002 seconds]
+------------------------------
+BackupRepo Tests list backuprepo stats basic list backuprepo stats [backuprepo]
+/e2e/test/adminapi/backuprepo/backuprepo_test.go:270
+  STEP: list backuprepo stat @ 03/12/25 18:46:17.696
+[API] GET /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName}/stats backupRepo.listBackupRepoStats
+• [0.008 seconds]
+------------------------------
+BackupRepo Tests list backuprepo stats list backuprepo stats with fake backuprepo name [backuprepo]
+/e2e/test/adminapi/backuprepo/backuprepo_test.go:277
+  STEP: list backuprepo stat @ 03/12/25 18:46:17.704
+[API] GET /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName}/stats backupRepo.listBackupRepoStats
+• [0.002 seconds]
+------------------------------
+BackupRepo Tests delete backuprepo basic delete backuprepo [backuprepo]
+/e2e/test/adminapi/backuprepo/backuprepo_test.go:286
+  STEP: delete backuprepo @ 03/12/25 18:46:17.706
+[API] DELETE /admin/v1/environments/{environmentName}/backupRepo/{backupRepoName} backupRepo.deleteBackupRepo
+• [0.020 seconds]
+------------------------------
+BackupRepo Tests delete backuprepo delete backuprepo with fake backuprepo name [backuprepo]
+/e2e/test/adminapi/backuprepo/backuprepo_test.go:291
+  STEP: delete storage: fake-backuprepo @ 03/12/25 18:46:17.726
+[API] DELETE /admin/v1/environments/{environmentName}/storages/{storageName} storage.deleteStorage
+  STEP: deleting cluster e2e-storage-evxjg9ur @ 03/12/25 18:46:17.728
+[API] DELETE /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.deleteCluster
+  STEP: verifying cluster is deleted @ 03/12/25 18:46:17.829
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  STEP: delete storage: e2e-1m2aaqu9 @ 03/12/25 18:46:17.831
+[API] DELETE /admin/v1/environments/{environmentName}/storages/{storageName} storage.deleteStorage
+• [0.108 seconds]
+------------------------------
+Storage Tests create storage basic create storage [storage]
+/e2e/test/adminapi/backuprepo/storage_test.go:204
+[API] GET /api/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] GET /api/v1/environments/{environmentName}/engines/{engineName}/serviceVersion engine.ListServiceVersion
+
+  Engine: minio
+  Mode: distributed
+  Version: 2024.6.29
+
+  Components:
+    - minio:
+        Replicas: 2-8 (default: 2)
+        Storages:
+          - data: 20-0Gi (default: 20Gi)
+
+  Engine Features:
+  ================
+    ✓ account:
+    ✓ database:
+    ✗ dms:
+    ✓ bench:
+    ✗ backup:
+    ✗ metrics:
+    ✗ license:
+    ✓ alert:
+
+  Component Features:
+  ==================
+  minio:
+    ✓ dashboard
+    ✓ hscale
+    ✓ promote
+    ✓ restart
+    ✓ start
+    ✓ stop
+    ✓ upgrade: confirm by upgradeable versions
+    ✓ vscale
+  STEP: build minio cluster @ 03/12/25 18:46:17.859
+  STEP: set mode distributed @ 03/12/25 18:46:17.859
+  STEP: set version 2024.6.29 @ 03/12/25 18:46:17.859
+  STEP: set extra according to env @ 03/12/25 18:46:17.859
+  STEP: build components @ 03/12/25 18:46:17.859
+[API] GET /api/v1/classes class.listClasses
+  STEP: set cluster backup @ 03/12/25 18:46:17.876
+  STEP: set cluster availability zone @ 03/12/25 18:46:17.876
+  STEP: get test environment info @ 03/12/25 18:46:17.876
+[API] GET /api/v1/organizations/{orgName}/environments/{environmentName} environment.getEnvironment
+  STEP: determine the availability zone of the environment @ 03/12/25 18:46:17.878
+  STEP: set cluster termination policy to delete @ 03/12/25 18:46:17.878
+  STEP: build cluster request body @ 03/12/25 18:46:17.878
+  {"components":[{"classCode":"minio.distributed.minio.1c1g.general","classSeries":"general","component":"minio","replicas":2,"volumes":[{"name":"data","storage":20}]}],"engine":"minio","environmentName":"cloud-dev","mode":"distributed","name":"e2e-storage-pandkfez","orgName":"e2e-test","project":"kubeblocks-cloud-ns","singleZone":true,"terminationPolicy":"WipeOut","version":"2024.6.29"}
+  STEP: create cluster @ 03/12/25 18:46:17.878
+[API] POST /api/v1/organizations/{orgName}/clusters cluster.createCluster
+  STEP: wait cluster running @ 03/12/25 18:46:18.042
+  STEP: waiting for cluster to reach status: Running @ 03/12/25 18:46:18.042
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-pandkfez status: Pending
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-pandkfez status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-pandkfez status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-pandkfez status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-pandkfez status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-pandkfez status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-pandkfez status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+E0312 18:47:28.198933    9560 utils.go:172] Failed to get cluster: http: read on closed response body, retrying...
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-pandkfez status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-pandkfez status: Running
+  STEP: get cluster again @ 03/12/25 18:47:48.285
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  {"availabilityZones":["cn-zhangjiakou-a"],"backup":{"retentionPolicy":"LastOne"},"cloudProvider":"aliyun","cloudRegion":"cn-zhangjiakou","clusterType":"Normal","codeShort":"1c1g","components":[{"classCode":"minio.distributed.minio.1c1g.general","classSeries":"general","codeShort":"1c1g","component":"minio","cpu":1,"memory":1,"replicas":2,"storageClass":"ape-local-hostpath-sc","volumes":[{"name":"data","storage":20}]}],"createdAt":"2025-03-12T18:46:18.041Z","engine":"minio","environmentId":"8c26c3c0-0f52-4127-8396-24a86ac4331f","environmentName":"cloud-dev","environmentType":"public","hash":"kubeblocks-cloud-ns/e2e-s-6b8dd495dd","id":"433819174687473826","mode":"distributed","name":"e2e-storage-pandkfez","orgName":"e2e-test","parentId":0,"podAntiAffinityEnabled":true,"project":"kubeblocks-cloud-ns","singleZone":true,"status":"Running","terminationPolicy":"WipeOut","tlsEnabled":false,"updatedAt":"2025-03-12T18:47:45.215Z","version":"2024.6.29"}
+[API] POST /api/v1/organizations/{orgName}/clusters/{clusterName}/expose opsrequest.exposeCluster
+  STEP: waiting for cluster e2e-storage-pandkfez's to get endpoint @ 03/12/25 18:47:48.346
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName}/endpoints cluster.listEndpoints
+  cluster e2e-storage-pandkfez's endpoint not ready
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName}/endpoints cluster.listEndpoints
+  cluster e2e-storage-pandkfez's endpoint not ready
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName}/endpoints cluster.listEndpoints
+  STEP: waiting for cluster to reach status: Running @ 03/12/25 18:48:08.78
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-storage-pandkfez status: Running
+[API] POST /admin/v1/data/{engineName}/organizations/{orgName}/clusters/{clusterName}/databases database.createDatabase
+[API] GET /admin/v1/data/{engineName}/organizations/{orgName}/clusters/{clusterName}/databases database.listDatabases
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName}/endpoints cluster.listEndpoints
+[API] GET /admin/v1/data/{engineName}/organizations/{orgName}/clusters/{clusterName}/accounts account.listAccounts
+[API] GET /admin/v1/data/{engineName}/organizations/{orgName}/clusters/{clusterName}/root-password account.getRootAccountPassword
+  STEP: create a minio storage @ 03/12/25 18:48:09.781
+[API] POST /admin/v1/environments/{environmentName}/storages storage.createStorage
+• [111.952 seconds]
+------------------------------
+Storage Tests create storage create storage with fake createStorageOption [storage]
+/e2e/test/adminapi/backuprepo/storage_test.go:211
+  STEP: create a minio storage @ 03/12/25 18:48:09.786
+[API] POST /admin/v1/environments/{environmentName}/storages storage.createStorage
+[API] POST /admin/v1/environments/{environmentName}/storages storage.createStorage
+[API] POST /admin/v1/environments/{environmentName}/storages storage.createStorage
+[API] POST /admin/v1/environments/{environmentName}/storages storage.createStorage
+[API] POST /admin/v1/environments/{environmentName}/storages storage.createStorage
+[API] POST /admin/v1/environments/{environmentName}/storages storage.createStorage
+[API] POST /admin/v1/environments/{environmentName}/storages storage.createStorage
+[API] POST /admin/v1/environments/{environmentName}/storages storage.createStorage
+[API] POST /admin/v1/environments/{environmentName}/storages storage.createStorage
+[API] POST /admin/v1/environments/{environmentName}/storages storage.createStorage
+[API] POST /admin/v1/environments/{environmentName}/storages storage.createStorage
+• [0.039 seconds]
+------------------------------
+Storage Tests list storage providers basic list storage provider [storage]
+/e2e/test/adminapi/backuprepo/storage_test.go:219
+  STEP: list storage providers @ 03/12/25 18:48:09.824
+[API] GET /admin/v1/storageProviders storage.listStorageProviders
+• [0.004 seconds]
+------------------------------
+Storage Tests list storages basic list storages [storage]
+/e2e/test/adminapi/backuprepo/storage_test.go:228
+  STEP: list storages @ 03/12/25 18:48:09.828
+[API] GET /admin/v1/environments/{environmentName}/storages storage.listStorages
+• [0.002 seconds]
+------------------------------
+Storage Tests get storage basic get storage [storage]
+/e2e/test/adminapi/backuprepo/storage_test.go:237
+  STEP: get storage: e2e-vq5vb0iq @ 03/12/25 18:48:09.83
+[API] GET /admin/v1/environments/{environmentName}/storages/{storageName} storage.getStorage
+• [0.002 seconds]
+------------------------------
+Storage Tests get storage get storage with fake storage name [storage]
+/e2e/test/adminapi/backuprepo/storage_test.go:243
+  STEP: get storage: fake-storage @ 03/12/25 18:48:09.832
+[API] GET /admin/v1/environments/{environmentName}/storages/{storageName} storage.getStorage
+• [0.002 seconds]
+------------------------------
+Storage Tests update storage basic update storage [storage]
+/e2e/test/adminapi/backuprepo/storage_test.go:251
+  STEP: update storage: e2e-vq5vb0iq @ 03/12/25 18:48:09.834
+[API] POST /admin/v1/environments/{environmentName}/storages/{storageName} storage.updateStorage
+• [0.003 seconds]
+------------------------------
+Storage Tests update storage update storage with fake storage name [storage]
+/e2e/test/adminapi/backuprepo/storage_test.go:263
+  STEP: update storage: fake-storage @ 03/12/25 18:48:09.837
+[API] POST /admin/v1/environments/{environmentName}/storages/{storageName} storage.updateStorage
+• [0.003 seconds]
+------------------------------
+Storage Tests update storage update storage with fake updateOption [storage]
+/e2e/test/adminapi/backuprepo/storage_test.go:275
+  STEP: update storage: e2e-vq5vb0iq @ 03/12/25 18:48:09.84
+[API] POST /admin/v1/environments/{environmentName}/storages/{storageName} storage.updateStorage
+[API] POST /admin/v1/environments/{environmentName}/storages/{storageName} storage.updateStorage
+[API] POST /admin/v1/environments/{environmentName}/storages/{storageName} storage.updateStorage
+[API] POST /admin/v1/environments/{environmentName}/storages/{storageName} storage.updateStorage
+[API] POST /admin/v1/environments/{environmentName}/storages/{storageName} storage.updateStorage
+[API] POST /admin/v1/environments/{environmentName}/storages/{storageName} storage.updateStorage
+[API] POST /admin/v1/environments/{environmentName}/storages/{storageName} storage.updateStorage
+[API] POST /admin/v1/environments/{environmentName}/storages/{storageName} storage.updateStorage
+[API] POST /admin/v1/environments/{environmentName}/storages/{storageName} storage.updateStorage
+[API] POST /admin/v1/environments/{environmentName}/storages/{storageName} storage.updateStorage
+[API] POST /admin/v1/environments/{environmentName}/storages/{storageName} storage.updateStorage
+• [0.031 seconds]
+------------------------------
+Storage Tests check storage basic check storage [storage]
+/e2e/test/adminapi/backuprepo/storage_test.go:287
+  STEP: check if storage: e2e-vq5vb0iq could be reached @ 03/12/25 18:48:09.871
+[API] POST /admin/v1/storageCheck storage.checkStorage
+• [0.004 seconds]
+------------------------------
+Storage Tests check storage check storage with fake createStorageOption [storage]
+/e2e/test/adminapi/backuprepo/storage_test.go:293
+  STEP: check if storage: fake-storgae could be reached @ 03/12/25 18:48:09.875
+[API] POST /admin/v1/storageCheck storage.checkStorage
+[API] POST /admin/v1/storageCheck storage.checkStorage
+[API] POST /admin/v1/storageCheck storage.checkStorage
+[API] POST /admin/v1/storageCheck storage.checkStorage
+[API] POST /admin/v1/storageCheck storage.checkStorage
+[API] POST /admin/v1/storageCheck storage.checkStorage
+[API] POST /admin/v1/storageCheck storage.checkStorage
+[API] POST /admin/v1/storageCheck storage.checkStorage
+[API] POST /admin/v1/storageCheck storage.checkStorage
+[API] POST /admin/v1/storageCheck storage.checkStorage
+[API] POST /admin/v1/storageCheck storage.checkStorage
+• [0.022 seconds]
+------------------------------
+Storage Tests delete storage basic delete storage [storage]
+/e2e/test/adminapi/backuprepo/storage_test.go:304
+  STEP: delete storage: e2e-vq5vb0iq @ 03/12/25 18:48:09.897
+[API] DELETE /admin/v1/environments/{environmentName}/storages/{storageName} storage.deleteStorage
+• [0.003 seconds]
+------------------------------
+Storage Tests delete storage delete storage with fake storage name [storage]
+/e2e/test/adminapi/backuprepo/storage_test.go:309
+  STEP: delete storage: fake-storage @ 03/12/25 18:48:09.899
+[API] DELETE /admin/v1/environments/{environmentName}/storages/{storageName} storage.deleteStorage
+  STEP: deleting cluster e2e-storage-pandkfez @ 03/12/25 18:48:09.901
+[API] DELETE /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.deleteCluster
+  STEP: verifying cluster is deleted @ 03/12/25 18:48:10.011
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+• [0.114 seconds]
+------------------------------
+[AfterSuite]
+/e2e/test/adminapi/backuprepo/suite_test.go:34
+[AfterSuite] PASSED [0.000 seconds]
+------------------------------
+
+Ran 29 of 29 Specs in 224.727 seconds
+SUCCESS! -- 29 Passed | 0 Failed | 0 Pending | 0 Skipped
+PASS
+Running Suite: KubeBlocks Cloud Class API Test Suite - /e2e/test/adminapi/class
+===============================================================================
+Random Seed: 1741804876
+
+Will run 2 of 2 specs
+------------------------------
+[BeforeSuite]
+/e2e/test/adminapi/class/suite_test.go:30
+[BeforeSuite] PASSED [0.000 seconds]
+------------------------------
+The class admin API Class CRUD operations should create, list, update and delete class successfully
+/e2e/test/adminapi/class/class_test.go:127
+  STEP: Creating a new class @ 03/12/25 18:48:10.031
+[API] POST /admin/v1/classes class.createClass
+[API] POST /admin/v1/classes class.createClass
+  STEP: Listing classes @ 03/12/25 18:48:10.038
+[API] GET /admin/v1/classes class.listClasses
+  STEP: Updating the class @ 03/12/25 18:48:10.056
+[API] PATCH /admin/v1/classes class.patchClass
+  STEP: Deleting the class @ 03/12/25 18:48:10.058
+[API] DELETE /admin/v1/classes class.deleteClass
+[API] DELETE /admin/v1/classes class.deleteClass
+• [0.031 seconds]
+------------------------------
+The class admin API Class CRUD operations should batch update class successfully
+/e2e/test/adminapi/class/class_test.go:204
+  STEP: Creating test classes for batch update @ 03/12/25 18:48:10.062
+[API] POST /admin/v1/classes class.createClass
+[API] POST /admin/v1/classes class.createClass
+  STEP: Getting initial class states @ 03/12/25 18:48:10.067
+[API] GET /admin/v1/classes class.listClasses
+  STEP: Initial class state - CPU Limit: 169, CPU Request: 84.5, Memory Limit: 235, Memory Request: 235 @ 03/12/25 18:48:10.083
+  STEP: First batch update - double the overcommit ratios @ 03/12/25 18:48:10.083
+[API] POST /admin/v1/classes/batch class.batchClass
+  STEP: Verifying the first update @ 03/12/25 18:48:10.14
+[API] GET /admin/v1/classes class.listClasses
+  STEP: After first update - CPU Limit: 169, CPU Request: 84.5, Memory Limit: 235, Memory Request: 117.5 @ 03/12/25 18:48:10.157
+  STEP: Checking ratios - Initial CPU: 2, Updated CPU: 2, Initial Memory: 1, Updated Memory: 2 @ 03/12/25 18:48:10.157
+  STEP: Cleaning up test classes @ 03/12/25 18:48:10.157
+[API] DELETE /admin/v1/classes class.deleteClass
+[API] DELETE /admin/v1/classes class.deleteClass
+[API] DELETE /admin/v1/classes class.deleteClass
+• [0.101 seconds]
+------------------------------
+[AfterSuite]
+/e2e/test/adminapi/class/suite_test.go:34
+[AfterSuite] PASSED [0.000 seconds]
+------------------------------
+
+Ran 2 of 2 Specs in 0.132 seconds
+SUCCESS! -- 2 Passed | 0 Failed | 0 Pending | 0 Skipped
+PASS
+Running Suite: Cluster Log Admin API Test Suite - /e2e/test/adminapi/clusterlog
+===============================================================================
+Random Seed: 1741804876
+
+Will run 5 of 5 specs
+------------------------------
+Cluster Log Admin API should query cluster running logs successfully
+/e2e/test/adminapi/clusterlog/clusterlog_test.go:52
+[API] GET /api/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] GET /api/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] GET /api/v1/environments/{environmentName}/engines/{engineName}/serviceVersion engine.ListServiceVersion
+
+  Engine: mysql
+  Mode: standalone
+  Version: 8.0.39
+
+  Components:
+    - mysql:
+        Replicas: 1-1 (default: 1)
+        Storages:
+          - data: 20-0Gi (default: 20Gi)
+
+  Engine Features:
+  ================
+    ✓ account:
+    ✓ database:
+    ✓ dms:
+    ✓ bench:
+    ✓ backup:
+    ✓ metrics:
+    ✗ license:
+    ✓ alert:
+
+  Component Features:
+  ==================
+  mysql:
+    ✓ dashboard
+    ✓ log
+    ✓ parameter
+    ✗ promote: replicas range is 1-1
+    ✓ rebuildInstance
+    ✓ restart
+    ✓ start
+    ✓ stop
+    ✓ upgrade: confirm by upgradeable versions
+    ✓ volumeExpansion
+    ✓ vscale
+  STEP: build mysql cluster @ 03/12/25 18:48:10.212
+  STEP: set mode standalone @ 03/12/25 18:48:10.212
+  STEP: set version 8.0.39 @ 03/12/25 18:48:10.212
+  STEP: set extra according to env @ 03/12/25 18:48:10.212
+  STEP: build components @ 03/12/25 18:48:10.212
+[API] GET /api/v1/classes class.listClasses
+  STEP: set cluster backup @ 03/12/25 18:48:10.23
+  STEP: set cluster availability zone @ 03/12/25 18:48:10.23
+  STEP: get test environment info @ 03/12/25 18:48:10.23
+[API] GET /api/v1/organizations/{orgName}/environments/{environmentName} environment.getEnvironment
+  STEP: set cluster termination policy to delete @ 03/12/25 18:48:10.232
+  STEP: build cluster request body @ 03/12/25 18:48:10.232
+  {"components":[{"classCode":"mysql.standalone.mysql.1c1g.general","classSeries":"general","component":"mysql","replicas":1,"volumes":[{"name":"data","storage":20}]}],"engine":"mysql","environmentName":"cloud-dev","mode":"standalone","name":"e2e-tmln7bm3","orgName":"e2e-test","project":"kubeblocks-cloud-ns","singleZone":true,"terminationPolicy":"WipeOut","version":"8.0.39"}
+  STEP: create cluster @ 03/12/25 18:48:10.232
+[API] POST /api/v1/organizations/{orgName}/clusters cluster.createCluster
+  STEP: wait cluster running @ 03/12/25 18:48:10.397
+  STEP: waiting for cluster to reach status: Running @ 03/12/25 18:48:10.397
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-tmln7bm3 status: Pending
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-tmln7bm3 status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-tmln7bm3 status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-tmln7bm3 status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-tmln7bm3 status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-tmln7bm3 status: Running
+  STEP: get cluster again @ 03/12/25 18:49:00.537
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  {"availabilityZones":["cn-zhangjiakou-a"],"backup":{"retentionPolicy":"LastOne"},"cloudProvider":"aliyun","cloudRegion":"cn-zhangjiakou","clusterType":"Normal","codeShort":"1c1g","components":[{"classCode":"mysql.standalone.mysql.1c1g.general","classSeries":"general","codeShort":"1c1g","component":"mysql","cpu":1,"memory":1,"replicas":1,"storageClass":"ape-local-hostpath-sc","volumes":[{"name":"data","storage":20}]}],"createdAt":"2025-03-12T18:48:10.395Z","engine":"mysql","environmentId":"8c26c3c0-0f52-4127-8396-24a86ac4331f","environmentName":"cloud-dev","environmentType":"public","hash":"kubeblocks-cloud-ns/e2e-t-bc9b64b9c","id":"433819363179495586","mode":"standalone","name":"e2e-tmln7bm3","orgName":"e2e-test","parentId":0,"podAntiAffinityEnabled":true,"project":"kubeblocks-cloud-ns","singleZone":true,"status":"Running","terminationPolicy":"WipeOut","tlsEnabled":false,"updatedAt":"2025-03-12T18:48:57.817Z","version":"8.0.39"}
+  STEP: Query running logs @ 03/12/25 18:49:00.553
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName}/logs/running clusterLog.queryRunningLogs
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName}/logs/running clusterLog.queryRunningLogs
+• [50.400 seconds]
+------------------------------
+Cluster Log Admin API should query cluster error logs successfully
+/e2e/test/adminapi/clusterlog/clusterlog_test.go:60
+  STEP: Query error logs @ 03/12/25 18:49:00.579
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName}/logs/error clusterLog.queryErrorLogs
+• [0.012 seconds]
+------------------------------
+Cluster Log Admin API should query cluster slow logs successfully
+/e2e/test/adminapi/clusterlog/clusterlog_test.go:68
+  STEP: Query slow logs @ 03/12/25 18:49:00.591
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName}/logs/slow clusterLog.querySlowLogs
+• [0.014 seconds]
+------------------------------
+Cluster Log Admin API should query cluster audit logs successfully
+/e2e/test/adminapi/clusterlog/clusterlog_test.go:76
+  STEP: Query audit logs @ 03/12/25 18:49:00.605
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName}/logs/audit clusterLog.queryAuditLogs
+• [0.018 seconds]
+------------------------------
+Cluster Log Admin API should query logs with optional parameters successfully
+/e2e/test/adminapi/clusterlog/clusterlog_test.go:84
+  STEP: Query running logs with optional parameters @ 03/12/25 18:49:00.623
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName}/logs/running clusterLog.queryRunningLogs
+  STEP: deleting cluster e2e-tmln7bm3 @ 03/12/25 18:49:00.644
+[API] DELETE /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.deleteCluster
+  STEP: verifying cluster is deleted @ 03/12/25 18:49:00.758
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+• [0.137 seconds]
+------------------------------
+
+Ran 5 of 5 Specs in 50.582 seconds
+SUCCESS! -- 5 Passed | 0 Failed | 0 Pending | 0 Skipped
+PASS
+Running Suite: Cluster Task Admin API Test Suite - /e2e/test/adminapi/clustertask
+=================================================================================
+Random Seed: 1741804876
+
+Will run 6 of 6 specs
+------------------------------
+Cluster Task Admin Test list cluster tasks should return tasks with basic input
+/e2e/test/adminapi/clustertask/cluster_task_test.go:70
+[API] GET /api/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] GET /api/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] GET /api/v1/environments/{environmentName}/engines/{engineName}/serviceVersion engine.ListServiceVersion
+
+  Engine: mysql
+  Mode: standalone
+  Version: 8.0.39
+
+  Components:
+    - mysql:
+        Replicas: 1-1 (default: 1)
+        Storages:
+          - data: 20-0Gi (default: 20Gi)
+
+  Engine Features:
+  ================
+    ✓ account:
+    ✓ database:
+    ✓ dms:
+    ✓ bench:
+    ✓ backup:
+    ✓ metrics:
+    ✗ license:
+    ✓ alert:
+
+  Component Features:
+  ==================
+  mysql:
+    ✓ dashboard
+    ✓ log
+    ✓ parameter
+    ✗ promote: replicas range is 1-1
+    ✓ rebuildInstance
+    ✓ restart
+    ✓ start
+    ✓ stop
+    ✓ upgrade: confirm by upgradeable versions
+    ✓ volumeExpansion
+    ✓ vscale
+  STEP: build mysql cluster @ 03/12/25 18:49:00.815
+  STEP: set mode standalone @ 03/12/25 18:49:00.815
+  STEP: set version 8.0.39 @ 03/12/25 18:49:00.815
+  STEP: set extra according to env @ 03/12/25 18:49:00.815
+  STEP: build components @ 03/12/25 18:49:00.815
+[API] GET /api/v1/classes class.listClasses
+  STEP: set cluster backup @ 03/12/25 18:49:00.834
+  STEP: set cluster availability zone @ 03/12/25 18:49:00.834
+  STEP: get test environment info @ 03/12/25 18:49:00.834
+[API] GET /api/v1/organizations/{orgName}/environments/{environmentName} environment.getEnvironment
+  STEP: set cluster termination policy to delete @ 03/12/25 18:49:00.836
+  STEP: build cluster request body @ 03/12/25 18:49:00.836
+  {"components":[{"classCode":"mysql.standalone.mysql.1c1g.general","classSeries":"general","component":"mysql","replicas":1,"volumes":[{"name":"data","storage":20}]}],"engine":"mysql","environmentName":"cloud-dev","mode":"standalone","name":"e2e-3ugy7o55","orgName":"e2e-test","project":"kubeblocks-cloud-ns","singleZone":true,"terminationPolicy":"WipeOut","version":"8.0.39"}
+  STEP: create cluster @ 03/12/25 18:49:00.837
+[API] POST /api/v1/organizations/{orgName}/clusters cluster.createCluster
+  STEP: wait cluster running @ 03/12/25 18:49:00.997
+  STEP: waiting for cluster to reach status: Running @ 03/12/25 18:49:00.997
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-3ugy7o55 status: Pending
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-3ugy7o55 status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-3ugy7o55 status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-3ugy7o55 status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-3ugy7o55 status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-3ugy7o55 status: Running
+  STEP: get cluster again @ 03/12/25 18:49:51.137
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  {"availabilityZones":["cn-zhangjiakou-a"],"backup":{"retentionPolicy":"LastOne"},"cloudProvider":"aliyun","cloudRegion":"cn-zhangjiakou","clusterType":"Normal","codeShort":"1c1g","components":[{"classCode":"mysql.standalone.mysql.1c1g.general","classSeries":"general","codeShort":"1c1g","component":"mysql","cpu":1,"memory":1,"replicas":1,"storageClass":"ape-local-hostpath-sc","volumes":[{"name":"data","storage":20}]}],"createdAt":"2025-03-12T18:49:00.995Z","engine":"mysql","environmentId":"8c26c3c0-0f52-4127-8396-24a86ac4331f","environmentName":"cloud-dev","environmentType":"public","hash":"kubeblocks-cloud-ns/e2e-3-55db6444df","id":"433819448072208546","mode":"standalone","name":"e2e-3ugy7o55","orgName":"e2e-test","parentId":0,"podAntiAffinityEnabled":true,"project":"kubeblocks-cloud-ns","singleZone":true,"status":"Running","terminationPolicy":"WipeOut","tlsEnabled":false,"updatedAt":"2025-03-12T18:49:48.716Z","version":"8.0.39"}
+  STEP: admin list cluster tasks @ 03/12/25 18:49:51.154
+[API] GET /admin/v1/clustertasks clusterTask.listClusterTasks
+[API] GET /admin/v1/clustertasks clusterTask.listClusterTasks
+• [51.016 seconds]
+------------------------------
+Cluster Task Admin Test list cluster tasks should return tasks with full input
+/e2e/test/adminapi/clustertask/cluster_task_test.go:77
+  STEP: admin list cluster tasks @ 03/12/25 18:49:51.797
+[API] GET /admin/v1/clustertasks clusterTask.listClusterTasks
+• [0.003 seconds]
+------------------------------
+Cluster Task Admin Test list cluster tasks should return 404 for no exist org or cluster
+/e2e/test/adminapi/clustertask/cluster_task_test.go:90
+  STEP: admin list cluster tasks @ 03/12/25 18:49:51.8
+[API] GET /admin/v1/clustertasks clusterTask.listClusterTasks
+  STEP: admin list cluster tasks @ 03/12/25 18:49:51.802
+[API] GET /admin/v1/clustertasks clusterTask.listClusterTasks
+• [0.004 seconds]
+------------------------------
+Cluster Task Admin Test list cluster tasks should return 400 for invalid status or type
+/e2e/test/adminapi/clustertask/cluster_task_test.go:109
+  STEP: admin list cluster tasks @ 03/12/25 18:49:51.804
+[API] GET /admin/v1/clustertasks clusterTask.listClusterTasks
+  STEP: admin list cluster tasks @ 03/12/25 18:49:51.805
+[API] GET /admin/v1/clustertasks clusterTask.listClusterTasks
+• [0.003 seconds]
+------------------------------
+Cluster Task Admin Test get cluster task should return 404 for not exist org or cluster or taskID
+/e2e/test/adminapi/clustertask/cluster_task_test.go:127
+  STEP: admin get cluster task @ 03/12/25 18:49:51.806
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName}/clustertasks/{taskId} clusterTask.getClusterTask
+  [Admin GetClusterTask] Resp: {"code":404,"reason":"NotFound","message":"the server could not find the requested resource"}, Err: 404 Not Found  STEP: admin get cluster task @ 03/12/25 18:49:51.808
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName}/clustertasks/{taskId} clusterTask.getClusterTask
+[Admin GetClusterTask] Resp: {"code":404,"reason":"NotFound","message":"Organization \"not-exist\" not found"}, Err: 404 Not Found  STEP: admin get cluster task @ 03/12/25 18:49:51.81
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName}/clustertasks/{taskId} clusterTask.getClusterTask
+[Admin GetClusterTask] Resp: {"code":404,"reason":"NotFound","message":"Cluster \"not-exist\" not found"}, Err: 404 Not Found• [0.006 seconds]
+------------------------------
+Cluster Task Admin Test get cluster task should return 400 for bad taskID
+/e2e/test/adminapi/clustertask/cluster_task_test.go:150
+  STEP: admin get cluster task @ 03/12/25 18:49:51.812
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName}/clustertasks/{taskId} clusterTask.getClusterTask
+[Admin GetClusterTask] Resp: {"code":400,"reason":"BadRequest","message":"taskId can't convert to uint64"}, Err: 400 Bad Request  STEP: deleting cluster e2e-3ugy7o55 @ 03/12/25 18:49:51.814
+[API] DELETE /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.deleteCluster
+  STEP: verifying cluster is deleted @ 03/12/25 18:49:51.911
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+• [0.102 seconds]
+------------------------------
+
+Ran 6 of 6 Specs in 51.133 seconds
+SUCCESS! -- 6 Passed | 0 Failed | 0 Pending | 0 Skipped
+PASS
+Running Suite: KubeBlocks Cloud Engine Version API Test Suite - /e2e/test/adminapi/engine
+=========================================================================================
+Random Seed: 1741804876
+
+Will run 3 of 3 specs
+------------------------------
+[BeforeSuite]
+/e2e/test/adminapi/engine/suite_test.go:30
+[BeforeSuite] PASSED [0.000 seconds]
+------------------------------
+The engine management admin API Engine management operations should enable, upgrade and disable engine successfully
+/e2e/test/adminapi/engine/engine_management_test.go:178
+  STEP: List all engines and find one with multiple versions @ 03/12/25 18:49:51.931
+[API] GET /admin/v1/environments/{environmentName}/engines engine.listEnginesInEnv
+[API] GET /admin/v1/environments/{environmentName}/engines engine.listEnginesInEnv
+[API] GET /admin/v1/engineVersions/{engineName} engine.listEngineVersions
+[API] GET /admin/v1/engineVersions/{engineName} engine.listEngineVersions
+  STEP: Selected engine for testing - Name: damengdb, Initial Version: 0.9.1, Upgrade Version: 0.9.2, Initial Status: Enabled @ 03/12/25 18:49:52.041
+  STEP: Starting test with engine damengdb (initial version: 0.9.1, upgrade version: 0.9.2) @ 03/12/25 18:49:52.041
+  STEP: Check current engine damengdb status (version: 0.9.1) @ 03/12/25 18:49:52.041
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+  STEP: Disable engine damengdb (version: 0.9.1) as it's already enabled @ 03/12/25 18:49:52.083
+  STEP: Waiting for any ongoing operations on engine damengdb to complete @ 03/12/25 18:49:52.083
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+  STEP: Current engine status: Enabled @ 03/12/25 18:49:52.128
+[API] POST /admin/v1/environments/{environmentName}/engines/{engineName} engine.engineAction
+  STEP: Verify engine damengdb (version: 0.9.1) is disabled @ 03/12/25 18:49:52.132
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+  STEP: Enable engine damengdb with version: 0.9.1 @ 03/12/25 18:49:52.207
+  STEP: Waiting for any ongoing operations on engine damengdb to complete @ 03/12/25 18:49:52.207
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+  STEP: Current engine status: Disabled @ 03/12/25 18:49:52.266
+[API] POST /admin/v1/environments/{environmentName}/engines/{engineName} engine.engineAction
+  STEP: Verify engine damengdb is enabled with version: 0.9.1 @ 03/12/25 18:49:52.298
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+  STEP: Try enable engine damengdb (version: 0.9.1) again to verify idempotency @ 03/12/25 18:49:52.385
+  STEP: Waiting for any ongoing operations on engine damengdb to complete @ 03/12/25 18:49:52.385
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+  STEP: Current engine status: Enabled @ 03/12/25 18:49:52.431
+[API] POST /admin/v1/environments/{environmentName}/engines/{engineName} engine.engineAction
+  STEP: Verify engine damengdb (version: 0.9.1) state remains unchanged after idempotent enable @ 03/12/25 18:49:52.456
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+  STEP: Upgrade engine damengdb from version 0.9.1 to 0.9.2 @ 03/12/25 18:49:52.498
+  STEP: Waiting for any ongoing operations on engine damengdb to complete @ 03/12/25 18:49:52.498
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+  STEP: Current engine status: Enabled @ 03/12/25 18:49:52.54
+[API] POST /admin/v1/environments/{environmentName}/engines/{engineName} engine.engineAction
+  STEP: Verify engine damengdb is upgraded to version: 0.9.2 @ 03/12/25 18:49:52.568
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+  STEP: Try upgrade engine damengdb to same version 0.9.2 to verify it fails @ 03/12/25 18:50:12.768
+  STEP: Waiting for any ongoing operations on engine damengdb to complete @ 03/12/25 18:50:12.768
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+  STEP: Current engine status: Enabled @ 03/12/25 18:50:12.811
+[API] POST /admin/v1/environments/{environmentName}/engines/{engineName} engine.engineAction
+  STEP: Disable engine damengdb (version: 0.9.2) @ 03/12/25 18:50:12.825
+  STEP: Waiting for any ongoing operations on engine damengdb to complete @ 03/12/25 18:50:12.825
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+  STEP: Current engine status: Enabled @ 03/12/25 18:50:12.867
+[API] POST /admin/v1/environments/{environmentName}/engines/{engineName} engine.engineAction
+  STEP: Verify engine damengdb (version: 0.9.2) is disabled @ 03/12/25 18:50:12.871
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+  STEP: List all engines in environment (selected engine for reference: damengdb) @ 03/12/25 18:50:12.957
+[API] GET /admin/v1/environments/{environmentName}/engines engine.listEnginesInEnv
+  STEP: List engines with filter @ 03/12/25 18:50:13.05
+[API] GET /admin/v1/environments/{environmentName}/engines engine.listEnginesInEnv
+  STEP: Restore engine damengdb to initial state (version: 0.9.1, status: Enabled) @ 03/12/25 18:50:13.1
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+  STEP: Enable engine damengdb as it's currently disabled @ 03/12/25 18:50:13.142
+  STEP: Waiting for any ongoing operations on engine damengdb to complete @ 03/12/25 18:50:13.143
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+  STEP: Current engine status: Disabled @ 03/12/25 18:50:13.184
+[API] POST /admin/v1/environments/{environmentName}/engines/{engineName} engine.engineAction
+  STEP: Wait for engine damengdb to be enabled @ 03/12/25 18:50:13.211
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+  STEP: Restore engine damengdb version from 0.9.2 to 0.9.1 @ 03/12/25 18:50:13.255
+  STEP: Waiting for any ongoing operations on engine damengdb to complete @ 03/12/25 18:50:13.255
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+  STEP: Current engine status: Enabled @ 03/12/25 18:50:13.298
+[API] POST /admin/v1/environments/{environmentName}/engines/{engineName} engine.engineAction
+  STEP: Wait for engine damengdb version restoration to complete @ 03/12/25 18:50:13.326
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+  STEP: Verify final state of engine damengdb @ 03/12/25 18:50:33.47
+[API] GET /admin/v1/environments/{environmentName}/engines/{engineName} engine.getEngineByNameInEnv
+• [41.580 seconds]
+------------------------------
+The engine version admin API CRUD engine versions should create, list, update and delete engine version successfully
+/e2e/test/adminapi/engine/engineversion_test.go:23
+[API] POST /admin/v1/engineVersions engine.createEngineVersion
+[API] GET /admin/v1/engineVersions/{engineName} engine.listEngineVersions
+[API] PATCH /admin/v1/engineVersions engine.patchEngineVersion
+[API] DELETE /admin/v1/engineVersions engine.deleteEngineVersion
+[API] GET /admin/v1/engineVersions/{engineName} engine.listEngineVersions
+• [0.012 seconds]
+------------------------------
+The engine license admin API CRUD engine license should create, list, update and delete engine license successfully
+/e2e/test/adminapi/engine/enginelicense_test.go:31
+  STEP: create engine license @ 03/12/25 18:50:33.523
+  STEP: create engine license with empty expiredAt, should success @ 03/12/25 18:50:33.523
+[API] POST /admin/v1/engineLicense engineLicense.createEngineLicense
+  STEP: delete engine license, should success @ 03/12/25 18:50:33.531
+[API] DELETE /admin/v1/engineLicense engineLicense.deleteEngineLicense
+  STEP: create engine license with expiredAt, should success @ 03/12/25 18:50:33.534
+[API] POST /admin/v1/engineLicense engineLicense.createEngineLicense
+  STEP: create duplicate name license, should error @ 03/12/25 18:50:33.542
+[API] POST /admin/v1/engineLicense engineLicense.createEngineLicense
+[API] POST /admin/v1/engineLicense engineLicense.createEngineLicense
+[API] POST /admin/v1/engineLicense engineLicense.createEngineLicense
+[API] POST /admin/v1/engineLicense engineLicense.createEngineLicense
+[API] POST /admin/v1/engineLicense engineLicense.createEngineLicense
+[API] POST /admin/v1/engineLicense engineLicense.createEngineLicense
+[API] POST /admin/v1/engineLicense engineLicense.createEngineLicense
+[API] POST /admin/v1/engineLicense engineLicense.createEngineLicense
+[API] POST /admin/v1/engineLicense engineLicense.createEngineLicense
+[API] POST /admin/v1/engineLicense engineLicense.createEngineLicense
+[API] POST /admin/v1/engineLicense engineLicense.createEngineLicense
+  STEP: get engine license @ 03/12/25 18:50:33.628
+[API] GET /admin/v1/engineLicense engineLicense.engineLicense
+  STEP: get a non-exist engine license, should error @ 03/12/25 18:50:33.63
+[API] GET /admin/v1/engineLicense engineLicense.engineLicense
+  STEP: list engine license @ 03/12/25 18:50:33.631
+[API] GET /admin/v1/engineLicenses engineLicense.listEngineLicenses
+  STEP: delete engine license @ 03/12/25 18:50:33.633
+[API] DELETE /admin/v1/engineLicense engineLicense.deleteEngineLicense
+  STEP: delete non-exist license, should success @ 03/12/25 18:50:33.636
+[API] DELETE /admin/v1/engineLicense engineLicense.deleteEngineLicense
+• [0.115 seconds]
+------------------------------
+[AfterSuite]
+/e2e/test/adminapi/engine/suite_test.go:34
+[AfterSuite] PASSED [0.000 seconds]
+------------------------------
+
+Ran 3 of 3 Specs in 41.708 seconds
+SUCCESS! -- 3 Passed | 0 Failed | 0 Pending | 0 Skipped
+PASS
+Running Suite: KubeBlocks Cloud Engine Option API Test Suite - /e2e/test/adminapi/engineoption
+==============================================================================================
+Random Seed: 1741804876
+
+Will run 3 of 3 specs
+------------------------------
+[BeforeSuite]
+/e2e/test/adminapi/engineoption/suite_test.go:30
+[BeforeSuite] PASSED [0.000 seconds]
+------------------------------
+The engine option admin API List engine options should return 200 OK with engine option list
+/e2e/test/adminapi/engineoption/engineoption_test.go:20
+[API] GET /admin/v1/engineOptions engineOption.listEngineOptions
+[API] GET /admin/v1/engineOptions engineOption.listEngineOptions
+• [0.039 seconds]
+------------------------------
+The engine option admin API Get engine option should return 200 OK with specific engine option info
+/e2e/test/adminapi/engineoption/engineoption_test.go:29
+[API] GET /admin/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] GET /admin/v1/engineOptions/{engineName} engineOption.getEngineOption
+• [0.017 seconds]
+------------------------------
+The engine option admin API Update engine option should update engine option successfully
+/e2e/test/adminapi/engineoption/engineoption_test.go:41
+[API] GET /admin/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] PUT /admin/v1/engineOptions/{engineName} engineOption.updateEngineOption
+[API] GET /admin/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] GET /admin/v1/engineOptionHistories engineOption.listEngineOptionHistory
+[API] GET /admin/v1/user adminUser.readAdminUser
+[API] PUT /admin/v1/engineOptions/{engineName} engineOption.updateEngineOption
+• [0.139 seconds]
+------------------------------
+[AfterSuite]
+/e2e/test/adminapi/engineoption/suite_test.go:34
+[AfterSuite] PASSED [0.000 seconds]
+------------------------------
+
+Ran 3 of 3 Specs in 0.196 seconds
+SUCCESS! -- 3 Passed | 0 Failed | 0 Pending | 0 Skipped
+PASS
+Running Suite: KubeBlocks Cloud Environment API Test Suite - /e2e/test/adminapi/environment
+===========================================================================================
+Random Seed: 1741804876
+
+Will run 31 of 31 specs
+------------------------------
+[BeforeSuite]
+/e2e/test/adminapi/environment/suite_test.go:30
+[BeforeSuite] PASSED [0.000 seconds]
+------------------------------
+Feature API Get feature group list should list feature groups successfully
+/e2e/test/adminapi/environment/feature_test.go:42
+[API] GET /admin/v1/featureGroups feature.listFeatureGroup
+[API] GET /admin/v1/featureGroups feature.listFeatureGroup
+• [0.004 seconds]
+------------------------------
+Feature API Get feature list should list features successfully
+/e2e/test/adminapi/environment/feature_test.go:54
+[API] GET /admin/v1/features feature.listFeature
+• [0.001 seconds]
+------------------------------
+Feature API Get feature list should list features by specified group successfully
+/e2e/test/adminapi/environment/feature_test.go:67
+[API] GET /admin/v1/features feature.listFeature
+• [0.002 seconds]
+------------------------------
+Feature API Get feature list should return empty list with nonexistent group
+/e2e/test/adminapi/environment/feature_test.go:78
+[API] GET /admin/v1/features feature.listFeature
+• [0.001 seconds]
+------------------------------
+Feature API Get feature by name should get feature by name successfully
+/e2e/test/adminapi/environment/feature_test.go:88
+[API] GET /admin/v1/features/{featureName} feature.readFeature
+• [0.001 seconds]
+------------------------------
+Feature API Get feature by name should return 404 with nonexistent feature
+/e2e/test/adminapi/environment/feature_test.go:96
+[API] GET /admin/v1/features/{featureName} feature.readFeature
+• [0.001 seconds]
+------------------------------
+Project APIs project creation should fail when creating project with empty name
+/e2e/test/adminapi/environment/project_test.go:44
+  STEP: should create a project successfully @ 03/12/25 18:50:33.881
+[API] POST /admin/v1/environments/{environmentName}/projects project.createProject
+  {"createdAt":"2025-03-12T18:50:33.904Z","envID":"8c26c3c0-0f52-4127-8396-24a86ac4331f","name":"e2e-b9m0f1sk"}
+  STEP: should contain the created project @ 03/12/25 18:50:33.905
+[API] GET /admin/v1/environments/{environmentName}/projects project.listProjects
+[API] POST /admin/v1/environments/{environmentName}/projects project.createProject
+  STEP: should delete the project @ 03/12/25 18:50:33.929
+[API] DELETE /admin/v1/environments/{environmentName}/projects/{projectName} project.deleteProject
+[API] GET /admin/v1/environments/{environmentName}/projects project.listProjects
+• [0.068 seconds]
+------------------------------
+Project APIs project creation should fail when creating project with duplicate name
+/e2e/test/adminapi/environment/project_test.go:51
+  STEP: should create a project successfully @ 03/12/25 18:50:33.949
+[API] POST /admin/v1/environments/{environmentName}/projects project.createProject
+  {"createdAt":"2025-03-12T18:50:33.962Z","envID":"8c26c3c0-0f52-4127-8396-24a86ac4331f","name":"e2e-b9m0f1sk"}
+  STEP: should contain the created project @ 03/12/25 18:50:33.963
+[API] GET /admin/v1/environments/{environmentName}/projects project.listProjects
+[API] POST /admin/v1/environments/{environmentName}/projects project.createProject
+  STEP: should delete the project @ 03/12/25 18:50:33.986
+[API] DELETE /admin/v1/environments/{environmentName}/projects/{projectName} project.deleteProject
+[API] GET /admin/v1/environments/{environmentName}/projects project.listProjects
+• [0.056 seconds]
+------------------------------
+Project APIs project creation should fail when environment does not exist
+/e2e/test/adminapi/environment/project_test.go:58
+  STEP: should create a project successfully @ 03/12/25 18:50:34.006
+[API] POST /admin/v1/environments/{environmentName}/projects project.createProject
+  {"createdAt":"2025-03-12T18:50:34.018Z","envID":"8c26c3c0-0f52-4127-8396-24a86ac4331f","name":"e2e-b9m0f1sk"}
+  STEP: should contain the created project @ 03/12/25 18:50:34.019
+[API] GET /admin/v1/environments/{environmentName}/projects project.listProjects
+[API] POST /admin/v1/environments/{environmentName}/projects project.createProject
+  STEP: should delete the project @ 03/12/25 18:50:34.041
+[API] DELETE /admin/v1/environments/{environmentName}/projects/{projectName} project.deleteProject
+[API] GET /admin/v1/environments/{environmentName}/projects project.listProjects
+• [0.055 seconds]
+------------------------------
+Project APIs project list should list and find the specified project
+/e2e/test/adminapi/environment/project_test.go:67
+  STEP: should create a project successfully @ 03/12/25 18:50:34.061
+[API] POST /admin/v1/environments/{environmentName}/projects project.createProject
+  {"createdAt":"2025-03-12T18:50:34.074Z","envID":"8c26c3c0-0f52-4127-8396-24a86ac4331f","name":"e2e-b9m0f1sk"}
+  STEP: should contain the created project @ 03/12/25 18:50:34.075
+[API] GET /admin/v1/environments/{environmentName}/projects project.listProjects
+[API] GET /admin/v1/environments/{environmentName}/projects project.listProjects
+  STEP: should delete the project @ 03/12/25 18:50:34.12
+[API] DELETE /admin/v1/environments/{environmentName}/projects/{projectName} project.deleteProject
+[API] GET /admin/v1/environments/{environmentName}/projects project.listProjects
+• [0.078 seconds]
+------------------------------
+Project APIs project deletion should fail when deleting non-existent project
+/e2e/test/adminapi/environment/project_test.go:74
+  STEP: should create a project successfully @ 03/12/25 18:50:34.139
+[API] POST /admin/v1/environments/{environmentName}/projects project.createProject
+  {"createdAt":"2025-03-12T18:50:34.152Z","envID":"8c26c3c0-0f52-4127-8396-24a86ac4331f","name":"e2e-b9m0f1sk"}
+  STEP: should contain the created project @ 03/12/25 18:50:34.153
+[API] GET /admin/v1/environments/{environmentName}/projects project.listProjects
+[API] DELETE /admin/v1/environments/{environmentName}/projects/{projectName} project.deleteProject
+  STEP: should delete the project @ 03/12/25 18:50:34.176
+[API] DELETE /admin/v1/environments/{environmentName}/projects/{projectName} project.deleteProject
+[API] GET /admin/v1/environments/{environmentName}/projects project.listProjects
+• [0.057 seconds]
+------------------------------
+Resource Stats API List Nodes Resource Stats should list resource statistics of nodes successfully
+/e2e/test/adminapi/environment/resource_stats_test.go:20
+  STEP: list node resource stats @ 03/12/25 18:50:34.196
+[API] GET /admin/v1/environments/{environmentName}/nodes/resourceStats resourceStats.listNodesResourceStats
+• [0.006 seconds]
+------------------------------
+Resource Stats API List Nodes Resource Stats should return 404 Not Found
+/e2e/test/adminapi/environment/resource_stats_test.go:38
+  STEP: list node resource stats with 404 Not Found @ 03/12/25 18:50:34.202
+[API] GET /admin/v1/environments/{environmentName}/nodes/resourceStats resourceStats.listNodesResourceStats
+• [0.002 seconds]
+------------------------------
+Resource Stats API List Instance Resource Stats should list resource statistics of instances successfully
+/e2e/test/adminapi/environment/resource_stats_test.go:48
+  STEP: list instance resource stats @ 03/12/25 18:50:34.203
+[API] GET /admin/v1/environments/{environmentName}/nodes/{nodeName}/instances/resourceStats resourceStats.listInstancesResourceStats
+• [0.055 seconds]
+------------------------------
+Resource Stats API List Instance Resource Stats should return 404 Not Found
+/e2e/test/adminapi/environment/resource_stats_test.go:67
+  STEP: list instance resource stats with 404 Not Found @ 03/12/25 18:50:34.258
+[API] GET /admin/v1/environments/{environmentName}/nodes/{nodeName}/instances/resourceStats resourceStats.listInstancesResourceStats
+• [0.002 seconds]
+------------------------------
+Resource Stats API List Environment Resource Stats should list resource statistics of environment successfully
+/e2e/test/adminapi/environment/resource_stats_test.go:77
+  STEP: list environment resource stats @ 03/12/25 18:50:34.26
+[API] GET /admin/v1/environments/{environmentName}/resourceStats resourceStats.getResourceStats
+• [0.004 seconds]
+------------------------------
+Resource Stats API List Environment Resource Stats should return 404 Not Found
+/e2e/test/adminapi/environment/resource_stats_test.go:92
+  STEP: list environment resource stats with 404 Not Found @ 03/12/25 18:50:34.264
+[API] GET /admin/v1/environments/{environmentName}/resourceStats resourceStats.getResourceStats
+• [0.002 seconds]
+------------------------------
+StorageClass basic storage class tests should get stats by node
+/e2e/test/adminapi/environment/storage_class_test.go:183
+  STEP: list storage provisioners @ 03/12/25 18:50:34.266
+[API] GET /admin/v1/environments/{environmentName}/storageProvisioners storageClass.listStorageProvisioners
+  STEP: should create a storage class successfully @ 03/12/25 18:50:34.285
+[API] DELETE /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.deleteStorageClass
+  STEP: build new storage class e2e-845s9ei7 @ 03/12/25 18:50:34.299
+  STEP: set basic properties @ 03/12/25 18:50:34.299
+  STEP: set storage class e2e-845s9ei7 as the default storage class @ 03/12/25 18:50:34.299
+  STEP: set storage class features @ 03/12/25 18:50:34.299
+  STEP: set labels and annotations @ 03/12/25 18:50:34.299
+  STEP: create storage class @ 03/12/25 18:50:34.299
+[API] POST /admin/v1/environments/{environmentName}/storageClasses storageClass.createStorageClass
+  {"allowClone":false,"allowSnapshot":false,"allowVolumeExpansion":true,"annotations":{"annotation-created-by":"e2e-test","cloud.kubeblocks.io/storageclass-hostpath":"/mnt/kb_hostpath/test"},"creationTimestamp":"2025-03-12 18:50:34 +0000 UTC","description":"Test storage class","displayName":"Test Storage","enabled":true,"id":"433819604653965474","isDefaultClass":false,"labels":{"label-created-by":"e2e-test"},"name":"e2e-845s9ei7","parameters":{"definition":"backendType: HostDir\nhostDirOptions:\n  path: /mnt/kb_hostpath/test\n","volumeType":"HostPath"},"provisioner":"apelocal.csi.apecloud.com","pvcCount":"","reclaimPolicy":"Delete","type":"","volumeBindingMode":"WaitForFirstConsumer"}
+  STEP: should get the created storage class @ 03/12/25 18:50:34.321
+[API] GET /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.getStorageClass
+  STEP: verify basic properties match @ 03/12/25 18:50:34.328
+  STEP: verify storage class features match @ 03/12/25 18:50:34.328
+  STEP: verify labels match @ 03/12/25 18:50:34.328
+  STEP: verify annotations match @ 03/12/25 18:50:34.328
+[API] GET /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.getStorageClass
+  STEP: should delete the storage class @ 03/12/25 18:50:34.333
+[API] DELETE /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.deleteStorageClass
+[API] GET /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.getStorageClass
+• [0.096 seconds]
+------------------------------
+StorageClass basic storage class tests should not get storage class with fake name
+/e2e/test/adminapi/environment/storage_class_test.go:187
+  STEP: list storage provisioners @ 03/12/25 18:50:34.362
+[API] GET /admin/v1/environments/{environmentName}/storageProvisioners storageClass.listStorageProvisioners
+  STEP: should create a storage class successfully @ 03/12/25 18:50:34.38
+[API] DELETE /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.deleteStorageClass
+  STEP: build new storage class e2e-845s9ei7 @ 03/12/25 18:50:34.393
+  STEP: set basic properties @ 03/12/25 18:50:34.393
+  STEP: set storage class e2e-845s9ei7 as the default storage class @ 03/12/25 18:50:34.393
+  STEP: set storage class features @ 03/12/25 18:50:34.394
+  STEP: set labels and annotations @ 03/12/25 18:50:34.394
+  STEP: create storage class @ 03/12/25 18:50:34.394
+[API] POST /admin/v1/environments/{environmentName}/storageClasses storageClass.createStorageClass
+  {"allowClone":false,"allowSnapshot":false,"allowVolumeExpansion":true,"annotations":{"annotation-created-by":"e2e-test","cloud.kubeblocks.io/storageclass-hostpath":"/mnt/kb_hostpath/test"},"creationTimestamp":"2025-03-12 18:50:34 +0000 UTC","description":"Test storage class","displayName":"Test Storage","enabled":true,"id":"433819604804960418","isDefaultClass":false,"labels":{"label-created-by":"e2e-test"},"name":"e2e-845s9ei7","parameters":{"definition":"backendType: HostDir\nhostDirOptions:\n  path: /mnt/kb_hostpath/test\n","volumeType":"HostPath"},"provisioner":"apelocal.csi.apecloud.com","pvcCount":"","reclaimPolicy":"Delete","type":"","volumeBindingMode":"WaitForFirstConsumer"}
+  STEP: should get the created storage class @ 03/12/25 18:50:34.414
+[API] GET /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.getStorageClass
+  STEP: verify basic properties match @ 03/12/25 18:50:34.418
+  STEP: verify storage class features match @ 03/12/25 18:50:34.418
+  STEP: verify labels match @ 03/12/25 18:50:34.418
+  STEP: verify annotations match @ 03/12/25 18:50:34.418
+[API] GET /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.getStorageClass
+  STEP: should delete the storage class @ 03/12/25 18:50:34.421
+[API] DELETE /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.deleteStorageClass
+[API] GET /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.getStorageClass
+• [0.084 seconds]
+------------------------------
+StorageClass basic storage class tests should update storage class properties
+/e2e/test/adminapi/environment/storage_class_test.go:193
+  STEP: list storage provisioners @ 03/12/25 18:50:34.446
+[API] GET /admin/v1/environments/{environmentName}/storageProvisioners storageClass.listStorageProvisioners
+  STEP: should create a storage class successfully @ 03/12/25 18:50:34.467
+[API] DELETE /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.deleteStorageClass
+  STEP: build new storage class e2e-845s9ei7 @ 03/12/25 18:50:34.48
+  STEP: set basic properties @ 03/12/25 18:50:34.48
+  STEP: set storage class e2e-845s9ei7 as the default storage class @ 03/12/25 18:50:34.48
+  STEP: set storage class features @ 03/12/25 18:50:34.48
+  STEP: set labels and annotations @ 03/12/25 18:50:34.48
+  STEP: create storage class @ 03/12/25 18:50:34.48
+[API] POST /admin/v1/environments/{environmentName}/storageClasses storageClass.createStorageClass
+  {"allowClone":false,"allowSnapshot":false,"allowVolumeExpansion":true,"annotations":{"annotation-created-by":"e2e-test","cloud.kubeblocks.io/storageclass-hostpath":"/mnt/kb_hostpath/test"},"creationTimestamp":"2025-03-12 18:50:34 +0000 UTC","description":"Test storage class","displayName":"Test Storage","enabled":true,"id":"433819604955955362","isDefaultClass":false,"labels":{"label-created-by":"e2e-test"},"name":"e2e-845s9ei7","parameters":{"definition":"backendType: HostDir\nhostDirOptions:\n  path: /mnt/kb_hostpath/test\n","volumeType":"HostPath"},"provisioner":"apelocal.csi.apecloud.com","pvcCount":"","reclaimPolicy":"Delete","type":"","volumeBindingMode":"WaitForFirstConsumer"}
+  STEP: should get the created storage class @ 03/12/25 18:50:34.501
+[API] GET /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.getStorageClass
+  STEP: verify basic properties match @ 03/12/25 18:50:34.506
+  STEP: verify storage class features match @ 03/12/25 18:50:34.506
+  STEP: verify labels match @ 03/12/25 18:50:34.506
+  STEP: verify annotations match @ 03/12/25 18:50:34.506
+  STEP: update storage class e2e-845s9ei7 @ 03/12/25 18:50:34.506
+  STEP: set update properties @ 03/12/25 18:50:34.506
+  STEP: update properties @ 03/12/25 18:50:34.506
+  STEP: update storage class @ 03/12/25 18:50:34.506
+[API] PATCH /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.updateStorageClass
+  {"allowClone":false,"allowSnapshot":false,"allowVolumeExpansion":true,"annotations":{"annotation-created-by":"e2e-test","cloud.kubeblocks.io/storageclass-hostpath":"/mnt/kb_hostpath/test"},"creationTimestamp":"2025-03-12 18:50:34 +0000 UTC","description":"Updated description","displayName":"Updated Storage","enabled":false,"id":"433819604955955362","isDefaultClass":true,"labels":{"label-created-by":"e2e-test"},"name":"e2e-845s9ei7","parameters":{"definition":"backendType: HostDir\nhostDirOptions:\n  path: /mnt/kb_hostpath/test\n","volumeType":"HostPath"},"provisioner":"apelocal.csi.apecloud.com","pvcCount":"","reclaimPolicy":"Delete","type":"","volumeBindingMode":"WaitForFirstConsumer"}
+[API] GET /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.getStorageClass
+  STEP: verify basic properties match @ 03/12/25 18:50:34.533
+  STEP: verify storage class features match @ 03/12/25 18:50:34.533
+  STEP: verify labels match @ 03/12/25 18:50:34.533
+  STEP: verify annotations match @ 03/12/25 18:50:34.533
+  STEP: should delete the storage class @ 03/12/25 18:50:34.533
+[API] DELETE /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.deleteStorageClass
+[API] GET /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.getStorageClass
+• [0.122 seconds]
+------------------------------
+StorageClass basic storage class tests list and find the storage class
+/e2e/test/adminapi/environment/storage_class_test.go:199
+  STEP: list storage provisioners @ 03/12/25 18:50:34.568
+[API] GET /admin/v1/environments/{environmentName}/storageProvisioners storageClass.listStorageProvisioners
+  STEP: should create a storage class successfully @ 03/12/25 18:50:34.587
+[API] DELETE /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.deleteStorageClass
+  STEP: build new storage class e2e-845s9ei7 @ 03/12/25 18:50:34.601
+  STEP: set basic properties @ 03/12/25 18:50:34.601
+  STEP: set storage class e2e-845s9ei7 as the default storage class @ 03/12/25 18:50:34.601
+  STEP: set storage class features @ 03/12/25 18:50:34.601
+  STEP: set labels and annotations @ 03/12/25 18:50:34.601
+  STEP: create storage class @ 03/12/25 18:50:34.601
+[API] POST /admin/v1/environments/{environmentName}/storageClasses storageClass.createStorageClass
+  {"allowClone":false,"allowSnapshot":false,"allowVolumeExpansion":true,"annotations":{"annotation-created-by":"e2e-test","cloud.kubeblocks.io/storageclass-hostpath":"/mnt/kb_hostpath/test"},"creationTimestamp":"2025-03-12 18:50:34 +0000 UTC","description":"Test storage class","displayName":"Test Storage","enabled":true,"id":"433819605157281954","isDefaultClass":false,"labels":{"label-created-by":"e2e-test"},"name":"e2e-845s9ei7","parameters":{"definition":"backendType: HostDir\nhostDirOptions:\n  path: /mnt/kb_hostpath/test\n","volumeType":"HostPath"},"provisioner":"apelocal.csi.apecloud.com","pvcCount":"","reclaimPolicy":"Delete","type":"","volumeBindingMode":"WaitForFirstConsumer"}
+  STEP: should get the created storage class @ 03/12/25 18:50:34.622
+[API] GET /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.getStorageClass
+  STEP: verify basic properties match @ 03/12/25 18:50:34.626
+  STEP: verify storage class features match @ 03/12/25 18:50:34.626
+  STEP: verify labels match @ 03/12/25 18:50:34.626
+  STEP: verify annotations match @ 03/12/25 18:50:34.626
+[API] GET /admin/v1/environments/{environmentName}/storageClasses storageClass.listStorageClasses
+  STEP: verify basic properties match @ 03/12/25 18:50:34.634
+  STEP: verify storage class features match @ 03/12/25 18:50:34.634
+  STEP: verify labels match @ 03/12/25 18:50:34.634
+  STEP: verify annotations match @ 03/12/25 18:50:34.634
+  STEP: should delete the storage class @ 03/12/25 18:50:34.634
+[API] DELETE /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.deleteStorageClass
+[API] GET /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.getStorageClass
+• [0.092 seconds]
+------------------------------
+StorageClass basic storage class tests list pvcs
+/e2e/test/adminapi/environment/storage_class_test.go:206
+  STEP: list storage provisioners @ 03/12/25 18:50:34.66
+[API] GET /admin/v1/environments/{environmentName}/storageProvisioners storageClass.listStorageProvisioners
+  STEP: should create a storage class successfully @ 03/12/25 18:50:34.68
+[API] DELETE /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.deleteStorageClass
+  STEP: build new storage class e2e-845s9ei7 @ 03/12/25 18:50:34.693
+  STEP: set basic properties @ 03/12/25 18:50:34.693
+  STEP: set storage class e2e-845s9ei7 as the default storage class @ 03/12/25 18:50:34.693
+  STEP: set storage class features @ 03/12/25 18:50:34.693
+  STEP: set labels and annotations @ 03/12/25 18:50:34.693
+  STEP: create storage class @ 03/12/25 18:50:34.693
+[API] POST /admin/v1/environments/{environmentName}/storageClasses storageClass.createStorageClass
+  {"allowClone":false,"allowSnapshot":false,"allowVolumeExpansion":true,"annotations":{"annotation-created-by":"e2e-test","cloud.kubeblocks.io/storageclass-hostpath":"/mnt/kb_hostpath/test"},"creationTimestamp":"2025-03-12 18:50:34 +0000 UTC","description":"Test storage class","displayName":"Test Storage","enabled":true,"id":"433819605308276898","isDefaultClass":false,"labels":{"label-created-by":"e2e-test"},"name":"e2e-845s9ei7","parameters":{"definition":"backendType: HostDir\nhostDirOptions:\n  path: /mnt/kb_hostpath/test\n","volumeType":"HostPath"},"provisioner":"apelocal.csi.apecloud.com","pvcCount":"","reclaimPolicy":"Delete","type":"","volumeBindingMode":"WaitForFirstConsumer"}
+  STEP: should get the created storage class @ 03/12/25 18:50:34.714
+[API] GET /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.getStorageClass
+  STEP: verify basic properties match @ 03/12/25 18:50:34.718
+  STEP: verify storage class features match @ 03/12/25 18:50:34.718
+  STEP: verify labels match @ 03/12/25 18:50:34.718
+  STEP: verify annotations match @ 03/12/25 18:50:34.718
+[API] GET /admin/v1/environments/{environmentName}/storageClasses/{storageClassName}/pvcs storageClass.listStorageClassPvcs
+  STEP: should delete the storage class @ 03/12/25 18:50:34.722
+[API] DELETE /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.deleteStorageClass
+[API] GET /admin/v1/environments/{environmentName}/storageClasses/{storageClassName} storageClass.getStorageClass
+• [0.088 seconds]
+------------------------------
+LoadBalancer basic loadbalancer tests should check loadbalancer availability
+/e2e/test/adminapi/environment/lb_test.go:94
+  STEP: checking if environment is on-premise @ 03/12/25 18:50:34.748
+[API] GET /admin/v1/environments/{environmentName} environment.getEnvironment
+  [SKIPPED] in [BeforeEach] - /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:34.793
+S [SKIPPED] [0.045 seconds]
+LoadBalancer [BeforeEach] basic loadbalancer tests should check loadbalancer availability
+  [BeforeEach] /e2e/test/adminapi/environment/lb_test.go:68
+  [It] /e2e/test/adminapi/environment/lb_test.go:94
+
+  [SKIPPED] Test only applies to on-premise environments
+  In [BeforeEach] at: /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:34.793
+------------------------------
+LoadBalancer basic loadbalancer tests should get loadbalancer info
+/e2e/test/adminapi/environment/lb_test.go:101
+  STEP: checking if environment is on-premise @ 03/12/25 18:50:34.793
+[API] GET /admin/v1/environments/{environmentName} environment.getEnvironment
+  [SKIPPED] in [BeforeEach] - /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:34.829
+S [SKIPPED] [0.035 seconds]
+LoadBalancer [BeforeEach] basic loadbalancer tests should get loadbalancer info
+  [BeforeEach] /e2e/test/adminapi/environment/lb_test.go:68
+  [It] /e2e/test/adminapi/environment/lb_test.go:101
+
+  [SKIPPED] Test only applies to on-premise environments
+  In [BeforeEach] at: /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:34.829
+------------------------------
+LoadBalancer basic loadbalancer tests should install and uninstall loadbalancer
+/e2e/test/adminapi/environment/lb_test.go:109
+  STEP: checking if environment is on-premise @ 03/12/25 18:50:34.829
+[API] GET /admin/v1/environments/{environmentName} environment.getEnvironment
+  [SKIPPED] in [BeforeEach] - /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:34.864
+S [SKIPPED] [0.035 seconds]
+LoadBalancer [BeforeEach] basic loadbalancer tests should install and uninstall loadbalancer
+  [BeforeEach] /e2e/test/adminapi/environment/lb_test.go:68
+  [It] /e2e/test/adminapi/environment/lb_test.go:109
+
+  [SKIPPED] Test only applies to on-premise environments
+  In [BeforeEach] at: /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:34.864
+------------------------------
+LoadBalancer basic loadbalancer tests should fail to install unsupported loadbalancer type
+/e2e/test/adminapi/environment/lb_test.go:114
+  STEP: checking if environment is on-premise @ 03/12/25 18:50:34.864
+[API] GET /admin/v1/environments/{environmentName} environment.getEnvironment
+  [SKIPPED] in [BeforeEach] - /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:34.901
+S [SKIPPED] [0.036 seconds]
+LoadBalancer [BeforeEach] basic loadbalancer tests should fail to install unsupported loadbalancer type
+  [BeforeEach] /e2e/test/adminapi/environment/lb_test.go:68
+  [It] /e2e/test/adminapi/environment/lb_test.go:114
+
+  [SKIPPED] Test only applies to on-premise environments
+  In [BeforeEach] at: /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:34.901
+------------------------------
+LoadBalancer basic loadbalancer tests should fail to install loadbalancer twice
+/e2e/test/adminapi/environment/lb_test.go:124
+  STEP: checking if environment is on-premise @ 03/12/25 18:50:34.901
+[API] GET /admin/v1/environments/{environmentName} environment.getEnvironment
+  [SKIPPED] in [BeforeEach] - /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:34.936
+S [SKIPPED] [0.036 seconds]
+LoadBalancer [BeforeEach] basic loadbalancer tests should fail to install loadbalancer twice
+  [BeforeEach] /e2e/test/adminapi/environment/lb_test.go:68
+  [It] /e2e/test/adminapi/environment/lb_test.go:124
+
+  [SKIPPED] Test only applies to on-premise environments
+  In [BeforeEach] at: /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:34.936
+------------------------------
+LoadBalancer vip pool tests should create, list and delete vip pool
+/e2e/test/adminapi/environment/lb_test.go:149
+  STEP: checking if environment is on-premise @ 03/12/25 18:50:34.936
+[API] GET /admin/v1/environments/{environmentName} environment.getEnvironment
+  [SKIPPED] in [BeforeEach] - /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:34.974
+S [SKIPPED] [0.038 seconds]
+LoadBalancer [BeforeEach] vip pool tests should create, list and delete vip pool
+  [BeforeEach] /e2e/test/adminapi/environment/lb_test.go:68
+  [It] /e2e/test/adminapi/environment/lb_test.go:149
+
+  [SKIPPED] Test only applies to on-premise environments
+  In [BeforeEach] at: /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:34.974
+------------------------------
+LoadBalancer vip pool tests should fail to create overlapping vip pools
+/e2e/test/adminapi/environment/lb_test.go:181
+  STEP: checking if environment is on-premise @ 03/12/25 18:50:34.975
+[API] GET /admin/v1/environments/{environmentName} environment.getEnvironment
+  [SKIPPED] in [BeforeEach] - /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:35.015
+S [SKIPPED] [0.041 seconds]
+LoadBalancer [BeforeEach] vip pool tests should fail to create overlapping vip pools
+  [BeforeEach] /e2e/test/adminapi/environment/lb_test.go:68
+  [It] /e2e/test/adminapi/environment/lb_test.go:181
+
+  [SKIPPED] Test only applies to on-premise environments
+  In [BeforeEach] at: /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:35.015
+------------------------------
+LoadBalancer vip pool tests should fail to create vip pool with invalid IP range
+/e2e/test/adminapi/environment/lb_test.go:200
+  STEP: checking if environment is on-premise @ 03/12/25 18:50:35.015
+[API] GET /admin/v1/environments/{environmentName} environment.getEnvironment
+  [SKIPPED] in [BeforeEach] - /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:35.051
+S [SKIPPED] [0.036 seconds]
+LoadBalancer [BeforeEach] vip pool tests should fail to create vip pool with invalid IP range
+  [BeforeEach] /e2e/test/adminapi/environment/lb_test.go:68
+  [It] /e2e/test/adminapi/environment/lb_test.go:200
+
+  [SKIPPED] Test only applies to on-premise environments
+  In [BeforeEach] at: /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:35.051
+------------------------------
+LoadBalancer vip pool tests should fail to delete non-existent vip pool
+/e2e/test/adminapi/environment/lb_test.go:209
+  STEP: checking if environment is on-premise @ 03/12/25 18:50:35.051
+[API] GET /admin/v1/environments/{environmentName} environment.getEnvironment
+  [SKIPPED] in [BeforeEach] - /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:35.087
+S [SKIPPED] [0.035 seconds]
+LoadBalancer [BeforeEach] vip pool tests should fail to delete non-existent vip pool
+  [BeforeEach] /e2e/test/adminapi/environment/lb_test.go:68
+  [It] /e2e/test/adminapi/environment/lb_test.go:209
+
+  [SKIPPED] Test only applies to on-premise environments
+  In [BeforeEach] at: /e2e/test/adminapi/environment/lb_test.go:79 @ 03/12/25 18:50:35.087
+------------------------------
+[AfterSuite]
+/e2e/test/adminapi/environment/suite_test.go:34
+[AfterSuite] PASSED [0.000 seconds]
+------------------------------
+
+Ran 22 of 31 Specs in 1.217 seconds
+SUCCESS! -- 22 Passed | 0 Failed | 0 Pending | 9 Skipped
+PASS
+Running Suite: KubeBlocks Cloud Event API Test Suite - /e2e/test/adminapi/event
+===============================================================================
+Random Seed: 1741804876
+
+Will run 3 of 3 specs
+------------------------------
+[BeforeSuite]
+/e2e/test/adminapi/event/suite_test.go:30
+[BeforeSuite] PASSED [0.000 seconds]
+------------------------------
+Event Admin API should query events successfully
+/e2e/test/adminapi/event/event_test.go:40
+[API] GET /api/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] GET /api/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] GET /api/v1/environments/{environmentName}/engines/{engineName}/serviceVersion engine.ListServiceVersion
+
+  Engine: mysql
+  Mode: standalone
+  Version: 8.0.39
+
+  Components:
+    - mysql:
+        Replicas: 1-1 (default: 1)
+        Storages:
+          - data: 20-0Gi (default: 20Gi)
+
+  Engine Features:
+  ================
+    ✓ account:
+    ✓ database:
+    ✓ dms:
+    ✓ bench:
+    ✓ backup:
+    ✓ metrics:
+    ✗ license:
+    ✓ alert:
+
+  Component Features:
+  ==================
+  mysql:
+    ✓ dashboard
+    ✓ log
+    ✓ parameter
+    ✗ promote: replicas range is 1-1
+    ✓ rebuildInstance
+    ✓ restart
+    ✓ start
+    ✓ stop
+    ✓ upgrade: confirm by upgradeable versions
+    ✓ volumeExpansion
+    ✓ vscale
+  STEP: Query events with time range @ 03/12/25 18:50:35.136
+[API] GET /admin/v1/events event.listEvents
+[API] GET /admin/v1/events event.listEvents
+  STEP: Query events with optional parameters @ 03/12/25 18:50:35.158
+[API] GET /admin/v1/events event.listEvents
+  STEP: Query specific event detail @ 03/12/25 18:50:35.174
+[API] GET /admin/v1/events/{eventID} event.getEvent
+  STEP: Query events with organization filter @ 03/12/25 18:50:35.176
+[API] GET /admin/v1/events event.listEvents
+  STEP: Query events with resource type filter @ 03/12/25 18:50:35.19
+[API] GET /admin/v1/events event.listEvents
+• [0.093 seconds]
+------------------------------
+Event Admin API should handle error cases and boundary conditions
+/e2e/test/adminapi/event/event_test.go:97
+  STEP: Query events with invalid time range (start time > end time) @ 03/12/25 18:50:35.195
+  STEP: Query events with default pagination parameters @ 03/12/25 18:50:35.195
+[API] GET /admin/v1/events event.listEvents
+  STEP: Query events with non-existent organization @ 03/12/25 18:50:35.2
+[API] GET /admin/v1/events event.listEvents
+  STEP: Query event detail with invalid event ID @ 03/12/25 18:50:35.206
+[API] GET /admin/v1/events/{eventID} event.getEvent
+• [0.013 seconds]
+------------------------------
+Event Admin API should verify event generation for cluster creation
+/e2e/test/adminapi/event/event_test.go:130
+  STEP: Create a test cluster @ 03/12/25 18:50:35.209
+  STEP: build mysql cluster @ 03/12/25 18:50:35.209
+  STEP: set mode standalone @ 03/12/25 18:50:35.209
+  STEP: set version 8.0.39 @ 03/12/25 18:50:35.209
+  STEP: set extra according to env @ 03/12/25 18:50:35.209
+  STEP: build components @ 03/12/25 18:50:35.209
+[API] GET /api/v1/classes class.listClasses
+  STEP: set cluster backup @ 03/12/25 18:50:35.227
+  STEP: set cluster availability zone @ 03/12/25 18:50:35.227
+  STEP: get test environment info @ 03/12/25 18:50:35.227
+[API] GET /api/v1/organizations/{orgName}/environments/{environmentName} environment.getEnvironment
+  STEP: set cluster termination policy to delete @ 03/12/25 18:50:35.23
+  STEP: build cluster request body @ 03/12/25 18:50:35.23
+  {"components":[{"classCode":"mysql.standalone.mysql.1c1g.general","classSeries":"general","component":"mysql","replicas":1,"volumes":[{"name":"data","storage":20}]}],"engine":"mysql","environmentName":"cloud-dev","mode":"standalone","name":"e2e-0rpuq1y5","orgName":"e2e-test","project":"kubeblocks-cloud-ns","singleZone":true,"terminationPolicy":"WipeOut","version":"8.0.39"}
+  STEP: create cluster @ 03/12/25 18:50:35.23
+[API] POST /api/v1/organizations/{orgName}/clusters cluster.createCluster
+  STEP: wait cluster running @ 03/12/25 18:50:35.413
+  STEP: waiting for cluster to reach status: Running @ 03/12/25 18:50:35.413
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-0rpuq1y5 status: Pending
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-0rpuq1y5 status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-0rpuq1y5 status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-0rpuq1y5 status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-0rpuq1y5 status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-0rpuq1y5 status: Running
+  STEP: get cluster again @ 03/12/25 18:51:25.552
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  {"availabilityZones":["cn-zhangjiakou-a"],"backup":{"retentionPolicy":"LastOne"},"cloudProvider":"aliyun","cloudRegion":"cn-zhangjiakou","clusterType":"Normal","codeShort":"1c1g","components":[{"classCode":"mysql.standalone.mysql.1c1g.general","classSeries":"general","codeShort":"1c1g","component":"mysql","cpu":1,"memory":1,"replicas":1,"storageClass":"ape-local-hostpath-sc","volumes":[{"name":"data","storage":20}]}],"createdAt":"2025-03-12T18:50:35.411Z","engine":"mysql","environmentId":"8c26c3c0-0f52-4127-8396-24a86ac4331f","environmentName":"cloud-dev","environmentType":"public","hash":"kubeblocks-cloud-ns/e2e-0-754645c67d","id":"433819606482682018","mode":"standalone","name":"e2e-0rpuq1y5","orgName":"e2e-test","parentId":0,"podAntiAffinityEnabled":true,"project":"kubeblocks-cloud-ns","singleZone":true,"status":"Running","terminationPolicy":"WipeOut","tlsEnabled":false,"updatedAt":"2025-03-12T18:51:19.765Z","version":"8.0.39"}
+  STEP: Query events after cluster creation @ 03/12/25 18:51:25.568
+[API] GET /admin/v1/events event.listEvents
+  STEP: deleting cluster e2e-0rpuq1y5 @ 03/12/25 18:51:25.571
+[API] DELETE /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.deleteCluster
+  STEP: verifying cluster is deleted @ 03/12/25 18:51:25.67
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+• [50.463 seconds]
+------------------------------
+[AfterSuite]
+/e2e/test/adminapi/event/suite_test.go:34
+[AfterSuite] PASSED [0.000 seconds]
+------------------------------
+
+Ran 3 of 3 Specs in 50.570 seconds
+SUCCESS! -- 3 Passed | 0 Failed | 0 Pending | 0 Skipped
+PASS
+Running Suite: KubeBlocks Cloud image registry API Test Suite - /e2e/test/adminapi/imageregistry
+================================================================================================
+Random Seed: 1741804876
+
+Will run 8 of 8 specs
+------------------------------
+[BeforeSuite]
+/e2e/test/adminapi/imageregistry/suite_test.go:30
+[BeforeSuite] PASSED [0.000 seconds]
+------------------------------
+ImageRegistry Tests imageRegistry create imageRegistry [imageregistry]
+/e2e/test/adminapi/imageregistry/imageregistry_test.go:99
+  STEP: create image registry @ 03/12/25 18:51:25.687
+[API] POST /admin/v1/imageRegistries imageRegistry.createImageRegistry
+[API] POST /admin/v1/imageRegistries imageRegistry.createImageRegistry
+• [0.007 seconds]
+------------------------------
+ImageRegistry Tests imageRegistry get the imageRegistry by name [imageregistry]
+/e2e/test/adminapi/imageregistry/imageregistry_test.go:105
+  STEP: get image registry @ 03/12/25 18:51:25.694
+[API] GET /admin/v1/imageRegistries/{imageRegistryName} imageRegistry.getImageRegistry
+• [0.002 seconds]
+------------------------------
+ImageRegistry Tests imageRegistry update the imageRegistry by name [imageregistry]
+/e2e/test/adminapi/imageregistry/imageregistry_test.go:114
+  STEP: update image registry @ 03/12/25 18:51:25.697
+[API] PATCH /admin/v1/imageRegistries/{imageRegistryName} imageRegistry.patchImageRegistry
+• [0.003 seconds]
+------------------------------
+ImageRegistry Tests imageRegistry update a fake imageRegistry [imageregistry]
+/e2e/test/adminapi/imageregistry/imageregistry_test.go:126
+  STEP: update image registry @ 03/12/25 18:51:25.699
+[API] PATCH /admin/v1/imageRegistries/{imageRegistryName} imageRegistry.patchImageRegistry
+• [0.002 seconds]
+------------------------------
+ImageRegistry Tests imageRegistry update a invalid imageRegistry [imageregistry]
+/e2e/test/adminapi/imageregistry/imageregistry_test.go:132
+  STEP: update image registry @ 03/12/25 18:51:25.701
+[API] PATCH /admin/v1/imageRegistries/{imageRegistryName} imageRegistry.patchImageRegistry
+• [0.001 seconds]
+------------------------------
+ImageRegistry Tests imageRegistry delete the imageRegistry by name [imageregistry]
+/e2e/test/adminapi/imageregistry/imageregistry_test.go:138
+  STEP: delete image registry @ 03/12/25 18:51:25.702
+[API] DELETE /admin/v1/imageRegistries/{imageRegistryName} imageRegistry.deleteImageRegistry
+• [0.003 seconds]
+------------------------------
+ImageRegistry Tests imageRegistry delete a fake imageRegistry [imageregistry]
+/e2e/test/adminapi/imageregistry/imageregistry_test.go:143
+  STEP: delete image registry @ 03/12/25 18:51:25.705
+[API] DELETE /admin/v1/imageRegistries/{imageRegistryName} imageRegistry.deleteImageRegistry
+• [0.002 seconds]
+------------------------------
+ImageRegistry Tests imageRegistries list imageRegistries [imageregistry]
+/e2e/test/adminapi/imageregistry/imageregistry_test.go:150
+  STEP: list image registry @ 03/12/25 18:51:25.706
+[API] GET /admin/v1/imageRegistries imageRegistry.listImageRegistries
+• [0.002 seconds]
+------------------------------
+[AfterSuite]
+/e2e/test/adminapi/imageregistry/suite_test.go:34
+[AfterSuite] PASSED [0.000 seconds]
+------------------------------
+
+Ran 8 of 8 Specs in 0.021 seconds
+SUCCESS! -- 8 Passed | 0 Failed | 0 Pending | 0 Skipped
+PASS
+Running Suite: KubeBlocks Cloud License API Test Suite - /e2e/test/adminapi/license
+===================================================================================
+Random Seed: 1741804876
+
+Will run 4 of 4 specs
+------------------------------
+[BeforeSuite]
+/e2e/test/adminapi/license/suite_test.go:30
+[BeforeSuite] PASSED [0.000 seconds]
+------------------------------
+License API Tests Basic License Operations should get license information successfully
+/e2e/test/adminapi/license/license_test.go:60
+[API] GET /admin/v1/license license.getLicense
+[API] GET /admin/v1/license license.getLicense
+[API] GET /admin/v1/license license.getLicense
+[API] POST /admin/v1/license license.updateLicense
+• [0.010 seconds]
+------------------------------
+License API Tests Basic License Operations should update license with valid key
+/e2e/test/adminapi/license/license_test.go:67
+[API] GET /admin/v1/license license.getLicense
+[API] POST /admin/v1/license license.updateLicense
+[API] POST /admin/v1/license license.updateLicense
+• [0.005 seconds]
+------------------------------
+License API Tests Basic License Operations should fail to update with invalid license key
+/e2e/test/adminapi/license/license_test.go:81
+[API] GET /admin/v1/license license.getLicense
+[API] POST /admin/v1/license license.updateLicense
+[API] POST /admin/v1/license license.updateLicense
+• [0.005 seconds]
+------------------------------
+License API Tests Basic License Operations should reject empty license key
+/e2e/test/adminapi/license/license_test.go:91
+[API] GET /admin/v1/license license.getLicense
+[API] POST /admin/v1/license license.updateLicense
+[API] POST /admin/v1/license license.updateLicense
+• [0.005 seconds]
+------------------------------
+[AfterSuite]
+/e2e/test/adminapi/license/suite_test.go:34
+[AfterSuite] PASSED [0.000 seconds]
+------------------------------
+
+Ran 4 of 4 Specs in 0.026 seconds
+SUCCESS! -- 4 Passed | 0 Failed | 0 Pending | 0 Skipped
+PASS
+Running Suite: KubeBlocks Cloud meta database API Test Suite - /e2e/test/adminapi/metadb
+========================================================================================
+Random Seed: 1741804876
+
+Will run 5 of 5 specs
+------------------------------
+[BeforeSuite]
+/e2e/test/adminapi/metadb/suite_test.go:30
+[BeforeSuite] PASSED [0.000 seconds]
+------------------------------
+Metadb API tests Get Summary should return the current metadb summary
+/e2e/test/adminapi/metadb/metadb_test.go:14
+[API] GET /admin/v1/metadb/summary metadb.getPostgresClusterInfo
+[API] GET /admin/v1/metadb/summary metadb.getPostgresClusterInfo
+• [0.024 seconds]
+------------------------------
+Metadb API tests List Backups should list the backups successfully
+/e2e/test/adminapi/metadb/metadb_test.go:23
+[API] GET /admin/v1/metadb/backupConfig metadb.metadbBackupGetConfig
+• [0.276 seconds]
+------------------------------
+Metadb API tests Get Backup Config should return the backup config successfully
+/e2e/test/adminapi/metadb/metadb_test.go:31
+[API] GET /admin/v1/metadb/backupConfig metadb.metadbBackupGetConfig
+• [0.022 seconds]
+------------------------------
+Metadb API tests List Instances should list the instances successfully
+/e2e/test/adminapi/metadb/metadb_test.go:39
+[API] GET /admin/v1/metadb/instances metadb.metadbListInstances
+• [0.029 seconds]
+------------------------------
+Metadb API tests Backups create backup and delete it successfully
+/e2e/test/adminapi/metadb/metadb_test.go:48
+[API] POST /admin/v1/metadb/backups metadb.metadbBackup
+[API] DELETE /admin/v1/metadb/backups metadb.deleteMetadbBackups
+• [5.897 seconds]
+------------------------------
+[AfterSuite]
+/e2e/test/adminapi/metadb/suite_test.go:34
+[AfterSuite] PASSED [0.000 seconds]
+------------------------------
+
+Ran 5 of 5 Specs in 6.249 seconds
+SUCCESS! -- 5 Passed | 0 Failed | 0 Pending | 0 Skipped
+PASS
+Running Suite: Monitor Data Sink Admin API Test Suite - /e2e/test/adminapi/monitordatasink
+==========================================================================================
+Random Seed: 1741804876
+
+Will run 1 of 1 specs
+------------------------------
+Monitor Data Sink Admin API should CRUD monitor data sink successfully
+/e2e/test/adminapi/monitordatasink/monitordatasink_test.go:50
+[API] GET /api/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] GET /api/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] GET /api/v1/environments/{environmentName}/engines/{engineName}/serviceVersion engine.ListServiceVersion
+
+  Engine: victoria-metrics
+  Mode: default
+  Version: 1.0.0
+
+  Components:
+    - vm-storage:
+        Replicas: 1-5 (default: 1)
+        Storages:
+          - data: 20-0Gi (default: 20Gi)
+    - vm-select:
+        Replicas: 1-5 (default: 1)
+    - vm-insert:
+        Replicas: 1-5 (default: 1)
+
+  Engine Features:
+  ================
+    ✗ account:
+    ✓ database:
+    ✗ dms:
+    ✗ bench:
+    ✗ backup:
+    ✗ metrics:
+    ✗ license:
+    ✓ alert:
+
+  Component Features:
+  ==================
+  victoriametrics:
+    ✓ dashboard
+
+  vm-insert:
+    ✓ hscale
+    ✓ log
+    ✓ restart
+    ✓ start
+    ✓ stop
+    ✓ upgrade: confirm by upgradeable versions
+    ✓ vscale
+
+  vm-select:
+    ✓ hscale
+    ✓ log
+    ✓ restart
+    ✓ start
+    ✓ stop
+    ✓ upgrade: confirm by upgradeable versions
+    ✓ vscale
+
+  vm-storage:
+    ✓ hscale
+    ✓ log
+    ✓ promote
+    ✓ restart
+    ✓ start
+    ✓ stop
+    ✓ upgrade: confirm by upgradeable versions
+    ✓ volumeExpansion
+    ✓ vscale
+[API] GET /api/v1/engineOptions/{engineName} engineOption.getEngineOption
+[API] GET /api/v1/environments/{environmentName}/engines/{engineName}/serviceVersion engine.ListServiceVersion
+
+  Engine: victoria-metrics
+  Mode: default
+  Version: 1.0.0
+
+  Components:
+    - vm-storage:
+        Replicas: 1-5 (default: 1)
+        Storages:
+          - data: 20-0Gi (default: 20Gi)
+    - vm-select:
+        Replicas: 1-5 (default: 1)
+    - vm-insert:
+        Replicas: 1-5 (default: 1)
+
+  Engine Features:
+  ================
+    ✗ account:
+    ✓ database:
+    ✗ dms:
+    ✗ bench:
+    ✗ backup:
+    ✗ metrics:
+    ✗ license:
+    ✓ alert:
+
+  Component Features:
+  ==================
+  victoriametrics:
+    ✓ dashboard
+
+  vm-insert:
+    ✓ hscale
+    ✓ log
+    ✓ restart
+    ✓ start
+    ✓ stop
+    ✓ upgrade: confirm by upgradeable versions
+    ✓ vscale
+
+  vm-select:
+    ✓ hscale
+    ✓ log
+    ✓ restart
+    ✓ start
+    ✓ stop
+    ✓ upgrade: confirm by upgradeable versions
+    ✓ vscale
+
+  vm-storage:
+    ✓ hscale
+    ✓ log
+    ✓ promote
+    ✓ restart
+    ✓ start
+    ✓ stop
+    ✓ upgrade: confirm by upgradeable versions
+    ✓ volumeExpansion
+    ✓ vscale
+  STEP: Create first VictoriaMetrics cluster and get exporter URL @ 03/12/25 18:51:32.094
+  STEP: build victoria-metrics cluster @ 03/12/25 18:51:32.094
+  STEP: set mode default @ 03/12/25 18:51:32.094
+  STEP: set version 1.0.0 @ 03/12/25 18:51:32.094
+  STEP: set extra according to env @ 03/12/25 18:51:32.094
+  STEP: build components @ 03/12/25 18:51:32.094
+[API] GET /api/v1/classes class.listClasses
+[API] GET /api/v1/classes class.listClasses
+[API] GET /api/v1/classes class.listClasses
+  STEP: set cluster backup @ 03/12/25 18:51:32.147
+  STEP: set cluster availability zone @ 03/12/25 18:51:32.147
+  STEP: get test environment info @ 03/12/25 18:51:32.147
+[API] GET /api/v1/organizations/{orgName}/environments/{environmentName} environment.getEnvironment
+  STEP: determine the availability zone of the environment @ 03/12/25 18:51:32.149
+  STEP: set cluster termination policy to delete @ 03/12/25 18:51:32.149
+  STEP: build cluster request body @ 03/12/25 18:51:32.149
+  {"components":[{"classCode":"victoria-metrics.default.vm-storage.1c1g.general","classSeries":"general","component":"vm-storage","replicas":1,"volumes":[{"name":"data","storage":20}]},{"classCode":"victoria-metrics.default.vm-select.1c2g.general","classSeries":"general","component":"vm-select","replicas":1},{"classCode":"victoria-metrics.default.vm-insert.1c1g.general","classSeries":"general","component":"vm-insert","replicas":1}],"engine":"victoria-metrics","environmentName":"cloud-dev","mode":"default","name":"e2e-rx1k5vmh","orgName":"e2e-test","project":"kubeblocks-cloud-ns","singleZone":true,"terminationPolicy":"WipeOut","version":"1.0.0"}
+  STEP: create cluster @ 03/12/25 18:51:32.149
+[API] POST /api/v1/organizations/{orgName}/clusters cluster.createCluster
+  STEP: wait cluster running @ 03/12/25 18:51:32.333
+  STEP: waiting for cluster to reach status: Running @ 03/12/25 18:51:32.333
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-rx1k5vmh status: Pending
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-rx1k5vmh status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-rx1k5vmh status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-rx1k5vmh status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-rx1k5vmh status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-rx1k5vmh status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-rx1k5vmh status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-rx1k5vmh status: Updating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-rx1k5vmh status: Updating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-rx1k5vmh status: Running
+  STEP: get cluster again @ 03/12/25 18:53:02.584
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  {"availabilityZones":["cn-zhangjiakou-a"],"backup":{"retentionPolicy":"LastOne"},"cloudProvider":"aliyun","cloudRegion":"cn-zhangjiakou","clusterType":"Normal","codeShort":"1c1g","components":[{"classCode":"victoria-metrics.default.vm-storage.1c1g.general","classSeries":"general","codeShort":"1c1g","component":"vm-storage","cpu":1,"memory":1.001,"replicas":1,"storageClass":"ape-local-hostpath-sc","volumes":[{"name":"data","storage":20}]},{"classCode":"victoria-metrics.default.vm-select.1c2g.general","classSeries":"general","codeShort":"1c2g","component":"vm-select","cpu":1,"memory":2,"replicas":1,"storageClass":"ape-local-hostpath-sc"},{"classCode":"victoria-metrics.default.vm-insert.1c1g.general","classSeries":"general","codeShort":"1c1g","component":"vm-insert","cpu":1,"memory":1,"replicas":1,"storageClass":"ape-local-hostpath-sc"}],"createdAt":"2025-03-12T18:51:32.331Z","engine":"victoria-metrics","environmentId":"8c26c3c0-0f52-4127-8396-24a86ac4331f","environmentName":"cloud-dev","environmentType":"public","hash":"kubeblocks-cloud-ns/e2e-r-5744897757","id":"433819701978595490","mode":"default","name":"e2e-rx1k5vmh","orgName":"e2e-test","parentId":0,"podAntiAffinityEnabled":true,"project":"kubeblocks-cloud-ns","singleZone":true,"status":"Running","terminationPolicy":"WipeOut","tlsEnabled":false,"updatedAt":"2025-03-12T18:52:55.717Z","version":"1.0.0"}
+[API] POST /admin/v1/organizations/{orgName}/clusters/{clusterName}/expose opsrequest.exposeCluster
+[API] POST /admin/v1/organizations/{orgName}/clusters/{clusterName}/expose opsrequest.exposeCluster
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName}/endpoints cluster.listEndpoints
+  Endpoints: {Items:[] UnparsedObject:map[] AdditionalProperties:map[]}
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName}/endpoints cluster.listEndpoints
+  Error getting endpoints: required field hosts missing
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName}/endpoints cluster.listEndpoints
+  Endpoints: {Items:[{Title:VMInsert HTTP Component:vm-insert Hosts:[39.99.137.59] Port:8480 Type:LoadBalancer NetworkType:Internet ServiceName:e2e-r-5744897757-vminsert-internet PortName:http Instances:[e2e-r-5744897757-vminsert-0] Mutable:true UnparsedObject:map[] AdditionalProperties:map[]}] UnparsedObject:map[] AdditionalProperties:map[]}
+  Found endpoint - ServiceName: e2e-r-5744897757-vminsert-internet, Port: 8480, Hosts: [39.99.137.59]
+  STEP: Create monitor data sink @ 03/12/25 18:53:23.106
+[API] POST /admin/v1/monitorDataSinks monitorDataSink.createMonitorDataSink
+  STEP: List monitor data sink @ 03/12/25 18:53:23.141
+[API] GET /admin/v1/monitorDataSinks/environments/{environmentName} monitorDataSink.listMonitorDataSinks
+  STEP: Create second VictoriaMetrics cluster and get new exporter URL @ 03/12/25 18:53:23.145
+  STEP: build victoria-metrics cluster @ 03/12/25 18:53:23.145
+  STEP: set mode default @ 03/12/25 18:53:23.145
+  STEP: set version 1.0.0 @ 03/12/25 18:53:23.145
+  STEP: set extra according to env @ 03/12/25 18:53:23.145
+  STEP: build components @ 03/12/25 18:53:23.145
+[API] GET /api/v1/classes class.listClasses
+[API] GET /api/v1/classes class.listClasses
+[API] GET /api/v1/classes class.listClasses
+  STEP: set cluster backup @ 03/12/25 18:53:23.198
+  STEP: set cluster availability zone @ 03/12/25 18:53:23.198
+  STEP: get test environment info @ 03/12/25 18:53:23.198
+[API] GET /api/v1/organizations/{orgName}/environments/{environmentName} environment.getEnvironment
+  STEP: determine the availability zone of the environment @ 03/12/25 18:53:23.2
+  STEP: set cluster termination policy to delete @ 03/12/25 18:53:23.2
+  STEP: build cluster request body @ 03/12/25 18:53:23.2
+  {"components":[{"classCode":"victoria-metrics.default.vm-storage.1c1g.general","classSeries":"general","component":"vm-storage","replicas":1,"volumes":[{"name":"data","storage":20}]},{"classCode":"victoria-metrics.default.vm-select.1c2g.general","classSeries":"general","component":"vm-select","replicas":1},{"classCode":"victoria-metrics.default.vm-insert.1c1g.general","classSeries":"general","component":"vm-insert","replicas":1}],"engine":"victoria-metrics","environmentName":"cloud-dev","mode":"default","name":"e2e-6fv8v3ro","orgName":"e2e-test","project":"kubeblocks-cloud-ns","singleZone":true,"terminationPolicy":"WipeOut","version":"1.0.0"}
+  STEP: create cluster @ 03/12/25 18:53:23.2
+[API] POST /api/v1/organizations/{orgName}/clusters cluster.createCluster
+  STEP: wait cluster running @ 03/12/25 18:53:23.388
+  STEP: waiting for cluster to reach status: Running @ 03/12/25 18:53:23.388
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-6fv8v3ro status: Pending
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-6fv8v3ro status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-6fv8v3ro status is nil, waiting for the status to be updated
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-6fv8v3ro status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-6fv8v3ro status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-6fv8v3ro status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-6fv8v3ro status: Creating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+E0312 18:54:33.570938    9731 utils.go:172] Failed to get cluster: http: read on closed response body, retrying...
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-6fv8v3ro status: Updating
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  cluster e2e-6fv8v3ro status: Running
+  STEP: get cluster again @ 03/12/25 18:54:53.652
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  {"availabilityZones":["cn-zhangjiakou-a"],"backup":{"retentionPolicy":"LastOne"},"cloudProvider":"aliyun","cloudRegion":"cn-zhangjiakou","clusterType":"Normal","codeShort":"1c1g","components":[{"classCode":"victoria-metrics.default.vm-storage.1c1g.general","classSeries":"general","codeShort":"1c1g","component":"vm-storage","cpu":1,"memory":1.001,"replicas":1,"storageClass":"ape-local-hostpath-sc","volumes":[{"name":"data","storage":20}]},{"classCode":"victoria-metrics.default.vm-select.1c2g.general","classSeries":"general","codeShort":"1c2g","component":"vm-select","cpu":1,"memory":2,"replicas":1,"storageClass":"ape-local-hostpath-sc"},{"classCode":"victoria-metrics.default.vm-insert.1c1g.general","classSeries":"general","codeShort":"1c1g","component":"vm-insert","cpu":1,"memory":1,"replicas":1,"storageClass":"ape-local-hostpath-sc"}],"createdAt":"2025-03-12T18:53:23.385Z","engine":"victoria-metrics","environmentId":"8c26c3c0-0f52-4127-8396-24a86ac4331f","environmentName":"cloud-dev","environmentType":"public","hash":"kubeblocks-cloud-ns/e2e-6-856d7d6c8c","id":"433819888289579170","mode":"default","name":"e2e-6fv8v3ro","orgName":"e2e-test","parentId":0,"podAntiAffinityEnabled":true,"project":"kubeblocks-cloud-ns","singleZone":true,"status":"Running","terminationPolicy":"WipeOut","tlsEnabled":false,"updatedAt":"2025-03-12T18:54:46.516Z","version":"1.0.0"}
+[API] POST /admin/v1/organizations/{orgName}/clusters/{clusterName}/expose opsrequest.exposeCluster
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName}/endpoints cluster.listEndpoints
+  Endpoints: {Items:[] UnparsedObject:map[] AdditionalProperties:map[]}
+[API] GET /admin/v1/organizations/{orgName}/clusters/{clusterName}/endpoints cluster.listEndpoints
+  Endpoints: {Items:[{Title:VMInsert HTTP Component:vm-insert Hosts:[39.100.66.131] Port:8480 Type:LoadBalancer NetworkType:Internet ServiceName:e2e-6-856d7d6c8c-vminsert-internet PortName:http Instances:[e2e-6-856d7d6c8c-vminsert-0] Mutable:true UnparsedObject:map[] AdditionalProperties:map[]}] UnparsedObject:map[] AdditionalProperties:map[]}
+  Found endpoint - ServiceName: e2e-6-856d7d6c8c-vminsert-internet, Port: 8480, Hosts: [39.100.66.131]
+  STEP: Update monitor data sink with new VM cluster URL @ 03/12/25 18:55:04.017
+[API] PATCH /admin/v1/monitorDataSinks/{monitorDataSinkID} monitorDataSink.patchMonitorDataSink
+  STEP: Delete monitor data sink @ 03/12/25 18:55:04.084
+[API] DELETE /admin/v1/monitorDataSinks/{monitorDataSinkID} monitorDataSink.deleteMonitorDataSink
+[API] GET /admin/v1/monitorDataSinks/environments/{environmentName} monitorDataSink.listMonitorDataSinks
+  STEP: deleting cluster e2e-rx1k5vmh @ 03/12/25 18:55:04.123
+[API] DELETE /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.deleteCluster
+  STEP: verifying cluster is deleted @ 03/12/25 18:55:04.233
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+  STEP: deleting cluster e2e-6fv8v3ro @ 03/12/25 18:55:04.235
+[API] DELETE /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.deleteCluster
+  STEP: verifying cluster is deleted @ 03/12/25 18:55:04.348
+[API] GET /api/v1/organizations/{orgName}/clusters/{clusterName} cluster.getCluster
+• [212.311 seconds]
+------------------------------
+
+Ran 1 of 1 Specs in 212.311 seconds
+SUCCESS! -- 1 Passed | 0 Failed | 0 Pending | 0 Skipped
+PASS
+Running Suite: KubeBlocks Cloud Parameter Template API Test Suite - /e2e/test/adminapi/parametertemplate
+========================================================================================================
+Random Seed: 1741804876
+
+Will run 4 of 4 specs
+------------------------------
+[BeforeSuite]
+/e2e/test/adminapi/parametertemplate/suite_test.go:30
+[BeforeSuite] PASSED [0.000 seconds]
+------------------------------
+The Parameter Template Admin API CRUD Operations should list, read, update templates
+/e2e/test/adminapi/parametertemplate/parameter_template_test.go:57
+[API] POST /admin/v1/parameterTemplates parameterTemplate.createParameterTemplate
+[API] POST /admin/v1/parameterTemplates parameterTemplate.createParameterTemplate
+[API] GET /admin/v1/parameterTemplates parameterTemplate.listParameterTemplates
+[API] GET /admin/v1/parameterTemplate/{parameterTemplateName} parameterTemplate.readParameterTemplate
+  STEP: Updating parameter secure_file_priv with value platform specific @ 03/12/25 18:55:04.407
+[API] PATCH /admin/v1/parameterTemplate/{parameterTemplateName} parameterTemplate.patchParameterTemplate
+[API] GET /admin/v1/parameterTemplate/{parameterTemplateName} parameterTemplate.readParameterTemplate
+[API] DELETE /admin/v1/parameterTemplate/{parameterTemplateName} parameterTemplate.deleteParameterTemplate
+• [0.092 seconds]
+------------------------------
+The Parameter Template Admin API CRUD Operations should update parameter name
+/e2e/test/adminapi/parametertemplate/parameter_template_test.go:121
+[API] POST /admin/v1/parameterTemplates parameterTemplate.createParameterTemplate
+[API] PATCH /admin/v1/parameterTemplate/{parameterTemplateName} parameterTemplate.patchParameterTemplate
+[API] PATCH /admin/v1/parameterTemplate/{parameterTemplateName} parameterTemplate.patchParameterTemplate
+[API] DELETE /admin/v1/parameterTemplate/{parameterTemplateName} parameterTemplate.deleteParameterTemplate
+• [0.023 seconds]
+------------------------------
+The Parameter Template Admin API Error Handling should handle non-existent templates
+/e2e/test/adminapi/parametertemplate/parameter_template_test.go:140
+[API] POST /admin/v1/parameterTemplates parameterTemplate.createParameterTemplate
+[API] GET /admin/v1/parameterTemplate/{parameterTemplateName} parameterTemplate.readParameterTemplate
+[API] PATCH /admin/v1/parameterTemplate/{parameterTemplateName} parameterTemplate.patchParameterTemplate
+[API] POST /admin/v1/parameterTemplates parameterTemplate.createParameterTemplate
+[API] DELETE /admin/v1/parameterTemplate/{parameterTemplateName} parameterTemplate.deleteParameterTemplate
+[API] DELETE /admin/v1/parameterTemplate/{parameterTemplateName} parameterTemplate.deleteParameterTemplate
+• [0.014 seconds]
+------------------------------
+The Parameter Template Admin API Error Handling should handle invalid parameters
+/e2e/test/adminapi/parametertemplate/parameter_template_test.go:172
+[API] POST /admin/v1/parameterTemplates parameterTemplate.createParameterTemplate
+[API] GET /admin/v1/parameterTemplates parameterTemplate.listParameterTemplates
+[API] PATCH /admin/v1/parameterTemplate/{parameterTemplateName} parameterTemplate.patchParameterTemplate
+[API] DELETE /admin/v1/parameterTemplate/{parameterTemplateName} parameterTemplate.deleteParameterTemplate
+[API] POST /admin/v1/parameterTemplates parameterTemplate.createParameterTemplate
+[API] DELETE /admin/v1/parameterTemplate/{parameterTemplateName} parameterTemplate.deleteParameterTemplate
+• [0.012 seconds]
+------------------------------
+[AfterSuite]
+/e2e/test/adminapi/parametertemplate/suite_test.go:34
+[AfterSuite] PASSED [0.000 seconds]
+------------------------------
+
+Ran 4 of 4 Specs in 0.141 seconds
+SUCCESS! -- 4 Passed | 0 Failed | 0 Pending | 0 Skipped
+PASS
+Running Suite: KubeBlocks Cloud Platform Setting API Test Suite - /e2e/test/adminapi/platform
+=============================================================================================
+Random Seed: 1741804876
+
+Will run 10 of 10 specs
+------------------------------
+[BeforeSuite]
+/e2e/test/adminapi/platform/suite_test.go:30
+[BeforeSuite] PASSED [0.000 seconds]
+------------------------------
+Alert SMTP Config API configure SMTP server should configure SMTP server successfully
+/e2e/test/adminapi/platform/alert_smtp_config_test.go:46
+[API] GET /admin/v1/alertSMTPConfig alertSMTPConfig.getAlertSMTPConfig
+[API] GET /admin/v1/alertSMTPConfig alertSMTPConfig.getAlertSMTPConfig
+[API] POST /admin/v1/alertSMTPConfig alertSMTPConfig.updateAlertSMTPConfig
+• [0.037 seconds]
+------------------------------
+Alert SMTP Config API get SMTP server configuration should get SMTP configuration successfully
+/e2e/test/adminapi/platform/alert_smtp_config_test.go:52
+[API] GET /admin/v1/alertSMTPConfig alertSMTPConfig.getAlertSMTPConfig
+[API] POST /admin/v1/alertSMTPConfig alertSMTPConfig.updateAlertSMTPConfig
+• [0.016 seconds]
+------------------------------
+LLM API create LLM should fail when creating LLM with invalid type
+/e2e/test/adminapi/platform/llm_test.go:28
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+• [0.228 seconds]
+------------------------------
+LLM API create LLM should fail when creating LLM with duplicate name
+/e2e/test/adminapi/platform/llm_test.go:32
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+[API] POST /admin/v1/llm llm.createLLM
+• [0.032 seconds]
+------------------------------
+LLM API get LLM should get the LLM created
+/e2e/test/adminapi/platform/llm_test.go:47
+[API] POST /admin/v1/llm llm.createLLM
+[API] GET /admin/v1/llm llm.listLLM
+• [0.006 seconds]
+------------------------------
+LLM API get LLM should return not found for non-existent LLM ID
+/e2e/test/adminapi/platform/llm_test.go:51
+[API] GET /admin/v1/llm llm.listLLM
+[API] DELETE /admin/v1/llm/{id} llm.deleteLLM
+• [0.004 seconds]
+------------------------------
+LLM API update LLM should update LLM fields successfully
+/e2e/test/adminapi/platform/llm_test.go:66
+[API] POST /admin/v1/llm llm.createLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+• [0.007 seconds]
+------------------------------
+LLM API update LLM should fail when updating non-existent LLM
+/e2e/test/adminapi/platform/llm_test.go:70
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+• [0.032 seconds]
+------------------------------
+LLM API update LLM should fail when updating with invalid config
+/e2e/test/adminapi/platform/llm_test.go:74
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] PATCH /admin/v1/llm/{id} llm.updateLLM
+[API] DELETE /admin/v1/llm/{id} llm.deleteLLM
+• [0.032 seconds]
+------------------------------
+LLM API delete LLM should delete the LLM successfully
+/e2e/test/adminapi/platform/llm_test.go:89
+[API] POST /admin/v1/llm llm.createLLM
+[API] DELETE /admin/v1/llm/{id} llm.deleteLLM
+[API] GET /admin/v1/llm llm.listLLM
+• [0.008 seconds]
+------------------------------
+[AfterSuite]
+/e2e/test/adminapi/platform/suite_test.go:34
+[AfterSuite] PASSED [0.000 seconds]
+------------------------------
+
+Ran 10 of 10 Specs in 0.402 seconds
+SUCCESS! -- 10 Passed | 0 Failed | 0 Pending | 0 Skipped
+PASS
+Running Suite: KubeBlocks Cloud User Admin API Test Suite - /e2e/test/adminapi/user
+===================================================================================
+Random Seed: 1741804876
+
+Will run 12 of 12 specs
+------------------------------
+[BeforeSuite]
+/e2e/test/adminapi/user/suite_test.go:33
+[API] GET /admin/v1/user adminUser.readAdminUser
+[API] GET /admin/v1/user adminUser.readAdminUser
+[BeforeSuite] PASSED [0.004 seconds]
+------------------------------
+Admin Invitation API List Invitations should get invitations by specified org
+/e2e/test/adminapi/user/invitation_test.go:38
+[API] GET /admin/v1/invitations invitation.listInvitation
+• [0.002 seconds]
+------------------------------
+Admin Invitation API List Invitations should get invitations by specified user email
+/e2e/test/adminapi/user/invitation_test.go:50
+[API] GET /admin/v1/users adminUser.listAdminUsers
+[API] GET /admin/v1/invitations invitation.listInvitation
+• [0.004 seconds]
+------------------------------
+Admin User API List Users should return 200 StatusOK with admin user list
+/e2e/test/adminapi/user/user_test.go:64
+[API] GET /admin/v1/users adminUser.listAdminUsers
+• [0.003 seconds]
+------------------------------
+Admin User API Create User should return 200 StatusOK when user created successfully with phoneNumber
+/e2e/test/adminapi/user/user_test.go:75
+[API] POST /admin/v1/users adminUser.createAdminUser
+• [0.074 seconds]
+------------------------------
+Admin User API Create User should return 200 StatusOK when user created successfully without phoneNumber
+/e2e/test/adminapi/user/user_test.go:89
+[API] POST /admin/v1/users adminUser.createAdminUser
+• [0.039 seconds]
+------------------------------
+Admin User API Create User should return 400 Bad Request for missing required fields
+/e2e/test/adminapi/user/user_test.go:101
+[API] POST /admin/v1/users adminUser.createAdminUser
+• [0.002 seconds]
+------------------------------
+Admin User API Create User should return 400 Bad Request for invalid email format
+/e2e/test/adminapi/user/user_test.go:111
+[API] POST /admin/v1/users adminUser.createAdminUser
+• [0.002 seconds]
+------------------------------
+Admin User API Create User should return 409 Conflict for creating existed admin user
+/e2e/test/adminapi/user/user_test.go:125
+[API] POST /admin/v1/users adminUser.createAdminUser
+• [0.032 seconds]
+------------------------------
+Admin User API Patch User should return 200 StatusOK when user updated successfully
+/e2e/test/adminapi/user/user_test.go:141
+[API] POST /admin/v1/users adminUser.createAdminUser
+[API] PATCH /admin/v1/user adminUser.patchAdminUser
+• [0.069 seconds]
+------------------------------
+Admin User API Patch User should return 400 Bad Request for missing required fields
+/e2e/test/adminapi/user/user_test.go:167
+[API] PATCH /admin/v1/user adminUser.patchAdminUser
+• [0.001 seconds]
+------------------------------
+Admin User API Delete User should return 204 StatusNoContent when deleting user successfully
+/e2e/test/adminapi/user/user_test.go:184
+[API] POST /admin/v1/users adminUser.createAdminUser
+[API] DELETE /admin/v1/users/{userID} adminUser.deleteAdminUser
+• [0.044 seconds]
+------------------------------
+Admin User API Delete User should return 404 NotFound when user not existed
+/e2e/test/adminapi/user/user_test.go:198
+[API] DELETE /admin/v1/users/{userID} adminUser.deleteAdminUser
+[API] DELETE /admin/v1/users/{userID} adminUser.deleteAdminUser
+[API] DELETE /admin/v1/users/{userID} adminUser.deleteAdminUser
+[API] DELETE /admin/v1/users/{userID} adminUser.deleteAdminUser
+[API] DELETE /admin/v1/users/{userID} adminUser.deleteAdminUser
+• [0.064 seconds]
+------------------------------
+[AfterSuite]
+/e2e/test/adminapi/user/suite_test.go:46
+[AfterSuite] PASSED [0.000 seconds]
+------------------------------
+
+Ran 12 of 12 Specs in 0.343 seconds
+SUCCESS! -- 12 Passed | 0 Failed | 0 Pending | 0 Skipped
+PASS
+
+Ginkgo ran 17 suites in 13m49.297673019s
+Test Suite Passed
