@@ -7,7 +7,7 @@ on:
         description: "The specify version of GO (e.g. clickhouse,damengdb,elasticsearch,gaussdb,goldendb,kafka,kingbase,loki,minio,mongodb,mysql,oceanbase,oceanbase-proxy,postgresql,qdrant,rabbitmq,redis,rocketmq,starrocks,tdsql,tidb,vastbase,victoria-metrics,zookeeper)"
         type: string
         required: false
-        default: 'mysql'
+        default: 'clickhouse,damengdb,elasticsearch,gaussdb,goldendb,kafka,kingbase,loki,minio,mongodb,mysql,oceanbase,oceanbase-proxy,postgresql,qdrant,rabbitmq,redis,rocketmq,starrocks,tdsql,tidb,vastbase,victoria-metrics,zookeeper'
       CLOUD_ENV_NAME:
         description: "The cloud env name of test (e.g. dev) "
         type: string
@@ -22,7 +22,7 @@ on:
         description: "The branch name of apecloud-cd"
         type: string
         required: false
-        default: 'main'
+        default: 'refine_e2e'
       CURRENT_VERSION:
         description: "The current release version (e.g. v0.30) "
         type: string
@@ -39,7 +39,7 @@ on:
         description: "The specify version of GO (e.g. clickhouse,damengdb,elasticsearch,gaussdb,goldendb,kafka,kingbase,loki,minio,mongodb,mysql,oceanbase,oceanbase-proxy,postgresql,qdrant,rabbitmq,redis,rocketmq,starrocks,tdsql,tidb,vastbase,victoria-metrics,zookeeper)"
         type: string
         required: false
-        default: 'mysql'
+        default: 'clickhouse,damengdb,elasticsearch,gaussdb,goldendb,kafka,kingbase,loki,minio,mongodb,mysql,oceanbase,oceanbase-proxy,postgresql,qdrant,rabbitmq,redis,rocketmq,starrocks,tdsql,tidb,vastbase,victoria-metrics,zookeeper'
       CLOUD_ENV_NAME:
         description: "The cloud env name of test (e.g. dev) "
         type: string
@@ -54,7 +54,7 @@ on:
         description: "The branch name of apecloud-cd"
         type: string
         required: false
-        default: 'main'
+        default: 'refine_e2e'
       CURRENT_VERSION:
         description: "The current release version (e.g. v0.30) "
         type: string
