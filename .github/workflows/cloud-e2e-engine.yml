@@ -383,52 +383,52 @@ jobs:
               01)
                   echo test-result-1="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-1="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
-                  echo engine-test-result-1="${ENGINE_TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo engine-test-result-1='${ENGINE_TEST_RESULT}' >> $GITHUB_OUTPUT
               ;; 
               02)
                   echo test-result-2="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-2="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
-                  echo engine-test-result-2="${ENGINE_TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo engine-test-result-2='${ENGINE_TEST_RESULT}' >> $GITHUB_OUTPUT
               ;; 
               03)
                   echo test-result-3="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-3="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
-                  echo engine-test-result-3="${ENGINE_TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo engine-test-result-3='${ENGINE_TEST_RESULT}' >> $GITHUB_OUTPUT
               ;; 
               04)
                   echo test-result-4="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-4="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
-                  echo engine-test-result-4="${ENGINE_TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo engine-test-result-4='${ENGINE_TEST_RESULT}' >> $GITHUB_OUTPUT
               ;; 
               05)
                   echo test-result-5="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-5="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
-                  echo engine-test-result-5="${ENGINE_TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo engine-test-result-5='${ENGINE_TEST_RESULT}' >> $GITHUB_OUTPUT
               ;; 
               06)
                   echo test-result-6="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-6="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
-                  echo engine-test-result-6="${ENGINE_TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo engine-test-result-6='${ENGINE_TEST_RESULT}' >> $GITHUB_OUTPUT
               ;; 
               07)
                   echo test-result-7="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-7="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
-                  echo engine-test-result-7="${ENGINE_TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo engine-test-result-7='${ENGINE_TEST_RESULT}' >> $GITHUB_OUTPUT
               ;; 
               08)
                   echo test-result-8="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-8="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
-                  echo engine-test-result-8="${ENGINE_TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo engine-test-result-8='${ENGINE_TEST_RESULT}' >> $GITHUB_OUTPUT
               ;;  
               09)
                   echo test-result-9="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-9="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
-                  echo engine-test-result-9="${ENGINE_TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo engine-test-result-9='${ENGINE_TEST_RESULT}' >> $GITHUB_OUTPUT
               ;;  
               10)
                   echo test-result-10="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-10="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
-                  echo engine-test-result-10="${ENGINE_TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo engine-test-result-10='${ENGINE_TEST_RESULT}' >> $GITHUB_OUTPUT
               ;; 
           esac
           
