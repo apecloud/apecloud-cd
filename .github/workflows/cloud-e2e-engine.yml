@@ -696,43 +696,43 @@ jobs:
               case "${test_job_index}" in
                   01)
                       ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-1 }}"
-                      echo "{ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
                   ;;
                   02)
                       ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-2 }}"
-                      echo "{ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
                   ;;
                   03)
                       ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-3 }}"
-                      echo "{ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
                   ;;
                   04)
                       ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-4 }}"
-                      echo "{ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
                   ;;
                   05)
                       ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-5 }}"
-                      echo "{ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
                   ;;
                   06)
                       ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-6 }}"
-                      echo "{ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
                   ;;
                   07)
                       ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-7 }}"
-                      echo "{ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
                   ;;
                   08)
                       ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-8 }}"
-                      echo "{ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
                   ;;
                   09)
                       ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-9 }}"
-                      echo "{ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
                   ;;
                   10)
                       ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-10 }}"
-                      echo "{ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
                   ;;
               esac
           done
