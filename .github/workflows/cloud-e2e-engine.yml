@@ -27,7 +27,7 @@ on:
         description: "The current release version (e.g. v0.30) "
         type: string
         required: false
-        default: ''
+        default: 'v0.31'
       TEST_REPORT:
         description: "Test report (default: false)"
         type: boolean
@@ -59,7 +59,7 @@ on:
         description: "The current release version (e.g. v0.30) "
         type: string
         required: false
-        default: ''
+        default: 'v0.31'
       TEST_REPORT:
         description: "Test report (default: false)"
         type: boolean
@@ -174,7 +174,7 @@ jobs:
 
   e2e-engine-test:
     needs: [ get-test-engine ]
-    name: ${{ matrix.test-engine }}-${{ needs.get-test-engine.outputs.cloud-env-name }}
+    name: ${{ matrix.test-engine }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.get-test-engine.outputs.test-engines) }}

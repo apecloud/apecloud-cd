@@ -7,7 +7,7 @@ on:
         description: "The specify version of GO (e.g. openapi-test|adminapi-test|engine-test)"
         type: string
         required: false
-        default: 'openapi-test'
+        default: 'openapi-test|adminapi-test'
       TEST_ENGINES:
         description: "The specify version of GO (e.g. mysql)"
         type: string
@@ -59,7 +59,7 @@ on:
         description: "The specify version of GO (e.g. openapi-test|adminapi-test|engine-test)"
         type: string
         required: false
-        default: 'openapi-test'
+        default: 'openapi-test|adminapi-test'
       TEST_ENGINES:
         description: "The specify version of GO (e.g. mysql)"
         type: string

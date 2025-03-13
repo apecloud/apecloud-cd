@@ -7,7 +7,7 @@ on:
         description: "The specify version of GO (e.g. openapi-test|adminapi-test)"
         type: string
         required: false
-        default: 'openapi-test'
+        default: 'openapi-test|adminapi-test'
       CLOUD_ENV_NAME:
         description: "The cloud env name of test (e.g. dev) "
         type: string
@@ -27,14 +27,14 @@ on:
         description: "The current release version (e.g. v0.30) "
         type: string
         required: false
-        default: ''
+        default: 'v0.31'
   workflow_call:
     inputs:
       TEST_TYPE:
         description: "The specify version of GO (e.g. openapi-test|adminapi-test)"
         type: string
         required: false
-        default: 'openapi-test'
+        default: 'openapi-test|adminapi-test'
       CLOUD_ENV_NAME:
         description: "The cloud env name of test (e.g. dev) "
         type: string
@@ -54,7 +54,7 @@ on:
         description: "The current release version (e.g. v0.30) "
         type: string
         required: false
-        default: ''
+        default: 'v0.31'
 
 run-name: Cloud E2E API Test ${{ inputs.TEST_TYPE }} on Env:${{ inputs.CLOUD_ENV_NAME }} Ref:${{ inputs.CLOUD_BRANCH }}
 
@@ -107,7 +107,7 @@ jobs:
 
   e2e-api-test:
     needs: [ get-test-type ]
-    name: ${{ matrix.test-type }}-${{ needs.get-test-type.outputs.cloud-env-name }}
+    name: ${{ matrix.test-type }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.get-test-type.outputs.test-type) }}
