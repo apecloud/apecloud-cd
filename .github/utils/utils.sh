@@ -1052,6 +1052,31 @@ set_engine_summary_result_url() {
     echo "$ENGINE_SUMMARY_RESULT_TEMP"
 }
 
+set_engine_summary_result_url_2() {
+     TEST_RESULT="$(echo "${TEST_RESULT}" | sed 's/ /#/g')"
+     ENGINE_SUMMARY_RESULT_TEMP=""
+     for coverage_result in $(echo "$COVERAGE_RESULT" | sed 's/##/ /g'); do
+         engine_name=${coverage_result%%|*}
+         job_url="null"
+         for test_result in `echo "$TEST_RESULT" | sed 's/##/ /g'`; do
+             test_types=${test_result%%|*}
+             for test_type in `echo "$test_types" | sed 's/,/ /g'`; do
+                if [[ "$test_type" == "$engine_name" ]]; then
+                    job_url=${test_result##*|}
+                    break
+                fi
+             done
+             if [[ "${job_url}" != "null" ]] then
+                break
+             fi
+         done
+
+         coverage_result=${coverage_result/\#/ }
+         ENGINE_SUMMARY_RESULT_TEMP="${ENGINE_SUMMARY_RESULT_TEMP}##${coverage_result}|${REPORT_URL}|${job_url}"
+     done
+     echo "$ENGINE_SUMMARY_RESULT_TEMP"
+ }
+
 get_gh_job_url() {
     gh_job_url="https://github.com/$GITHUB_REPO/actions/runs/$RUN_ID"
     for i in {1..2}; do
@@ -1416,6 +1441,9 @@ main() {
         ;;
         44)
             get_gh_job_url
+        ;;
+        45)
+            set_engine_summary_result_url_2
         ;;
     esac
 }
