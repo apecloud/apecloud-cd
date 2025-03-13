@@ -406,26 +406,13 @@ jobs:
               echo "${E2E_TEST_RESULT_LOG}" > ${test_file_log_tmp_path}
               
               API_COVERAGE_SUMMARY=$(python3 test/report/parse_ginkgo.py summary ${test_file_log_tmp_path})
-              echo "API_COVERAGE_SUMMARY:${API_COVERAGE_SUMMARY}"
 
-              ls -ll ${test_file_log_tmp_path}
-              echo "======================="
-              du -sh ${test_file_log_tmp_path}
-              echo "======================="
-              
               ENGINE_TEST_RESULT=$(python3 test/report/parse_ginkgo.py engine ${test_file_log_tmp_path})
-              echo "${ENGINE_TEST_RESULT}"
           
               engine_file_log="test_engine_api_result.txt"
               engine_file_log_path="${{ github.workspace }}/${engine_file_log}"
               touch ${engine_file_log_path} 
-              ls -ll ${engine_file_log_path}
               echo "${ENGINE_TEST_RESULT}" > ${engine_file_log_path}
-              ls -ll ${engine_file_log_path}
-              echo "======================="
-              du -sh ${engine_file_log_path} 
-              echo "======================="
-              cat ${engine_file_log_path}
           elif [[ -d "${CLOUD_E2E_HACK_DIR}" && ("${{ inputs.TEST_REPORT }}" == "true" || "${{ needs.get-test-type.outputs.cloud-branch }}" == "main") ]]; then
               cd ${CLOUD_E2E_HACK_DIR}
               if [[ -f "${CLOUD_E2E_HACK_DIR}/api-coverage.sh" ]]; then
@@ -467,12 +454,7 @@ jobs:
                       touch ${test_file_log_tmp_path} ${check_e2e_log_path}
                       E2E_TEST_RESULT_LOG=$(python3 ${{ github.workspace }}/apecloud-cd/.github/utils/remove_ansi_file.py ${test_file_log_path}) 
                       echo "${E2E_TEST_RESULT_LOG}" > ${test_file_log_tmp_path}
-                      ls -ll ${check_e2e_log_path}
                       cp -r ${test_file_log_tmp_path} ${check_e2e_log_path}
-                      ls -ll ${check_e2e_log_path}
-                      echo "======================="
-                      du -sh ${check_e2e_log_path} 
-                      echo "======================="
                   fi
               ;;
               adminapi-test)
@@ -516,7 +498,6 @@ jobs:
               echo ${CI_JOB_URL}
               export CI_JOB_URL="${CI_JOB_URL}"
               cd ${CLOUD_E2E_HACK_DIR}
-              ls -ll 
               check_e2e_log="e2e.log"
               check_e2e_log_path="${CLOUD_E2E_HACK_DIR}/${check_e2e_log}"
               bash ./log-checker.sh
@@ -565,7 +546,6 @@ jobs:
         if: ${{ always() && matrix.test-type == 'engine-test' && inputs.TEST_REPORT }}
         id: upload_test_result
         run: |
-          ls -ll
           engine_file_log="test_engine_api_result.txt"
           engine_file_log_path="${{ github.workspace }}/${engine_file_log}"
           cat ${engine_file_log_path}
