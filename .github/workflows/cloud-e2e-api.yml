@@ -7,7 +7,7 @@ on:
         description: "The specify version of GO (e.g. openapi-test|adminapi-test)"
         type: string
         required: false
-        default: 'openapi-test'
+        default: 'openapi-test|adminapi-test'
       CLOUD_ENV_NAME:
         description: "The cloud env name of test (e.g. dev) "
         type: string
@@ -34,7 +34,7 @@ on:
         description: "The specify version of GO (e.g. openapi-test|adminapi-test)"
         type: string
         required: false
-        default: 'openapi-test'
+        default: 'openapi-test|adminapi-test'
       CLOUD_ENV_NAME:
         description: "The cloud env name of test (e.g. dev) "
         type: string
@@ -107,7 +107,7 @@ jobs:
 
   e2e-api-test:
     needs: [ get-test-type ]
-    name: ${{ matrix.test-type }}-${{ needs.get-test-type.outputs.cloud-env-name }}
+    name: ${{ matrix.test-type }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.get-test-type.outputs.test-type) }}
@@ -347,7 +347,6 @@ jobs:
           fi
 
       - name: Get ${{ matrix.test-type }} API Coverage List
-        if: ${{ always() && matrix.test-type != 'engine-test' }}
         run: |
           coverage_file_log="test_api_coverage_result.log"
           coverage_file_log_path="${{ github.workspace }}/${coverage_file_log}"
@@ -396,19 +395,19 @@ jobs:
           for test_type_tmp in $(echo "${TEST_TYPES}" | sed 's/|/ /g' ); do
               case "$test_type_tmp" in
                   openapi-test)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-api-test.outputs.openapi-test-result }}"
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-api-test.outputs.openapi-test-result }}"
                       if [[ -n "${{ needs.e2e-api-test.outputs.openapi-summary }}" ]]; then
                           API_COVERAGE_SUMMARY="${API_COVERAGE_SUMMARY}##openapi|${{ needs.e2e-api-test.outputs.openapi-summary }}"
                       fi
                   ;;
                   adminapi-test)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-api-test.outputs.adminapi-test-result }}"
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-api-test.outputs.adminapi-test-result }}"
                       if [[ -n "${{ needs.e2e-api-test.outputs.adminapi-summary }}" ]]; then
                           API_COVERAGE_SUMMARY="${API_COVERAGE_SUMMARY}##adminapi|${{ needs.e2e-api-test.outputs.adminapi-summary }}"
                       fi
                   ;;
                   *)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-api-test.outputs.test-result }}"
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-api-test.outputs.test-result }}"
                       if [[ -n "${{ needs.e2e-api-test.outputs.api-summary }}" ]]; then
                           API_COVERAGE_SUMMARY="${API_COVERAGE_SUMMARY}##api|${{ needs.e2e-api-test.outputs.api-summary }}"
                       fi
@@ -426,7 +425,7 @@ jobs:
           
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
-          TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E API Test [${date_ret}]"
+          TEST_TITLE="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E API Test [${date_ret}]"
           
           python3 .github/utils/send_mesage.py \
               --send-type ginkgo \
@@ -434,7 +433,7 @@ jobs:
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
           
-          TEST_TITLE_SUMMARY="[${CLOUD_BRANCH}] Cloud E2E API Coverage Summary [${date_ret}]"
+          TEST_TITLE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E API Coverage Summary [${date_ret}]"
           if [[ -n "${API_COVERAGE_SUMMARY}" && "${{ needs.get-test-type.outputs.cloud-branch }}" == "main" ]]; then
               echo "API_COVERAGE_SUMMARY:${API_COVERAGE_SUMMARY}"
               API_COVERAGE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
