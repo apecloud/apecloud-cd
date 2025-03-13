@@ -182,8 +182,13 @@ send_message() {
 send_cherry_pick_message() {
     PR_NUMBER_TMP="#${PR_NUMBER}"
     PR_URL="https://github.com/${GITHUB_REPO}/pull/${PR_NUMBER}"
-    curl -H "Content-Type: application/json" -X POST $BOT_WEBHOOK \
-        -d '{"msg_type":"post","content":{"post":{"zh_cn":{"title":"Cherry Pick '${PR_NUMBER_TMP}' Error:","content":[[{"tag":"a","text":"['${PR_NUMBER_TMP}']",{"tag":"text","text":" Author:'${PR_AUTHOR}' "},"href":"'$PR_URL'"},{"tag":"a","text":"'$CONTENT'","href":"'$RUN_URL'"}]]}}}}'
+    if [[ -n "${PR_AUTHOR}" ]]; then
+        curl -H "Content-Type: application/json" -X POST $BOT_WEBHOOK \
+            -d '{"msg_type":"post","content":{"post":{"zh_cn":{"title":"Cherry Pick '${PR_NUMBER_TMP}' Error:","content":[[{"tag":"a","text":"['${PR_NUMBER_TMP}']","href":"'$PR_URL'"},{"tag":"text","text":" Author:'${PR_AUTHOR}' "},{"tag":"a","text":"'$CONTENT'","href":"'$RUN_URL'"}]]}}}}'
+    else
+        curl -H "Content-Type: application/json" -X POST $BOT_WEBHOOK \
+            -d '{"msg_type":"post","content":{"post":{"zh_cn":{"title":"Cherry Pick '${PR_NUMBER_TMP}' Error:","content":[[{"tag":"a","text":"['${PR_NUMBER_TMP}']","href":"'$PR_URL'"},{"tag":"a","text":"'$CONTENT'","href":"'$RUN_URL'"}]]}}}}'
+    fi
 }
 
 parse_command_line() {

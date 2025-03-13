@@ -115,7 +115,7 @@ jobs:
               if [[ -n "${{ inputs.PR_AUTHOR }}" ]]; then
                   cmd="${cmd} --pr-author '${{ inputs.PR_AUTHOR }}' "
               else
-                  cmd="${cmd} --pr-author '${{ github.event.pull_request.user.login }}' "
+                  cmd="${cmd} --pr-author '${{ github.event.issue.user.login }}' "
               fi
           fi
           
