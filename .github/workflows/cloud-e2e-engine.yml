@@ -565,7 +565,7 @@ jobs:
   upload-report:
     needs: [ get-test-engine, e2e-engine-test ]
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    if: ${{ always() && inputs.TEST_REPORT }}
     steps:
       - name: Checkout testinfra Code
         uses: actions/checkout@v4
@@ -576,7 +576,6 @@ jobs:
 
       - name: Checkout pystan2 Code
         uses: actions/checkout@v4
-        if: ${{ always() && inputs.TEST_REPORT }}
         with:
           submodules: 'recursive'
           repository: stan-dev/pystan2
@@ -585,12 +584,10 @@ jobs:
 
       - name: Setup Python
         uses: actions/setup-python@v4
-        if: ${{ always() && inputs.TEST_REPORT }}
         with:
           python-version: "${{ env.PYTHON_VERSION }}"
 
       - name: install gen report env
-        if: ${{ always() && inputs.TEST_REPORT }}
         run: |
           # locale gen zh_CN.UTF-8
           sudo locale-gen zh_CN.UTF-8
@@ -616,14 +613,12 @@ jobs:
 
       - name: Setup ossutil
         uses: manyuanrong/setup-ossutil@v2.0
-        if: ${{ always() && inputs.TEST_REPORT }}
         with:
           access-key-id: "${{ env.OSS_KEY_ID }}"
           access-key-secret: "${{ env.OSS_KEY_SECRET }}"
           endpoint: "${{ env.OSS_ENDPOINT }}"
 
       - name: Upload engine report to oss
-        if: ${{ always() && inputs.TEST_REPORT }}
         id: upload_test_result
         run: |
           engine_file_log="test_engine_api_result.txt"
