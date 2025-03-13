@@ -123,7 +123,7 @@ jobs:
           
               if [[ $(( engine_index % 4 )) == 0 ]]; then
                   test_job_index=$(( test_job_index + 1 ))
-                  test_job_index_tmp=$(printf "%02d" test_job_index)
+                  test_job_index_tmp=$(printf "%02d" $test_job_index)
                   if [[ -z "${test_engines}" ]]; then
                       test_engines_all="${test_engines_tmp}|${test_job_index_tmp}"
                       test_engines="{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
@@ -137,7 +137,7 @@ jobs:
           done
           if [[ -n "${test_engines_tmp}" ]]; then
               test_job_index=$(( test_job_index + 1 ))
-              test_job_index_tmp=$(printf "%02d" test_job_index)
+              test_job_index_tmp=$(printf "%02d" $test_job_index)
               if [[ -z "${test_engines}" ]]; then
                   test_engines_all="${test_engines_tmp}|${test_job_index_tmp}"
                   test_engines="{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
@@ -174,7 +174,7 @@ jobs:
 
   e2e-engine-test:
     needs: [ get-test-engine ]
-    name: ${{ matrix.test-engine }}-${{ needs.get-test-engine.outputs.cloud-env-name }}
+    name: ${{ matrix.test-engine }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.get-test-engine.outputs.test-engines) }}
@@ -461,61 +461,61 @@ jobs:
                   01)
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-1 }}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-1 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}-${CLOUD_ENV_NAME}|${TEST_RESULT}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                       ENGINE_SUMMARY_ALL="${ENGINE_SUMMARY_ALL}##${ENGINE_SUMMARY}"
                   ;;
                   02)
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-2 }}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-2 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}-${CLOUD_ENV_NAME}|${TEST_RESULT}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                       ENGINE_SUMMARY_ALL="${ENGINE_SUMMARY_ALL}##${ENGINE_SUMMARY}"
                   ;;
                   03)
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-3 }}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-3 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}-${CLOUD_ENV_NAME}|${TEST_RESULT}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                       ENGINE_SUMMARY_ALL="${ENGINE_SUMMARY_ALL}##${ENGINE_SUMMARY}"
                   ;;
                   04)
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-4 }}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-4 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}-${CLOUD_ENV_NAME}|${TEST_RESULT}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                       ENGINE_SUMMARY_ALL="${ENGINE_SUMMARY_ALL}##${ENGINE_SUMMARY}"
                   ;;
                   05)
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-5 }}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-5 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}-${CLOUD_ENV_NAME}|${TEST_RESULT}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                       ENGINE_SUMMARY_ALL="${ENGINE_SUMMARY_ALL}##${ENGINE_SUMMARY}"
                   ;;
                   06)
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-6 }}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-6 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}-${CLOUD_ENV_NAME}|${TEST_RESULT}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                       ENGINE_SUMMARY_ALL="${ENGINE_SUMMARY_ALL}##${ENGINE_SUMMARY}"
                   ;;
                   07)
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-7 }}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-7 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}-${CLOUD_ENV_NAME}|${TEST_RESULT}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                       ENGINE_SUMMARY_ALL="${ENGINE_SUMMARY_ALL}##${ENGINE_SUMMARY}"
                   ;;
                   08)
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-8 }}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-8 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}-${CLOUD_ENV_NAME}|${TEST_RESULT}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                       ENGINE_SUMMARY_ALL="${ENGINE_SUMMARY_ALL}##${ENGINE_SUMMARY}"
                   ;;
                   09)
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-9 }}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-9 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}-${CLOUD_ENV_NAME}|${TEST_RESULT}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                       ENGINE_SUMMARY_ALL="${ENGINE_SUMMARY_ALL}##${ENGINE_SUMMARY}"
                   ;;
                   10)
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-10 }}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-10 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}-${CLOUD_ENV_NAME}|${TEST_RESULT}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                       ENGINE_SUMMARY_ALL="${ENGINE_SUMMARY_ALL}##${ENGINE_SUMMARY}"
                   ;;
               esac
@@ -531,7 +531,7 @@ jobs:
           
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
-          TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E Engine Test [${date_ret}]"
+          TEST_TITLE="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Engine Test [${date_ret}]"
           
           python3 .github/utils/send_mesage.py \
               --send-type ginkgo \
@@ -539,7 +539,7 @@ jobs:
               --title "$TEST_TITLE" \
               --result "${TEST_RESULT_ALL}"
           
-          TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}] Cloud E2E Engine API Summary [${date_ret}]"
+          TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Engine Test API Summary [${date_ret}]"
           ENGINE_REPORT_FILE_NAME="${{ env.ENGINE_REPORT_FILE_NAME }}"
           if [[ -n "${ENGINE_SUMMARY_ALL}" ]]; then
               APECLOUD_CURRENT_VERSION="${{ needs.get-test-engine.outputs.current-version }}"
