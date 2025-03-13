@@ -101,7 +101,7 @@ jobs:
         id: get_test_engine
         run: |
           export TZ='Asia/Shanghai'
-          TEST_DATE="999999999"
+          TEST_DATE="99999999"
           echo test-date=${TEST_DATE} >> $GITHUB_OUTPUT
           
           TEST_ENGINES="${{ inputs.TEST_ENGINES }}"
@@ -123,7 +123,7 @@ jobs:
           
               if [[ $(( engine_index % 4 )) == 0 ]]; then
                   test_job_index=$(( test_job_index + 1 ))
-                  test_job_index_tmp=$(printf "%02d" test_job_index)
+                  test_job_index_tmp=$(printf "%02d" $test_job_index)
                   if [[ -z "${test_engines}" ]]; then
                       test_engines_all="${test_engines_tmp}|${test_job_index_tmp}"
                       test_engines="{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
@@ -137,7 +137,7 @@ jobs:
           done
           if [[ -n "${test_engines_tmp}" ]]; then
               test_job_index=$(( test_job_index + 1 ))
-              test_job_index_tmp=$(printf "%02d" test_job_index)
+              test_job_index_tmp=$(printf "%02d" $test_job_index)
               if [[ -z "${test_engines}" ]]; then
                   test_engines_all="${test_engines_tmp}|${test_job_index_tmp}"
                   test_engines="{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
