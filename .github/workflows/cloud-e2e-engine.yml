@@ -780,8 +780,10 @@ jobs:
         id: upload_test_result
         run: |
           engine_file_log="test_engine_api_result.txt"
+          engine_file_log_tmp="test_engine_api_result_tmp.txt"
           engine_file_log_path="${{ github.workspace }}/${engine_file_log}"
-          touch ${engine_file_log_path}
+          engine_file_log_path_tmp="${{ github.workspace }}/${engine_file_log_tmp}"
+          touch ${engine_file_log_path} ${engine_file_log_path_tmp}
           
           CLOUD_BRANCH="${{ needs.get-test-engine.outputs.cloud-branch }}"
           CLOUD_ENV_NAME="${{ needs.get-test-engine.outputs.cloud-env-name }}"
@@ -831,15 +833,15 @@ jobs:
                   ;;
               esac
           done
-
-          cat ${engine_file_log_path}
+          sed -E 's/(\[PASSED\]|\[FAILED\]|\[TIMEDOUT\])/\n\1/g;s/(\[END\])/\n\1\n/g;s/\] +/\]/g' ${engine_file_log_path} > ${engine_file_log_path_tmp}
+          cat ${engine_file_log_path_tmp}
           cd test/report
           bash update_test_period.sh ./md
           mkdir -p reports/cn
           for i in $(seq 1 3); do
               python3 ./report.py \
                   --type=engine \
-                  --raw=${engine_file_log_path} \
+                  --raw=${engine_file_log_path_tmp} \
                   --main_report=${ENGINE_REPORT_FILE_NAME}
               gen_ret=$?
               if [[ $gen_ret -eq 0 ]]; then
