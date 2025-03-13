@@ -304,19 +304,19 @@ jobs:
           for test_type_tmp in $(echo "${TEST_TYPES}" | sed 's/|/ /g' ); do
               case "$test_type_tmp" in
                   openapi-test)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-api-test.outputs.openapi-test-result }}"
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-api-test.outputs.openapi-test-result }}"
                       if [[ -n "${{ needs.e2e-api-test.outputs.openapi-summary }}" ]]; then
                           API_COVERAGE_SUMMARY="${API_COVERAGE_SUMMARY}##openapi|${{ needs.e2e-api-test.outputs.openapi-summary }}"
                       fi
                   ;;
                   adminapi-test)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-api-test.outputs.adminapi-test-result }}"
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-api-test.outputs.adminapi-test-result }}"
                       if [[ -n "${{ needs.e2e-api-test.outputs.adminapi-summary }}" ]]; then
                           API_COVERAGE_SUMMARY="${API_COVERAGE_SUMMARY}##adminapi|${{ needs.e2e-api-test.outputs.adminapi-summary }}"
                       fi
                   ;;
                   *)
-                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}-${CLOUD_ENV_NAME}|${{ needs.e2e-api-test.outputs.test-result }}"
+                      TEST_RESULT="${TEST_RESULT}##${test_type_tmp}|${{ needs.e2e-api-test.outputs.test-result }}"
                       if [[ -n "${{ needs.e2e-api-test.outputs.api-summary }}" ]]; then
                           API_COVERAGE_SUMMARY="${API_COVERAGE_SUMMARY}##api|${{ needs.e2e-api-test.outputs.api-summary }}"
                       fi
@@ -334,7 +334,7 @@ jobs:
           
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
-          TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E API Test [${date_ret}]"
+          TEST_TITLE="[${CLOUD_BRANCH}] Cloud E2E API Test [${CLOUD_ENV_NAME}][${date_ret}]"
           
           python3 .github/utils/send_mesage.py \
               --send-type ginkgo \
@@ -342,7 +342,7 @@ jobs:
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
           
-          TEST_TITLE_SUMMARY="[${CLOUD_BRANCH}] Cloud E2E API Coverage Summary [${date_ret}]"
+          TEST_TITLE_SUMMARY="[${CLOUD_BRANCH}] Cloud E2E API Test Coverage Summary [${CLOUD_ENV_NAME}][${date_ret}]"
           if [[ -n "${API_COVERAGE_SUMMARY}" && "${{ needs.get-test-type.outputs.cloud-branch }}" == "main" ]]; then
               echo "API_COVERAGE_SUMMARY:${API_COVERAGE_SUMMARY}"
               API_COVERAGE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
