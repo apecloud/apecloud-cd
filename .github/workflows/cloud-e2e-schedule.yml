@@ -21,13 +21,24 @@ jobs:
         ALPINE_IMAGE=apecloud/alpine:3.16
     secrets: inherit
 
-  e2e-test:
+  e2e-api-test:
     needs: [ release-e2e-image ]
     uses: ./.github/workflows/trigger-workflow.yml
     with:
       GITHUB_REPO: "apecloud/apecloud-cd"
       BRANCH_NAME: "main"
-      WORKFLOW_ID: "cloud-e2e.yml"
+      WORKFLOW_ID: "cloud-e2e-api.yml"
       APECD_REF: "main"
-      EXTRA_ARGS: "TEST_TYPE=openapi-test|adminapi-test|engine-test#TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES }}#CLOUD_ENV_NAME=dev#CLOUD_BRANCH=main#CURRENT_VERSION=${{ vars.CURRENT_RELEASE_VERSION }}#TEST_E2E=true#TEST_REPORT=true"
+      EXTRA_ARGS: "TEST_TYPE=openapi-test|adminapi-test#CLOUD_ENV_NAME=dev#CLOUD_BRANCH=main#CURRENT_VERSION=${{ vars.CURRENT_RELEASE_VERSION }}"
+    secrets: inherit
+
+  e2e-engine-test:
+    needs: [ release-e2e-image ]
+    uses: ./.github/workflows/trigger-workflow.yml
+    with:
+      GITHUB_REPO: "apecloud/apecloud-cd"
+      BRANCH_NAME: "main"
+      WORKFLOW_ID: "cloud-e2e-engine.yml"
+      APECD_REF: "main"
+      EXTRA_ARGS: "TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES }}#CLOUD_ENV_NAME=dev#CLOUD_BRANCH=main#CURRENT_VERSION=${{ vars.CURRENT_RELEASE_VERSION }}#TEST_REPORT=true"
     secrets: inherit
