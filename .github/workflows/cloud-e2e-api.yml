@@ -433,7 +433,7 @@ jobs:
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
           
-          TEST_TITLE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E API Test Coverage Summary [${date_ret}]"
+          TEST_TITLE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E API Coverage Summary [${date_ret}]"
           if [[ -n "${API_COVERAGE_SUMMARY}" && "${{ needs.get-test-type.outputs.cloud-branch }}" == "main" ]]; then
               echo "API_COVERAGE_SUMMARY:${API_COVERAGE_SUMMARY}"
               API_COVERAGE_SUMMARY_TMP="$(bash .github/utils/utils.sh \

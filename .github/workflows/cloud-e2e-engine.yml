@@ -529,7 +529,7 @@ jobs:
               case "${test_job_index}" in
                   01)
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-1 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Engine ${test_engines} Test API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -548,7 +548,7 @@ jobs:
                   ;;
                   02)
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-2 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Engine ${test_engines} Test API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -567,7 +567,7 @@ jobs:
                   ;;
                   03)
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-3 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Engine ${test_engines} Test API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -586,7 +586,7 @@ jobs:
                   ;;
                   04)
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-4 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Engine ${test_engines} Test API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -605,7 +605,7 @@ jobs:
                   ;;
                   05)
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-5 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Engine ${test_engines} Test API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -624,7 +624,7 @@ jobs:
                   ;;
                   06)
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-6 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Engine ${test_engines} Test API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -643,7 +643,7 @@ jobs:
                   ;;
                   07)
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-7 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Engine ${test_engines} Test API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -662,7 +662,7 @@ jobs:
                   ;;
                   08)
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-8 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Engine ${test_engines} Test API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -681,7 +681,7 @@ jobs:
                   ;;
                   09)
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-9 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Engine ${test_engines} Test API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -700,7 +700,7 @@ jobs:
                   ;;
                   10)
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-10 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Engine ${test_engines} Test API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
