@@ -970,6 +970,9 @@ get_cloud_pre_version() {
         PRE_VERSIONS=$( gh release list --repo $GITHUB_REPO --limit 500 | (grep -v "${head_version}" || true))
     else
         SECOND_VERSION=$(( $SECOND_VERSION - 1 ))
+        if [[ "${VERSION}" == "v0.30."* ]]; then
+            SECOND_VERSION=$(( $SECOND_VERSION - 1 ))
+        fi
         head_version="${FIRST_VERSION}.${SECOND_VERSION}"
         PRE_VERSIONS=$( gh release list --repo $GITHUB_REPO --limit 500 | (grep "${head_version}" || true))
     fi
