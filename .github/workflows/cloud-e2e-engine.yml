@@ -121,7 +121,7 @@ jobs:
                   test_engines_tmp="${test_engines_tmp},${engine_tmp}"
               fi
           
-              if [[ $(( engine_index % 4 )) == 0 ]]; then
+              if [[ $(( engine_index % 6 )) == 0 ]]; then
                   test_job_index=$(( test_job_index + 1 ))
                   test_job_index_tmp=$(printf "%02d" $test_job_index)
                   if [[ -z "${test_engines}" ]]; then
@@ -325,6 +325,8 @@ jobs:
 
       - name: Waiting for Cloud E2E to be Completed
         run: |
+          set +e
+          set -o nounset
           sleep 10
           while true; do
               if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" ; then
@@ -346,8 +348,28 @@ jobs:
           file_log="test_result.log"
           test_file_log_path="${{ github.workspace }}/${file_log}"
           touch ${test_file_log_path}
-          kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${test_file_log_path}
-          kubectl delete pod -n default ${CLOUD_E2E_TEST_POD_NAME} --force
+          
+          set +e
+          set -o nounset
+          for i in $(seq 1 10); do
+              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${test_file_log_path}
+              log_ret=$?
+              if [[ $log_ret -eq 0 ]]; then
+                  break
+              fi
+              sleep 1
+          done
+          
+          for i in $(seq 1 10); do
+              kubectl delete pod -n default ${CLOUD_E2E_TEST_POD_NAME} --force
+              delete_ret=$?
+              if [[ $delete_ret -eq 0 ]]; then
+                  break
+              fi
+              sleep 1
+          done
+          set -e
+         
           cat ${test_file_log_path}
           
           test_ret="$( grep "Test Suite Failed" ${test_file_log_path} || true )"
