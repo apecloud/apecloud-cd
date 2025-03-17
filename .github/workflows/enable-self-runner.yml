@@ -101,7 +101,7 @@ jobs:
         with:
           use-installer: true
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v4.1.0
         if: ${{ inputs.CLOUD_PROVIDER == 'eks' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' }}
         with:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
@@ -116,7 +116,7 @@ jobs:
       - if: ${{ inputs.CLOUD_PROVIDER == 'gke' && env.GOOGLE_CREDENTIALS != '' }}
         id: 'auth'
         name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v1'
+        uses: 'google-github-actions/auth@v2.1.8'
         with:
           credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
 
