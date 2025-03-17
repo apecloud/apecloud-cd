@@ -22,7 +22,7 @@ on:
         polardbx|opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
         oracle|opengauss|influxdb|flink|solr|mogdb|oceanbase-ent|starrocks-ent|apecloud-postgresql|yashandb|
         redis-cluster|camellia-redis-proxy|dmdb|minio|orchestrator|rabbitmq|loki|victoria-metrics|gaussdb|damengdb|
-        kingbase|vastbase|mssql|rocketmq)'
+        kingbase|vastbase|rocketmq)'
         type: string
         required: false
         default: ''
@@ -1221,24 +1221,6 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
-  test-mssql:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mssql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.1.') }}
-    needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
-    with:
-      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
-      region: ${{ inputs.REGION }}
-      release-version: "${{ inputs.KB_VERSION }}"
-      previous-version: "${{ inputs.KB_PRE_VERSION }}"
-      test-type: "60"
-      test-type-name: "mssql"
-      test-args: "${{ inputs.ARGS }}"
-      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
-      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
-      branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
-    secrets: inherit
-
   test-rocketmq:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rocketmq')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.1.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
@@ -1274,7 +1256,7 @@ jobs:
              test-solr, test-mogdb, test-oceanbase-ent, test-starrocks-ent,
              test-apecloud-postgresql, test-yashandb, test-redis-cluster, test-camellia-redis-proxy,
              test-dmdb, test-minio, test-orchestrator, test-rabbitmq, test-loki, test-victoria-metrics,
-             test-gaussdb, test-damengdb, test-kingbase, test-vastbase, test-mssql, test-rocketmq,
+             test-gaussdb, test-damengdb, test-kingbase, test-vastbase, test-rocketmq,
             ]
     steps:
       - uses: actions/checkout@v4
@@ -1574,11 +1556,6 @@ jobs:
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"vastbase"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##vastbase|${{ needs.test-vastbase.outputs.test-result }}"
                   cmd="${cmd_head} \"${{ needs.test-vastbase.outputs.test-result-report }}\" "
-                  eval "$cmd"
-              fi  
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mssql"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##mssql|${{ needs.test-mssql.outputs.test-result }}"
-                  cmd="${cmd_head} \"${{ needs.test-mssql.outputs.test-result-report }}\" "
                   eval "$cmd"
               fi  
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"rocketmq"* ]]; then

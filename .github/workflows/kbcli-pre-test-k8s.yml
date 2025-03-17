@@ -29,7 +29,7 @@ on:
         polardbx|opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
         oracle|opengauss|influxdb|flink|solr|mogdb|oceanbase-ent|starrocks-ent|apecloud-postgresql|yashandb|
         redis-cluster|camellia-redis-proxy|dmdb|minio|orchestrator|rabbitmq|loki|victoria-metrics|gaussdb|damengdb|
-        kingbase|vastbase|mssql|rocketmq)'
+        kingbase|vastbase|rocketmq)'
         type: string
         required: false
         default: '0'
@@ -1088,23 +1088,6 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
-  mssql-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mssql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
-    needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
-    with:
-      cloud-provider: ${{ inputs.cloud-provider }}
-      region: ${{ inputs.region }}
-      release-version: "${{ inputs.previous-version }}"
-      test-type: "60"
-      test-type-name: "mssql-pre"
-      test-args: "${{ inputs.test-args }}"
-      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
-      artifact-name: ${{ inputs.artifact-name }}
-      branch-name: ${{ inputs.branch-name }}
-      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
-    secrets: inherit
-
   rocketmq-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'rocketmq')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
@@ -1137,7 +1120,7 @@ jobs:
              mogdb-pre, oceanbase-ent-pre, starrocks-ent-pre, apecloud-postgresql-pre,
              yashandb-pre, redis-cluster-pre, camellia-redis-proxy-pre, dmdb-pre, minio-pre,
              orchestrator-pre, rabbitmq-pre, loki-pre, victoria-metrics-pre, gaussdb-pre,
-             damengdb-pre, kingbase-pre, vastbase-pre, mssql-pre, rocketmq-pre,
+             damengdb-pre, kingbase-pre, vastbase-pre, rocketmq-pre,
              asmysql-proxy-pre, asmysql-orc-pre, asmysql-orc-proxy-pre]
     steps:
       - uses: actions/checkout@v4
@@ -1378,10 +1361,6 @@ jobs:
 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"vastbase"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##vastbase-pre|${{ needs.vastbase-pre.outputs.test-result }}"
-              fi 
-
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mssql"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##mssql-pre|${{ needs.mssql-pre.outputs.test-result }}"
               fi 
 
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"rocketmq"* ]]; then
