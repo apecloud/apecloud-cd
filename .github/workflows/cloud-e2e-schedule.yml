@@ -47,7 +47,7 @@ jobs:
       EXTRA_ARGS: "TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES }}#CLOUD_ENV_NAME=dev#CLOUD_BRANCH=main#CURRENT_VERSION=${{ vars.CURRENT_RELEASE_VERSION }}#TEST_REPORT=true"
     secrets: inherit
 
-  e2e-engine-test-0.30:
+  e2e-engine-test-030:
     needs: [ release-e2e-image ]
     uses: ./.github/workflows/trigger-workflow.yml
     with:
