@@ -20,10 +20,11 @@ jobs:
       - name: comment issue
         run: |
           EXAMPLE_RELEASE_BRANCH="release-0.30"
-          if [[ "${{ github.repository }}" == "apecloud/kubeblocks-addons" || "${{ github.repository }}" == "apecloud/apecloud-addons" ]]; then
+          if [[ "${{ github.repository }}" == "apecloud/kubeblocks-addons" ]]; then
+              EXAMPLE_RELEASE_BRANCH="release-1.0-beta"
+          elif [[ "${{ github.repository }}" == "apecloud/apecloud-addons" ]]; then
               EXAMPLE_RELEASE_BRANCH="release-0.9"
           fi
-          
           
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
               --type 15 \
@@ -33,11 +34,9 @@ jobs:
           \`\`\`
           Usage:
             - /nopick: Not auto cherry-pick when PR merged.
-            - /pick: Auto cherry-pick to all default branches when PR merged (${{ vars.CHERRY_PICK_BRANCH }}).
             - /pick: release-x.x [release-x.x]: Auto cherry-pick to the specified branch when PR merged.
           
           Example:
             - /nopick
-            - /pick
             - /pick ${EXAMPLE_RELEASE_BRANCH}
           \`\`\`"

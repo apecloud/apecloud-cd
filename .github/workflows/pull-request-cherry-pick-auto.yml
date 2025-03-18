@@ -2,12 +2,6 @@ name: Pull Request Cherry Pick Auto
 
 on:
   workflow_call:
-    inputs:
-      CHERRY_PICK_BRANCH_DEFAULT:
-        description: "Cherry pick all branches by default"
-        type: string
-        required: false
-        default: ''
 
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -21,11 +15,6 @@ jobs:
       - name: get cherry pick branch
         id: get_check_pick_branch
         run: |
-          CHERRY_PICK_BRANCH_DEFAULT="${{ inputs.CHERRY_PICK_BRANCH_DEFAULT }}"
-          if [[ -z "${CHERRY_PICK_BRANCH_DEFAULT}" ]]; then
-              CHERRY_PICK_BRANCH_DEFAULT="${{ vars.CHERRY_PICK_BRANCH }}"
-          fi
-          
           PR_NUMBER="${{ github.event.pull_request.number }}"
           PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
           # check nopick label
@@ -38,13 +27,6 @@ jobs:
           
           # check pick label
           CHERRY_PICK_BRANCH_TMP=""
-          for pr_label in $(echo "${PR_LABELS}"); do
-              if [[ "${pr_label}" == "pick" ]]; then
-                  echo "$(tput -T xterm setaf 2)pick label found, cherry pick branch: ${CHERRY_PICK_BRANCH_DEFAULT}! $(tput -T xterm sgr0)"
-                  CHERRY_PICK_BRANCH_TMP="${CHERRY_PICK_BRANCH_DEFAULT}"
-              fi
-          done
-          
           if [[ -z "${CHERRY_PICK_BRANCH_TMP}" ]]; then
               # check pick label specify
               for pr_label in $(echo "${PR_LABELS}"); do

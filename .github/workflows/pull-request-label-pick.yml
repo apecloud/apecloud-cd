@@ -32,19 +32,6 @@ jobs:
           REMOVE_LABEL_NAME=""
           
           case "${COMMENT_BODYS}" in
-              /pick)
-                  ADD_LABEL_NAME="pick"
-                  PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
-                  for pr_label in $(echo "${PR_LABELS}"); do
-                      if [[ "${pr_label}" == "nopick" || "${pr_label}" == "pick-"* ]]; then
-                          if [[ -z "${REMOVE_LABEL_NAME}" ]]; then
-                              REMOVE_LABEL_NAME=${pr_label}
-                          else
-                              REMOVE_LABEL_NAME="${REMOVE_LABEL_NAME},${pr_label}"
-                          fi
-                      fi
-                  done
-              ;;
               /nopick)
                   ADD_LABEL_NAME="nopick"
                   PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
@@ -66,6 +53,11 @@ jobs:
                   elif [[ "${COMMENT_BODYS}" == *"-"*","* || "${COMMENT_BODYS}" == *"."*","* ]]; then
                       COMMENT_BODYS=$(echo "${COMMENT_BODYS}" | sed 's/,/ /g')
                   fi
+                  
+                  if [[ ("${COMMENT_BODYS}" == "/pick" || "${COMMENT_BODYS}" != *"release-"*) && -n "${{ vars.CHERRY_PICK_BRANCH }}" ]]; then
+                      COMMENT_BODYS="${{ vars.CHERRY_PICK_BRANCH }}"
+                  fi 
+          
                   for comment_body in $(echo "${COMMENT_BODYS}") ; do
                       echo "comment_body:$comment_body"
                       if [[ "${comment_body}" == "pick" ]]; then
