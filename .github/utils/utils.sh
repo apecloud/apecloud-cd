@@ -1069,7 +1069,7 @@ set_engine_summary_result_url_2() {
                     break
                 fi
              done
-             if [[ "${job_url}" != "null" ]] then
+             if [[ "${job_url}" != "null" ]]; then
                 break
              fi
          done
