@@ -69,6 +69,7 @@ env:
   ACK_KUBECONFIG_INTL_PROD: ${{ secrets.ACK_KUBECONFIG_INTL_PROD }}
   VKE_KUBECONFIG_TEST: ${{ secrets.VKE_KUBECONFIG_TEST }}
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
 jobs:
   get-test-type:
@@ -215,6 +216,12 @@ jobs:
               eval "$eval_cmd"
           done
           
+          AZURE_CREDENTIALS="${{ env.AZURE_CREDENTIALS }}"
+          export AZURE_SUBSCRIPTION_ID="$(echo "${AZURE_CREDENTIALS}" | jq -r '.subscriptionId')"
+          export AZURE_CLIENT_ID="$(echo "${AZURE_CREDENTIALS}" | jq -r '.clientId')"
+          export AZURE_CLIENT_SECRET="$(echo "${AZURE_CREDENTIALS}" | jq -r '.clientSecret')"
+          export AZURE_TENANT_ID="$(echo "${AZURE_CREDENTIALS}" | jq -r '.tenantId')"
+       
           TEST_TYPE="${{ matrix.test-type }}"
           if [[ -z "$TEST_TYPE" ]]; then
               TEST_TYPE="openapi-test"

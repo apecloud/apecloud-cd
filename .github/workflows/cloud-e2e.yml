@@ -132,6 +132,7 @@ env:
   OSS_BUCKET: "kubeblocks-oss"
   PYTHON_VERSION: "3.11"
   ENGINE_REPORT_FILE_NAME: "TEST_REPORT_CLOUD_API_ENGINE.pdf"
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
 jobs:
   get-test-type:
@@ -324,6 +325,12 @@ jobs:
           TEST_ENGINES="${{ needs.get-test-type.outputs.test-engines }}"
           echo "export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}"
           export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}
+          
+          AZURE_CREDENTIALS="${{ env.AZURE_CREDENTIALS }}"
+          export AZURE_SUBSCRIPTION_ID="$(echo "${AZURE_CREDENTIALS}" | jq -r '.subscriptionId')"
+          export AZURE_CLIENT_ID="$(echo "${AZURE_CREDENTIALS}" | jq -r '.clientId')"
+          export AZURE_CLIENT_SECRET="$(echo "${AZURE_CREDENTIALS}" | jq -r '.clientSecret')"
+          export AZURE_TENANT_ID="$(echo "${AZURE_CREDENTIALS}" | jq -r '.tenantId')"
           
           TEST_TYPE="${{ matrix.test-type }}"
           if [[ -z "$TEST_TYPE" ]]; then
