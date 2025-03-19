@@ -41,7 +41,10 @@ env:
   DOCKER_REGISTRY_URL: docker.io
   DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
-  AZURE_CREDENTIALS_CLOUD: ${{ secrets.AZURE_CREDENTIALS_CLOUD }}
+  AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
 
 jobs:
   e2e-k3s-test:
@@ -237,12 +240,6 @@ jobs:
           for env_vars in $(echo "${E2E_ENV_VARS}" | sed 's/|/ /g'); do
               eval_cmd="export $env_vars"
               echo "$eval_cmd"
-              eval "$eval_cmd"
-          done
-  
-          AZURE_CREDENTIALS_CLOUD="${{ env.AZURE_CREDENTIALS_CLOUD }}"
-          for azure_credential in $(echo "${AZURE_CREDENTIALS_CLOUD}" | sed 's/|/ /g'); do
-              eval_cmd="export $azure_credential"
               eval "$eval_cmd"
           done
           
