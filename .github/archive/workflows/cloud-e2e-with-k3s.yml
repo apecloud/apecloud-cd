@@ -104,6 +104,7 @@ env:
   DOCKER_REGISTRY_URL: docker.io
   DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
 jobs:
   get-test-type:
@@ -264,6 +265,12 @@ jobs:
               echo "$eval_cmd"
               eval "$eval_cmd"
           done
+          
+          AZURE_CREDENTIALS="${{ env.AZURE_CREDENTIALS }}"
+          export AZURE_SUBSCRIPTION_ID="$(echo "${AZURE_CREDENTIALS}" | jq -r '.subscriptionId')"
+          export AZURE_CLIENT_ID="$(echo "${AZURE_CREDENTIALS}" | jq -r '.clientId')"
+          export AZURE_CLIENT_SECRET="$(echo "${AZURE_CREDENTIALS}" | jq -r '.clientSecret')"
+          export AZURE_TENANT_ID="$(echo "${AZURE_CREDENTIALS}" | jq -r '.tenantId')"
           
           if [[ -n "${TEST_ENGINES}" ]]; then
               echo "export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}"

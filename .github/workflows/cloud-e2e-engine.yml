@@ -85,6 +85,7 @@ env:
   OSS_BUCKET: "kubeblocks-oss"
   PYTHON_VERSION: "3.11"
   ENGINE_REPORT_FILE_NAME: "TEST_REPORT_CLOUD_API_ENGINE.pdf"
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
 jobs:
   get-test-engine:
@@ -305,6 +306,12 @@ jobs:
               echo "$eval_cmd"
               eval "$eval_cmd"
           done
+          
+          AZURE_CREDENTIALS="${{ env.AZURE_CREDENTIALS }}"
+          export AZURE_SUBSCRIPTION_ID="$(echo "${AZURE_CREDENTIALS}" | jq -r '.subscriptionId')"
+          export AZURE_CLIENT_ID="$(echo "${AZURE_CREDENTIALS}" | jq -r '.clientId')"
+          export AZURE_CLIENT_SECRET="$(echo "${AZURE_CREDENTIALS}" | jq -r '.clientSecret')"
+          export AZURE_TENANT_ID="$(echo "${AZURE_CREDENTIALS}" | jq -r '.tenantId')"
           
           TEST_ENGINES="${{ matrix.test-engine }}"
           TEST_JOB_INDEX="${{ matrix.test-job-index }}"
