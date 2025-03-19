@@ -69,7 +69,6 @@ env:
   ACK_KUBECONFIG_INTL_PROD: ${{ secrets.ACK_KUBECONFIG_INTL_PROD }}
   VKE_KUBECONFIG_TEST: ${{ secrets.VKE_KUBECONFIG_TEST }}
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
 jobs:
   get-test-api:
