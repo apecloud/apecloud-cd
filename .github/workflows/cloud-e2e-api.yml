@@ -219,7 +219,6 @@ jobs:
           AZURE_CREDENTIALS_CLOUD="${{ env.AZURE_CREDENTIALS_CLOUD }}"
           for azure_credential in $(echo "${AZURE_CREDENTIALS_CLOUD}" | sed 's/|/ /g'); do
               eval_cmd="export $azure_credential"
-              echo "$eval_cmd"
               eval "$eval_cmd"
           done
           
