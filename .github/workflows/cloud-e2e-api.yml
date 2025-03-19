@@ -72,10 +72,10 @@ env:
   AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
 jobs:
-  get-test-type:
+  get-test-api:
     runs-on: ubuntu-latest
     outputs:
-      test-type: ${{ steps.get_test_type.outputs.test-type }}
+      test-api: ${{ steps.get_test_type.outputs.test-api }}
       cloud-branch: ${{ steps.get_test_type.outputs.cloud-branch }}
       cloud-env-name: ${{ steps.get_test_type.outputs.cloud-env-name }}
     steps:
@@ -86,13 +86,13 @@ jobs:
           test_type=""
           for test_type_tmp in $(echo "${TEST_TYPES}" | sed 's/|/ /g' ); do
               if [[ -z "${test_type}" ]]; then
-                  test_type="{\"test-type\":\"${test_type_tmp}\"}"
+                  test_type="{\"test-api\":\"${test_type_tmp}\"}"
               else
-                  test_type="${test_type},{\"test-type\":\"${test_type_tmp}\"}"
+                  test_type="${test_type},{\"test-api\":\"${test_type_tmp}\"}"
               fi
           done
           echo "${test_type}"
-          echo "test-type={\"include\":[${test_type}]}" >> $GITHUB_OUTPUT
+          echo "test-api={\"include\":[${test_type}]}" >> $GITHUB_OUTPUT
           
           CLOUD_BRANCH="${{ inputs.CLOUD_BRANCH }}"
           if [[ -z "$CLOUD_BRANCH" ]]; then
@@ -108,16 +108,16 @@ jobs:
 
       - name: echo Get test type
         run: |
-          echo "${{ steps.get_test_type.outputs.test-type }}"
+          echo "${{ steps.get_test_type.outputs.test-api }}"
           echo "${{ steps.get_test_type.outputs.cloud-branch }}"
           echo "${{ steps.get_test_type.outputs.cloud-env-name }}"
 
   e2e-api-test:
-    needs: [ get-test-type ]
-    name: ${{ matrix.test-type }}
+    needs: [ get-test-api ]
+    name: ${{ matrix.test-api }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.get-test-type.outputs.test-type) }}
+      matrix: ${{ fromJSON(needs.get-test-api.outputs.test-api) }}
     outputs:
       openapi-test-result: ${{ steps.get_test_result.outputs.openapi-test-result }}
       adminapi-test-result: ${{ steps.get_test_result.outputs.adminapi-test-result }}
@@ -131,7 +131,7 @@ jobs:
       - name: Get test type
         id: get_test_type
         run: |
-          echo ${{ matrix.test-type }}
+          echo ${{ matrix.test-api }}
 #      - name: Checkout testinfra Code
 #        uses: actions/checkout@v4
 #        with:
