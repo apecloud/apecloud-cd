@@ -69,12 +69,13 @@ env:
   ACK_KUBECONFIG_INTL_PROD: ${{ secrets.ACK_KUBECONFIG_INTL_PROD }}
   VKE_KUBECONFIG_TEST: ${{ secrets.VKE_KUBECONFIG_TEST }}
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  AZURE_CREDENTIALS_CLOUD: ${{ secrets.AZURE_CREDENTIALS_CLOUD }}
 
 jobs:
-  get-test-api:
+  get-test-type:
     runs-on: ubuntu-latest
     outputs:
-      test-api: ${{ steps.get_test_type.outputs.test-api }}
+      test-type: ${{ steps.get_test_type.outputs.test-type }}
       cloud-branch: ${{ steps.get_test_type.outputs.cloud-branch }}
       cloud-env-name: ${{ steps.get_test_type.outputs.cloud-env-name }}
     steps:
@@ -85,13 +86,13 @@ jobs:
           test_type=""
           for test_type_tmp in $(echo "${TEST_TYPES}" | sed 's/|/ /g' ); do
               if [[ -z "${test_type}" ]]; then
-                  test_type="{\"test-api\":\"${test_type_tmp}\"}"
+                  test_type="{\"test-type\":\"${test_type_tmp}\"}"
               else
-                  test_type="${test_type},{\"test-api\":\"${test_type_tmp}\"}"
+                  test_type="${test_type},{\"test-type\":\"${test_type_tmp}\"}"
               fi
           done
           echo "${test_type}"
-          echo "test-api={\"include\":[${test_type}]}" >> $GITHUB_OUTPUT
+          echo "test-type={\"include\":[${test_type}]}" >> $GITHUB_OUTPUT
           
           CLOUD_BRANCH="${{ inputs.CLOUD_BRANCH }}"
           if [[ -z "$CLOUD_BRANCH" ]]; then
@@ -105,18 +106,12 @@ jobs:
           fi
           echo cloud-env-name="$CLOUD_ENV_NAME" >> $GITHUB_OUTPUT
 
-      - name: echo Get test type
-        run: |
-          echo "${{ steps.get_test_type.outputs.test-api }}"
-          echo "${{ steps.get_test_type.outputs.cloud-branch }}"
-          echo "${{ steps.get_test_type.outputs.cloud-env-name }}"
-
   e2e-api-test:
-    needs: [ get-test-api ]
-    name: ${{ matrix.test-api }}
+    needs: [ get-test-type ]
+    name: ${{ matrix.test-type }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.get-test-api.outputs.test-api) }}
+      matrix: ${{ fromJSON(needs.get-test-type.outputs.test-type) }}
     outputs:
       openapi-test-result: ${{ steps.get_test_result.outputs.openapi-test-result }}
       adminapi-test-result: ${{ steps.get_test_result.outputs.adminapi-test-result }}
@@ -131,6 +126,13 @@ jobs:
         id: get_test_type
         run: |
           echo ${{ matrix.test-api }}
+          
+          AZURE_CREDENTIALS_CLOUD="${{ env.AZURE_CREDENTIALS_CLOUD }}"
+          for azure_credential in $(echo "${AZURE_CREDENTIALS_CLOUD}" | sed 's/|/ /g'); do
+              eval_cmd="export $azure_credential"
+              echo "$eval_cmd"
+              eval "$eval_cmd"
+          done
 #      - name: Checkout testinfra Code
 #        uses: actions/checkout@v4
 #        with:
