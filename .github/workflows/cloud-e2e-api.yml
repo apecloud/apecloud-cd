@@ -216,11 +216,16 @@ jobs:
               eval "$eval_cmd"
           done
           
-          AZURE_CREDENTIALS="${{ env.AZURE_CREDENTIALS }}"
-          export AZURE_SUBSCRIPTION_ID="$(echo "${AZURE_CREDENTIALS}" | jq -r '.subscriptionId')"
-          export AZURE_CLIENT_ID="$(echo "${AZURE_CREDENTIALS}" | jq -r '.clientId')"
-          export AZURE_CLIENT_SECRET="$(echo "${AZURE_CREDENTIALS}" | jq -r '.clientSecret')"
-          export AZURE_TENANT_ID="$(echo "${AZURE_CREDENTIALS}" | jq -r '.tenantId')"
+          AZURE_SUBSCRIPTION_ID="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.subscriptionId' -)"
+          AZURE_CLIENT_ID="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientId' -)"
+          AZURE_CLIENT_SECRET="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientSecret' -)"
+          AZURE_TENANT_ID="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.tenantId' -)"
+          export AZURE_SUBSCRIPTION_ID="${AZURE_SUBSCRIPTION_ID}"
+          export AZURE_CLIENT_ID="${AZURE_CLIENT_ID}"
+          export AZURE_CLIENT_SECRET="${AZURE_CLIENT_SECRET}"
+          export AZURE_TENANT_ID="${AZURE_TENANT_ID}"
+          
+          export KB_CLOUD_TEST_ENGINES="${{ vars.KB_CLOUD_TEST_ENGINES }}"
        
           TEST_TYPE="${{ matrix.test-type }}"
           if [[ -z "$TEST_TYPE" ]]; then
