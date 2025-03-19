@@ -94,17 +94,23 @@ jobs:
           echo "${test_type}"
           echo "test-type={\"include\":[${test_type}]}" >> $GITHUB_OUTPUT
           
+          echo "${{ steps.get_test_type.outputs.test-type }}"
+          
           CLOUD_BRANCH="${{ inputs.CLOUD_BRANCH }}"
           if [[ -z "$CLOUD_BRANCH" ]]; then
               CLOUD_BRANCH="main"
           fi
           echo cloud-branch="$CLOUD_BRANCH" >> $GITHUB_OUTPUT
           
+          echo "${{ steps.get_test_type.outputs.cloud-branch }}"
+          
           CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
           if [[ -z "$CLOUD_ENV_NAME" ]]; then
               CLOUD_ENV_NAME="dev"
           fi
           echo cloud-env-name="$CLOUD_ENV_NAME" >> $GITHUB_OUTPUT
+          
+          echo "${{ steps.get_test_type.outputs.cloud-env-name }}"
 
   e2e-api-test:
     needs: [ get-test-type ]
