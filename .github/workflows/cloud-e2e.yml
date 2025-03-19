@@ -132,7 +132,7 @@ env:
   OSS_BUCKET: "kubeblocks-oss"
   PYTHON_VERSION: "3.11"
   ENGINE_REPORT_FILE_NAME: "TEST_REPORT_CLOUD_API_ENGINE.pdf"
-  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_CREDENTIALS_CLOUD: ${{ secrets.AZURE_CREDENTIALS_CLOUD }}
 
 jobs:
   get-test-type:
@@ -321,15 +321,13 @@ jobs:
               echo "$eval_cmd"
               eval "$eval_cmd"
           done
-          
-          AZURE_SUBSCRIPTION_ID="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.subscriptionId' -)"
-          AZURE_CLIENT_ID="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientId' -)"
-          AZURE_CLIENT_SECRET="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientSecret' -)"
-          AZURE_TENANT_ID="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.tenantId' -)"
-          export AZURE_SUBSCRIPTION_ID="${AZURE_SUBSCRIPTION_ID}"
-          export AZURE_CLIENT_ID="${AZURE_CLIENT_ID}"
-          export AZURE_CLIENT_SECRET="${AZURE_CLIENT_SECRET}"
-          export AZURE_TENANT_ID="${AZURE_TENANT_ID}"
+  
+          AZURE_CREDENTIALS_CLOUD="${{ env.AZURE_CREDENTIALS_CLOUD }}"
+          for azure_credential in $(echo "${AZURE_CREDENTIALS_CLOUD}" | sed 's/|/ /g'); do
+              eval_cmd="export $azure_credential"
+              echo "$eval_cmd"
+              eval "$eval_cmd"
+          done
           
           TEST_ENGINES="${{ needs.get-test-type.outputs.test-engines }}"
           echo "export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}"

@@ -41,7 +41,7 @@ env:
   DOCKER_REGISTRY_URL: docker.io
   DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
-  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_CREDENTIALS_CLOUD: ${{ secrets.AZURE_CREDENTIALS_CLOUD }}
 
 jobs:
   e2e-k3s-test:
@@ -239,15 +239,13 @@ jobs:
               echo "$eval_cmd"
               eval "$eval_cmd"
           done
-          
-          AZURE_SUBSCRIPTION_ID="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.subscriptionId' -)"
-          AZURE_CLIENT_ID="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientId' -)"
-          AZURE_CLIENT_SECRET="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientSecret' -)"
-          AZURE_TENANT_ID="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.tenantId' -)"
-          export AZURE_SUBSCRIPTION_ID="${AZURE_SUBSCRIPTION_ID}"
-          export AZURE_CLIENT_ID="${AZURE_CLIENT_ID}"
-          export AZURE_CLIENT_SECRET="${AZURE_CLIENT_SECRET}"
-          export AZURE_TENANT_ID="${AZURE_TENANT_ID}"
+  
+          AZURE_CREDENTIALS_CLOUD="${{ env.AZURE_CREDENTIALS_CLOUD }}"
+          for azure_credential in $(echo "${AZURE_CREDENTIALS_CLOUD}" | sed 's/|/ /g'); do
+              eval_cmd="export $azure_credential"
+              echo "$eval_cmd"
+              eval "$eval_cmd"
+          done
           
           if [[ -n "${TEST_ENGINES}" ]]; then
               echo "export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}"
