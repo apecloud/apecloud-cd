@@ -79,7 +79,7 @@ jobs:
           k3d-name: "${{ env.K3D_NAME }}"
           version: "v${{ inputs.K3S_VERSION }}"
           github-token: ${{ env.GH_TOKEN }}
-          k3d-args: -p 443:443@loadbalancer -p 80:80@loadbalancer --agents 2
+          k3d-args: -p 443:443@loadbalancer -p 80:80@loadbalancer --agents 3
 
       - name: update k3d coredns cm
         run: |
