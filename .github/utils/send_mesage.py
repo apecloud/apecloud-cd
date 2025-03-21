@@ -813,7 +813,7 @@ def send_engine_summary_message(url_v, result_v, title_v):
                             "elements": [
                                 {
                                     "tag": "markdown",
-                                    "content": "<a href='" + ret[4] + "'>" + ret[0] + "</a>",
+                                    "content": "<a href='" + ret[5] + "'>" + ret[0] + "</a>",
                                     "text_align": "center"
                                 }
                             ]
