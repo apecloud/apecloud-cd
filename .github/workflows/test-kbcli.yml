@@ -292,7 +292,10 @@ jobs:
               cmd="${cmd} --test-type '${{ inputs.cluster-test-type }}' "
           fi
           
-          common_cmd=" --generate-output true --chaos-mesh true "
+          if [[ -z "${PREVIOUS_VERSION}" ]]; then
+              common_cmd=" --generate-output true --chaos-mesh true "
+          fi
+          
           if [[ -n "${{ inputs.test-args }}" && "${{ inputs.test-args }}" == *"--only-kubectl true"* ]]; then
               EXAMPLE_DIR="${{ github.workspace }}/examples"
               cmd="${cmd} --example-dir '${EXAMPLE_DIR}' "
