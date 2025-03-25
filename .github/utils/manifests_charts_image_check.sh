@@ -147,6 +147,9 @@ check_charts_images() {
                 set_values="${set_values} --set kubebenchImages.exporter=apecloud/kubebench:0.0.10"
                 set_values="${set_values} --set kubebenchImages.tools=apecloud/kubebench:0.0.10"
             ;;
+            dbdrag)
+                continue
+            ;;
         esac
         check_images "$is_enterprise" "$chart_version" "$chart_name" "$chart_images" "$set_values" &
     done
