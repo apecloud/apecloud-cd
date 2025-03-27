@@ -695,7 +695,7 @@ jobs:
               done 
           
               # logs kb-cloud error pod 
-              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | awk '{print $1}')
+              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" | awk '{print $1}')
               echo "kb-cloud error pod: $kb_cloud_error_pods"
               for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
                   echo "==================== pod ${kb_cloud_error_pod} logs ===================="
@@ -762,18 +762,34 @@ jobs:
           
               bootstrapper_pods=$(kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" )
               echo "bootstrapper pod: $bootstrapper_pods"
-              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | awk '{print $1}')"
+              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | grep -v "ImagePull" | awk '{print $1}')"
               for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
                   echo "==================== pod ${bootstrapper_pod_name} logs ===================="
                   kubectl logs -n kb-system ${bootstrapper_pod_name}
               done 
           
+              # describe image pull error bootstrapper pod
+              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | grep "ImagePull" | awk '{print $1}')"
+              for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
+                  echo "==================== pod ${bootstrapper_pod_name} describe ===================="
+                  kubectl describe pod -n kb-system ${bootstrapper_pod_name}
+              done 
+          
               # logs kb-system error pod 
-              kb_system_error_pods=$(kubectl get pods -n kb-system | grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | awk '{print $1}')
+              kb_system_error_pods=$(kubectl get pods -n kb-system | grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" | awk '{print $1}')
               echo "kb-system error pod: $kb_system_error_pods"
               for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
                   echo "==================== pod ${kb_system_error_pod} logs ===================="
                   kubectl logs -n kb-system ${kb_system_error_pod}
+                  echo ""
+              done
+          
+              # describe image pull error kb-system pod
+              kb_system_error_pods=$(kubectl get pods -n kb-system | grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | grep "ImagePull" | awk '{print $1}')
+              echo "kb-system image pull error pod: $kb_system_error_pods"
+              for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
+                  echo "==================== pod ${kb_system_error_pod} describe ===================="
+                  kubectl describe pod -n kb-system ${kb_system_error_pod}
                   echo ""
               done
           
@@ -907,7 +923,7 @@ jobs:
               done 
           
               # logs kb-cloud error pod 
-              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | awk '{print $1}')
+              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" | awk '{print $1}')
               echo "kb-cloud error pod: $kb_cloud_error_pods"
               for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
                   echo "==================== pod ${kb_cloud_error_pod} logs ===================="
@@ -969,7 +985,7 @@ jobs:
               done 
           
               # logs kb-cloud error pod 
-              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | awk '{print $1}')
+              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" | awk '{print $1}')
               echo "kb-cloud error pod: $kb_cloud_error_pods"
               for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
                   echo "==================== pod ${kb_cloud_error_pod} logs ===================="

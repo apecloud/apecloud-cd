@@ -497,10 +497,17 @@ jobs:
           
               bootstrapper_pods=$(kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" )
               echo "bootstrapper pod: $bootstrapper_pods"
-              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | awk '{print $1}')"
+              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | grep -v "ImagePull" | awk '{print $1}')"
               for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
                   echo "==================== pod ${bootstrapper_pod_name} logs ===================="
                   kubectl logs -n kb-system ${bootstrapper_pod_name}
+              done 
+          
+              # describe image pull error bootstrapper pod
+              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | grep "ImagePull" | awk '{print $1}')"
+              for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
+                  echo "==================== pod ${bootstrapper_pod_name} describe ===================="
+                  kubectl describe pod -n kb-system ${bootstrapper_pod_name}
               done 
           
               exit 1
