@@ -1,4 +1,4 @@
-name: E2E Test KubeChat
+name: E2E Test DeepRAG
 
 on:
   workflow_call:
