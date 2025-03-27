@@ -192,7 +192,7 @@ jobs:
               echo "NODE_TYPE:$NODE_TYPE"
           elif [[ "${{ inputs.test-mode }}" == "fault" && -z "$COUNTS" ]]; then
               COUNTS=3
-          elif [[ "${{ inputs.test-mode }}" == "kubechat" && -z "$COUNTS" ]]; then
+          elif [[ "${{ inputs.test-mode }}" == "deeprag" && -z "$COUNTS" ]]; then
               COUNTS=0
           elif [[ "${{ inputs.test-mode }}" == "cloude2etest" && -z "$COUNTS" ]]; then
               COUNTS=1
@@ -317,7 +317,7 @@ jobs:
           overwrite: true
 
       - name: Setup kubectl
-        if: ${{ (inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat') || inputs.cloud-provider == 'aks' }}
+        if: ${{ (inputs.cloud-provider == 'gke' && inputs.test-mode == 'deeprag') || inputs.cloud-provider == 'aks' }}
         uses: azure/setup-kubectl@v3
         with:
           version: "v1.28.3"
@@ -342,15 +342,15 @@ jobs:
           fi
 
       - name: Setup gcloud
-        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
+        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'deeprag' }}
         uses: google-github-actions/setup-gcloud@v1
 
       - name: setup gke-gcloud-auth-plugin
-        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
+        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'deeprag' }}
         uses: simenandre/setup-gke-gcloud-auth-plugin@v1
 
       - name: get gke credential
-        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'kubechat' }}
+        if: ${{ inputs.cloud-provider == 'gke' && inputs.test-mode == 'deeprag' }}
         run: |
           gcloud container clusters get-credentials ${{ steps.terraform_init.outputs.k8s-cluster-name }} \
               --zone ${{ inputs.region }} \

@@ -1,10 +1,10 @@
-name: KubeChat Test on K8S
+name: DeepRAG Test on K8S
 
 on:
   workflow_call:
     inputs:
-      KUBECHAT_VERSION:
-        description: 'KubeChat release version'
+      DEEPRAG_VERSION:
+        description: 'DeepRAG release version'
         type: string
         required: false
         default: 'v0.1.4-alpha.9'
@@ -55,8 +55,8 @@ on:
         default: 'main'
   workflow_dispatch:
     inputs:
-      KUBECHAT_VERSION:
-        description: 'KubeChat release version'
+      DEEPRAG_VERSION:
+        description: 'DeepRAG release version'
         required: false
         default: 'v0.1.4-alpha.9'
       KUBEBLOCKS_VERSION:
@@ -98,7 +98,7 @@ on:
         default: 'main'
 
 
-run-name: KubeChat:${{ inputs.KUBECHAT_VERSION }} ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}
+run-name: DeepRAG:${{ inputs.DEEPRAG_VERSION }} ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -118,7 +118,7 @@ jobs:
       node-size: ${{ inputs.NODE_SIZE }}
       region: ${{ inputs.REGION }}
       enable-spot: "false"
-      test-mode: "kubechat"
+      test-mode: "deeprag"
     secrets: inherit
 
   install-kubeblocks:
@@ -131,7 +131,7 @@ jobs:
       release-version: "${{ inputs.KUBEBLOCKS_VERSION }}"
       test-type: "0"
       test-type-name: "install"
-      test-args: "--check-addon false --namespace kubechat --random-namespace false ${{ inputs.ARGS }}"
+      test-args: "--check-addon false --namespace deeprag --random-namespace false ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
@@ -146,7 +146,7 @@ jobs:
       release-version: "${{ inputs.KUBEBLOCKS_VERSION }}"
       test-type: "2"
       test-type-name: "postgresql"
-      test-args: "--cluster-name postgresql --replicas 2 --limit-cpu 0.5 --limit-memory 0.5 --storage 20 --cluster-version postgresql-12.14.1 --namespace kubechat --only-cluster true --test-mode kubechat ${{ inputs.ARGS }}"
+      test-args: "--cluster-name postgresql --replicas 2 --limit-cpu 0.5 --limit-memory 0.5 --storage 20 --cluster-version postgresql-12.14.1 --namespace deeprag --only-cluster true --test-mode deeprag ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
@@ -161,7 +161,7 @@ jobs:
       release-version: "${{ inputs.KUBEBLOCKS_VERSION }}"
       test-type: "5"
       test-type-name: "redis"
-      test-args: "--cluster-name redis --replicas 2 --limit-cpu 0.5 --limit-memory 0.5 --storage 20 --namespace kubechat --only-cluster true --test-mode kubechat ${{ inputs.ARGS }}"
+      test-args: "--cluster-name redis --replicas 2 --limit-cpu 0.5 --limit-memory 0.5 --storage 20 --namespace deeprag --only-cluster true --test-mode deeprag ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
@@ -176,7 +176,7 @@ jobs:
       release-version: "${{ inputs.KUBEBLOCKS_VERSION }}"
       test-type: "10"
       test-type-name: "qdrant"
-      test-args: "--cluster-name qdrant --replicas 1 --limit-cpu 1 --limit-memory 1 --storage 20 --namespace kubechat --only-cluster true ${{ inputs.ARGS }}"
+      test-args: "--cluster-name qdrant --replicas 1 --limit-cpu 1 --limit-memory 1 --storage 20 --namespace deeprag --only-cluster true ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
@@ -191,34 +191,34 @@ jobs:
       release-version: "${{ inputs.KUBEBLOCKS_VERSION }}"
       test-type: "25"
       test-type-name: "elasticsearch"
-      test-args: "--cluster-name elasticsearch --replicas 1 --limit-cpu 1 --limit-memory 1 --storage 20 --namespace kubechat --only-cluster true ${{ inputs.ARGS }}"
+      test-args: "--cluster-name elasticsearch --replicas 1 --limit-cpu 1 --limit-memory 1 --storage 20 --namespace deeprag --only-cluster true ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
 
-  deploy-kubechat:
+  deploy-deeprag:
     needs: [ terraform-init-k8s, create-postgresql, create-redis, create-qdrant, create-elasticsearch ]
-    uses: ./.github/workflows/test-kubechat.yml
+    uses: ./.github/workflows/test-deeprag.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
-      release-version: "${{ inputs.KUBECHAT_VERSION }}"
+      release-version: "${{ inputs.DEEPRAG_VERSION }}"
       test-type: "0"
-      test-type-name: "deploy-kubechat"
+      test-type-name: "deploy-deeprag"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name: ${{ inputs.BRANCH_NAME }}
     secrets: inherit
 
-  test-kubechat:
-    needs: [ terraform-init-k8s, deploy-kubechat ]
-    uses: ./.github/workflows/test-kubechat.yml
+  test-deeprag:
+    needs: [ terraform-init-k8s, deploy-deeprag ]
+    uses: ./.github/workflows/test-deeprag.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
-      release-version: "${{ inputs.KUBECHAT_VERSION }}"
+      release-version: "${{ inputs.DEEPRAG_VERSION }}"
       test-type: "1"
-      test-type-name: "test-kubechat"
+      test-type-name: "test-deeprag"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       branch-name2: ${{ inputs.BRANCH_NAME2 }}
@@ -227,7 +227,7 @@ jobs:
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: [ install-kubeblocks, create-postgresql, create-redis, create-qdrant, create-elasticsearch, deploy-kubechat, test-kubechat ]
+    needs: [ install-kubeblocks, create-postgresql, create-redis, create-qdrant, create-elasticsearch, deploy-deeprag, test-deeprag ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -243,8 +243,8 @@ jobs:
           TEST_RESULT="${TEST_RESULT}##redis|${{ needs.create-redis.outputs.test-result }}"
           TEST_RESULT="${TEST_RESULT}##qdrant|${{ needs.create-qdrant.outputs.test-result }}"
           TEST_RESULT="${TEST_RESULT}##elasticsearch|${{ needs.create-elasticsearch.outputs.test-result }}"
-          TEST_RESULT="${TEST_RESULT}##deploy-kubechat|${{ needs.deploy-kubechat.outputs.deploy-result }}"
-          TEST_RESULT="${TEST_RESULT}##test-kubechat|${{ needs.test-kubechat.outputs.test-result }}"
+          TEST_RESULT="${TEST_RESULT}##deploy-deeprag|${{ needs.deploy-deeprag.outputs.deploy-result }}"
+          TEST_RESULT="${TEST_RESULT}##test-deeprag|${{ needs.test-deeprag.outputs.test-result }}"
           
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
               --github-repo "${{ github.repository }}" \
@@ -254,7 +254,7 @@ jobs:
           
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
-          test_title="[${{ inputs.KUBECHAT_VERSION }}] Test KubeChat on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }} [${date_ret}]"
+          test_title="[${{ inputs.DEEPRAG_VERSION }}] Test DeepRAG on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }} [${date_ret}]"
           python3 .github/utils/send_mesage.py \
               --url "${{ vars.TEST_BOT_WEBHOOK }}" \
               --title "$test_title" \
