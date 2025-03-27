@@ -104,7 +104,7 @@ save_charts_images() {
         return
     fi
 
-    save_cmd="docker save -o ${IMAGE_PKG_NAME} ${images_file}"
+    save_cmd="docker save ${images_file} | gzip > ${IMAGE_PKG_NAME} "
     echo "$save_cmd"
     save_flag=0
     for i in {1..10}; do
