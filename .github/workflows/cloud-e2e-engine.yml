@@ -127,7 +127,11 @@ jobs:
                   test_engines_tmp="${test_engines_tmp},${engine_tmp}"
               fi
           
-              if [[ $(( engine_index % 6 )) == 0 ]]; then
+              KB_CLOUD_TEST_ENGINES_PRE="${{ vars.KB_CLOUD_TEST_ENGINES_PRE }}"
+              if [[ -z "${KB_CLOUD_TEST_ENGINES_PRE}" ]]; then
+                  KB_CLOUD_TEST_ENGINES_PRE=8
+              fi
+              if [[ $(( engine_index % ${KB_CLOUD_TEST_ENGINES_PRE} )) == 0 ]]; then
                   test_job_index=$(( test_job_index + 1 ))
                   test_job_index_tmp=$(printf "%02d" $test_job_index)
                   if [[ -z "${test_engines}" ]]; then
