@@ -1,11 +1,11 @@
-name: KubeBlocks Addons Examples Schedule
+name: KubeBlocks Addons Examples Schedule 09
 
 on:
   workflow_dispatch:
   schedule:
     - cron: '30 17 * * 0-4' # Runs at 02:30 UTC on Mon to Friday
 
-run-name: KB:${{ vars.KUBEBLOCKS_VERSION }} Addons Examples Test on ${{ vars.CLOUD_PROVIDER }}:${{ vars.KUBEBLOCKS_TEST_TYPE }}
+run-name: KB:${{ vars.KUBEBLOCKS_VERSION_09 }} Addons Examples Test on ${{ vars.CLOUD_PROVIDER }}:${{ vars.KUBEBLOCKS_TEST_TYPE_09 }}
 
 jobs:
   e2e:
@@ -14,8 +14,8 @@ jobs:
     with:
       CLOUD_PROVIDER: "${{ vars.CLOUD_PROVIDER }}"
       REGION: "${{ vars.REGION_AZURE_AKS }}"
-      KB_VERSION: "${{ vars.KUBEBLOCKS_VERSION }}"
-      TEST_TYPE: "${{ vars.KUBEBLOCKS_TEST_TYPE }}"
+      KB_VERSION: "${{ vars.KUBEBLOCKS_VERSION_09 }}"
+      TEST_TYPE: "${{ vars.KUBEBLOCKS_TEST_TYPE_09 }}"
       CLUSTER_VERSION: "1.30"
       INSTANCE_TYPE: "amd64"
       BRANCH_NAME: "main"
