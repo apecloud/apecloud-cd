@@ -293,7 +293,7 @@ jobs:
           fi
           
           if [[ -z "${PREVIOUS_VERSION}" ]]; then
-              common_cmd=" --generate-output true --chaos-mesh true "
+              common_cmd=" --chaos-mesh true "
           fi
           
           if [[ -n "${{ inputs.test-args }}" && "${{ inputs.test-args }}" == *"--only-kubectl true"* ]]; then
