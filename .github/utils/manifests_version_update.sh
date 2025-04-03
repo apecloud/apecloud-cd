@@ -130,6 +130,12 @@ update_manifests_file_version() {
                         yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${DMS_VERSION}\"" "${MANIFESTS_FILE}"
                     elif [[ "${manifests_image}" == "apecloud/servicemirror:"* && -n "${SERVICEMIRROR_VERSION}" ]]; then
                         yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${SERVICEMIRROR_VERSION}\"" "${MANIFESTS_FILE}"
+                    elif [[ "${manifests_image}" == "apecloud/openconsole:"* && "${manifests_image}" != "apecloud/openconsole:"*"-console" && "${manifests_image}" != "apecloud/openconsole:"*"-admin" ]]; then
+                        yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${RELEASE_VERSION}\"" "${MANIFESTS_FILE}"
+                    elif [[ "${manifests_image}" == "apecloud/openconsole:"*"-console" ]]; then
+                        yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${RELEASE_VERSION}-console\"" "${MANIFESTS_FILE}"
+                    elif [[ "${manifests_image}" == "apecloud/openconsole:"*"-admin" ]]; then
+                        yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${RELEASE_VERSION}-admin\"" "${MANIFESTS_FILE}"
                     elif [[ "${manifests_image}" == "apecloud/apiserver:"* && "${manifests_image}" != "apecloud/apiserver:"*"-jni" ]]; then
                         yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${RELEASE_VERSION}\"" "${MANIFESTS_FILE}"
                     elif [[ "${manifests_image}" == "apecloud/apiserver:"*"-jni" ]]; then
