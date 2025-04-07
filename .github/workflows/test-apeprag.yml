@@ -1,4 +1,4 @@
-name: Test DeepRAG
+name: Test ApeRAG
 
 on:
   workflow_call:
@@ -19,7 +19,7 @@ on:
         required: false
         default: ''
       release-version:
-        description: 'deeprag release version'
+        description: 'aperag release version'
         type: string
         required: false
         default: ''
@@ -51,10 +51,10 @@ on:
     outputs:
       deploy-result:
         description: "deploy result"
-        value: ${{ jobs.test-deeprag.outputs.deploy-result }}
+        value: ${{ jobs.test-aperag.outputs.deploy-result }}
       test-result:
         description: "test result"
-        value: ${{ jobs.test-deeprag.outputs.test-result }}
+        value: ${{ jobs.test-aperag.outputs.test-result }}
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -68,12 +68,12 @@ permissions:
   contents: read
 
 jobs:
-  test-deeprag:
+  test-aperag:
     name: test ${{ inputs.test-type-name }}
     runs-on: ubuntu-latest
     outputs:
-      deploy-result: ${{ steps.deploy_deeprag.outputs.deploy-result }}
-      test-result: ${{ steps.deeprag_test.outputs.test-result }}
+      deploy-result: ${{ steps.deploy_aperag.outputs.deploy-result }}
+      test-result: ${{ steps.aperag_test.outputs.test-result }}
     steps:
       - name: checkout testinfra
         uses: actions/checkout@v4
@@ -132,8 +132,8 @@ jobs:
                   --name ${{ inputs.k8s-cluster-name }}
           fi
 
-      - name: deploy deeprag
-        id: deploy_deeprag
+      - name: deploy aperag
+        id: deploy_aperag
         if: ${{ inputs.test-type == '0' }}
         run: |
           export TZ='Asia/Shanghai'
@@ -142,7 +142,7 @@ jobs:
           echo 'FILE_LOG='${file_log} >> $GITHUB_ENV
           
           echo "k8s-cluster-name:${{ inputs.k8s-cluster-name }}"
-          cmd="bash .github/utils/deeprag-test.sh "
+          cmd="bash .github/utils/aperag-test.sh "
           cmd="${cmd} --type '${{ inputs.test-type }}' "
           IMAGE_TAG=${{ inputs.release-version }}
           if [[ "$IMAGE_TAG" != "v"* ]]; then
@@ -187,14 +187,14 @@ jobs:
           path: ./customsuites
           token: ${{ env.GITHUB_TOKEN }}
 
-      - name: port-forward DeepRAG Service
+      - name: port-forward ApeRAG Service
         if: ${{ inputs.test-type != '0' }}
         run: |
-          nohup kubectl port-forward service/deeprag --namespace deeprag 8000:8000 &
+          nohup kubectl port-forward service/aperag --namespace aperag 8000:8000 &
 
-      - name: run deeprag test
+      - name: run aperag test
         if: ${{ inputs.test-type != '0' }}
-        id: deeprag_test
+        id: aperag_test
         run: |
           export TZ='Asia/Shanghai'
           file_log="$(date +%Y-%m-%d-%T)".log
@@ -212,7 +212,7 @@ jobs:
               echo test-result=[PASSED] >> $GITHUB_OUTPUT
           fi
 
-      - name: return deeprag test result
+      - name: return aperag test result
         id: test_result
         run: |
           test_ret="$( egrep "\[FAILED\]"|Traceback" ${FILE_LOG} || true )"
