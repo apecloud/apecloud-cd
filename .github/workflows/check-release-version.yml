@@ -1,4 +1,4 @@
-name: E2E Test DeepRAG
+name: E2E Test ApeRAG
 
 on:
   workflow_call:
