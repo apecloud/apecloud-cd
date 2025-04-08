@@ -1627,7 +1627,7 @@ jobs:
               --result "$TEST_RESULT"
 
       - name: Setup ossutil
-        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') && ! contains(inputs.ARGS, 'true') }}
+        if: ${{ ! (contains(inputs.ARGS, 'only-kubectl') && contains(inputs.ARGS, 'true')) && contains(inputs.ARGS, 'generate-outputl') && contains(inputs.ARGS, 'true') }}
         uses: manyuanrong/setup-ossutil@v2.0
         with:
           access-key-id: "${{ env.OSS_KEY_ID }}"
@@ -1635,7 +1635,7 @@ jobs:
           endpoint: "${{ env.OSS_ENDPOINT }}"
 
       - name: Upload test result log to oss
-        if: ${{ ! (contains(inputs.ARGS, 'only-kubectl') && contains(inputs.ARGS, 'true')) }}
+        if: ${{ ! (contains(inputs.ARGS, 'only-kubectl') && contains(inputs.ARGS, 'true')) && contains(inputs.ARGS, 'generate-outputl') && contains(inputs.ARGS, 'true') }}
         id: upload_test_result
         run: |
           export TZ='Asia/Shanghai'
@@ -1689,7 +1689,7 @@ jobs:
     secrets: inherit
     
   upload-test-report:
-    if: ${{ always() && ! (contains(inputs.ARGS, 'only-kubectl') && contains(inputs.ARGS, 'true')) }}
+    if: ${{ always() && ! (contains(inputs.ARGS, 'only-kubectl') && contains(inputs.ARGS, 'true')) && contains(inputs.ARGS, 'generate-outputl') && contains(inputs.ARGS, 'true') }}
     runs-on: ubuntu-latest
     needs: [ send-message ]
     steps:
