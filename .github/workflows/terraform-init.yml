@@ -281,6 +281,7 @@ jobs:
           elif [[ "${{ inputs.cloud-provider }}" == "aks" && -n "${{ env.AZURE_CREDENTIALS }}" ]]; then
               APP_ID="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientId' -)"
               APP_PASSWORD="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.clientSecret' -)"
+              SUBSCRIPTION_ID="$( echo "${{ env.AZURE_CREDENTIALS }}" | yq eval '.subscriptionId' -)"
               if [[ -n "${APP_ID}" ]]; then
                   cmd="${cmd} --app-id ${APP_ID} "
               fi
@@ -288,15 +289,24 @@ jobs:
               if [[ -n "${APP_PASSWORD}" ]]; then
                   cmd="${cmd} --app-password ${APP_PASSWORD} "
               fi
+              
+              if [[ -n "${SUBSCRIPTION_ID}" ]]; then
+                  cmd="${cmd} --subscription-id ${SUBSCRIPTION_ID} "
+              fi
           elif [[ "${{ inputs.cloud-provider }}" == "aks-cn" && -n "${{ env.AZURE_CREDENTIALS_CN }}" ]]; then
               APP_ID="$( echo "${{ env.AZURE_CREDENTIALS_CN }}" | yq eval '.clientId' -)"
               APP_PASSWORD="$( echo "${{ env.AZURE_CREDENTIALS_CN }}" | yq eval '.clientSecret' -)"
+              SUBSCRIPTION_ID="$( echo "${{ env.AZURE_CREDENTIALS_CN }}" | yq eval '.subscriptionId' -)"
               if [[ -n "${APP_ID}" ]]; then
                   cmd="${cmd} --app-id ${APP_ID} "
               fi
           
               if [[ -n "${APP_PASSWORD}" ]]; then
                   cmd="${cmd} --app-password ${APP_PASSWORD} "
+              fi
+          
+              if [[ -n "${SUBSCRIPTION_ID}" ]]; then
+                  cmd="${cmd} --subscription-id ${SUBSCRIPTION_ID} "
               fi
           fi
           
