@@ -14,10 +14,10 @@ on:
         required: false
         default: 'latest'
       K3S_VERSION:
-        description: 'k8s cluster version (e.g. 1.28)'
+        description: 'k8s cluster version (e.g. 1.32)'
         type: string
         required: false
-        default: '1.28'
+        default: '1.32'
       E2ETEST_BRANCH:
         description: 'e2etest branch name'
         type: string
@@ -51,10 +51,10 @@ on:
         required: false
         default: 'latest'
       K3S_VERSION:
-        description: 'k8s cluster version (e.g. 1.28)'
+        description: 'k8s cluster version (e.g. 1.32)'
         type: string
         required: false
-        default: '1.28'
+        default: '1.32'
       E2ETEST_BRANCH:
         description: 'e2etest branch name'
         type: string

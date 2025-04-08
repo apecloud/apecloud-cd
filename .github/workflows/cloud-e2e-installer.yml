@@ -9,10 +9,10 @@ on:
         required: false
         default: 'main'
       K3S_VERSION:
-        description: 'k3s cluster version (e.g. 1.30)'
+        description: 'k3s cluster version (e.g. 1.32)'
         type: string
         required: false
-        default: '1.30'
+        default: '1.32'
       CURRENT_VERSION:
         description: "The current release version (e.g. v0.30) "
         type: string
@@ -31,10 +31,10 @@ on:
         required: false
         default: 'main'
       K3S_VERSION:
-        description: 'k3s cluster version (e.g. 1.30)'
+        description: 'k3s cluster version (e.g. 1.32)'
         type: string
         required: false
-        default: '1.30'
+        default: '1.32'
       CURRENT_VERSION:
         description: "The current release version (e.g. v0.30) "
         type: string

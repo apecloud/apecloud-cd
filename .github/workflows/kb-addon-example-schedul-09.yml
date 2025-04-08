@@ -16,7 +16,7 @@ jobs:
       REGION: "${{ vars.REGION_AZURE_AKS }}"
       KB_VERSION: "${{ vars.KUBEBLOCKS_VERSION_09 }}"
       TEST_TYPE: "${{ vars.KUBEBLOCKS_TEST_TYPE_09 }}"
-      CLUSTER_VERSION: "1.30"
+      CLUSTER_VERSION: "1.32"
       INSTANCE_TYPE: "amd64"
       BRANCH_NAME: "main"
       ARGS: " --only-kubectl true --namespace default "

@@ -34,10 +34,10 @@ on:
         required: false
         default: ''
       k3s-version:
-        description: 'k3s cluster version (e.g. 1.30)'
+        description: 'k3s cluster version (e.g. 1.32)'
         type: string
         required: false
-        default: '1.30'
+        default: '1.32'
       cloud-provider:
         description: 'cloud k8s cluster provider (e.g. vke/eks/gke/aks)'
         type: string
