@@ -19,10 +19,10 @@ on:
         required: false
         default: 'v0.29.0-alpha.167'
       K3S_VERSION:
-        description: 'k3s cluster version (e.g. 1.30)'
+        description: 'k3s cluster version (e.g. 1.32)'
         type: string
         required: false
-        default: '1.30'
+        default: '1.32'
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
@@ -46,10 +46,10 @@ on:
         required: false
         default: 'v0.29.0-alpha.167'
       K3S_VERSION:
-        description: 'k3s cluster version (e.g. 1.30)'
+        description: 'k3s cluster version (e.g. 1.32)'
         type: string
         required: false
-        default: '1.30'
+        default: '1.32'
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string

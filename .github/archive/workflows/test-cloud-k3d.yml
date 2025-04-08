@@ -9,10 +9,10 @@ on:
         required: false
         default: 'v0.29.0-alpha.163'
       k3s-version:
-        description: 'k3s cluster version (e.g. 1.30)'
+        description: 'k3s cluster version (e.g. 1.32)'
         type: string
         required: false
-        default: '1.30'
+        default: '1.32'
   workflow_call:
     inputs:
       cloud-version:
@@ -21,10 +21,10 @@ on:
         required: false
         default: 'v0.29.0-alpha.163'
       k3s-version:
-        description: 'k3s cluster version (e.g. 1.30)'
+        description: 'k3s cluster version (e.g. 1.32)'
         type: string
         required: false
-        default: '1.30'
+        default: '1.32'
     outputs:
       test-result:
         description: "e2e test result"
