@@ -19,7 +19,7 @@ jobs:
 
       - name: comment issue
         run: |
-          EXAMPLE_RELEASE_BRANCH="release-0.30"
+          EXAMPLE_RELEASE_BRANCH="release-1.0"
           if [[ "${{ github.repository }}" == "apecloud/kubeblocks-addons" ]]; then
               EXAMPLE_RELEASE_BRANCH="release-1.0-beta"
           elif [[ "${{ github.repository }}" == "apecloud/apecloud-addons" ]]; then

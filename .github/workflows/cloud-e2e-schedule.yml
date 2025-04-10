@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch-name: [ "main", "release-0.30" ]
+        branch-name: [ "main", "release-1.0" ]
     uses: ./.github/workflows/release-image-cache.yml
     with:
       GITHUB_REPO: "apecloud/apecloud"
@@ -47,7 +47,7 @@ jobs:
 #      EXTRA_ARGS: "TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES }}#CLOUD_ENV_NAME=dev#CLOUD_BRANCH=main#CURRENT_VERSION=${{ vars.CURRENT_RELEASE_VERSION }}#TEST_REPORT=true"
 #    secrets: inherit
 
-  e2e-engine-test-030:
+  e2e-engine-test-10:
     needs: [ release-e2e-image ]
     uses: ./.github/workflows/trigger-workflow.yml
     with:
@@ -55,5 +55,5 @@ jobs:
       BRANCH_NAME: "main"
       WORKFLOW_ID: "cloud-e2e-engine.yml"
       APECD_REF: "main"
-      EXTRA_ARGS: "TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_030 }}#CLOUD_ENV_NAME=idc2#CLOUD_BRANCH=release-0.30#CURRENT_VERSION=v0.30#TEST_REPORT=false"
+      EXTRA_ARGS: "TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_030 }}#CLOUD_ENV_NAME=idc2#CLOUD_BRANCH=release-1.0#CURRENT_VERSION=v0.30#TEST_REPORT=false"
     secrets: inherit
