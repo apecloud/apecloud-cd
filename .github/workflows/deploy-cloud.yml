@@ -1,4 +1,4 @@
-name: Deploy ACK
+name: Deploy Cloud
 
 on:
   workflow_call:
@@ -48,6 +48,11 @@ on:
         type: string
         required: false
         default: 'main'
+      UPGRADE_ADDON:
+        description: "Upgrade addon  (default: false)"
+        type: boolean
+        required: false
+        default: false
 
 
 env:
@@ -59,7 +64,6 @@ env:
   IDC_KUBECONFIG_4: ${{ secrets.IDC_KUBECONFIG_4 }}
   ACK_KUBECONFIG_PROD: ${{ secrets.ACK_KUBECONFIG_PROD }}
   ACK_KUBECONFIG_INTL_PROD: ${{ secrets.ACK_KUBECONFIG_INTL_PROD }}
-  VKE_KUBECONFIG_TEST: ${{ secrets.VKE_KUBECONFIG_TEST }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
@@ -70,10 +74,11 @@ env:
   HELM_VERSION: "v3.16.3"
   JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
   JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
+  CHART_PROJECT_ID: ${{ secrets.GITLAB_PROJECT_ID }}
 
 
 jobs:
-  deploy-aliyun-ack:
+  deploy-cloud:
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -124,7 +129,7 @@ jobs:
           fi
           echo tag_name=$tag_name >> $GITHUB_OUTPUT
 
-      - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
+      - name: Configure Context ${{ inputs.CLOUD_ENV_NAME }}
         id: cloud_env
         run: |
           mkdir -p $HOME/.kube
@@ -166,10 +171,6 @@ jobs:
                   echo '${{ env.ACK_KUBECONFIG_INTL_PROD }}' > $HOME/.kube/config
                   cp -r apecloud-values/prod-us/values.yaml ${CHART_VALUES_FILENAME}
               ;;
-              vke_test)
-                  echo '${{ env.VKE_KUBECONFIG_TEST }}' > $HOME/.kube/config
-                  cp -r apecloud-values/vke-test/values.yaml ${CHART_VALUES_FILENAME}
-              ;;
               *)
                   echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
               ;;
@@ -180,7 +181,7 @@ jobs:
         run: |
           make ${{ inputs.MAKE_OPS_PRE }}
 
-      - name: deploy to aliyun ack
+      - name: Deploy ${{ inputs.CLOUD_ENV_NAME }}
         if: inputs.MAKE_OPS
         run: |
           cmd="make ${{ inputs.MAKE_OPS }} "
@@ -206,12 +207,79 @@ jobs:
           echo 'content_result='$CONTENT >> $GITHUB_OUTPUT
 
   send-message:
-    needs: [ deploy-aliyun-ack ]
+    needs: [ deploy-cloud ]
     if: ${{ always() }}
     uses: ./.github/workflows/feishui-message.yml
     with:
       TYPE: "2"
-      CONTENT: "deploy ${{ needs.deploy-aliyun-ack.outputs.cloud-env-name }} release ${{ needs.deploy-aliyun-ack.outputs.tag-name }} ${{ needs.deploy-aliyun-ack.outputs.content-result }}"
+      CONTENT: "deploy ${{ needs.deploy-cloud.outputs.cloud-env-name }} release ${{ needs.deploy-cloud.outputs.tag-name }} ${{ needs.deploy-cloud.outputs.content-result }}"
       WAIT_TIME: 60
       APECD_REF: ${{ inputs.APECD_REF }}
     secrets: inherit
+
+  upgrade-addon:
+    if: ${{ inputs.UPGRADE_ADDON }}
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    needs: [ deploy-cloud ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - uses: azure/setup-kubectl@v3
+        with:
+          version: "${{ inputs.KUBECTL_VERSION }}"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Configure Context ${{ inputs.CLOUD_ENV_NAME }}
+        run: |
+          mkdir -p $HOME/.kube
+          touch $HOME/.kube/config
+          CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
+          case "$CLOUD_ENV_NAME" in
+              dev)
+                  echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
+              ;;
+              demo)
+                  echo '${{ env.ACK_KUBECONFIG_DEMO }}' > $HOME/.kube/config
+              ;;
+              idc)
+                  echo '${{ env.IDC_KUBECONFIG }}' > $HOME/.kube/config
+              ;;
+              idc1)
+                  echo '${{ env.IDC_KUBECONFIG_1 }}' > $HOME/.kube/config
+              ;;
+              idc2)
+                  echo '${{ env.IDC_KUBECONFIG_2 }}' > $HOME/.kube/config
+              ;;
+              idc4)
+                  echo '${{ env.IDC_KUBECONFIG_4 }}' > $HOME/.kube/config
+              ;;
+              prod)
+                  echo '${{ env.ACK_KUBECONFIG_PROD }}' > $HOME/.kube/config
+              ;;
+              intl_prod)
+                  echo '${{ env.ACK_KUBECONFIG_INTL_PROD }}' > $HOME/.kube/config
+              ;;
+              *)
+                  echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
+              ;;
+          esac
+
+      - name: Upgrade Addon
+        run: |
+          MANIFESTS_FILE="./manifests/deploy-manifests.yaml"
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_charts_image_check.sh "${MANIFESTS_FILE}"

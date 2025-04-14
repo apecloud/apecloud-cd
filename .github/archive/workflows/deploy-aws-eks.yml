@@ -1,4 +1,4 @@
-name: DEPLOY-AWS-EKS
+name: Deploy EKS
 
 on:
   workflow_call:

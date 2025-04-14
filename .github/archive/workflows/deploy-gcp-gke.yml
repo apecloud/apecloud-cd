@@ -1,4 +1,4 @@
-name: DEPLOY-GCP-GKE
+name: Deploy GKE
 
 on:
   workflow_call:
