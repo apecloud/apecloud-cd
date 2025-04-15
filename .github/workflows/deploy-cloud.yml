@@ -282,4 +282,4 @@ jobs:
       - name: Upgrade Addon
         run: |
           MANIFESTS_FILE="./manifests/deploy-manifests.yaml"
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_charts_image_check.sh "${MANIFESTS_FILE}"
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_charts_addon_upgrade.sh "${MANIFESTS_FILE}"
