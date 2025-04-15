@@ -129,7 +129,7 @@ jobs:
           
               KB_CLOUD_TEST_ENGINES_PRE="${{ vars.KB_CLOUD_TEST_ENGINES_PRE }}"
               if [[ -z "${KB_CLOUD_TEST_ENGINES_PRE}" ]]; then
-                  KB_CLOUD_TEST_ENGINES_PRE=8
+                  KB_CLOUD_TEST_ENGINES_PRE=4
               fi
               if [[ $(( engine_index % ${KB_CLOUD_TEST_ENGINES_PRE} )) == 0 ]]; then
                   test_job_index=$(( test_job_index + 1 ))
@@ -186,6 +186,7 @@ jobs:
     needs: [ get-test-engine ]
     name: ${{ matrix.test-engine }}
     strategy:
+      max-parallel: 2
       fail-fast: false
       matrix: ${{ fromJSON(needs.get-test-engine.outputs.test-engines) }}
     outputs:
