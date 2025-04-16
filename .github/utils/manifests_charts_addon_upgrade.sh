@@ -87,7 +87,7 @@ upgrade_charts_addon() {
     unavailable_cmpds=$(kubectl get componentDefinition | (grep "Unavailable" || true) | awk '{print $1}')
     if [[ -n "${unavailable_cmpds}" ]]; then
         for unavailable_cmpd in $(echo "$unavailable_cmpds"); do
-            kubectl annotate componentDefinition unavailable_cmpd apps.kubeblocks.io/skip-immutable-check=true --overwrite=true
+            kubectl annotate componentDefinition $unavailable_cmpd apps.kubeblocks.io/skip-immutable-check=true --overwrite=true
         done
     fi
 }
