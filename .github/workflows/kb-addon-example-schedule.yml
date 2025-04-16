@@ -19,5 +19,5 @@ jobs:
       CLUSTER_VERSION: "1.32"
       INSTANCE_TYPE: "amd64"
       BRANCH_NAME: "main"
-      ARGS: " --only-kubectl true --namespace default "
+      ARGS: " --only-kubectl true --namespace demo "
     secrets: inherit
