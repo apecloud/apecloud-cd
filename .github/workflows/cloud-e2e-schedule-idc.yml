@@ -1,0 +1,37 @@
+name: Cloud E2E Schedule Idc
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 15 * * 0-4' # Runs at 02:30 UTC on Mon to Friday
+
+jobs:
+  release-e2e-image:
+    strategy:
+      fail-fast: false
+      matrix:
+        branch-name: [ "release-1.0" ]
+    uses: ./.github/workflows/release-image-cache.yml
+    with:
+      GITHUB_REPO: "apecloud/apecloud"
+      GITHUB_REF: "${{ matrix.branch-name }}"
+      IMG: "apecloud/e2e"
+      CONTEXT: "./e2e"
+      DOCKERFILE_PATH: "./e2e/Dockerfile"
+      VERSION: "${{ matrix.branch-name }}"
+      GO_VERSION: "1.22"
+      REMOVE_PREFIX: false
+      BUILDX_ARGS: |
+        ALPINE_IMAGE=apecloud/alpine:3.16
+    secrets: inherit
+
+  e2e-engine-test-10:
+    needs: [ release-e2e-image ]
+    uses: ./.github/workflows/trigger-workflow.yml
+    with:
+      GITHUB_REPO: "apecloud/apecloud-cd"
+      BRANCH_NAME: "main"
+      WORKFLOW_ID: "cloud-e2e-engine.yml"
+      APECD_REF: "main"
+      EXTRA_ARGS: "TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_10 }}#CLOUD_ENV_NAME=idc2#CLOUD_BRANCH=release-1.0#CURRENT_VERSION=v1.0#TEST_REPORT=true"
+    secrets: inherit
