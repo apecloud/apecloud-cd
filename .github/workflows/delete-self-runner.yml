@@ -95,6 +95,7 @@ jobs:
           aws-region: "${{ env.AWS_REGION }}"
 
       - name: delete self runner pod
+        continue-on-error: true
         shell: bash
         run: |
           aws eks --region ${{ env.AWS_REGION }} update-kubeconfig --name ${{ env.AWS_CLUSTER }} \
