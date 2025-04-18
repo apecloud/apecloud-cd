@@ -1,4 +1,4 @@
-name: RELEASE-IMAGE-CACHE
+name: Release Image Cache
 
 on:
   workflow_call:

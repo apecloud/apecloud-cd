@@ -1,8 +1,18 @@
-name: Release Image Cache Amd
+name: Release Image No Cache
 
 on:
   workflow_call:
     inputs:
+      GITHUB_REPO:
+        description: "The github repo to release image"
+        type: string
+        required: false
+        default: ''
+      GITHUB_REF:
+        description: "The github repo ref to release image"
+        type: string
+        required: false
+        default: 'main'
       MAKE_OPS_PRE:
         description: "The pre ops name of makefile (e.g. generate)"
         type: string
@@ -63,11 +73,6 @@ on:
         type: boolean
         required: false
         default: true
-      ENABLE_SUBMODULE:
-        description: "Enable checkout submodule  (default: false)"
-        type: boolean
-        required: false
-        default: false
       PYTHON_VERSION:
         description: "Install the specify version of Python"
         type: string
@@ -78,6 +83,11 @@ on:
         type: string
         required: false
         default: ''
+      ENABLE_SUBMODULE:
+        description: "Enable checkout submodule  (default: false)"
+        type: boolean
+        required: false
+        default: false
 
 env:
   DOCKER_REGISTRY_URL: docker.io
@@ -103,21 +113,40 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
-    runs-on: [self-hosted, amd-runner ]
+    runs-on: ubuntu-latest
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.tag-name }}
-      runner-name: ${{ steps.get_runner_name.outputs.runner-name }}
     steps:
       - name: Checkout Code
-        if: ${{ ! inputs.ENABLE_SUBMODULE }}
+        if: ${{ ! inputs.ENABLE_SUBMODULE && inputs.GITHUB_REPO == '' }}
         uses: actions/checkout@v4
 
+      - name: Checkout ${{ inputs.GITHUB_REPO }} Code
+        if: ${{ ! inputs.ENABLE_SUBMODULE && inputs.GITHUB_REPO != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.GITHUB_REPO }}
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.GITHUB_REF }}
+
       - name: Checkout Code With Submodule
-        if: inputs.ENABLE_SUBMODULE
+        if: ${{ inputs.ENABLE_SUBMODULE && inputs.GITHUB_REPO == '' }}
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
           token: ${{ env.GITHUB_TOKEN }}
+
+      - name: Checkout ${{ inputs.GITHUB_REPO }} Code With Submodule
+        if: ${{ inputs.ENABLE_SUBMODULE && inputs.GITHUB_REPO != '' }}
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          repository: ${{ inputs.GITHUB_REPO }}
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.GITHUB_REF }}
+
 
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
@@ -129,6 +158,18 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ${{ inputs.GO_VERSION }}
+
+      - name: Setup Python specify version
+        if: inputs.PYTHON_VERSION
+        uses: actions/setup-python@v4
+        with:
+          python-version: "${{ inputs.PYTHON_VERSION }}"
+
+      - name: Setup Poetry specify version
+        if: inputs.POETRY_VERSION
+        uses: Gr1N/setup-poetry@v8
+        with:
+          poetry-version: "${{ inputs.POETRY_VERSION }}"
 
       - name: Setup Python specify version
         if: inputs.PYTHON_VERSION
@@ -180,8 +221,6 @@ jobs:
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
           push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           provenance: false
           sbom: false
 
@@ -203,8 +242,6 @@ jobs:
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
           push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           provenance: false
           sbom: false
 
@@ -226,8 +263,6 @@ jobs:
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
           push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           provenance: false
           sbom: false
 
@@ -259,21 +294,5 @@ jobs:
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
           push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           provenance: false
           sbom: false
-
-      - name: get runner name
-        id: get_runner_name
-        if: ${{ always() }}
-        run: |
-          echo runner-name=${RUNNER_NAME} >> $GITHUB_OUTPUT
-
-  delete-self-runner:
-    if: ${{ always() }}
-    needs: [ release-image ]
-    uses: ./.github/workflows/delete-self-runner.yml
-    with:
-      RUNNER_NAME: "${{ needs.release-image.outputs.runner-name }}"
-    secrets: inherit
