@@ -421,6 +421,9 @@ jobs:
                           IMAGES_INPUT="apecloud/apiserver:${IMAGES_TAG}"
                       fi  
                   ;;
+                  *TARGETS=docs*)
+                      IMAGES_INPUT="apecloud/kb-cloud-docs:${IMAGES_TAG}"
+                  ;;
                   *TARGETS=openconsole*)
                       IMAGES_INPUT="apecloud/openconsole:${IMAGES_TAG}"
                   ;;
