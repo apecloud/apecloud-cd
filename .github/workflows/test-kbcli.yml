@@ -239,7 +239,7 @@ jobs:
         run: |
           if [[ -d kubeblocks-addons/examples ]]; then
               cp -r kubeblocks-addons/examples ./
-          fi 
+          fi
           
           export TZ='Asia/Shanghai'
           file_log="$(date +%Y-%m-%d-%T)".log

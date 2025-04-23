@@ -115,7 +115,7 @@ jobs:
               show_ref_ret_msg=$(git show-ref --quiet --verify refs/tags/${{ inputs.BRANCH_NAME }})
           else
               show_ref_ret_msg=$(git show-ref --quiet --verify refs/remotes/origin/${{ inputs.BRANCH_NAME }})
-          fi 
+          fi
           SHOW_REF_RET=$?
           echo "SHOW_REF_RET:${SHOW_REF_RET}"
           echo "SHOW_REF_RET=${SHOW_REF_RET}" >> $GITHUB_ENV
