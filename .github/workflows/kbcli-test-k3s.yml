@@ -14,10 +14,10 @@ on:
         default: ''
       TEST_TYPE:
         description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|mysqlscale|weaviate|qdrant|smartengine|
-        greptimedb|nebula|risingwave|starrocks|etcd|foxlake|orioledb|vanilla-pg|asmysql|openldap|
+        greptimedb|nebula|risingwave|starrocks|etcd|orioledb|vanilla-pg|asmysql|openldap|
         opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
-        oracle|opengauss|influxdb|flink|solr|mogdb|starrocks-ent|apecloud-postgresql|yashandb|polardbx|
-        redis-cluster|camellia-redis-proxy|dmdb|minio|orchestrator)'
+        oracle|opengauss|influxdb|flink|solr|mogdb|starrocks-ent|yashandb|polardbx|
+        redis-cluster|dmdb|minio|orchestrator)'
         type: string
         required: false
         default: ''
@@ -290,20 +290,6 @@ jobs:
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "15"
       test-type-name: "etcd"
-      test-args: "${{ inputs.ARGS }}"
-      branch-name: ${{ inputs.BRANCH_NAME }}
-      k3s-version: ${{ inputs.CLUSTER_VERSION }}
-    secrets: inherit
-
-  test-foxlake:
-    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'foxlake')) && (contains(inputs.KB_VERSION, 'v0.7.') || contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
-    needs: [ enable-runner ]
-    uses: ./.github/workflows/test-kbcli-k3s.yml
-    with:
-      release-version: "${{ inputs.KB_VERSION }}"
-      previous-version: "${{ inputs.KB_PRE_VERSION }}"
-      test-type: "17"
-      test-type-name: "foxlake"
       test-args: "${{ inputs.ARGS }}"
       branch-name: ${{ inputs.BRANCH_NAME }}
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
@@ -673,20 +659,6 @@ jobs:
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
     secrets: inherit
 
-  test-apecloud-postgresql:
-    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'apecloud-postgresql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
-    needs: [ enable-runner ]
-    uses: ./.github/workflows/test-kbcli-k3s.yml
-    with:
-      release-version: "${{ inputs.KB_VERSION }}"
-      previous-version: "${{ inputs.KB_PRE_VERSION }}"
-      test-type: "46"
-      test-type-name: "apecloud-postgresql"
-      test-args: "${{ inputs.ARGS }}"
-      branch-name: ${{ inputs.BRANCH_NAME }}
-      k3s-version: ${{ inputs.CLUSTER_VERSION }}
-    secrets: inherit
-
   test-yashandb:
     if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'yashandb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ enable-runner ]
@@ -724,20 +696,6 @@ jobs:
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "48"
       test-type-name: "redis-cluster"
-      test-args: "${{ inputs.ARGS }}"
-      branch-name: ${{ inputs.BRANCH_NAME }}
-      k3s-version: ${{ inputs.CLUSTER_VERSION }}
-    secrets: inherit
-
-  test-camellia-redis-proxy:
-    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'camellia-redis-proxy')) && (contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
-    needs: [ enable-runner ]
-    uses: ./.github/workflows/test-kbcli-k3s.yml
-    with:
-      release-version: "${{ inputs.KB_VERSION }}"
-      previous-version: "${{ inputs.KB_PRE_VERSION }}"
-      test-type: "49"
-      test-type-name: "camellia-redis-proxy"
       test-args: "${{ inputs.ARGS }}"
       branch-name: ${{ inputs.BRANCH_NAME }}
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
@@ -790,12 +748,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ test-apecloud-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar,
              test-mysqlscale, test-weaviate, test-qdrant, test-smartengine, test-greptimedb, test-nebula,
-             test-risingwave, test-starrocks, test-etcd, test-foxlake, test-asmysql,
+             test-risingwave, test-starrocks, test-etcd, test-asmysql,
              test-openldap, test-milvus, test-clickhouse, test-pika, test-opensearch, test-elasticsearch,
              test-vllm, test-tdengine, test-orioledb, test-vanilla-pg, test-ggml, test-zookeeper,
              test-mariadb, test-tidb, test-xinference, test-oracle, test-opengauss, test-influxdb,
-             test-flink, test-solr, test-mogdb, test-starrocks-ent, test-apecloud-postgresql,
-             test-yashandb, test-polardbx, test-redis-cluster, test-camellia-redis-proxy, test-dmdb,
+             test-flink, test-solr, test-mogdb, test-starrocks-ent,
+             test-yashandb, test-polardbx, test-redis-cluster, test-dmdb,
              test-minio, test-orchestrator, test-asmysql-proxy, test-asmysql-orc, test-asmysql-orc-proxy]
     steps:
       - name: Checkout apecloud-cd Code
@@ -871,10 +829,6 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##etcd|${{ needs.test-etcd.outputs.pre-test-result }}"
               fi
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"foxlake"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##foxlake|${{ needs.test-foxlake.outputs.pre-test-result }}"
-              fi
-          
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"asmysql"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##asmysql|${{ needs.test-asmysql.outputs.pre-test-result }}"
               fi
@@ -905,104 +859,96 @@ jobs:
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"tdengine"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##tdengine|${{ needs.test-tdengine.outputs.pre-test-result }}"
-              fi   
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"vllm"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##vllm|${{ needs.test-vllm.outputs.pre-test-result }}"
-              fi    
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"orioledb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##orioledb|${{ needs.test-orioledb.outputs.pre-test-result }}"
-              fi  
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"vanilla-pg"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##vanilla-pg|${{ needs.test-vanilla-pg.outputs.pre-test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"ggml"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##ggml|${{ needs.test-ggml.outputs.pre-test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"zookeeper"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##zookeeper|${{ needs.test-zookeeper.outputs.pre-test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mariadb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##mariadb|${{ needs.test-mariadb.outputs.pre-test-result }}"
-              fi 
+              fi
           fi
           
           if [[ "${{ inputs.KB_PRE_VERSION }}" != "v0.5."* && "${{ inputs.KB_PRE_VERSION }}" != "v0.6."* && "${{ inputs.KB_PRE_VERSION }}" != "v0.7."* ]]; then
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"tidb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##tidb|${{ needs.test-tidb.outputs.pre-test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"xinference"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##xinference|${{ needs.test-xinference.outputs.pre-test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oracle|"* || "${{ inputs.TEST_TYPE }}" == *"oracle" ]]; then
                   TEST_RESULT="${TEST_RESULT}##oracle|${{ needs.test-oracle.outputs.pre-test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"opengauss"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##opengauss|${{ needs.test-opengauss.outputs.pre-test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"influxdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##influxdb|${{ needs.test-influxdb.outputs.pre-test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"flink"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##flink|${{ needs.test-flink.outputs.pre-test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mogdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##mogdb|${{ needs.test-mogdb.outputs.pre-test-result }}"
-              fi  
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"redis-cluster"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##redis-cluster|${{ needs.test-redis-cluster.outputs.pre-test-result }}"
-              fi 
-          
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"camellia-redis-proxy"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##camellia-redis-proxy|${{ needs.test-camellia-redis-proxy.outputs.pre-test-result }}"
-              fi  
-          fi 
+              fi
+          fi
           
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* ]]; then
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"solr"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##solr|${{ needs.test-solr.outputs.pre-test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"starrocks-ent"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##starrocks-ent|${{ needs.test-starrocks-ent.outputs.pre-test-result }}"
-              fi 
-          
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"apecloud-postgresql"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##apecloud-postgresql|${{ needs.test-apecloud-postgresql.outputs.pre-test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"yashandb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##yashandb|${{ needs.test-yashandb.outputs.pre-test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"polardbx"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##polardbx|${{ needs.test-polardbx.outputs.pre-test-result }}"
-              fi 
+              fi
               
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"dmdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##dmdb|${{ needs.test-dmdb.outputs.pre-test-result }}"
-              fi 
+              fi
               
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"minio"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##minio|${{ needs.test-minio.outputs.pre-test-result }}"
-              fi 
+              fi
 
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"orchestrator"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##orchestrator|${{ needs.test-orchestrator.outputs.pre-test-result }}"
-              fi 
-          fi 
+              fi
+          fi
           
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
               --github-repo "${{ github.repository }}" \
@@ -1082,10 +1028,6 @@ jobs:
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"etcd"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##etcd|${{ needs.test-etcd.outputs.test-result }}"
               fi
-             
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"foxlake"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##foxlake|${{ needs.test-foxlake.outputs.test-result }}"
-              fi
             
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"asmysql|"* || "${{ inputs.TEST_TYPE }}" == *"asmysql" ]]; then
                   TEST_RESULT="${TEST_RESULT}##asmysql|${{ needs.test-asmysql.outputs.test-result }}"
@@ -1117,95 +1059,87 @@ jobs:
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"tdengine"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##tdengine|${{ needs.test-tdengine.outputs.test-result }}"
-              fi   
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"vllm"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##vllm|${{ needs.test-vllm.outputs.test-result }}"
-              fi    
+              fi
              
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"orioledb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##orioledb|${{ needs.test-orioledb.outputs.test-result }}"
-              fi  
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"vanilla-pg"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##vanilla-pg|${{ needs.test-vanilla-pg.outputs.test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"ggml"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##ggml|${{ needs.test-ggml.outputs.test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"zookeeper"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##zookeeper|${{ needs.test-zookeeper.outputs.test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mariadb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##mariadb|${{ needs.test-mariadb.outputs.test-result }}"
-              fi 
+              fi
           fi
           
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* ]]; then
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"tidb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##tidb|${{ needs.test-tidb.outputs.test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"xinference"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##xinference|${{ needs.test-xinference.outputs.test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"oracle|"* || "${{ inputs.TEST_TYPE }}" == *"oracle" ]]; then
                   TEST_RESULT="${TEST_RESULT}##oracle|${{ needs.test-oracle.outputs.test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"opengauss"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##opengauss|${{ needs.test-opengauss.outputs.test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"influxdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##influxdb|${{ needs.test-influxdb.outputs.test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"flink"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##flink|${{ needs.test-flink.outputs.test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mogdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##mogdb|${{ needs.test-mogdb.outputs.test-result }}"
-              fi   
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"redis-cluster"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##redis-cluster|${{ needs.test-redis-cluster.outputs.test-result }}"
-              fi 
-          
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"camellia-redis-proxy"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##camellia-redis-proxy|${{ needs.test-camellia-redis-proxy.outputs.test-result }}"
-              fi  
-          fi 
+              fi
+          fi
           
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* ]]; then
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"solr"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##solr|${{ needs.test-solr.outputs.test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"starrocks-ent"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##starrocks-ent|${{ needs.test-starrocks-ent.outputs.test-result }}"
-              fi 
-          
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"apecloud-postgresql"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##apecloud-postgresql|${{ needs.test-apecloud-postgresql.outputs.test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"yashandb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##yashandb|${{ needs.test-yashandb.outputs.test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"polardbx"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##polardbx|${{ needs.test-polardbx.outputs.test-result }}"
-              fi 
+              fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"dmdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##dmdb|${{ needs.test-dmdb.outputs.test-result }}"
-              fi 
+              fi
 
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"minio"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##minio|${{ needs.test-minio.outputs.test-result }}"
@@ -1213,8 +1147,8 @@ jobs:
 
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"orchestrator"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##orchestrator|${{ needs.test-orchestrator.outputs.test-result }}"
-              fi 
-          fi 
+              fi
+          fi
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* && "${{ inputs.KB_VERSION }}" != "v0.9."* ]]; then
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"asmysql-proxy|"* || "${{ inputs.TEST_TYPE }}" == *"asmysql-proxy" ]]; then
                   TEST_RESULT="${TEST_RESULT}##asmysql-proxy|${{ needs.test-asmysql-proxy.outputs.test-result }}"
@@ -1237,7 +1171,7 @@ jobs:
           test_title="[${{ inputs.KB_VERSION }}] Test KBCLI on k3s:${{ inputs.CLUSTER_VERSION }} [${date_ret}]"
           if [[ -n "${{ inputs.KB_PRE_VERSION }}" ]]; then
               test_title="[${{ inputs.KB_PRE_VERSION }}] upgrade to "$test_title
-          fi 
+          fi
           python3 .github/utils/send_mesage.py \
               --url "${{ vars.TEST_BOT_WEBHOOK }}" \
               --title "$test_title" \

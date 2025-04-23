@@ -108,7 +108,7 @@ jobs:
           fi
           if [[ -d kubeblocks-addons/examples ]]; then
               cp -r kubeblocks-addons/examples ./
-          fi 
+          fi
           KB_VERSION=$( bash .github/utils/get_kb_latest_version.sh \
               ${{ inputs.release-version }} )
           

@@ -222,15 +222,15 @@ jobs:
           
           if [ -n "${{ needs.cloud-e2e-test.outputs.minio-result }}" ]; then
             TEST_RESULT+="${{ needs.cloud-e2e-test.outputs.minio-result }}##"
-          fi 
+          fi
           
           if [ -n "${{ needs.cloud-e2e-test.outputs.dmdb-result }}" ]; then
             TEST_RESULT+="${{ needs.cloud-e2e-test.outputs.dmdb-result }}##"
-          fi 
+          fi
           
           if [ -n "${{ needs.cloud-e2e-test.outputs.zookeeper-result }}" ]; then
             TEST_RESULT+="${{ needs.cloud-e2e-test.outputs.zookeeper-result }}##"
-          fi 
+          fi
           
           TEST_RESULT=${TEST_RESULT%%##}
           echo "Test result from cloud-e2e-test: $TEST_RESULT"

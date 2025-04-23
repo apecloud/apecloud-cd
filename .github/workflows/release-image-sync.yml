@@ -419,7 +419,7 @@ jobs:
                           IMAGES_INPUT="apecloud/apiserver:${IMAGES_TAG}-jni"
                       else
                           IMAGES_INPUT="apecloud/apiserver:${IMAGES_TAG}"
-                      fi  
+                      fi
                   ;;
                   *TARGETS=docs*)
                       IMAGES_INPUT="apecloud/kb-cloud-docs:${IMAGES_TAG}"

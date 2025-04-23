@@ -56,7 +56,7 @@ jobs:
                   
                   if [[ ("${COMMENT_BODYS}" == "/pick" || "${COMMENT_BODYS}" != *"release-"*) && -n "${{ vars.CHERRY_PICK_BRANCH }}" ]]; then
                       COMMENT_BODYS="${{ vars.CHERRY_PICK_BRANCH }}"
-                  fi 
+                  fi
           
                   for comment_body in $(echo "${COMMENT_BODYS}") ; do
                       echo "comment_body:$comment_body"
@@ -68,7 +68,7 @@ jobs:
                           label_name_tmp="pick-${comment_body/release-/}"
                       elif [[ "${comment_body}" == "pick-"* || "${comment_body}" =~ ^([0-9]+)\.([0-9]+)$ ]]; then
                           label_name_tmp="${comment_body}"
-                      fi 
+                      fi
           
                       if [[ -n "${label_name_tmp}" ]]; then
                           if [[ -z "${ADD_LABEL_NAME}" ]]; then
