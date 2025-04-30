@@ -211,6 +211,8 @@ delete_release_version() {
     if [[ -n "$release_id" && "$release_id" != "null" ]]; then
         echo "delete $GITHUB_REPO release $TAG_NAME"
         gh_curl -s -X DELETE $GITHUB_API/repos/$GITHUB_REPO/releases/$release_id
+    else
+        gh release delete "$TAG_NAME" --repo $GITHUB_REPO --yes &
     fi
     delete_tag
 }
