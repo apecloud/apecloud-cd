@@ -59,6 +59,9 @@ lookup_changed_charts() {
         changed_files="$SPECIFY_CHART"
     else
         changed_files=$(ls -1 "$charts_dir")
+        if [[ "$changed_files" == *"gemini-monitor"* ]]; then
+            changed_files=$(ls -1 "$charts_dir" | (grep -v "victoria-metrics-alert" || true) )
+        fi
     fi
     echo "$changed_files" | filter_charts
 }
