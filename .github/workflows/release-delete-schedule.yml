@@ -36,26 +36,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Checkout helm-charts Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/helm-charts
-          path: helm-charts
-          token: ${{ env.GITHUB_TOKEN }}
-
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
         with:
           repository: apecloud/apecloud-cd
           path: apecloud-cd
           ref: ${{ inputs.APECD_REF }}
-
-      - name: Checkout kubeblocks-addons Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/kubeblocks-addons
-          path: kubeblocks-addons
-          token:  ${{ env.GITHUB_TOKEN }}
 
       - name: get delete release version
         id: get_delete_version
@@ -70,17 +56,6 @@ jobs:
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
                   --type 8 \
                   --github-repo apecloud/kubeblocks \
-                  --tag-name $release \
-                  --github-token ${{ env.GITHUB_TOKEN }}
-          done
-
-      - name: delete github kubeblocks-addons tag
-        if: ${{ always() }}
-        run: |
-          for release in $(echo "${{ steps.get_delete_version.outputs.RELEASE_VERSION }}" | sed 's/|/ /g'); do
-              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
-                  --type 29 \
-                  --github-repo apecloud/kubeblocks-addons \
                   --tag-name $release \
                   --github-token ${{ env.GITHUB_TOKEN }}
           done
@@ -104,7 +79,7 @@ jobs:
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
                   --type 6 \
                   --tag-name $release \
-                  --charts-dir "${{ github.workspace }}/kubeblocks-addons/addons|${{ github.workspace }}/helm-charts/charts|${{ github.workspace }}/deploy" \
+                  --charts-dir "${{ github.workspace }}/deploy" \
                   --access-token ${{ env.JIHULAB_ACCESS_TOKEN }}
           done
 
