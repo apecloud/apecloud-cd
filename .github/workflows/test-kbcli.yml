@@ -130,7 +130,7 @@ jobs:
                   KUBEBLOCKS_RELEASE_BRANCH="release-0.9"
               ;;
               1.0.*)
-                  KUBEBLOCKS_RELEASE_BRANCH="release-1.0-beta"
+                  KUBEBLOCKS_RELEASE_BRANCH="release-1.0"
               ;;
               *)
                   KUBEBLOCKS_RELEASE_BRANCH="main"
