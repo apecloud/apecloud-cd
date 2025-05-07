@@ -20,7 +20,7 @@ env:
   ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
   ALIYUN_USER_NEW: ${{ secrets.ALIYUN_USER_NEW }}
   ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
-  JIHULAB_KBCLI_PROJECT_ID: 85948
+
 
 jobs:
   delete-release:
@@ -74,17 +74,6 @@ jobs:
                   --github-token ${{ env.GITHUB_TOKEN }}
           done
 
-      - name: delete github kbcli release
-        if: ${{ always() }}
-        run: |
-          for release in $(echo "${{ steps.get_delete_version.outputs.RELEASE_VERSION }}" | sed 's/|/ /g'); do
-              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
-                  --type 8 \
-                  --github-repo apecloud/kbcli \
-                  --tag-name $release \
-                  --github-token ${{ env.GITHUB_TOKEN }}
-          done
-
       - name: delete github kubeblocks-addons tag
         if: ${{ always() }}
         run: |
@@ -94,17 +83,6 @@ jobs:
                   --github-repo apecloud/kubeblocks-addons \
                   --tag-name $release \
                   --github-token ${{ env.GITHUB_TOKEN }}
-          done
-
-      - name: delete Jihulab kbcli release
-        if: ${{ always() }}
-        run: |
-          for release in $(echo "${{ steps.get_delete_version.outputs.RELEASE_VERSION }}" | sed 's/|/ /g'); do
-              bash ${{ github.workspace }}/apecloud-cd/.github/utils/release_gitlab.sh \
-                  --type 5 \
-                  --tag-name $release \
-                  --project-id ${{ env.JIHULAB_KBCLI_PROJECT_ID }} \
-                  --access-token ${{ env.JIHULAB_ACCESS_TOKEN }}
           done
 
       - name: delete github helm chart release
