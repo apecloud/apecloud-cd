@@ -1,4 +1,4 @@
-name: RELEASE-DELETE-SCHEDULE
+name: Release Delete Schedule
 
 on:
   workflow_call:

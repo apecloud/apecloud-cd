@@ -1,6 +1,18 @@
-name: RELEASE-DELETE
+name: Release Delete
 
 on:
+  workflow_dispatch:
+    inputs:
+      VERSION:
+        description: "The version of release (e.g. v0.4.0)"
+        type: string
+        required: true
+        default: ''
+      APECD_REF:
+        description: "The ref of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
   workflow_call:
     inputs:
       VERSION:
