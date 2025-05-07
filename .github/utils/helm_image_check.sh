@@ -55,6 +55,11 @@ main() {
                 continue
             fi
 
+            if [[ "$repository" == "busybox:busybox"* || "$repository" == "docker.io/library/busybox:busybox"* ]]; then
+                repository=""
+                continue
+            fi
+
             if [[ -z "$repository" || "$repository" == "image:" || "$repository" == *':$('*')' || "$repository" == *'--'* || "$repository" == *'='* ]]; then
                 repository=""
                 continue
@@ -85,6 +90,9 @@ main() {
             fi
 
             echo "check image: $repository"
+
+
+
             check_image "$repository" $skipCheckFlag &
             repository=""
         done
