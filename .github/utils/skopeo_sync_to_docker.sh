@@ -38,10 +38,18 @@ do
                 --dest docker \
                 $REGISTRY/$image \
                 docker.io/apecloud)
-        else
+        elif [[ "${REGISTRY}" == *"docker.io"* ]]; then
             ret_msg=$(skopeo sync --all \
                 --src-username "$DOCKER_USERNAME" \
                 --src-password "$DOCKER_PASSWORD" \
+                --dest-username "$DOCKER_USERNAME" \
+                --dest-password "$DOCKER_PASSWORD" \
+                --src docker \
+                --dest docker \
+                $REGISTRY/$image \
+                docker.io/apecloud)
+        else
+            ret_msg=$(skopeo sync --all \
                 --dest-username "$DOCKER_USERNAME" \
                 --dest-password "$DOCKER_PASSWORD" \
                 --src docker \

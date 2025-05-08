@@ -40,10 +40,18 @@ do
                 --dest docker \
                 $REGISTRY/$image \
                 apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud)
-        else
+        elif [[ "${REGISTRY}" == *"docker.io"* ]]; then
             ret_msg=$(skopeo sync --all \
                 --src-username "$SRC_USERNAME" \
                 --src-password "$SRC_PASSWORD" \
+                --dest-username "$ALIYUN_USERNAME" \
+                --dest-password "$ALIYUN_PASSWORD" \
+                --src docker \
+                --dest docker \
+                $REGISTRY/$image \
+                apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud)
+        else
+            ret_msg=$(skopeo sync --all \
                 --dest-username "$ALIYUN_USERNAME" \
                 --dest-password "$ALIYUN_PASSWORD" \
                 --src docker \
