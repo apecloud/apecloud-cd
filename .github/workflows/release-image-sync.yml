@@ -235,6 +235,15 @@ jobs:
           path: ./${{ inputs.GITHUB_PATH }}
           token: ${{ env.GITHUB_TOKEN }}
 
+      - name: Checkout mcp-apecloud Code
+        if: ${{ contains(inputs.MAKE_ARGS, 'TARGETS=apiserver') }}
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/mcp-apecloud
+          ref: ${{ github.ref }}
+          path: ./mcp-apecloud
+          token: ${{ env.GITHUB_TOKEN }}
+
       - name: set PG HOST Env
         run: |
           RELEASE_VERSION="${{ inputs.VERSION }}"

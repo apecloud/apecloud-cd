@@ -100,7 +100,7 @@ jobs:
     uses: ./.github/workflows/trigger-workflow.yml
     strategy:
       matrix:
-        repo-name: [ openconsole, apecloud-values ]
+        repo-name: [ openconsole, apecloud-values, mcp-apecloud ]
     with:
       GITHUB_REPO: "apecloud/${{ matrix.repo-name }}"
       VERSION: "${{ needs.get-version.outputs.release-version }}"
