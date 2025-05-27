@@ -17,8 +17,8 @@ on:
         required: false
         default: ''
       TEST_TYPE:
-        description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|mysqlscale|weaviate|qdrant|
-        smartengine|greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|orioledb|vanilla-pg|asmysql|openldap|
+        description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|weaviate|qdrant|
+        greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|orioledb|vanilla-pg|asmysql|openldap|
         polardbx|opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
         oracle|opengauss|influxdb|flink|solr|mogdb|oceanbase-ent|starrocks-ent|yashandb|
         redis-cluster|dmdb|minio|orchestrator|rabbitmq|loki|victoria-metrics|gaussdb|damengdb|
@@ -267,24 +267,6 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
-  test-mysqlscale:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mysqlscale')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
-    needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
-    with:
-      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
-      region: ${{ inputs.REGION }}
-      release-version: "${{ inputs.KB_VERSION }}"
-      previous-version: "${{ inputs.KB_PRE_VERSION }}"
-      test-type: "1"
-      test-type-name: "mysqlscale"
-      test-args: "--enable-proxy true ${{ inputs.ARGS }}"
-      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
-      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
-      branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
-    secrets: inherit
-
   test-weaviate:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'weaviate')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
@@ -315,24 +297,6 @@ jobs:
       test-type: "10"
       test-type-name: "qdrant"
       test-args: "${{ inputs.ARGS }}"
-      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
-      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
-      branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
-    secrets: inherit
-
-  test-smartengine:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'smartengine')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
-    needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
-    with:
-      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
-      region: ${{ inputs.REGION }}
-      release-version: "${{ inputs.KB_VERSION }}"
-      previous-version: "${{ inputs.KB_PRE_VERSION }}"
-      test-type: "1"
-      test-type-name: "smartengine"
-      test-args: "--smartengine true ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
       branch-name: ${{ inputs.BRANCH_NAME }}
@@ -1245,8 +1209,8 @@ jobs:
     outputs:
       test-date: ${{ steps.upload_test_result.outputs.test-date }}
     needs: [ test-playground, test-kubeblocks, test-apecloud-mysql, test-postgresql, test-redis,
-             test-mongodb, test-kafka, test-pulsar, test-mysqlscale, test-weaviate, test-qdrant,
-             test-smartengine, test-greptimedb, test-nebula, test-risingwave, test-starrocks,
+             test-mongodb, test-kafka, test-pulsar, test-weaviate, test-qdrant,
+             test-greptimedb, test-nebula, test-risingwave, test-starrocks,
              test-etcd, test-oceanbase, test-asmysql, test-asmysql-proxy,
              test-asmysql-orc, test-asmysql-orc-proxy,
              test-openldap, test-polardbx, test-tdengine, test-milvus, test-clickhouse,
@@ -1300,11 +1264,6 @@ jobs:
                   cmd="${cmd_head} \"${{ needs.test-pulsar.outputs.test-result-report }}\" "
                   eval "$cmd"
               fi
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mysqlscale"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##mysqlscale|${{ needs.test-mysqlscale.outputs.test-result }}"
-                  cmd="${cmd_head} \"${{ needs.test-mysqlscale.outputs.test-result-report }}\" "
-                  eval "$cmd"
-              fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"weaviate"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##weaviate|${{ needs.test-weaviate.outputs.test-result }}"
                   cmd="${cmd_head} \"${{ needs.test-weaviate.outputs.test-result-report }}\" "
@@ -1313,11 +1272,6 @@ jobs:
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"qdrant"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##qdrant|${{ needs.test-qdrant.outputs.test-result }}"
                   cmd="${cmd_head} \"${{ needs.test-qdrant.outputs.test-result-report }}\" "
-                  eval "$cmd"
-              fi
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"smartengine"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##smartengine|${{ needs.test-smartengine.outputs.test-result }}"
-                  cmd="${cmd_head} \"${{ needs.test-smartengine.outputs.test-result-report }}\" "
                   eval "$cmd"
               fi
           fi
