@@ -294,6 +294,15 @@ jobs:
           
           if [[ -z "${PREVIOUS_VERSION}" ]]; then
               common_cmd=" --chaos-mesh true "
+              KB_VERSION_TMP="${KB_VERSION}"
+              if [[ "${KB_VERSION_TMP}" != "v"* ]]; then
+                  KB_VERSION_TMP="v${KB_VERSION_TMP}"
+              fi
+              release_tag="v"*"."*"."*
+              not_stable_release_tag="v"*"."*"."*"-"*
+              if [[ "${KB_VERSION_TMP}" == $release_tag && "${KB_VERSION_TMP}" != $not_stable_release_tag ]]; then
+                  common_cmd=" --generate-output true ${common_cmd}"
+              fi
           fi
           
           if [[ -n "${{ inputs.test-args }}" && "${{ inputs.test-args }}" == *"--only-kubectl true"* ]]; then
