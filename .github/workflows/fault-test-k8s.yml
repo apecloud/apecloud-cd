@@ -14,7 +14,7 @@ on:
         required: false
         default: 'latest'
       TEST_TYPE:
-        description: 'test type (e.g. mysql|postgres|smarte|redis|mongodb)'
+        description: 'test type (e.g. mysql|postgres|redis|mongodb)'
         type: string
         required: false
         default: ''
@@ -59,7 +59,7 @@ on:
         required: false
         default: 'latest'
       TEST_TYPE:
-        description: 'test type (e.g. mysql|postgres|smarte|redis|mongodb)'
+        description: 'test type (e.g. mysql|postgres|redis|mongodb)'
         type: string
         required: false
         default: ''
@@ -159,23 +159,6 @@ jobs:
       test-mode: "fault"
     secrets: inherit
 
-  test-smartengine:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'smarte')) }}
-    needs: [ terraform-init-k8s, install-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
-    with:
-      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
-      region: ${{ inputs.REGION }}
-      release-version: "${{ inputs.KB_VERSION }}"
-      test-type: "1"
-      test-type-name: "smartengine"
-      test-args: "--smartengine true ${{ inputs.ARGS }}"
-      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
-      branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.install-kubeblocks.outputs.random-suffix }}
-      test-mode: "fault"
-    secrets: inherit
-
   test-redis:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
@@ -213,7 +196,7 @@ jobs:
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: [ install-kubeblocks, test-mysql, test-postgresql, test-smartengine ,test-redis, test-mongodb ]
+    needs: [ install-kubeblocks, test-mysql, test-postgresql, test-redis, test-mongodb ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -231,10 +214,6 @@ jobs:
           
           if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"postgres"* ]]; then
               TEST_RESULT="${TEST_RESULT}##postgresql|${{ needs.test-postgresql.outputs.test-result }}"
-          fi
-          
-          if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"smarte"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##smartengine|${{ needs.test-smartengine.outputs.test-result }}"
           fi
           
           if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"redis"* ]]; then

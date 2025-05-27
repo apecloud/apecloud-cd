@@ -13,7 +13,7 @@ on:
         required: false
         default: ''
       TEST_TYPE:
-        description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|mysqlscale|weaviate|qdrant|smartengine|
+        description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|weaviate|qdrant|
         greptimedb|nebula|risingwave|starrocks|etcd|orioledb|vanilla-pg|asmysql|openldap|
         opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
         oracle|opengauss|influxdb|flink|solr|mogdb|starrocks-ent|yashandb|polardbx|
@@ -169,20 +169,6 @@ jobs:
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
     secrets: inherit
 
-  test-mysqlscale:
-    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mysqlscale')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
-    needs: [ enable-runner ]
-    uses: ./.github/workflows/test-kbcli-k3s.yml
-    with:
-      release-version: "${{ inputs.KB_VERSION }}"
-      previous-version: "${{ inputs.KB_PRE_VERSION }}"
-      test-type: "1"
-      test-type-name: "mysqlscale"
-      test-args: "--enable-proxy true ${{ inputs.ARGS }}"
-      branch-name: ${{ inputs.BRANCH_NAME }}
-      k3s-version: ${{ inputs.CLUSTER_VERSION }}
-    secrets: inherit
-
   test-weaviate:
     if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'weaviate')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
     needs: [ enable-runner ]
@@ -207,20 +193,6 @@ jobs:
       test-type: "10"
       test-type-name: "qdrant"
       test-args: "${{ inputs.ARGS }}"
-      branch-name: ${{ inputs.BRANCH_NAME }}
-      k3s-version: ${{ inputs.CLUSTER_VERSION }}
-    secrets: inherit
-
-  test-smartengine:
-    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'smartengine')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
-    needs: [ enable-runner ]
-    uses: ./.github/workflows/test-kbcli-k3s.yml
-    with:
-      release-version: "${{ inputs.KB_VERSION }}"
-      previous-version: "${{ inputs.KB_PRE_VERSION }}"
-      test-type: "1"
-      test-type-name: "smartengine"
-      test-args: "--smartengine true ${{ inputs.ARGS }}"
       branch-name: ${{ inputs.BRANCH_NAME }}
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
     secrets: inherit
@@ -747,7 +719,7 @@ jobs:
     if: ${{ always() }}
     runs-on: ubuntu-latest
     needs: [ test-apecloud-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar,
-             test-mysqlscale, test-weaviate, test-qdrant, test-smartengine, test-greptimedb, test-nebula,
+             test-weaviate, test-qdrant, test-greptimedb, test-nebula,
              test-risingwave, test-starrocks, test-etcd, test-asmysql,
              test-openldap, test-milvus, test-clickhouse, test-pika, test-opensearch, test-elasticsearch,
              test-vllm, test-tdengine, test-orioledb, test-vanilla-pg, test-ggml, test-zookeeper,
@@ -791,20 +763,12 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##pulsar|${{ needs.test-pulsar.outputs.pre-test-result }}"
               fi
           
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mysqlscale"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##mysqlscale|${{ needs.test-mysqlscale.outputs.pre-test-result }}"
-              fi
-          
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"weaviate"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##weaviate|${{ needs.test-weaviate.outputs.pre-test-result }}"
               fi
           
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"qdrant"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##qdrant|${{ needs.test-qdrant.outputs.pre-test-result }}"
-              fi
-          
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"smarte"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##smartengine|${{ needs.test-smartengine.outputs.pre-test-result }}"
               fi
           fi
           
@@ -991,20 +955,12 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##pulsar|${{ needs.test-pulsar.outputs.test-result }}"
               fi
               
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"mysqlscale"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##mysqlscale|${{ needs.test-mysqlscale.outputs.test-result }}"
-              fi
-              
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"weaviate"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##weaviate|${{ needs.test-weaviate.outputs.test-result }}"
               fi
               
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"qdrant"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##qdrant|${{ needs.test-qdrant.outputs.test-result }}"
-              fi
-              
-              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"smarte"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##smartengine|${{ needs.test-smartengine.outputs.test-result }}"
               fi
           fi
           

@@ -24,7 +24,7 @@ on:
         required: false
         default: 'main'
       test-type:
-        description: 'test type (apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|mysqlscale|weaviate|qdrant|smartengine|
+        description: 'test type (apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|weaviate|qdrant|
         greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|orioledb|vanilla-pg|asmysql|openldap|
         polardbx|opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
         oracle|opengauss|influxdb|flink|solr|mogdb|oceanbase-ent|starrocks-ent|yashandb|
@@ -96,40 +96,6 @@ jobs:
       test-type: "1"
       test-type-name: "apecloud-mysql-pre"
       test-args: "${{ inputs.test-args }}"
-      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
-      artifact-name: ${{ inputs.artifact-name }}
-      branch-name: ${{ inputs.branch-name }}
-      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
-    secrets: inherit
-
-  smartengine-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'smartengine')) && ! contains(inputs.release-version, 'v0.5.') }}
-    needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
-    with:
-      cloud-provider: ${{ inputs.cloud-provider }}
-      region: ${{ inputs.region }}
-      release-version: "${{ inputs.previous-version }}"
-      test-type: "1"
-      test-type-name: "smartengine-pre"
-      test-args: "--smartengine true ${{ inputs.test-args }}"
-      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
-      artifact-name: ${{ inputs.artifact-name }}
-      branch-name: ${{ inputs.branch-name }}
-      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
-    secrets: inherit
-
-  mysqlscale-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mysqlscale')) && ! contains(inputs.release-version, 'v0.5.') }}
-    needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
-    with:
-      cloud-provider: ${{ inputs.cloud-provider }}
-      region: ${{ inputs.region }}
-      release-version: "${{ inputs.previous-version }}"
-      test-type: "1"
-      test-type-name: "mysqlscale-pre"
-      test-args: "--enable-proxy true ${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
       artifact-name: ${{ inputs.artifact-name }}
       branch-name: ${{ inputs.branch-name }}
@@ -1109,8 +1075,8 @@ jobs:
     if: ${{ inputs.previous-version && always() }}
     runs-on: ubuntu-latest
     needs: [ install-kubeblocks-pre, apecloud-mysql-pre, postgresql-pre,
-             redis-pre, mongodb-pre, kafka-pre, pulsar-pre, mysqlscale-pre,
-             weaviate-pre, qdrant-pre, smartengine-pre, greptimedb-pre,
+             redis-pre, mongodb-pre, kafka-pre, pulsar-pre,
+             weaviate-pre, qdrant-pre, greptimedb-pre,
              nebula-pre, risingwave-pre, starrocks-pre, etcd-pre, oceanbase-pre,
              asmysql-pre, openldap-pre, polardbx-pre,
              tdengine-pre, milvus-pre, clickhouse-pre, pika-pre, opensearch-pre,
@@ -1158,20 +1124,12 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##pulsar-pre|${{ needs.pulsar-pre.outputs.test-result }}"
               fi
               
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mysqlscale"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##mysqlscale-pre|${{ needs.mysqlscale-pre.outputs.test-result }}"
-              fi
-              
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"weaviate"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##weaviate-pre|${{ needs.weaviate-pre.outputs.test-result }}"
               fi
               
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"qdrant"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##qdrant-pre|${{ needs.qdrant-pre.outputs.test-result }}"
-              fi
-              
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"smartengine"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##smartengine-pre|${{ needs.smartengine-pre.outputs.test-result }}"
               fi
           fi
           
