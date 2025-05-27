@@ -111,5 +111,6 @@ jobs:
     steps:
       - name: remove artifact
         uses: geekyeggo/delete-artifact@v2
+        continue-on-error: true
         with:
           name: ${{ inputs.artifact-name }}
