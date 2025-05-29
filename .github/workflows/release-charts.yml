@@ -273,10 +273,12 @@ jobs:
       - name: helm validate
         if: inputs.CHART_NAME
         run: |
+          RELEASE_CHART_CHECK_DIR="./release_charts_check"
+          mkdir -p ${RELEASE_CHART_CHECK_DIR}
           CHEKC_CHART_NAME="${{ inputs.CHART_NAME }}"
           CHEKC_CHART_NAME="${CHEKC_CHART_NAME%%|*}"
-          cp .cr-release-packages/${CHEKC_CHART_NAME}-${{ steps.get_version.outputs.VERSION }}.tgz ./
-          
+          cp .cr-release-packages/${CHEKC_CHART_NAME}-${{ steps.get_version.outputs.VERSION }}.tgz ${RELEASE_CHART_CHECK_DIR}/
+          cd ${RELEASE_CHART_CHECK_DIR}
           tar -zxvf ${CHEKC_CHART_NAME}-${{ steps.get_version.outputs.VERSION }}.tgz
           
           helm install ${CHEKC_CHART_NAME} \
