@@ -106,6 +106,36 @@ jobs:
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
     steps:
+      - name: Free disk space
+        continue-on-error: true
+        run: |
+          RELEASE_IMG="${{ inputs.IMG }}"
+          case $RELEASE_IMG in
+              apecloud/aperag)
+                  echo "Initial disk usage:"
+                  df -h
+                  
+                  # Remove unnecessary software to free up space for Docker builds
+                  sudo rm -rf /usr/share/dotnet
+                  sudo rm -rf /usr/local/lib/android
+                  sudo rm -rf /opt/ghc
+                  sudo rm -rf /opt/hostedtoolcache/CodeQL
+                  sudo rm -rf /usr/local/share/boost
+                  sudo rm -rf /usr/lib/jvm
+                  sudo rm -rf /usr/share/swift
+                  
+                  # Clean up docker images and containers
+                  docker system prune -af --volumes
+                  
+                  # Clean apt cache
+                  sudo apt-get clean
+                  sudo apt-get autoremove -y
+                  
+                  echo "Disk usage after cleanup:"
+                  df -h
+              ;;
+          esac
+
       - name: Checkout Code
         if: ${{ ! inputs.ENABLE_SUBMODULE }}
         uses: actions/checkout@v4
