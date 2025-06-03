@@ -213,10 +213,11 @@ jobs:
       - name: helm lint
         run: |
           for chart in $(echo "$(ls .cr-release-packages)"); do
-              echo "helm lint $chart"
               if [[ "$chart" == "kubeblocks-cloud-"*".tgz" && -n "${{ inputs.HELM_SET }}" ]]; then
+                  echo "helm lint $chart --set=\"${{ inputs.HELM_SET }}\""
                   helm lint .cr-release-packages/$chart --set="${{ inputs.HELM_SET }}"
               else
+                  echo "helm lint $chart"
                   helm lint .cr-release-packages/$chart 
               fi
           done
