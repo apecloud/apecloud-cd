@@ -207,7 +207,11 @@ jobs:
         run: |
           for chart in $(echo "$(ls .cr-release-packages)"); do
               echo "helm lint $chart"
-              helm lint .cr-release-packages/$chart
+              if [[ "$chart" == "kubeblocks-cloud-"*".tgz" && -z "${{ inputs.HELM_SET }}" ]]; then
+                  helm lint .cr-release-packages/$chart --set="${{ inputs.HELM_SET }}"
+              else
+                  helm lint .cr-release-packages/$chart 
+              fi
           done
 
       - name: setup k3s ${{ inputs.K3S_VERSION }}
