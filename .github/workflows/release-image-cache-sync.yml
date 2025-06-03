@@ -111,7 +111,7 @@ jobs:
         run: |
           RELEASE_IMG="${{ inputs.IMG }}"
           case $RELEASE_IMG in
-              apecloud/aperag)
+              apecloud/aperag|apecloud/doc-ray)
                   echo "Initial disk usage:"
                   df -h
                   
