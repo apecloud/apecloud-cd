@@ -133,6 +133,11 @@ on:
         type: string
         required: false
         default: ''
+      SYNC_ENABLE:
+        description: "Enable sync images"
+        type: boolean
+        required: false
+        default: true
 
 env:
   DOCKER_REGISTRY_URL: docker.io
@@ -401,6 +406,7 @@ jobs:
 
   sync-to-aliyun:
     runs-on: ubuntu-latest
+    if: ${{ inputs.SYNC_ENABLE }}
     needs: [ release-image ]
     steps:
       - name: Checkout apecloud-cd Code
