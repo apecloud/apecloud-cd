@@ -233,6 +233,7 @@ jobs:
 
   sync-to-aliyun:
     runs-on: ubuntu-latest
+    if: ${{ inputs.SYNC_ENABLE }}
     needs: release-image
     steps:
       - name: Checkout apecloud-cd Code
