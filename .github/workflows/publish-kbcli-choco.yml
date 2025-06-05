@@ -1,4 +1,4 @@
-name: Publish to chocolatey
+name: Publish To Chocolatey
 
 on:
   workflow_dispatch:

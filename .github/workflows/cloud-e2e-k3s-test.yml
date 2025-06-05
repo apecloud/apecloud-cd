@@ -1,4 +1,4 @@
-name: Test Cloud E2e Api On K3D
+name: Test Cloud E2E Api On K3D
 
 on:
   workflow_call:

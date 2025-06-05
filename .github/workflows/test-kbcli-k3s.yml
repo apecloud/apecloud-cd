@@ -1,4 +1,4 @@
-name: TEST-KBCLI-K3S
+name: Test Kbcli On K3s
 
 on:
   workflow_call:

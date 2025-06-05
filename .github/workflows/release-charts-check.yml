@@ -1,4 +1,4 @@
-name: RELEASE-CHART-CHECK
+name: Release Chart Check
 
 on:
   workflow_call:

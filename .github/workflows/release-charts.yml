@@ -1,4 +1,4 @@
-name: RELEASE-CHART
+name: Release Chart
 
 on:
   workflow_call:

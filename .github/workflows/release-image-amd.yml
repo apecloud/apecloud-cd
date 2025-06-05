@@ -1,4 +1,4 @@
-name: RELEASE-IMAGE-AMD
+name: Release Image in Amd
 
 on:
   workflow_call:

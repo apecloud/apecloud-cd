@@ -1,4 +1,4 @@
-name: DELETE-RUNNER
+name: Delete Runner
 
 on:
   workflow_dispatch:

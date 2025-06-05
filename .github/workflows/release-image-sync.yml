@@ -1,4 +1,4 @@
-name: RELEASE-IMAGE
+name: Release Image Sync
 
 on:
   workflow_call:

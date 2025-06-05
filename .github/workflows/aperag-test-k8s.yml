@@ -1,4 +1,4 @@
-name: ApeRAG Test on K8S
+name: ApeRAG Test On K8S
 
 on:
   workflow_call:

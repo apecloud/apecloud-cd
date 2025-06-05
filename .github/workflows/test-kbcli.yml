@@ -1,4 +1,4 @@
-name: TEST-KBCLI
+name: Test Kbcli
 
 on:
   workflow_call:

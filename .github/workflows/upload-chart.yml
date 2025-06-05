@@ -1,4 +1,4 @@
-name: CHART-UPLOAD
+name: Upload Chart
 
 on:
   push:

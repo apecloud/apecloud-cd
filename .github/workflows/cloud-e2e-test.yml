@@ -1,4 +1,4 @@
-name: Cloud e2e Test
+name: Cloud E2E Test
 
 on:
   workflow_dispatch:

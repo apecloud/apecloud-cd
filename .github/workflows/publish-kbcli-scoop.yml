@@ -1,4 +1,4 @@
-name: Publish to scoop bucket
+name: Publish To Scoop Bucket
 
 on:
   workflow_dispatch:

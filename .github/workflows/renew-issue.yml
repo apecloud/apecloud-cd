@@ -1,4 +1,4 @@
-name: RENEW-ISSUE
+name: Renew Issue
 
 on:
   workflow_call:
