@@ -14,10 +14,10 @@ on:
         required: false
         default: ''
       BUILDX_PLATFORMS:
-        description: "buildx platforms (default: linux/amd64,linux/arm64)"
+        description: "buildx platforms (default: linux/amd64)"
         type: string
         required: false
-        default: 'linux/amd64,linux/arm64'
+        default: 'linux/amd64'
       BUILDX_ARGS:
         description: "buildx args (default: --sbom=false --provenance=false)"
         type: string
@@ -122,5 +122,3 @@ jobs:
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           tags: ${{ inputs.IMG }}:latest
           build-args: ${{ inputs.BUILDX_ARGS }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
