@@ -69,7 +69,7 @@ jobs:
         shell: bash
         run: |
           IMAGES="${{ inputs.IMAGES }}"
-          IMAGES="apecloud/kubeblocks:latest|apecloud/kubeblocks-tools:latest|apecloud/kubeblocks-dataprotection:latest"
+          IMAGES="apecloud/kubeblocks:1.0.0|apecloud/kubeblocks-tools:1.0.0|apecloud/kubeblocks-dataprotection:1.0.0|apecloud/kubeblocks-charts:1.0.0"
           index=0
           for image in $(echo "${IMAGES}" | sed 's/|/ /g'); do
               index=$((index+1))
