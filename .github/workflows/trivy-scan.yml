@@ -1,0 +1,75 @@
+name: Trivy Scan
+
+on:
+  workflow_call:
+    inputs:
+      IMAGES:
+        description: "The images of trivy scan (e.g. docker.io/apecloud/kubeblocks:latest)"
+        type: string
+        required: true
+        default: ''
+
+
+
+jobs:
+  trivy-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@v0.2.3
+        with:
+          version: v0.63.0
+          cache: true
+
+      - name: Run Trivy vulnerability scanner
+        shell: bash
+        run: |
+          IMAGES="${{ inputs.IMAGES }}"
+          index=0
+          for image in $(echo "${IMAGES}" | sed 's/|/ /g'); do
+              index=$((index+1))
+              echo "trivy image ${image}"
+              trivy_scan_cmd="trivy image --format table --severity CRITICAL,HIGH --ignore-unfixed --output trivy_scan_report_${index}.out"
+              if [[ $index -eq 1 ]]; then
+                  eval "$trivy_scan_cmd ${image}"
+              else
+                  eval "$trivy_scan_cmd --skip-db-update --quiet ${image}" &
+              fi
+              sleep 1
+          done
+          wait
+          touch trivy_scan_report.out
+          index=0
+          for image in $(echo "${IMAGES}" | sed 's/|/ /g'); do
+              index=$((index+1))
+              trivy_scan_report="trivy_scan_report_${index}.out"
+              if [[ -f "${trivy_scan_report}" ]]; then
+                  check_vulnerabilities=$(cat "${trivy_scan_report}" | (grep "Total:" |egrep "CRITICAL|HIGH" || true) )
+                  if [[ -n "${check_vulnerabilities}" ]]; then
+                      echo "❌ $(tput -T xterm setaf 1)${image} has CRITICAL or HIGH vulnerabilities$(tput -T xterm sgr0)"
+                      echo "${check_vulnerabilities}"
+                  else
+                      echo "✅ $(tput -T xterm setaf 2)${image} has no CRITICAL or HIGH vulnerabilities$(tput -T xterm sgr0)"
+                  fi
+          
+                  echo "====================================================================== ${image} ======================================================================" >> trivy_scan_report.out
+                  cat "${trivy_scan_report}" >> trivy_scan_report.out
+                  echo "=======================================================================================================================================================================" >> trivy_scan_report.out
+                  echo "" >> trivy_scan_report.out
+              fi
+          done
+
+      - name: view trivy scan report
+        shell: bash
+        run: |
+          trivy_scan_report="trivy_scan_report.out"
+          if [[ -f "${trivy_scan_report}" ]]; then
+              cat "${trivy_scan_report}" | (grep --color=always -E 'CRITICAL|HIGH|^' || true)
+              check_vulnerabilities=$(cat "${trivy_scan_report}" | (grep "Total:" |egrep "CRITICAL|HIGH" || true))
+              if [[ -n "${check_vulnerabilities}" ]]; then
+                  echo "❌ $(tput -T xterm setaf 1)Images found with CRITICAL or HIGH vulnerabilities!$(tput -T xterm sgr0)"
+                  exit 1
+              else
+                  echo "✅ $(tput -T xterm setaf 2)Images not found with CRITICAL or HIGH vulnerabilities!$(tput -T xterm sgr0)"
+              fi
+          fi
