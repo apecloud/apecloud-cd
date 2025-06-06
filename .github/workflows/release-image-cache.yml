@@ -191,7 +191,9 @@ jobs:
       - name: make pre
         if: inputs.MAKE_OPS_PRE
         run: |
-          make ${{ inputs.MAKE_OPS_PRE }}
+          if [[ -n "${{ inputs.MAKE_OPS_PRE }}" && ! ("${{ inputs.MAKE_OPS_PRE }}" == "helm-package VERSION=latest" && "${{ inputs.IMG }}" == "apecloud/kubeblocks-charts" ) ]]; then
+              make ${{ inputs.MAKE_OPS_PRE }}
+          fi
 
       - name: remove v prefix
         id: get_tag_name
