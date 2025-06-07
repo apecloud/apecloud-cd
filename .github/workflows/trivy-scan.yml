@@ -102,6 +102,7 @@ jobs:
       - name: Set registry and repository ${{ env.DOCKER_REGISTRY_URL }}
         if: ${{ inputs.ADDON && inputs.ITEM != '' }}
         run: |
+          cd kubeblocks-addons
           echo "set addons chart registry to apecloud and repogistory to ${{ env.DOCKER_REGISTRY_URL }}"
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
             "${{ env.DOCKER_REGISTRY_URL }}" "addons"
@@ -112,7 +113,8 @@ jobs:
         run: |
           ADDON_NAME="${{ inputs.ITEM }}"
           ADDON_IMAGES=""
-          addon_images="$(helm template ${ADDON_NAME} kubeblocks-addons/addons/${ADDON_NAME} | egrep "image:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/" | awk '{print $2}' | sort -u)"
+          cd kubeblocks-addons
+          addon_images="$(helm template ${ADDON_NAME} addons/${ADDON_NAME} --dependency-update | egrep "image:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/" | grep -v "IMAGE_TAG" | awk '{print $2}' | sort -u)"
           for image in $(echo "${addon_images}"); do
               echo "$image"
               ADDON_IMAGES="${ADDON_IMAGES}|${image}"
@@ -125,11 +127,14 @@ jobs:
         run: |
           IMAGES="${{ inputs.IMAGES }}"
           if [[ "${{ inputs.ADDON }}" == "true" && -n "${{ inputs.ITEM }}" && -z "${IMAGES}" ]]; then
-              IMAGES="${{ steps.get-addon-images.ouputs.addon-images }}"
+              IMAGES="${{ steps.get-addon-images.outputs.addon-images }}"
           fi
           
           index=0
           for image in $(echo "${IMAGES}" | sed 's/|/ /g'); do
+              if [[ "$image" != *"apecloud/"* ]]; then
+                  continue
+              fi
               index=$((index+1))
               echo "trivy image ${image}"
               trivy_scan_cmd="trivy image --format table --severity CRITICAL,HIGH --ignore-unfixed --output trivy_scan_report_${index}.out"
