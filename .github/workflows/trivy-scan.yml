@@ -95,11 +95,27 @@ jobs:
                       echo "❌ $(tput -T xterm setaf 1)${image} has CRITICAL or HIGH vulnerabilities$(tput -T xterm sgr0)"
                       high_total=0
                       critical_total=0
-                      grep "Total:" ${trivy_scan_report} | egrep "CRITICAL|HIGH" | while read -r line; do
-                          high=$(echo "$line" | awk -F'[(): ]+' '{for(i=1;i<=NF;i++){if($i == "HIGH") high=$(i+1)} } END{print high+0}')
-                          critical=$(echo "$line" | awk -F'[(): ]+' '{for(i=1;i<=NF;i++){if($i == "CRITICAL") crit=$(i+1)} } END{print crit+0}')
-                          high_total=$((high_total + high))
-                          critical_total=$((critical_total + critical))
+                      high_index=0
+                      critical_index=0
+                      for vulnerabilities in $(cat "${trivy_scan_report}" | (grep "Total:" | egrep "CRITICAL|HIGH" || true) ); do
+                          if [[ "$high_index" == "1" ]]; then
+                              high=$(echo "$vulnerabilities" |( grep -o '[0-9]\+' || true))
+                              high_total=$((high_total + high))
+                          elif [[ "$critical_index" == "1" ]]; then
+                              critical=$(echo "$vulnerabilities" |( grep -o '[0-9]\+' || true))
+                              critical_total=$((critical_total + critical))
+                          fi
+                          
+                          if [[ "$vulnerabilities" == *"HIGH:"* ]]; then
+                              high_index=1
+                              continue  
+                          elif [[ "$vulnerabilities" == *"CRITICAL:"* ]]; then
+                              critical_index=1
+                              continue
+                          else
+                              high_index=0
+                              critical_index=0
+                          fi
                       done
                       total_total=$((high_total + critical_total))
                       vulnerabilities_total="Total: $total_total (HIGH: $high_total, CRITICAL: $critical_total)"
