@@ -114,7 +114,7 @@ jobs:
           ADDON_NAME="${{ inputs.ITEM }}"
           ADDON_IMAGES=""
           cd kubeblocks-addons
-          addon_images="$(helm template ${ADDON_NAME} kubeblocks-addons/addons/${ADDON_NAME} --dependency-update | egrep "image:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/" | awk '{print $2}' | sort -u)"
+          addon_images="$(helm template ${ADDON_NAME} addons/${ADDON_NAME} --dependency-update | egrep "image:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/" | awk '{print $2}' | sort -u)"
           for image in $(echo "${addon_images}"); do
               echo "$image"
               ADDON_IMAGES="${ADDON_IMAGES}|${image}"
