@@ -1,0 +1,217 @@
+name: Trivy Scan
+
+on:
+  workflow_dispatch:
+    inputs:
+      ITEM:
+        description: "The item of trivy scan (e.g. KubeBlocks)"
+        type: string
+        required: false
+        default: ''
+      IMAGES:
+        description: "The images of trivy scan (e.g. docker.io/apecloud/kubeblocks:latest)"
+        type: string
+        required: false
+        default: ''
+      ADDON:
+        description: "Trivy scan KubeBlocks addons (default: true)"
+        type: boolean
+        required: false
+        default: true
+      KBADDON_REF:
+        description: "The branch name of kubeblocks-addons"
+        type: string
+        required: false
+        default: 'main'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+  workflow_call:
+    inputs:
+      ITEM:
+        description: "The item of trivy scan (e.g. KubeBlocks)"
+        type: string
+        required: false
+        default: ''
+      IMAGES:
+        description: "The images of trivy scan (e.g. docker.io/apecloud/kubeblocks:latest)"
+        type: string
+        required: false
+        default: ''
+      ADDON:
+        description: "Trivy scan KubeBlocks addons (default: true)"
+        type: boolean
+        required: false
+        default: true
+      KBADDON_REF:
+        description: "The branch name of kubeblocks-addons"
+        type: string
+        required: false
+        default: 'main'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+    outputs:
+      total-vulnerabilities:
+        description: "trivy scan total vulnerabilities"
+        value: ${{ jobs.trivy-scan.outputs.total-vulnerabilities }}
+
+env:
+  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  DOCKER_REGISTRY_URL: docker.io
+  HELM_VERSION: "v3.16.3"
+
+jobs:
+  trivy-scan:
+    name: trivy-scan-${{ inputs.ITEM }}
+    runs-on: ubuntu-latest
+    outputs:
+      total-vulnerabilities: ${{ steps.trivy-scan.outputs.total_vulnerabilities }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@v0.2.3
+        with:
+          version: v0.63.0
+          cache: true
+
+      - name: Install Helm
+        if: ${{ inputs.ADDON && inputs.ITEM != '' }}
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Checkout kubeblocks-addons Code
+        if: ${{ inputs.ADDON && inputs.ITEM != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/kubeblocks-addons
+          path: kubeblocks-addons
+          ref: ${{ inputs.KBADDON_REF }}
+
+      - name: Set registry and repository ${{ env.DOCKER_REGISTRY_URL }}
+        if: ${{ inputs.ADDON && inputs.ITEM != '' }}
+        run: |
+          echo "set addons chart registry to apecloud and repogistory to ${{ env.DOCKER_REGISTRY_URL }}"
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
+            "${{ env.DOCKER_REGISTRY_URL }}" "addons"
+
+      - name: Get Addon Images
+        id: get-addon-images
+        if: ${{ inputs.ADDON && inputs.ITEM != '' }}
+        run: |
+          ADDON_NAME="${{ inputs.ITEM }}"
+          ADDON_IMAGES=""
+          addon_images="$(helm template ${ADDON_NAME} addons/${ADDON_NAME} | egrep "image:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/" | awk '{print $2}' | sort -u)"
+          for image in $(echo "${addon_images}"); do
+              echo "$image"
+              ADDON_IMAGES="${ADDON_IMAGES}|${image}"
+          done
+          echo "addon-images=${ADDON_IMAGES}" >> $GITHUB_OUTPUT
+
+      - name: Run Trivy vulnerability scanner
+        id: trivy-scan
+        shell: bash
+        run: |
+          IMAGES="${{ inputs.IMAGES }}"
+          if [[ "${{ inputs.ADDON }}" == "true" && -n "${{ inputs.ITEM }}" && -z "${IMAGES}" ]]; then
+              IMAGES="${{ steps.get-addon-images.ouputs.addon-images }}"
+          fi
+          
+          index=0
+          for image in $(echo "${IMAGES}" | sed 's/|/ /g'); do
+              index=$((index+1))
+              echo "trivy image ${image}"
+              trivy_scan_cmd="trivy image --format table --severity CRITICAL,HIGH --ignore-unfixed --output trivy_scan_report_${index}.out"
+              if [[ $index -eq 1 ]]; then
+                  eval "$trivy_scan_cmd ${image}"
+              else
+                  eval "$trivy_scan_cmd --skip-db-update --quiet ${image}" &
+              fi
+              sleep 1
+          done
+          wait
+          TOTAL_VULNERABILITIES=""
+          touch trivy_scan_report.out
+          index=0
+          for image in $(echo "${IMAGES}" | sed 's/|/ /g'); do
+              index=$((index+1))
+              trivy_scan_report="trivy_scan_report_${index}.out"
+              if [[ -f "${trivy_scan_report}" ]]; then
+                  check_vulnerabilities=$(cat "${trivy_scan_report}" | (grep "Total:" |egrep "CRITICAL|HIGH" || true) )
+                  if [[ -n "${check_vulnerabilities}" ]]; then
+                      echo "❌ $(tput -T xterm setaf 1)${image} has CRITICAL or HIGH vulnerabilities$(tput -T xterm sgr0)"
+                      high_total=0
+                      critical_total=0
+                      high_index=0
+                      critical_index=0
+                      for vulnerabilities in $(cat "${trivy_scan_report}" | (grep "Total:" | egrep "CRITICAL|HIGH" || true) ); do
+                          if [[ "$high_index" == "1" ]]; then
+                              high=$(echo "$vulnerabilities" |( grep -o '[0-9]\+' || true))
+                              high_total=$((high_total + high))
+                          elif [[ "$critical_index" == "1" ]]; then
+                              critical=$(echo "$vulnerabilities" |( grep -o '[0-9]\+' || true))
+                              critical_total=$((critical_total + critical))
+                          fi
+                          
+                          if [[ "$vulnerabilities" == *"HIGH:"* ]]; then
+                              high_index=1
+                              continue  
+                          elif [[ "$vulnerabilities" == *"CRITICAL:"* ]]; then
+                              critical_index=1
+                              continue
+                          else
+                              high_index=0
+                              critical_index=0
+                          fi
+                      done
+                      total_total=$((high_total + critical_total))
+                      vulnerabilities_total="Total: $total_total (HIGH: $high_total, CRITICAL: $critical_total)"
+                      echo "${vulnerabilities_total}"
+                      
+                      CI_JOB_URL=$(bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+                          --type 44 \
+                          --github-repo "${{ github.repository }}" \
+                          --github-token "${{ env.GH_TOKEN }}" \
+                          --run-id "$GITHUB_RUN_ID" \
+                          --test-result "trivy-scan-${{ inputs.ITEM }}")
+                      echo "CI_JOB_URL:"${CI_JOB_URL}
+          
+                      TOTAL_VULNERABILITIES="${TOTAL_VULNERABILITIES}##${{ inputs.ITEM }}|${image}|${critical_total}|${high_total}|${CI_JOB_URL}"
+                  else
+                      echo "✅ $(tput -T xterm setaf 2)${image} has no CRITICAL or HIGH vulnerabilities$(tput -T xterm sgr0)"
+                  fi
+          
+                  echo "====================================================================== ${image} ======================================================================" >> trivy_scan_report.out
+                  cat "${trivy_scan_report}" >> trivy_scan_report.out
+                  echo "=======================================================================================================================================================================" >> trivy_scan_report.out
+                  echo "" >> trivy_scan_report.out
+              fi
+          done
+          echo "${TOTAL_VULNERABILITIES}"
+          echo "total_vulnerabilities=${TOTAL_VULNERABILITIES}" >> $GITHUB_OUTPUT
+
+      - name: view trivy scan report
+        shell: bash
+        run: |
+          trivy_scan_report="trivy_scan_report.out"
+          if [[ -f "${trivy_scan_report}" ]]; then
+              cat "${trivy_scan_report}" | (grep --color=always -E 'CRITICAL|HIGH|^' || true)
+              check_vulnerabilities=$(cat "${trivy_scan_report}" | (grep "Total:" |egrep "CRITICAL|HIGH" || true))
+              if [[ -n "${check_vulnerabilities}" ]]; then
+                  echo "❌ $(tput -T xterm setaf 1)Images found with CRITICAL or HIGH vulnerabilities!$(tput -T xterm sgr0)"
+                  exit 1
+              else
+                  echo "✅ $(tput -T xterm setaf 2)Images not found with CRITICAL or HIGH vulnerabilities!$(tput -T xterm sgr0)"
+              fi
+          fi

@@ -1,0 +1,119 @@
+name: Trivy Scan Weekly
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1' # Runs at 08:00 UTC on Mon
+
+jobs:
+  trivy-scan-elasticsearch:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "elasticsearch"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-influxdb:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "influxdb"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-llm:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "llm"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-loki:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "loki"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-mariadb:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "mariadb"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-milvus:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "milvus"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-minio:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "minio"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-neo4j:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "neo4j"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-opensearch:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "opensearch"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-orioledb:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "orioledb"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-pulsar:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "pulsar"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-qdrant:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "qdrant"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-tidb:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "tidb"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-victoria-metrics:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "victoria-metrics"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-weaviate:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "weaviate"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-xinference:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "xinference"
+      ADDON: true
+    secrets: inherit
