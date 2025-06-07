@@ -1,7 +1,6 @@
 name: Trivy Scan
 
 on:
-  push:
   workflow_dispatch:
     inputs:
       ITEM:
@@ -12,8 +11,18 @@ on:
       IMAGES:
         description: "The images of trivy scan (e.g. docker.io/apecloud/kubeblocks:latest)"
         type: string
-        required: true
+        required: false
         default: ''
+      ADDON:
+        description: "Trivy scan KubeBlocks addons (default: true)"
+        type: boolean
+        required: false
+        default: true
+      KBADDON_REF:
+        description: "The branch name of kubeblocks-addons"
+        type: string
+        required: false
+        default: 'main'
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
@@ -29,8 +38,18 @@ on:
       IMAGES:
         description: "The images of trivy scan (e.g. docker.io/apecloud/kubeblocks:latest)"
         type: string
-        required: true
+        required: false
         default: ''
+      ADDON:
+        description: "Trivy scan KubeBlocks addons (default: true)"
+        type: boolean
+        required: false
+        default: true
+      KBADDON_REF:
+        description: "The branch name of kubeblocks-addons"
+        type: string
+        required: false
+        default: 'main'
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
@@ -43,6 +62,8 @@ on:
 
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  DOCKER_REGISTRY_URL: docker.io
+  HELM_VERSION: "v3.16.3"
 
 jobs:
   trivy-scan:
@@ -64,12 +85,49 @@ jobs:
           version: v0.63.0
           cache: true
 
+      - name: Install Helm
+        if: ${{ inputs.ADDON && inputs.ITEM != '' }}
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Checkout kubeblocks-addons Code
+        if: ${{ inputs.ADDON && inputs.ITEM != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/kubeblocks-addons
+          path: kubeblocks-addons
+          ref: ${{ inputs.KBADDON_REF }}
+
+      - name: Set registry and repository ${{ env.DOCKER_REGISTRY_URL }}
+        if: ${{ inputs.ADDON && inputs.ITEM != '' }}
+        run: |
+          echo "set addons chart registry to apecloud and repogistory to ${{ env.DOCKER_REGISTRY_URL }}"
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
+            "${{ env.DOCKER_REGISTRY_URL }}" "addons"
+
+      - name: Get Addon Images
+        id: get-addon-images
+        if: ${{ inputs.ADDON && inputs.ITEM != '' }}
+        run: |
+          ADDON_NAME="${{ inputs.ITEM }}"
+          ADDON_IMAGES=""
+          addon_images="$(helm template ${ADDON_NAME} addons/${ADDON_NAME} | egrep "image:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/" | awk '{print $2}' | sort -u)"
+          for image in $(echo "${addon_images}"); do
+              echo "$image"
+              ADDON_IMAGES="${ADDON_IMAGES}|${image}"
+          done
+          echo "addon-images=${ADDON_IMAGES}" >> $GITHUB_OUTPUT
+
       - name: Run Trivy vulnerability scanner
         id: trivy-scan
         shell: bash
         run: |
           IMAGES="${{ inputs.IMAGES }}"
-          IMAGES="apecloud/kubeblocks:1.0.0|apecloud/kubeblocks-tools:1.0.0|apecloud/kubeblocks-dataprotection:1.0.0|apecloud/kubeblocks-charts:1.0.0"
+          if [[ "${{ inputs.ADDON }}" == "true" && -n "${{ inputs.ITEM }}" && -z "${IMAGES}" ]]; then
+              IMAGES="${{ steps.get-addon-images.ouputs.addon-images }}"
+          fi
+          
           index=0
           for image in $(echo "${IMAGES}" | sed 's/|/ /g'); do
               index=$((index+1))

@@ -1,0 +1,85 @@
+name: Trivy Scan Daily
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1-5' # Runs at 08:00 UTC on Mon to Friday
+
+jobs:
+  trivy-scan-kubeblocks:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "kubeblocks"
+      IMAGES: "docker.io/apecloud/kubeblocks:latest|docker.io/apecloud/kubeblocks-tools:latest|docker.io/apecloud/kubeblocks-dataprotection:latest|docker.io/apecloud/kubeblocks-charts:latest"
+      ADDON: false
+    secrets: inherit
+
+  trivy-scan-clickhouse:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "clickhouse"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-etcd:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "etcd"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-kafka:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "kafka"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-mongodb:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "mongodb"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-mysql:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "mysql"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-postgresql:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "postgresql"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-rabbitmq:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "rabbitmq"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-redis:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "redis"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-vanilla-postgresql:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "vanilla-postgresql"
+      ADDON: true
+    secrets: inherit
+
+  trivy-scan-zookeeper:
+    uses: ./.github/workflows/trivy-scan.yml
+    with:
+      ITEM: "zookeeper"
+      ADDON: true
+    secrets: inherit
