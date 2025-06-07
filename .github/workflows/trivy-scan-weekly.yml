@@ -6,114 +6,146 @@ on:
     - cron: '0 0 * * 1' # Runs at 08:00 UTC on Mon
 
 jobs:
-  trivy-scan-elasticsearch:
+  elasticsearch:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "elasticsearch"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-influxdb:
+  influxdb:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "influxdb"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-llm:
+  llm:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "llm"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-loki:
+  loki:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "loki"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-mariadb:
+  mariadb:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "mariadb"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-milvus:
+  milvus:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "milvus"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-minio:
+  minio:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "minio"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-neo4j:
+  neo4j:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "neo4j"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-opensearch:
+  opensearch:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "opensearch"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-orioledb:
+  orioledb:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "orioledb"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-pulsar:
+  pulsar:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "pulsar"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-qdrant:
+  qdrant:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "qdrant"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-tidb:
+  tidb:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "tidb"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-victoria-metrics:
+  victoria-metrics:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "victoria-metrics"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-weaviate:
+  weaviate:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "weaviate"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-xinference:
-    uses: ./.github/workflows/trivy-scan.yml
-    with:
-      ITEM: "xinference"
-      ADDON: true
-    secrets: inherit
+  send-message:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    needs: [ elasticsearch, influxdb, llm, loki, mariadb, milvus, minio, neo4j,
+             opensearch, orioledb, pulsar, qdrant, tidb, victoria-metrics, weaviate  ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+
+      - name: send message
+        run: |
+          TEST_RESULT="${{ needs.elasticsearch.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.influxdb.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.llm.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.loki.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.mariadb.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.milvus.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.minio.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.neo4j.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.opensearch.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.orioledb-postgresql.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.pulsar.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.qdrant.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.tidb.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.victoria-metrics.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.weaviate.outputs.total-vulnerabilities }}"
+          
+          export TZ='Asia/Shanghai'
+          date_ret=$(date +%Y-%m-%d-%T)
+          test_title="[Weekly] Trivy Scan Vulnerabilities [${date_ret}]"
+          
+          python3 .github/utils/send_mesage.py \
+              --send-type trivy \
+              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
+              --title "$test_title" \
+              --result "$TEST_RESULT"

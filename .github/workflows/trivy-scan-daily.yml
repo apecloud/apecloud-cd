@@ -6,7 +6,7 @@ on:
     - cron: '0 0 * * 1-5' # Runs at 08:00 UTC on Mon to Friday
 
 jobs:
-  trivy-scan-kubeblocks:
+  kubeblocks:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "kubeblocks"
@@ -14,72 +14,107 @@ jobs:
       ADDON: false
     secrets: inherit
 
-  trivy-scan-clickhouse:
+  clickhouse:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "clickhouse"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-etcd:
+  etcd:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "etcd"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-kafka:
+  kafka:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "kafka"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-mongodb:
+  mongodb:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "mongodb"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-mysql:
+  mysql:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "mysql"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-postgresql:
+  postgresql:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "postgresql"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-rabbitmq:
+  rabbitmq:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "rabbitmq"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-redis:
+  redis:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "redis"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-vanilla-postgresql:
+  vanilla-postgresql:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "vanilla-postgresql"
       ADDON: true
     secrets: inherit
 
-  trivy-scan-zookeeper:
+  zookeeper:
     uses: ./.github/workflows/trivy-scan.yml
     with:
       ITEM: "zookeeper"
       ADDON: true
     secrets: inherit
+
+  send-message:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    needs: [ kubeblocks, clickhouse, etcd, kafka, mongodb, mysql, postgresql,
+             rabbitmq, redis, vanilla-postgresql, zookeeper  ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+
+      - name: send message
+        run: |
+          TEST_RESULT="${{ needs.kubeblocks.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.clickhouse.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.etcd.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.kafka.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.mongodb.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.mysql.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.postgresql.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.rabbitmq.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.redis.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.vanilla-postgresql.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.zookeeper.outputs.total-vulnerabilities }}"
+          
+          export TZ='Asia/Shanghai'
+          date_ret=$(date +%Y-%m-%d-%T)
+          test_title="[Daily] Trivy Scan Vulnerabilities [${date_ret}]"
+         
+          python3 .github/utils/send_mesage.py \
+              --send-type trivy \
+              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
+              --title "$test_title" \
+              --result "$TEST_RESULT"

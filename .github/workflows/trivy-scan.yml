@@ -192,7 +192,8 @@ jobs:
                           --test-result "trivy-scan-${{ inputs.ITEM }}")
                       echo "CI_JOB_URL:"${CI_JOB_URL}
           
-                      TOTAL_VULNERABILITIES="${TOTAL_VULNERABILITIES}##${{ inputs.ITEM }}|${image}|${critical_total}|${high_total}|${CI_JOB_URL}"
+                      image_tmp="${image/docker.io\//}"
+                      TOTAL_VULNERABILITIES="${TOTAL_VULNERABILITIES}##${{ inputs.ITEM }}|${image_tmp}|${critical_total}|${high_total}|${CI_JOB_URL}"
                   else
                       echo "✅ $(tput -T xterm setaf 2)${image} has no CRITICAL or HIGH vulnerabilities$(tput -T xterm sgr0)"
                   fi
