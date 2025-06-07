@@ -127,7 +127,7 @@ jobs:
         run: |
           IMAGES="${{ inputs.IMAGES }}"
           if [[ "${{ inputs.ADDON }}" == "true" && -n "${{ inputs.ITEM }}" && -z "${IMAGES}" ]]; then
-              IMAGES="${{ steps.get-addon-images.ouputs.addon-images }}"
+              IMAGES="${{ steps.get-addon-images.outputs.addon-images }}"
           fi
           
           index=0
