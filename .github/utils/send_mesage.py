@@ -959,6 +959,11 @@ def send_trivy_scan_message(url_v, result_v, title_v):
                 high_color = "red"
                 if ret[3] == "0":
                     high_color = "green"
+
+                image_color="orange"
+                if ret[2] == "0" and ret[3] == "0":
+                    image_color = "green"
+
                 json_ret = {
                     "tag": "column_set",
                     "flex_mode": "none",
@@ -985,7 +990,7 @@ def send_trivy_scan_message(url_v, result_v, title_v):
                             "elements": [
                                 {
                                     "tag": "markdown",
-                                    "content": "<font color='orange'>" + ret[1] + "</font>",
+                                    "content": "<font color='" + image_color + "'>" + ret[1] + "</font>",
                                     "text_align": "center"
                                 }
                             ]
