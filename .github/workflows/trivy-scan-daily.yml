@@ -14,80 +14,10 @@ jobs:
       ADDON: false
     secrets: inherit
 
-  clickhouse:
-    uses: ./.github/workflows/trivy-scan.yml
-    with:
-      ITEM: "clickhouse"
-      ADDON: true
-    secrets: inherit
-
-  etcd:
-    uses: ./.github/workflows/trivy-scan.yml
-    with:
-      ITEM: "etcd"
-      ADDON: true
-    secrets: inherit
-
-  kafka:
-    uses: ./.github/workflows/trivy-scan.yml
-    with:
-      ITEM: "kafka"
-      ADDON: true
-    secrets: inherit
-
-  mongodb:
-    uses: ./.github/workflows/trivy-scan.yml
-    with:
-      ITEM: "mongodb"
-      ADDON: true
-    secrets: inherit
-
-  mysql:
-    uses: ./.github/workflows/trivy-scan.yml
-    with:
-      ITEM: "mysql"
-      ADDON: true
-    secrets: inherit
-
-  postgresql:
-    uses: ./.github/workflows/trivy-scan.yml
-    with:
-      ITEM: "postgresql"
-      ADDON: true
-    secrets: inherit
-
-  rabbitmq:
-    uses: ./.github/workflows/trivy-scan.yml
-    with:
-      ITEM: "rabbitmq"
-      ADDON: true
-    secrets: inherit
-
-  redis:
-    uses: ./.github/workflows/trivy-scan.yml
-    with:
-      ITEM: "redis"
-      ADDON: true
-    secrets: inherit
-
-  vanilla-postgresql:
-    uses: ./.github/workflows/trivy-scan.yml
-    with:
-      ITEM: "vanilla-postgresql"
-      ADDON: true
-    secrets: inherit
-
-  zookeeper:
-    uses: ./.github/workflows/trivy-scan.yml
-    with:
-      ITEM: "zookeeper"
-      ADDON: true
-    secrets: inherit
-
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: [ kubeblocks, mysql, postgresql, redis, mongodb, kafka ]
+    needs: [ kubeblocks ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -97,44 +27,11 @@ jobs:
       - name: send message
         run: |
           TEST_RESULT="${{ needs.kubeblocks.outputs.total-vulnerabilities }}"
-          TEST_RESULT="${TEST_RESULT}##${{ needs.mysql.outputs.total-vulnerabilities }}"
-          TEST_RESULT="${TEST_RESULT}##${{ needs.postgresql.outputs.total-vulnerabilities }}"
-          TEST_RESULT="${TEST_RESULT}##${{ needs.redis.outputs.total-vulnerabilities }}"
-          TEST_RESULT="${TEST_RESULT}##${{ needs.mongodb.outputs.total-vulnerabilities }}"
-          TEST_RESULT="${TEST_RESULT}##${{ needs.kafka.outputs.total-vulnerabilities }}"
-          
+       
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
           test_title="[Daily] Trivy Scan Vulnerabilities [${date_ret}]"
          
-          python3 .github/utils/send_mesage.py \
-              --send-type trivy \
-              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
-              --title "$test_title" \
-              --result "$TEST_RESULT"
-
-  send-message-2:
-    if: ${{ always() }}
-    runs-on: ubuntu-latest
-    needs: [ clickhouse, etcd, rabbitmq, vanilla-postgresql, zookeeper   ]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud-cd
-          path: ./
-
-      - name: send message
-        run: |
-          TEST_RESULT="${TEST_RESULT}##${{ needs.clickhouse.outputs.total-vulnerabilities }}"
-          TEST_RESULT="${TEST_RESULT}##${{ needs.etcd.outputs.total-vulnerabilities }}"
-          TEST_RESULT="${TEST_RESULT}##${{ needs.rabbitmq.outputs.total-vulnerabilities }}"
-          TEST_RESULT="${TEST_RESULT}##${{ needs.vanilla-postgresql.outputs.total-vulnerabilities }}"
-          TEST_RESULT="${TEST_RESULT}##${{ needs.zookeeper.outputs.total-vulnerabilities }}"
-          
-          export TZ='Asia/Shanghai'
-          date_ret=$(date +%Y-%m-%d-%T)
-          test_title="[Daily] Trivy Scan Vulnerabilities 2 [${date_ret}]"
-          
           python3 .github/utils/send_mesage.py \
               --send-type trivy \
               --url "${{ vars.TEST_BOT_WEBHOOK }}" \
