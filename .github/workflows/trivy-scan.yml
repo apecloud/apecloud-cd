@@ -150,15 +150,31 @@ jobs:
           touch trivy_scan_report.out
           index=0
           CI_JOB_URL=""
+          SET_JOB_URL="false"
           for image in $(echo "${IMAGES}" | sed 's/|/ /g'); do
+              if [[ "$image" != *"apecloud/"* ]]; then
+                  continue
+              fi
               index=$((index+1))
               trivy_scan_report="trivy_scan_report_${index}.out"
               if [[ -f "${trivy_scan_report}" ]]; then
+                  if [[ -z "${CI_JOB_URL}" && "${SET_JOB_URL}" == "false"  ]]; then
+                      CI_JOB_URL=$(bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+                          --type 44 \
+                          --github-repo "${{ github.repository }}" \
+                          --github-token "${{ env.GH_TOKEN }}" \
+                          --run-id "$GITHUB_RUN_ID" \
+                          --test-result "trivy-scan-${{ inputs.ITEM }}")
+                      SET_JOB_URL="true"
+                  else
+                      CI_JOB_URL=""
+                  fi
+          
                   check_vulnerabilities=$(cat "${trivy_scan_report}" | (grep "Total:" |egrep "CRITICAL|HIGH" || true) )
+                  high_total=0
+                  critical_total=0
                   if [[ -n "${check_vulnerabilities}" ]]; then
                       echo "❌ $(tput -T xterm setaf 1)${image} has CRITICAL or HIGH vulnerabilities$(tput -T xterm sgr0)"
-                      high_total=0
-                      critical_total=0
                       high_index=0
                       critical_index=0
                       for vulnerabilities in $(cat "${trivy_scan_report}" | (grep "Total:" | egrep "CRITICAL|HIGH" || true) ); do
@@ -184,22 +200,11 @@ jobs:
                       total_total=$((high_total + critical_total))
                       vulnerabilities_total="Total: $total_total (HIGH: $high_total, CRITICAL: $critical_total)"
                       echo "${vulnerabilities_total}"
-                      
-                      image_tmp="${image/docker.io\//}"
-                      if [[ -z "${CI_JOB_URL}" ]]; then
-                          CI_JOB_URL=$(bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
-                              --type 44 \
-                              --github-repo "${{ github.repository }}" \
-                              --github-token "${{ env.GH_TOKEN }}" \
-                              --run-id "$GITHUB_RUN_ID" \
-                              --test-result "trivy-scan-${{ inputs.ITEM }}")
-                          TOTAL_VULNERABILITIES="${TOTAL_VULNERABILITIES}##${{ inputs.ITEM }}|${image_tmp}|${critical_total}|${high_total}|${CI_JOB_URL}"
-                      else
-                          TOTAL_VULNERABILITIES="${TOTAL_VULNERABILITIES}##${{ inputs.ITEM }}|${image_tmp}|${critical_total}|${high_total}|"
-                      fi
                   else
                       echo "✅ $(tput -T xterm setaf 2)${image} has no CRITICAL or HIGH vulnerabilities$(tput -T xterm sgr0)"
                   fi
+                  image_tmp="${image/docker.io\//}"
+                  TOTAL_VULNERABILITIES="${TOTAL_VULNERABILITIES}##${{ inputs.ITEM }}|${image_tmp}|${critical_total}|${high_total}|${CI_JOB_URL}"
           
                   echo "====================================================================== ${image} ======================================================================" >> trivy_scan_report.out
                   cat "${trivy_scan_report}" >> trivy_scan_report.out
