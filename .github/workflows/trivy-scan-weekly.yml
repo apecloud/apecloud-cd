@@ -133,7 +133,7 @@ jobs:
           TEST_RESULT="${TEST_RESULT}##${{ needs.minio.outputs.total-vulnerabilities }}"
           TEST_RESULT="${TEST_RESULT}##${{ needs.neo4j.outputs.total-vulnerabilities }}"
           TEST_RESULT="${TEST_RESULT}##${{ needs.opensearch.outputs.total-vulnerabilities }}"
-          TEST_RESULT="${TEST_RESULT}##${{ needs.orioledb-postgresql.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.orioledb.outputs.total-vulnerabilities }}"
           TEST_RESULT="${TEST_RESULT}##${{ needs.pulsar.outputs.total-vulnerabilities }}"
           TEST_RESULT="${TEST_RESULT}##${{ needs.qdrant.outputs.total-vulnerabilities }}"
           TEST_RESULT="${TEST_RESULT}##${{ needs.tidb.outputs.total-vulnerabilities }}"
