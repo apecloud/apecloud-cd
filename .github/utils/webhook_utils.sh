@@ -15,6 +15,7 @@ Usage: $(basename "$0") <options>
                                 3) get release version
                                 4) get kbcli branch
                                 5) send cherry-pick message
+                                6) send message without link
     -gr, --github-repo        Github repo
     -gt, --github-token       Github token
     -v, --version             The release version
@@ -179,6 +180,11 @@ send_message() {
     fi
 }
 
+send_message_without_link() {
+    curl -H "Content-Type: application/json" -X POST $BOT_WEBHOOK \
+        -d '{"msg_type":"post","content":{"post":{"zh_cn":{"title":"Release Branch Created:","content":[[{"tag":"text","text":"'$CONTENT'"}]]}}}}'
+}
+
 send_cherry_pick_message() {
     PR_NUMBER_TMP="#${PR_NUMBER}"
     PR_URL="https://github.com/${GITHUB_REPO}/pull/${PR_NUMBER}"
@@ -302,6 +308,10 @@ main() {
         5)
             cover_space
             send_cherry_pick_message
+        ;;
+        6)
+            cover_space
+            send_message_without_link
         ;;
     esac
 }
