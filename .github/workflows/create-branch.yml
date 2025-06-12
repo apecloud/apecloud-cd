@@ -1,0 +1,17 @@
+name: Create Branch
+
+on:
+  create:
+
+run-name: Create Release Branch
+
+jobs:
+  send-message:
+    if: startsWith(github.ref_name, 'release-')
+    uses: ./.github/workflows/feishui-message.yml
+    with:
+      TYPE: "6"
+      BOT_TYPE: "specify"
+      BOT_WEBHOOK: "${{ vars.CHERRY_PICK_BOT_WEBHOOK }}"
+      CONTENT: "[${{ github.repository }}] release branch: [ ${{ github.ref_name }} ] was created!"
+    secrets: inherit
