@@ -30,5 +30,5 @@ jobs:
       BRANCH_NAME: "main"
       WORKFLOW_ID: "cloud-e2e-web.yml"
       APECD_REF: "main"
-      EXTRA_ARGS: "CLOUD_VERSION=0.30#TEST_TYPE=smoke#DB_TYPE=postgresql#ENV=test#HREDLESS=true"
+      EXTRA_ARGS: "TEST_ENGINES=${{ vars.KB_CLOUD_WEB_TEST_ENGINES }}#CURRENT_VERSION=0.30#CLOUD_ENV_NAME=idc1#CLOUD_BRANCH=main"
     secrets: inherit

@@ -18,16 +18,16 @@ on:
         type: string
         required: false
         default: 'main'
-      APECD_REF:
-        description: "The branch name of apecloud-cd"
-        type: string
-        required: false
-        default: 'main'
       CURRENT_VERSION:
         description: "The current release version (e.g. 0.30) "
         type: string
         required: false
         default: ''
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
   workflow_call:
     inputs:
       TEST_ENGINES:
@@ -45,16 +45,16 @@ on:
         type: string
         required: false
         default: 'main'
-      APECD_REF:
-        description: "The branch name of apecloud-cd"
-        type: string
-        required: false
-        default: 'main'
       CURRENT_VERSION:
         description: "The current release version (e.g. 0.30) "
         type: string
         required: false
         default: ''
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
 
 run-name: Cloud E2E Web Test ${{ inputs.TEST_ENGINES }} on IDC:${{ inputs.CLOUD_ENV_NAME }} Ref:${{ inputs.CLOUD_BRANCH }}
 
@@ -244,7 +244,7 @@ jobs:
           export TEST_ENGINES=${TEST_ENGINES}
           
           CLOUD_VERSION="${{ inputs.CURRENT_VERSION }}"
-          if [[ -n "${CURRENT_VERSION}" && "${CURRENT_VERSION}" == "v"* ]]; then
+          if [[ -n "${CLOUD_VERSION}" && "${CLOUD_VERSION}" == "v"* ]]; then
               CLOUD_VERSION="${CLOUD_VERSION/v/}"
           fi
           
