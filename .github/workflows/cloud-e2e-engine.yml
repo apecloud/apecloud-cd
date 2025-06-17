@@ -77,7 +77,6 @@ env:
   IDC_KUBECONFIG_4: ${{ secrets.IDC_KUBECONFIG_4 }}
   ACK_KUBECONFIG_PROD: ${{ secrets.ACK_KUBECONFIG_PROD }}
   ACK_KUBECONFIG_INTL_PROD: ${{ secrets.ACK_KUBECONFIG_INTL_PROD }}
-  VKE_KUBECONFIG_TEST: ${{ secrets.VKE_KUBECONFIG_TEST }}
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
   OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
@@ -294,10 +293,6 @@ jobs:
               intl_prod)
                   echo '${{ env.ACK_KUBECONFIG_INTL_PROD }}' > $HOME/.kube/config
                   E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_INTL_PROD }}"
-              ;;
-              vke_test)
-                  echo '${{ env.VKE_KUBECONFIG_TEST }}' > $HOME/.kube/config
-                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_VKE_TEST }}"
               ;;
           esac
           echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV

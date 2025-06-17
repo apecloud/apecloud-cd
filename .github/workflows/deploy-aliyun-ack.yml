@@ -59,7 +59,6 @@ env:
   IDC_KUBECONFIG_4: ${{ secrets.IDC_KUBECONFIG_4 }}
   ACK_KUBECONFIG_PROD: ${{ secrets.ACK_KUBECONFIG_PROD }}
   ACK_KUBECONFIG_INTL_PROD: ${{ secrets.ACK_KUBECONFIG_INTL_PROD }}
-  VKE_KUBECONFIG_TEST: ${{ secrets.VKE_KUBECONFIG_TEST }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
@@ -165,10 +164,6 @@ jobs:
               intl_prod)
                   echo '${{ env.ACK_KUBECONFIG_INTL_PROD }}' > $HOME/.kube/config
                   cp -r apecloud-values/prod-us/values.yaml ${CHART_VALUES_FILENAME}
-              ;;
-              vke_test)
-                  echo '${{ env.VKE_KUBECONFIG_TEST }}' > $HOME/.kube/config
-                  cp -r apecloud-values/vke-test/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               *)
                   echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
