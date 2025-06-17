@@ -1,0 +1,34 @@
+name: Cloud E2E Schedule Web
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 15 * * 0-4' # Runs at 02:30 UTC on Mon to Friday
+
+jobs:
+  release-e2e-image:
+    strategy:
+      fail-fast: false
+      matrix:
+        branch-name: [ "main" ]
+    uses: ./.github/workflows/release-image-cache.yml
+    with:
+      GITHUB_REPO: "apecloud/e2etest"
+      GITHUB_REF: "${{ matrix.branch-name }}"
+      IMG: "apecloud/e2e-web"
+      CONTEXT: "./web"
+      DOCKERFILE_PATH: "./web/Dockerfile.code"
+      VERSION: "${{ matrix.branch-name }}"
+      REMOVE_PREFIX: false
+    secrets: inherit
+
+  e2e-web-test-10:
+    needs: [ release-e2e-image ]
+    uses: ./.github/workflows/trigger-workflow.yml
+    with:
+      GITHUB_REPO: "apecloud/apecloud-cd"
+      BRANCH_NAME: "main"
+      WORKFLOW_ID: "cloud-e2e-web.yml"
+      APECD_REF: "main"
+      EXTRA_ARGS: "CLOUD_VERSION=0.30#TEST_TYPE=smoke#DB_TYPE=postgresql#ENV=test#HREDLESS=true"
+    secrets: inherit

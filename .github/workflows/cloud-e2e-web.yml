@@ -1,0 +1,456 @@
+name: Cloud E2E Web
+
+on:
+  workflow_dispatch:
+    inputs:
+      TEST_ENGINES:
+        description: "The specify version of GO (e.g. postgresql,mysql)"
+        type: string
+        required: false
+        default: 'postgresql'
+      CLOUD_ENV_NAME:
+        description: "The cloud env name of test (e.g. idc1) "
+        type: string
+        required: false
+        default: 'idc1'
+      CLOUD_BRANCH:
+        description: "The cloud branch name (e.g. main) "
+        type: string
+        required: false
+        default: 'main'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      CURRENT_VERSION:
+        description: "The current release version (e.g. 0.30) "
+        type: string
+        required: false
+        default: ''
+  workflow_call:
+    inputs:
+      TEST_ENGINES:
+        description: "The specify version of GO (e.g. postgresql,mysql)"
+        type: string
+        required: false
+        default: 'mysql'
+      CLOUD_ENV_NAME:
+        description: "The cloud env name of test (e.g. dev) "
+        type: string
+        required: false
+        default: 'dev'
+      CLOUD_BRANCH:
+        description: "The cloud branch name (e.g. main) "
+        type: string
+        required: false
+        default: 'main'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      CURRENT_VERSION:
+        description: "The current release version (e.g. 0.30) "
+        type: string
+        required: false
+        default: ''
+
+run-name: Cloud E2E Web Test ${{ inputs.TEST_ENGINES }} on IDC:${{ inputs.CLOUD_ENV_NAME }} Ref:${{ inputs.CLOUD_BRANCH }}
+
+env:
+  ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
+  ACK_KUBECONFIG_DEMO: ${{ secrets.ACK_KUBECONFIG_DEMO }}
+  IDC_KUBECONFIG: ${{ secrets.IDC_KUBECONFIG }}
+  IDC_KUBECONFIG_1: ${{ secrets.IDC_KUBECONFIG_1 }}
+  IDC_KUBECONFIG_2: ${{ secrets.IDC_KUBECONFIG_2 }}
+  IDC_KUBECONFIG_4: ${{ secrets.IDC_KUBECONFIG_4 }}
+  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  get-test-engine:
+    runs-on: ubuntu-latest
+    outputs:
+      test-engines: ${{ steps.get_test_engine.outputs.test-engines }}
+      test-engines-all: ${{ steps.get_test_engine.outputs.test-engines-all }}
+      cloud-branch: ${{ steps.get_test_engine.outputs.cloud-branch }}
+      cloud-env-name: ${{ steps.get_test_engine.outputs.cloud-env-name }}
+      test-date: ${{ steps.get_test_engine.outputs.test-date }}
+    steps:
+      - name: Get test engine
+        id: get_test_engine
+        run: |
+          export TZ='Asia/Shanghai'
+          TEST_DATE="$(date +%Y%m%d)"
+          echo test-date=${TEST_DATE} >> $GITHUB_OUTPUT
+          
+          TEST_ENGINES="${{ inputs.TEST_ENGINES }}"
+          if [[ -z "$TEST_ENGINES" ]]; then
+              TEST_ENGINES="postgresql"
+          fi
+          test_engines=""
+          test_engines_all=""
+          test_engines_tmp=""
+          engine_index=0
+          test_job_index=0
+          for engine_tmp in $(echo "${TEST_ENGINES}" | sed 's/,/ /g' ); do
+              engine_index=$(( engine_index + 1 ))
+              if [[ -z "${test_engines_tmp}" ]]; then
+                  test_engines_tmp="${engine_tmp}"
+              else
+                  test_engines_tmp="${test_engines_tmp},${engine_tmp}"
+              fi
+          
+              KB_CLOUD_TEST_ENGINES_PRE="${{ vars.KB_CLOUD_TEST_ENGINES_PRE }}"
+              if [[ -z "${KB_CLOUD_TEST_ENGINES_PRE}" ]]; then
+                  KB_CLOUD_TEST_ENGINES_PRE=4
+              fi
+              if [[ $(( engine_index % ${KB_CLOUD_TEST_ENGINES_PRE} )) == 0 ]]; then
+                  test_job_index=$(( test_job_index + 1 ))
+                  test_job_index_tmp=$(printf "%02d" $test_job_index)
+                  if [[ -z "${test_engines}" ]]; then
+                      test_engines_all="${test_engines_tmp}|${test_job_index_tmp}"
+                      test_engines="{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+                  else
+                      test_engines_all="${test_engines_all}##${test_engines_tmp}|${test_job_index_tmp}"
+                      test_engines="${test_engines},{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+                  fi
+                  test_engines_tmp=""
+          
+              fi
+          done
+          if [[ -n "${test_engines_tmp}" ]]; then
+              test_job_index=$(( test_job_index + 1 ))
+              test_job_index_tmp=$(printf "%02d" $test_job_index)
+              if [[ -z "${test_engines}" ]]; then
+                  test_engines_all="${test_engines_tmp}|${test_job_index_tmp}"
+                  test_engines="{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+              else
+                  test_engines_all="${test_engines_all}##${test_engines_tmp}|${test_job_index_tmp}"
+                  test_engines="${test_engines},{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+              fi
+          fi
+          echo "${test_engines}"
+          echo "${test_engines_all}"
+          echo "test-engines={\"include\":[${test_engines}]}" >> $GITHUB_OUTPUT
+          echo test-engines-all="${test_engines_all}" >> $GITHUB_OUTPUT
+          
+          CLOUD_BRANCH="${{ inputs.CLOUD_BRANCH }}"
+          if [[ -z "$CLOUD_BRANCH" ]]; then
+              CLOUD_BRANCH="main"
+          fi
+          echo cloud-branch="$CLOUD_BRANCH" >> $GITHUB_OUTPUT
+          
+          CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
+          if [[ -z "$CLOUD_ENV_NAME" ]]; then
+              CLOUD_ENV_NAME="dev"
+          fi
+          echo cloud-env-name="$CLOUD_ENV_NAME" >> $GITHUB_OUTPUT
+  
+
+  e2e-web-test:
+    needs: [ get-test-engine ]
+    name: ${{ matrix.test-engine }}
+    strategy:
+      max-parallel: 2
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.get-test-engine.outputs.test-engines) }}
+    outputs:
+      test-result-1: ${{ steps.get_test_result.outputs.test-result-1 }}
+      test-result-2: ${{ steps.get_test_result.outputs.test-result-2 }}
+      test-result-3: ${{ steps.get_test_result.outputs.test-result-3 }}
+      test-result-4: ${{ steps.get_test_result.outputs.test-result-4 }}
+      test-result-5: ${{ steps.get_test_result.outputs.test-result-5 }}
+      test-result-6: ${{ steps.get_test_result.outputs.test-result-6 }}
+      test-result-7: ${{ steps.get_test_result.outputs.test-result-7 }}
+      test-result-8: ${{ steps.get_test_result.outputs.test-result-8 }}
+      test-result-9: ${{ steps.get_test_result.outputs.test-result-9 }}
+      test-result-10: ${{ steps.get_test_result.outputs.test-result-10 }}
+      test-date: ${{ steps.upload_test_result.outputs.test-date }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout testinfra Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/testinfra
+          path: ./
+          token: ${{ env.GH_TOKEN }}
+
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
+        id: cloud_env
+        run: |
+          mkdir -p $HOME/.kube
+          touch $HOME/.kube/config
+          CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
+          if [[ -z "$CLOUD_ENV_NAME" ]]; then
+              CLOUD_ENV_NAME="dev"
+          fi
+          echo CLOUD_ENV_NAME="$CLOUD_ENV_NAME" >> $GITHUB_ENV
+          
+          E2E_ENV_VARS=""
+          case "$CLOUD_ENV_NAME" in
+              dev)
+                  echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_WEB_ENV_VARS_DEV }}"
+              ;;
+              demo)
+                  echo '${{ env.ACK_KUBECONFIG_DEMO }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_WEB_ENV_VARS_DEMO }}"
+              ;;
+              idc)
+                  echo '${{ env.IDC_KUBECONFIG }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_WEB_ENV_VARS_IDC }}"
+              ;;
+              idc1)
+                  echo '${{ env.IDC_KUBECONFIG_1 }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_WEB_ENV_VARS_IDC1 }}"
+              ;;
+              idc2)
+                  echo '${{ env.IDC_KUBECONFIG_2 }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_WEB_ENV_VARS_IDC2 }}"
+              ;;
+              idc4)
+                  echo '${{ env.IDC_KUBECONFIG_4 }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_WEB_ENV_VARS_IDC4 }}"
+              ;;
+          esac
+          echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
+
+      - name: install python dateutil
+        run: |
+          pip3 install python-dateutil
+
+      - name: run ${{ matrix.test-type }}
+        run: |
+          run_file_log="run_e2e_test_result.log"
+          touch ${run_file_log} 
+          
+          for env_vars in $(echo "${E2E_ENV_VARS}" | sed 's/|/ /g'); do
+              eval_cmd="export $env_vars"
+              echo "$eval_cmd"
+              eval "$eval_cmd"
+          done
+          
+          TEST_ENGINES="${{ matrix.test-engine }}"
+          TEST_JOB_INDEX="${{ matrix.test-job-index }}"
+          echo "export TEST_ENGINES=${TEST_ENGINES}"
+          export TEST_ENGINES=${TEST_ENGINES}
+          
+          CLOUD_VERSION="${{ inputs.CURRENT_VERSION }}"
+          if [[ -n "${CURRENT_VERSION}" && "${CURRENT_VERSION}" == "v"* ]]; then
+              CLOUD_VERSION="${CLOUD_VERSION/v/}"
+          fi
+          
+          # run cloud e2e test web
+          bash test/cloud/test_cloud_e2e_web.sh \
+              --test-type smoke \
+              --pod-index "${TEST_JOB_INDEX}" \
+              --cloud-version "${CLOUD_VERSION}" \
+              --release-version ${{ needs.get-test-engine.outputs.cloud-branch }} | tee -a ${run_file_log}
+          
+          CLOUD_E2E_TEST_POD_NAME="$(cat ${run_file_log} | grep '\[CLOUD-E2E-WEB-TEST-POD-NAME\]' || true )"
+          if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" && "$CLOUD_E2E_TEST_POD_NAME" == "[CLOUD-E2E-WEB-TEST-POD-NAME]"* ]]; then
+              CLOUD_E2E_TEST_POD_NAME=${CLOUD_E2E_TEST_POD_NAME#*"[CLOUD-E2E-WEB-TEST-POD-NAME]"}      
+          fi
+          echo CLOUD_E2E_TEST_POD_NAME="$CLOUD_E2E_TEST_POD_NAME" >> $GITHUB_ENV
+
+      - name: Waiting for Cloud E2E to be Completed
+        run: |
+          set +e
+          set -o nounset
+          sleep 10
+          while true; do
+              if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" ; then
+                  echo "Cloud E2E Test is Done"
+                  break
+              fi
+              if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Running|Error" ; then
+                  kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=5
+              else
+                  echo "Waiting for Cloud E2E to be Running..."
+              fi
+              sleep 1
+          done
+
+      - name: Get Test Result
+        if: ${{ always() }}
+        id: get_test_result
+        run: |
+          file_log="test_result.log"
+          test_file_log_path="${{ github.workspace }}/${file_log}"
+          touch ${test_file_log_path}
+          
+          set +e
+          set -o nounset
+          for i in $(seq 1 10); do
+              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${test_file_log_path}
+              log_ret=$?
+              if [[ $log_ret -eq 0 ]]; then
+                  break
+              fi
+              sleep 1
+          done
+          
+          for i in $(seq 1 10); do
+              kubectl delete pod -n default ${CLOUD_E2E_TEST_POD_NAME} --force
+              delete_ret=$?
+              if [[ $delete_ret -eq 0 ]]; then
+                  break
+              fi
+              sleep 1
+          done
+          set -e
+         
+          cat ${test_file_log_path}
+          
+          test_ret="$( grep "Test Suite Failed" ${test_file_log_path} || true )"
+          TEST_RESULT_ALL="$(cat ${test_file_log_path} | (egrep 'SUCCESS!|FAIL!' | grep -- '--' || true))"
+          echo "test result all:${TEST_RESULT_ALL}"
+          TEST_RESULT_ALL=$(python3 ${{ github.workspace }}/apecloud-cd/.github/utils/remove_ansi.py --ansi-str "$TEST_RESULT_ALL")
+          TEST_RESULT=$(bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 41 --test-result "${TEST_RESULT_ALL}")
+          echo "test result total:${TEST_RESULT}"
+          
+          if [[ -z "$TEST_RESULT" ]]; then
+              TEST_RESULT="$(cat ${test_file_log_path} | (egrep 'SUCCESS!|FAIL!' | grep -- '--' || true) | tail -n 1)"
+              TEST_RESULT=$(python3 ${{ github.workspace }}/apecloud-cd/.github/utils/remove_ansi.py --ansi-str "$TEST_RESULT")
+          fi
+          
+          if [[ -z "$TEST_RESULT" ]]; then
+              TEST_RESULT="[PASSED]"
+              if [[ -n "$test_ret" || -z "${TEST_RESULT_ALL}" ]]; then
+                  TEST_RESULT="[FAILED]"
+              fi
+          fi
+          
+          file_log_tmp="test_result_tmp.log"
+          test_file_log_tmp_path="${{ github.workspace }}/${file_log_tmp}"
+          touch ${test_file_log_tmp_path}
+          echo "${E2E_TEST_RESULT_LOG}" > ${test_file_log_tmp_path}
+          
+          TEST_JOB_INDEX="${{ matrix.test-job-index }}"
+          case "${TEST_JOB_INDEX}" in
+              01)
+                  echo test-result-1="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;; 
+              02)
+                  echo test-result-2="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;; 
+              03)
+                  echo test-result-3="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;; 
+              04)
+                  echo test-result-4="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;; 
+              05)
+                  echo test-result-5="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;; 
+              06)
+                  echo test-result-6="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;; 
+              07)
+                  echo test-result-7="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;; 
+              08)
+                  echo test-result-8="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;  
+              09)
+                  echo test-result-9="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;  
+              10)
+                  echo test-result-10="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;; 
+          esac
+          
+          if [[ -n "$test_ret" ]]; then
+              exit 1
+          fi
+
+  send-message:
+    needs: [ get-test-engine, e2e-web-test ]
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: send test result message
+        run: |
+          export TZ='Asia/Shanghai'
+          date_ret=$(date +%Y-%m-%d-%T)
+          CLOUD_BRANCH="${{ needs.get-test-engine.outputs.cloud-branch }}"
+          CLOUD_ENV_NAME="${{ needs.get-test-engine.outputs.cloud-env-name }}"
+          TEST_ENGINES_ALL="${{ needs.get-test-engine.outputs.test-engines-all }}"
+          TEST_DATE=${{ needs.get-test-engine.outputs.test-date }}
+          TEST_RESULT_ALL=""
+          for test_engines_all in $(echo "${TEST_ENGINES_ALL}" | sed 's/##/ /g'); do
+              test_engines=${test_engines_all%%|*}
+              test_job_index=${test_engines_all#*|}
+              case "${test_job_index}" in
+                  01)
+                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-1 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  02)
+                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-2 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  03)
+                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-3 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  04)
+                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-4 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
+                  ;;
+                  05)
+                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-5 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
+                  ;;
+                  06)
+                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-6 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
+                  ;;
+                  07)
+                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-7 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
+                  ;;
+                  08)
+                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-8 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
+                  ;;
+                  09)
+                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-9 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
+                  ;;
+                  10)
+                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-10 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
+                  ;;
+              esac
+          done
+          
+          echo "TEST_RESULT_ALL:${TEST_RESULT_ALL}"
+          TEST_RESULT_ALL=$( bash .github/utils/utils.sh --type 40 \
+              --github-repo "${{ github.repository }}" \
+              --github-token "${{ env.GH_TOKEN }}" \
+              --test-result "${TEST_RESULT_ALL}" \
+              --run-id "$GITHUB_RUN_ID" )
+          echo "TEST_RESULT_ALL:${TEST_RESULT_ALL}"
+          
+          TEST_TITLE="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Web Test [${date_ret}]"
+          
+          python3 .github/utils/send_mesage.py \
+              --send-type ginkgo \
+              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
+              --title "$TEST_TITLE" \
+              --result "${TEST_RESULT_ALL}"
