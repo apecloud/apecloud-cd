@@ -171,22 +171,18 @@ jobs:
               idc)
                   echo '${{ env.IDC_KUBECONFIG }}' > $HOME/.kube/config
                   E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC }}"
-                  kubectl port-forward -n kb-cloud svc/apiserver 8080:8080 &
               ;;
               idc1)
                   echo '${{ env.IDC_KUBECONFIG_1 }}' > $HOME/.kube/config
                   E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC1 }}"
-                  kubectl port-forward -n kb-cloud svc/apiserver 8080:8080 &
               ;;
               idc2)
                   echo '${{ env.IDC_KUBECONFIG_2 }}' > $HOME/.kube/config
                   E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC2 }}"
-                  kubectl port-forward -n kb-cloud svc/apiserver 8080:8080 &
               ;;
               idc4)
                   echo '${{ env.IDC_KUBECONFIG_4 }}' > $HOME/.kube/config
                   E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC4 }}"
-                  kubectl port-forward -n kb-cloud svc/apiserver 8080:8080 &
               ;;
               prod)
                   echo '${{ env.ACK_KUBECONFIG_PROD }}' > $HOME/.kube/config
