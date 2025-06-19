@@ -3,7 +3,7 @@ name: Cloud E2E Schedule Idc
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 15 * * 0-4' # Runs at 02:30 UTC on Mon to Friday
+    - cron: '0 15 * * 0-4' # Runs at 23:00 UTC on Mon to Friday
 
 jobs:
   release-e2e-image:

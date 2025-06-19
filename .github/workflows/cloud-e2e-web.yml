@@ -139,6 +139,26 @@ jobs:
       test-result-8: ${{ steps.get_test_result.outputs.test-result-8 }}
       test-result-9: ${{ steps.get_test_result.outputs.test-result-9 }}
       test-result-10: ${{ steps.get_test_result.outputs.test-result-10 }}
+      test-result-11: ${{ steps.get_test_result.outputs.test-result-11 }}
+      test-result-12: ${{ steps.get_test_result.outputs.test-result-12 }}
+      test-result-13: ${{ steps.get_test_result.outputs.test-result-13 }}
+      test-result-14: ${{ steps.get_test_result.outputs.test-result-14 }}
+      test-result-15: ${{ steps.get_test_result.outputs.test-result-15 }}
+      test-result-16: ${{ steps.get_test_result.outputs.test-result-16 }}
+      test-result-17: ${{ steps.get_test_result.outputs.test-result-17 }}
+      test-result-18: ${{ steps.get_test_result.outputs.test-result-18 }}
+      test-result-19: ${{ steps.get_test_result.outputs.test-result-19 }}
+      test-result-20: ${{ steps.get_test_result.outputs.test-result-20 }}
+      test-result-21: ${{ steps.get_test_result.outputs.test-result-21 }}
+      test-result-22: ${{ steps.get_test_result.outputs.test-result-22 }}
+      test-result-23: ${{ steps.get_test_result.outputs.test-result-23 }}
+      test-result-24: ${{ steps.get_test_result.outputs.test-result-24 }}
+      test-result-25: ${{ steps.get_test_result.outputs.test-result-25 }}
+      test-result-26: ${{ steps.get_test_result.outputs.test-result-26 }}
+      test-result-27: ${{ steps.get_test_result.outputs.test-result-27 }}
+      test-result-28: ${{ steps.get_test_result.outputs.test-result-28 }}
+      test-result-29: ${{ steps.get_test_result.outputs.test-result-29 }}
+      test-result-30: ${{ steps.get_test_result.outputs.test-result-30 }}
       test-date: ${{ steps.upload_test_result.outputs.test-date }}
     runs-on: ubuntu-latest
     steps:
@@ -281,9 +301,7 @@ jobs:
           done
           set -e
           
-          test_file_log_path="/Users/huangzhangshu/projects/apecloud/github/apecloud-cd/test_logs.txt"
           cat ${test_file_log_path}
-          
           test_ret="$( grep "Test Suite Failed" ${test_file_log_path} || true )"
           TEST_RESULT_ALL="$(cat ${test_file_log_path} | (egrep 'SUCCESS!|FAIL!' | grep -- '--' || true))"
           echo "test result all:${TEST_RESULT_ALL}"
@@ -333,6 +351,66 @@ jobs:
               10)
                   echo test-result-10="${TEST_RESULT}" >> $GITHUB_OUTPUT
               ;; 
+              11)
+                  echo test-result-11="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              12)
+                  echo test-result-12="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              13)
+                  echo test-result-13="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              14)
+                  echo test-result-14="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              15)
+                  echo test-result-15="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              16)
+                  echo test-result-16="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              17)
+                  echo test-result-17="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              18)
+                  echo test-result-18="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              19)
+                  echo test-result-19="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              20)
+                  echo test-result-20="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              21)
+                  echo test-result-21="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              22)
+                  echo test-result-22="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              23)
+                  echo test-result-23="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              24)
+                  echo test-result-24="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              25)
+                  echo test-result-25="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              26)
+                  echo test-result-26="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              27)
+                  echo test-result-27="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              28)
+                  echo test-result-28="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              29)
+                  echo test-result-29="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
+              30)
+                  echo test-result-30="${TEST_RESULT}" >> $GITHUB_OUTPUT
+              ;;
           esac
           
           if [[ -n "$test_ret" ]]; then
@@ -364,44 +442,124 @@ jobs:
               test_job_index=${test_engines_all#*|}
               case "${test_job_index}" in
                   01)
-                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-1 }}"
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-1 }}"
                       TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                   ;;
                   02)
-                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-2 }}"
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-2 }}"
                       TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                   ;;
                   03)
-                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-3 }}"
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-3 }}"
                       TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                   ;;
                   04)
-                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-4 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-4 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                   ;;
                   05)
-                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-5 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-5 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                   ;;
                   06)
-                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-6 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-6 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                   ;;
                   07)
-                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-7 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-7 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                   ;;
                   08)
-                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-8 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-8 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                   ;;
                   09)
-                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-9 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-9 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                   ;;
                   10)
-                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-10 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-10 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  11)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-11 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  12)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-12 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  13)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-13 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  14)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-14 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  15)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-15 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  16)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-16 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  17)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-17 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  18)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-18 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  19)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-19 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  20)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-20 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  21)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-21 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  22)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-22 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  23)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-23 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  24)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-24 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  25)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-25 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  26)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-26 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  27)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-27 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  28)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-28 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  29)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-29 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
+                  ;;
+                  30)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-30 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                   ;;
               esac
           done
