@@ -13,8 +13,8 @@ on:
         type: string
         required: false
         default: 'idc1'
-      CLOUD_BRANCH:
-        description: "The cloud branch name (e.g. main) "
+      E2ETEST_BRANCH:
+        description: "The e2etest branch name (e.g. main) "
         type: string
         required: false
         default: 'main'
@@ -40,8 +40,8 @@ on:
         type: string
         required: false
         default: 'dev'
-      CLOUD_BRANCH:
-        description: "The cloud branch name (e.g. main) "
+      E2ETEST_BRANCH:
+        description: "The e2etest branch name (e.g. main) "
         type: string
         required: false
         default: 'main'
@@ -56,7 +56,7 @@ on:
         required: false
         default: 'main'
 
-run-name: Cloud E2E Web Test ${{ inputs.TEST_ENGINES }} on IDC:${{ inputs.CLOUD_ENV_NAME }} Ref:${{ inputs.CLOUD_BRANCH }}
+run-name: Cloud E2E Web Test ${{ inputs.TEST_ENGINES }} on IDC:${{ inputs.CLOUD_ENV_NAME }} Ref:${{ inputs.E2ETEST_BRANCH }}
 
 env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
@@ -73,7 +73,7 @@ jobs:
     outputs:
       test-engines: ${{ steps.get_test_engine.outputs.test-engines }}
       test-engines-all: ${{ steps.get_test_engine.outputs.test-engines-all }}
-      cloud-branch: ${{ steps.get_test_engine.outputs.cloud-branch }}
+      e2etest-branch: ${{ steps.get_test_engine.outputs.e2etest-branch }}
       cloud-env-name: ${{ steps.get_test_engine.outputs.cloud-env-name }}
       test-date: ${{ steps.get_test_engine.outputs.test-date }}
     steps:
@@ -108,11 +108,11 @@ jobs:
           echo "test-engines={\"include\":[${test_engines}]}" >> $GITHUB_OUTPUT
           echo test-engines-all="${test_engines_all}" >> $GITHUB_OUTPUT
           
-          CLOUD_BRANCH="${{ inputs.CLOUD_BRANCH }}"
-          if [[ -z "$CLOUD_BRANCH" ]]; then
-              CLOUD_BRANCH="main"
+          E2ETEST_BRANCH="${{ inputs.E2ETEST_BRANCH }}"
+          if [[ -z "$E2ETEST_BRANCH" ]]; then
+              E2ETEST_BRANCH="main"
           fi
-          echo cloud-branch="$CLOUD_BRANCH" >> $GITHUB_OUTPUT
+          echo e2etest-branch="$E2ETEST_BRANCH" >> $GITHUB_OUTPUT
           
           CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
           if [[ -z "$CLOUD_ENV_NAME" ]]; then
@@ -241,12 +241,12 @@ jobs:
               CLOUD_VERSION="${CLOUD_VERSION/v/}"
           fi
           
-          # run cloud e2e test web
+          # run cloud e2e web test
           bash test/cloud/test_cloud_e2e_web.sh \
               --test-type smoke \
               --pod-index "${TEST_JOB_INDEX}" \
               --cloud-version "${CLOUD_VERSION}" \
-              --release-version ${{ needs.get-test-engine.outputs.cloud-branch }} | tee -a ${run_file_log}
+              --release-version ${{ needs.get-test-engine.outputs.e2etest-branch }} | tee -a ${run_file_log}
           
           CLOUD_E2E_TEST_POD_NAME="$(cat ${run_file_log} | grep '\[CLOUD-E2E-WEB-TEST-POD-NAME\]' || true )"
           if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" && "$CLOUD_E2E_TEST_POD_NAME" == "[CLOUD-E2E-WEB-TEST-POD-NAME]"* ]]; then
@@ -254,20 +254,20 @@ jobs:
           fi
           echo CLOUD_E2E_TEST_POD_NAME="$CLOUD_E2E_TEST_POD_NAME" >> $GITHUB_ENV
 
-      - name: Waiting for Cloud E2E to be Completed
+      - name: Waiting for Cloud E2E Web to be Completed
         run: |
           set +e
           set -o nounset
           sleep 10
           while true; do
               if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" ; then
-                  echo "Cloud E2E Test is Done"
+                  echo "Cloud E2E Web Test is Done"
                   break
               fi
               if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Running|Error" ; then
                   kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=5
               else
-                  echo "Waiting for Cloud E2E to be Running..."
+                  echo "Waiting for Cloud E2E Web to be Running..."
               fi
               sleep 1
           done
@@ -432,7 +432,7 @@ jobs:
         run: |
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
-          CLOUD_BRANCH="${{ needs.get-test-engine.outputs.cloud-branch }}"
+          E2ETEST_BRANCH="${{ needs.get-test-engine.outputs.e2etest-branch }}"
           CLOUD_ENV_NAME="${{ needs.get-test-engine.outputs.cloud-env-name }}"
           TEST_ENGINES_ALL="${{ needs.get-test-engine.outputs.test-engines-all }}"
           TEST_DATE=${{ needs.get-test-engine.outputs.test-date }}
@@ -572,7 +572,7 @@ jobs:
               --run-id "$GITHUB_RUN_ID" )
           echo "TEST_RESULT_ALL:${TEST_RESULT_ALL}"
           
-          TEST_TITLE="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Web Test [${date_ret}]"
+          TEST_TITLE="[${E2ETEST_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Web Test [${date_ret}]"
           
           python3 .github/utils/send_mesage.py \
               --send-type ginkgo \
