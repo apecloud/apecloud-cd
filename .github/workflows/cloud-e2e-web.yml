@@ -242,35 +242,6 @@ jobs:
           fi
           
           # run cloud e2e test web
-#          bash test/cloud/test_cloud_e2e_web.sh \
-#              --test-type smoke \
-#              --pod-index "${TEST_JOB_INDEX}" \
-#              --cloud-version "${CLOUD_VERSION}" \
-#              --release-version ${{ needs.get-test-engine.outputs.cloud-branch }} | tee -a ${run_file_log}
-#
-#          CLOUD_E2E_TEST_POD_NAME="$(cat ${run_file_log} | grep '\[CLOUD-E2E-WEB-TEST-POD-NAME\]' || true )"
-#          if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" && "$CLOUD_E2E_TEST_POD_NAME" == "[CLOUD-E2E-WEB-TEST-POD-NAME]"* ]]; then
-#              CLOUD_E2E_TEST_POD_NAME=${CLOUD_E2E_TEST_POD_NAME#*"[CLOUD-E2E-WEB-TEST-POD-NAME]"}
-#          fi
-#          echo CLOUD_E2E_TEST_POD_NAME="$CLOUD_E2E_TEST_POD_NAME" >> $GITHUB_ENV
-#
-#      - name: Waiting for Cloud E2E to be Completed
-#        run: |
-#          set +e
-#          set -o nounset
-#          sleep 10
-#          while true; do
-#              if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" ; then
-#                  echo "Cloud E2E Test is Done"
-#                  break
-#              fi
-#              if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Running|Error" ; then
-#                  kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=5
-#              else
-#                  echo "Waiting for Cloud E2E to be Running..."
-#              fi
-#              sleep 1
-#          done
 
       - name: Get Test Result
         if: ${{ always() }}
@@ -280,26 +251,6 @@ jobs:
           test_file_log_path="${{ github.workspace }}/${file_log}"
           touch ${test_file_log_path}
           
-#          set +e
-#          set -o nounset
-#          for i in $(seq 1 10); do
-#              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${test_file_log_path}
-#              log_ret=$?
-#              if [[ $log_ret -eq 0 ]]; then
-#                  break
-#              fi
-#              sleep 1
-#          done
-#
-#          for i in $(seq 1 10); do
-#              kubectl delete pod -n default ${CLOUD_E2E_TEST_POD_NAME} --force
-#              delete_ret=$?
-#              if [[ $delete_ret -eq 0 ]]; then
-#                  break
-#              fi
-#              sleep 1
-#          done
-#          set -e
           TEST_ENGINES="${{ matrix.test-engine }}"
           cp -r ./apecloud-cd/${TEST_ENGINES}.logs ${test_file_log_path}
           
