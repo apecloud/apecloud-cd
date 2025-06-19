@@ -86,50 +86,23 @@ jobs:
           
           TEST_ENGINES="${{ inputs.TEST_ENGINES }}"
           if [[ -z "$TEST_ENGINES" ]]; then
-              TEST_ENGINES="postgresql"
+              TEST_ENGINES="sqlserver"
           fi
           test_engines=""
           test_engines_all=""
-          test_engines_tmp=""
-          engine_index=0
           test_job_index=0
           for engine_tmp in $(echo "${TEST_ENGINES}" | sed 's/,/ /g' ); do
-              engine_index=$(( engine_index + 1 ))
-              if [[ -z "${test_engines_tmp}" ]]; then
-                  test_engines_tmp="${engine_tmp}"
-              else
-                  test_engines_tmp="${test_engines_tmp},${engine_tmp}"
-              fi
-          
-              KB_CLOUD_TEST_ENGINES_PRE="${{ vars.KB_CLOUD_TEST_ENGINES_PRE }}"
-              if [[ -z "${KB_CLOUD_TEST_ENGINES_PRE}" ]]; then
-                  KB_CLOUD_TEST_ENGINES_PRE=4
-              fi
-              if [[ $(( engine_index % ${KB_CLOUD_TEST_ENGINES_PRE} )) == 0 ]]; then
-                  test_job_index=$(( test_job_index + 1 ))
-                  test_job_index_tmp=$(printf "%02d" $test_job_index)
-                  if [[ -z "${test_engines}" ]]; then
-                      test_engines_all="${test_engines_tmp}|${test_job_index_tmp}"
-                      test_engines="{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
-                  else
-                      test_engines_all="${test_engines_all}##${test_engines_tmp}|${test_job_index_tmp}"
-                      test_engines="${test_engines},{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
-                  fi
-                  test_engines_tmp=""
-          
-              fi
-          done
-          if [[ -n "${test_engines_tmp}" ]]; then
               test_job_index=$(( test_job_index + 1 ))
               test_job_index_tmp=$(printf "%02d" $test_job_index)
               if [[ -z "${test_engines}" ]]; then
-                  test_engines_all="${test_engines_tmp}|${test_job_index_tmp}"
-                  test_engines="{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+                  test_engines_all="${engine_tmp}|${test_job_index_tmp}"
+                  test_engines="{\"test-engine\":\"${engine_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
               else
-                  test_engines_all="${test_engines_all}##${test_engines_tmp}|${test_job_index_tmp}"
-                  test_engines="${test_engines},{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+                  test_engines_all="${test_engines_all}##${engine_tmp}|${test_job_index_tmp}"
+                  test_engines="${test_engines},{\"test-engine\":\"${engine_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
               fi
-          fi
+          done
+        
           echo "${test_engines}"
           echo "${test_engines_all}"
           echo "test-engines={\"include\":[${test_engines}]}" >> $GITHUB_OUTPUT
@@ -307,19 +280,18 @@ jobs:
               sleep 1
           done
           set -e
-         
+          
+          test_file_log_path="/Users/huangzhangshu/projects/apecloud/github/apecloud-cd/test_logs.txt"
           cat ${test_file_log_path}
           
           test_ret="$( grep "Test Suite Failed" ${test_file_log_path} || true )"
           TEST_RESULT_ALL="$(cat ${test_file_log_path} | (egrep 'SUCCESS!|FAIL!' | grep -- '--' || true))"
           echo "test result all:${TEST_RESULT_ALL}"
-          TEST_RESULT_ALL=$(python3 ${{ github.workspace }}/apecloud-cd/.github/utils/remove_ansi.py --ansi-str "$TEST_RESULT_ALL")
           TEST_RESULT=$(bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 41 --test-result "${TEST_RESULT_ALL}")
           echo "test result total:${TEST_RESULT}"
           
           if [[ -z "$TEST_RESULT" ]]; then
               TEST_RESULT="$(cat ${test_file_log_path} | (egrep 'SUCCESS!|FAIL!' | grep -- '--' || true) | tail -n 1)"
-              TEST_RESULT=$(python3 ${{ github.workspace }}/apecloud-cd/.github/utils/remove_ansi.py --ansi-str "$TEST_RESULT")
           fi
           
           if [[ -z "$TEST_RESULT" ]]; then
@@ -328,11 +300,6 @@ jobs:
                   TEST_RESULT="[FAILED]"
               fi
           fi
-          
-          file_log_tmp="test_result_tmp.log"
-          test_file_log_tmp_path="${{ github.workspace }}/${file_log_tmp}"
-          touch ${test_file_log_tmp_path}
-          echo "${E2E_TEST_RESULT_LOG}" > ${test_file_log_tmp_path}
           
           TEST_JOB_INDEX="${{ matrix.test-job-index }}"
           case "${TEST_JOB_INDEX}" in
