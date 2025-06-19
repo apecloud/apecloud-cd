@@ -1,0 +1,1967 @@
+未检测到当前虚拟环境，继续执行...
+更新 .env.test 文件...
+当前工作目录: /web
+env-init=false 或未指定，跳过虚拟环境检查，直接运行测试...
+运行测试：python3 ./run_tests.py --version 0.30 --test_type smoke --db_type damengdb --env test --headless true
+运行测试：python3 ./run_tests.py --version 0.30 --test_type smoke --db_type damengdb --env test --headless true
+执行测试路径: tests/v0_30
+测试类型: smoke
+运行环境: test
+测试参数: -s -v tests/v0_30 --html=reports/report.html -m smoke -k damengdb --db_type=damengdb --env=test --headless=true
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.10.12', 'Platform': 'Linux-6.8.0-60-generic-x86_64-with-glibc2.35', 'Packages': {'pytest': '7.4.3', 'pluggy': '1.5.0'}, 'Plugins': {'html': '4.1.1', 'xdist': '3.7.0', 'playwright': '0.4.3', 'base-url': '2.1.0', 'metadata': '3.1.1'}, 'Base URL': ''}
+rootdir: /web
+configfile: pytest.ini
+plugins: html-4.1.1, xdist-3.7.0, playwright-0.4.3, base-url-2.1.0, metadata-3.1.1
+collecting ... collected 41 items / 29 deselected / 12 selected
+
+tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[standalone-8.1.3-100-20240124-HeadlessService]
+-------------------------------- live log setup --------------------------------
+INFO     web.conftest:conftest.py:79 Found env file at: /web/.env.test
+INFO     web.conftest:conftest.py:161 Loaded environment: test
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+-------------------------------- live log call ---------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : standalone
+  ├─ Version      : 8.1.3-100-20240124
+  └─ Network Mode : HeadlessService
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb standalone 8.1.3-100-20240124 HeadlessService]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-h7mojnv1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:293 Cluster is ready after 16 checks
+INFO     tests.pages.tasks.base_task:base_task.py:48 Successfully navigated to task logs page
+INFO     tests.pages.tasks.base_task:base_task.py:133 Successfully closed task details
+INFO     tests.pages.tasks.base_task:base_task.py:175 Successfully navigated to cluster overview page
+INFO     tests.pages.tasks.base_task:base_task.py:209 Successfully completed task workflow for CreateCluster
+INFO     tests.pages.ops.base_ops:base_ops.py:540 Stopping cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:545 Cluster stop success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster stop time: [23.840692281723022] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:567 Starting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:572 Cluster start success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster start time: [33.752471685409546] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:594 Restarting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:599 Cluster restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster restart time: [43.48776865005493] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: DamengDB, supported ops: ['小版本升级', '存储扩容', '升降规格', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:648 Expanding storage ...
+INFO     tests.pages.ops.base_ops:base_ops.py:653 Expand storage success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Storage expansion time: [3.1947033405303955] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:702 Vscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:711 Vscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [44.12815022468567] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+INFO     tests.pages.ops.base_ops:base_ops.py:765 Spec restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [53.0898334980011] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-100-20240124」 to 「8.1.4-6-20241231」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-100-20240124」 upgrade to 「8.1.4-6-20241231」 success
+INFO     tests.pages.ops.base_ops:base_ops.py:783 All minor version upgrades completed.
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [4.007816314697266] seconds
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:405 Starting to delete cluster: e2e-h7mojnv1 ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:461 Waiting for cluster e2e-h7mojnv1 to be deleted
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:484 Cluster e2e-h7mojnv1 still exists, waiting...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:476 Cluster e2e-h7mojnv1 has been deleted
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: standalone-8.1.3-100-20240124-HeadlessService, Time: 324.53760600090027
+PASSED
+tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[standalone-8.1.3-100-20240124-HostNetwork]
+-------------------------------- live log setup --------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+-------------------------------- live log call ---------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : standalone
+  ├─ Version      : 8.1.3-100-20240124
+  └─ Network Mode : HostNetwork
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb standalone 8.1.3-100-20240124 HostNetwork]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-aqxmlixg
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     3 × locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:293 Cluster is ready after 16 checks
+INFO     tests.pages.tasks.base_task:base_task.py:48 Successfully navigated to task logs page
+INFO     tests.pages.tasks.base_task:base_task.py:133 Successfully closed task details
+INFO     tests.pages.tasks.base_task:base_task.py:175 Successfully navigated to cluster overview page
+INFO     tests.pages.tasks.base_task:base_task.py:209 Successfully completed task workflow for CreateCluster
+INFO     tests.pages.ops.base_ops:base_ops.py:540 Stopping cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:545 Cluster stop success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster stop time: [24.302749395370483] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:567 Starting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:572 Cluster start success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster start time: [33.698310136795044] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:594 Restarting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:599 Cluster restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster restart time: [43.572993516922] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: DamengDB, supported ops: ['小版本升级', '存储扩容', '升降规格', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:648 Expanding storage ...
+INFO     tests.pages.ops.base_ops:base_ops.py:653 Expand storage success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Storage expansion time: [3.1885128021240234] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:702 Vscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:711 Vscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [5.455275058746338] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+INFO     tests.pages.ops.base_ops:base_ops.py:765 Spec restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [83.24458694458008] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-100-20240124」 to 「8.1.4-6-20241231」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-100-20240124」 upgrade to 「8.1.4-6-20241231」 success
+INFO     tests.pages.ops.base_ops:base_ops.py:783 All minor version upgrades completed.
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [3.9627957344055176] seconds
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:405 Starting to delete cluster: e2e-aqxmlixg ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:461 Waiting for cluster e2e-aqxmlixg to be deleted
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:484 Cluster e2e-aqxmlixg still exists, waiting...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:476 Cluster e2e-aqxmlixg has been deleted
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: standalone-8.1.3-100-20240124-HostNetwork, Time: 318.7885754108429
+PASSED
+tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[standalone-8.1.3-26-20240821-HeadlessService]
+-------------------------------- live log setup --------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+-------------------------------- live log call ---------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : standalone
+  ├─ Version      : 8.1.3-26-20240821
+  └─ Network Mode : HeadlessService
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb standalone 8.1.3-26-20240821 HeadlessService]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-gbcg2wqu
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     4 × locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:293 Cluster is ready after 16 checks
+INFO     tests.pages.tasks.base_task:base_task.py:48 Successfully navigated to task logs page
+INFO     tests.pages.tasks.base_task:base_task.py:133 Successfully closed task details
+INFO     tests.pages.tasks.base_task:base_task.py:175 Successfully navigated to cluster overview page
+INFO     tests.pages.tasks.base_task:base_task.py:209 Successfully completed task workflow for CreateCluster
+INFO     tests.pages.ops.base_ops:base_ops.py:540 Stopping cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:545 Cluster stop success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster stop time: [24.127524852752686] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:567 Starting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:572 Cluster start success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster start time: [23.72861361503601] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:594 Restarting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:599 Cluster restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster restart time: [44.07714223861694] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: DamengDB, supported ops: ['小版本升级', '存储扩容', '升降规格', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:648 Expanding storage ...
+INFO     tests.pages.ops.base_ops:base_ops.py:653 Expand storage success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Storage expansion time: [3.0701487064361572] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:702 Vscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:711 Vscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [44.03486657142639] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+INFO     tests.pages.ops.base_ops:base_ops.py:765 Spec restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [54.09095811843872] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-26-20240821」 to 「8.1.3-100-20240124」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-26-20240821」 upgrade to 「8.1.3-100-20240124」 success
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-100-20240124」 to 「8.1.4-6-20241231」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-100-20240124」 upgrade to 「8.1.4-6-20241231」 success
+ERROR    tests.pages.ops.base_ops:base_ops.py:795 No minor versions found
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [37.985909938812256] seconds
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:405 Starting to delete cluster: e2e-gbcg2wqu ...
+ERROR    tests.pages.clusters.base_cluster:base_cluster.py:454 Failed to delete cluster: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for get_by_role("switch").first
+  -     - locator resolved to <button type="button" role="switch" aria-checked="true" __id="node_ocltwsqhcf1" __events="[object Object]" __inner__="[object Object]" class="ant-switch ant-switch-small ant-switch-checked" _unsafe_mixedsetter____condition____select="BoolSetter">…</button>
+  -   - attempting click action
+  -     2 × waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -     - retrying click action
+  -     - waiting 20ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   2 × retrying click action
+  -       - waiting 100ms
+  -       - waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   13 × retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+
+ERROR    tests.pages.clusters.damengdb_cluster:damengdb_cluster.py:28 Failed to delete DamengDB cluster: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for get_by_role("switch").first
+  -     - locator resolved to <button type="button" role="switch" aria-checked="true" __id="node_ocltwsqhcf1" __events="[object Object]" __inner__="[object Object]" class="ant-switch ant-switch-small ant-switch-checked" _unsafe_mixedsetter____condition____select="BoolSetter">…</button>
+  -   - attempting click action
+  -     2 × waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -     - retrying click action
+  -     - waiting 20ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   2 × retrying click action
+  -       - waiting 100ms
+  -       - waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   13 × retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+
+ERROR    tests.utils.err_log_utils:err_log_utils.py:27
+[SPEC]: standalone-8.1.3-26-20240821-HeadlessService
+[REASON]: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for get_by_role("switch").first
+  -     - locator resolved to <button type="button" role="switch" aria-checked="true" __id="node_ocltwsqhcf1" __events="[object Object]" __inner__="[object Object]" class="ant-switch ant-switch-small ant-switch-checked" _unsafe_mixedsetter____condition____select="BoolSetter">…</button>
+  -   - attempting click action
+  -     2 × waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -     - retrying click action
+  -     - waiting 20ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   2 × retrying click action
+  -       - waiting 100ms
+  -       - waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   13 × retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/standalone-8.1.3-26-20240821-HeadlessService_1750300104.png)
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: standalone-8.1.3-26-20240821-HeadlessService, Time: 376.63241147994995
+FAILED
+tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[standalone-8.1.3-26-20240821-HostNetwork]
+-------------------------------- live log setup --------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+-------------------------------- live log call ---------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : standalone
+  ├─ Version      : 8.1.3-26-20240821
+  └─ Network Mode : HostNetwork
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb standalone 8.1.3-26-20240821 HostNetwork]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-bbq7l48k
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:293 Cluster is ready after 15 checks
+INFO     tests.pages.tasks.base_task:base_task.py:48 Successfully navigated to task logs page
+INFO     tests.pages.tasks.base_task:base_task.py:133 Successfully closed task details
+INFO     tests.pages.tasks.base_task:base_task.py:175 Successfully navigated to cluster overview page
+INFO     tests.pages.tasks.base_task:base_task.py:209 Successfully completed task workflow for CreateCluster
+INFO     tests.pages.ops.base_ops:base_ops.py:540 Stopping cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:545 Cluster stop success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster stop time: [23.85120177268982] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:567 Starting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:572 Cluster start success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster start time: [23.92302632331848] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:594 Restarting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:599 Cluster restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster restart time: [53.61205863952637] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: DamengDB, supported ops: ['小版本升级', '存储扩容', '升降规格', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:648 Expanding storage ...
+INFO     tests.pages.ops.base_ops:base_ops.py:653 Expand storage success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Storage expansion time: [3.4161744117736816] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:702 Vscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:711 Vscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [44.10639476776123] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+INFO     tests.pages.ops.base_ops:base_ops.py:765 Spec restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [42.93683624267578] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-26-20240821」 to 「8.1.3-100-20240124」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-26-20240821」 upgrade to 「8.1.3-100-20240124」 success
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-100-20240124」 to 「8.1.4-6-20241231」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-100-20240124」 upgrade to 「8.1.4-6-20241231」 success
+INFO     tests.pages.ops.base_ops:base_ops.py:783 All minor version upgrades completed.
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [38.524948835372925] seconds
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:405 Starting to delete cluster: e2e-bbq7l48k ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:461 Waiting for cluster e2e-bbq7l48k to be deleted
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:484 Cluster e2e-bbq7l48k still exists, waiting...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:476 Cluster e2e-bbq7l48k has been deleted
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: standalone-8.1.3-26-20240821-HostNetwork, Time: 344.2906515598297
+PASSED
+tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[standalone-8.1.4-6-20241231-HeadlessService]
+-------------------------------- live log setup --------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+-------------------------------- live log call ---------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : standalone
+  ├─ Version      : 8.1.4-6-20241231
+  └─ Network Mode : HeadlessService
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb standalone 8.1.4-6-20241231 HeadlessService]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-o8ttl58e
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+ERROR    tests.pages.clusters.base_cluster:base_cluster.py:301 Timeout waiting for cluster to be ready after 55 checks
+ERROR    tests.utils.err_log_utils:err_log_utils.py:27
+[SPEC]: standalone-8.1.4-6-20241231-HeadlessService
+[REASON]: Cluster not ready
+assert False
+ +  where False = <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8d990a00>>(300000)
+ +    where <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8d990a00>> = <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8d990a00>.wait_for_cluster_ready
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/standalone-8.1.4-6-20241231-HeadlessService_1750300782.png)
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: standalone-8.1.4-6-20241231-HeadlessService, Time: 322.820494890213
+FAILED
+tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[standalone-8.1.4-6-20241231-HostNetwork]
+-------------------------------- live log setup --------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+-------------------------------- live log call ---------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : standalone
+  ├─ Version      : 8.1.4-6-20241231
+  └─ Network Mode : HostNetwork
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb standalone 8.1.4-6-20241231 HostNetwork]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-z1kxirup
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     4 × locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+ERROR    tests.pages.clusters.base_cluster:base_cluster.py:301 Timeout waiting for cluster to be ready after 55 checks
+ERROR    tests.utils.err_log_utils:err_log_utils.py:27
+[SPEC]: standalone-8.1.4-6-20241231-HostNetwork
+[REASON]: Cluster not ready
+assert False
+ +  where False = <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8c0a7550>>(300000)
+ +    where <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8c0a7550>> = <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8c0a7550>.wait_for_cluster_ready
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/standalone-8.1.4-6-20241231-HostNetwork_1750301109.png)
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: standalone-8.1.4-6-20241231-HostNetwork, Time: 321.76808500289917
+FAILED
+tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[realtime-replication-8.1.3-100-20240124-HeadlessService]
+-------------------------------- live log setup --------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+-------------------------------- live log call ---------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : realtime-replication
+  ├─ Version      : 8.1.3-100-20240124
+  └─ Network Mode : HeadlessService
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb realtime-replication 8.1.3-100-20240124 HeadlessService]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-z9rgb5ac
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     3 × locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:293 Cluster is ready after 23 checks
+INFO     tests.pages.tasks.base_task:base_task.py:48 Successfully navigated to task logs page
+INFO     tests.pages.tasks.base_task:base_task.py:133 Successfully closed task details
+INFO     tests.pages.tasks.base_task:base_task.py:175 Successfully navigated to cluster overview page
+INFO     tests.pages.tasks.base_task:base_task.py:209 Successfully completed task workflow for CreateCluster
+INFO     tests.pages.ops.base_ops:base_ops.py:540 Stopping cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:545 Cluster stop success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster stop time: [34.090935468673706] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:567 Starting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:572 Cluster start success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster start time: [54.173086404800415] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:594 Restarting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:599 Cluster restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster restart time: [94.41587352752686] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: DamengDB, supported ops: ['小版本升级', '主备切换', '存储扩容', '升降规格', '水平伸缩', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:851 Switching over ...
+INFO     tests.pages.ops.base_ops:base_ops.py:856 Switch over success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Switch over time: [14.723299026489258] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:648 Expanding storage ...
+INFO     tests.pages.ops.base_ops:base_ops.py:653 Expand storage success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Storage expansion time: [3.34656023979187] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:702 Vscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:711 Vscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [84.71294403076172] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:735 Hscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:740 Hscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Horizontal scale time: [24.623602390289307] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+INFO     tests.pages.ops.base_ops:base_ops.py:765 Spec restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [53.230891942977905] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-100-20240124」 to 「8.1.4-6-20241231」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-100-20240124」 upgrade to 「8.1.4-6-20241231」 success
+INFO     tests.pages.ops.base_ops:base_ops.py:783 All minor version upgrades completed.
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [3.7429733276367188] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: Monitor, supported ops: ['小版本升级', '升降规格', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:709 [SKIPPED] Single spec cannot be vscale
+ERROR    tests.pages.ops.base_ops:base_ops.py:715 Vertical scale failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     588 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [301.6188886165619] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+ERROR    tests.pages.ops.base_ops:base_ops.py:769 Component restart failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     590 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [305.56154799461365] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:783 All minor version upgrades completed.
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [0.03541231155395508] seconds
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:405 Starting to delete cluster: e2e-z9rgb5ac ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:461 Waiting for cluster e2e-z9rgb5ac to be deleted
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:484 Cluster e2e-z9rgb5ac still exists, waiting...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:476 Cluster e2e-z9rgb5ac has been deleted
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: realtime-replication-8.1.3-100-20240124-HeadlessService, Time: 1137.7722058296204
+FAILED
+tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[realtime-replication-8.1.3-100-20240124-HostNetwork]
+-------------------------------- live log setup --------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+-------------------------------- live log call ---------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : realtime-replication
+  ├─ Version      : 8.1.3-100-20240124
+  └─ Network Mode : HostNetwork
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb realtime-replication 8.1.3-100-20240124 HostNetwork]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-h2mj0i60
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     3 × locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:293 Cluster is ready after 26 checks
+INFO     tests.pages.tasks.base_task:base_task.py:48 Successfully navigated to task logs page
+INFO     tests.pages.tasks.base_task:base_task.py:133 Successfully closed task details
+INFO     tests.pages.tasks.base_task:base_task.py:175 Successfully navigated to cluster overview page
+INFO     tests.pages.tasks.base_task:base_task.py:209 Successfully completed task workflow for CreateCluster
+INFO     tests.pages.ops.base_ops:base_ops.py:540 Stopping cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:545 Cluster stop success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster stop time: [43.891093015670776] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:567 Starting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:572 Cluster start success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster start time: [54.73015260696411] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:594 Restarting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:599 Cluster restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster restart time: [93.64831924438477] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: DamengDB, supported ops: ['小版本升级', '主备切换', '存储扩容', '升降规格', '水平伸缩', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:851 Switching over ...
+INFO     tests.pages.ops.base_ops:base_ops.py:856 Switch over success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Switch over time: [14.382840633392334] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:648 Expanding storage ...
+INFO     tests.pages.ops.base_ops:base_ops.py:653 Expand storage success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Storage expansion time: [3.0728797912597656] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:702 Vscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:711 Vscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [83.82165217399597] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:735 Hscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:740 Hscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Horizontal scale time: [33.7655885219574] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+INFO     tests.pages.ops.base_ops:base_ops.py:765 Spec restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [43.01565861701965] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-100-20240124」 to 「8.1.4-6-20241231」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-100-20240124」 upgrade to 「8.1.4-6-20241231」 success
+INFO     tests.pages.ops.base_ops:base_ops.py:783 All minor version upgrades completed.
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [3.5563647747039795] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: Monitor, supported ops: ['小版本升级', '升降规格', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:709 [SKIPPED] Single spec cannot be vscale
+ERROR    tests.pages.ops.base_ops:base_ops.py:715 Vertical scale failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     589 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [301.65073013305664] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+ERROR    tests.pages.ops.base_ops:base_ops.py:769 Component restart failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     590 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [305.2264268398285] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:783 All minor version upgrades completed.
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [0.04277920722961426] seconds
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:405 Starting to delete cluster: e2e-h2mj0i60 ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:461 Waiting for cluster e2e-h2mj0i60 to be deleted
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:484 Cluster e2e-h2mj0i60 still exists, waiting...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:476 Cluster e2e-h2mj0i60 has been deleted
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: realtime-replication-8.1.3-100-20240124-HostNetwork, Time: 1160.9332728385925
+FAILED
+tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[realtime-replication-8.1.3-26-20240821-HeadlessService]
+-------------------------------- live log setup --------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+-------------------------------- live log call ---------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : realtime-replication
+  ├─ Version      : 8.1.3-26-20240821
+  └─ Network Mode : HeadlessService
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb realtime-replication 8.1.3-26-20240821 HeadlessService]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-rimovrrm
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     3 × locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:293 Cluster is ready after 22 checks
+INFO     tests.pages.tasks.base_task:base_task.py:48 Successfully navigated to task logs page
+INFO     tests.pages.tasks.base_task:base_task.py:133 Successfully closed task details
+INFO     tests.pages.tasks.base_task:base_task.py:175 Successfully navigated to cluster overview page
+INFO     tests.pages.tasks.base_task:base_task.py:209 Successfully completed task workflow for CreateCluster
+INFO     tests.pages.ops.base_ops:base_ops.py:540 Stopping cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:545 Cluster stop success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster stop time: [44.7009801864624] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:567 Starting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:572 Cluster start success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster start time: [53.73950982093811] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:594 Restarting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:599 Cluster restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster restart time: [93.864182472229] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: DamengDB, supported ops: ['小版本升级', '主备切换', '存储扩容', '升降规格', '水平伸缩', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:851 Switching over ...
+INFO     tests.pages.ops.base_ops:base_ops.py:856 Switch over success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Switch over time: [14.42765760421753] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:648 Expanding storage ...
+INFO     tests.pages.ops.base_ops:base_ops.py:653 Expand storage success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Storage expansion time: [3.096911668777466] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:702 Vscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:711 Vscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [84.0138897895813] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:735 Hscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:740 Hscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Horizontal scale time: [24.036902904510498] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+INFO     tests.pages.ops.base_ops:base_ops.py:765 Spec restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [42.951355934143066] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-26-20240821」 to 「8.1.3-100-20240124」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-26-20240821」 upgrade to 「8.1.3-100-20240124」 success
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-100-20240124」 to 「8.1.4-6-20241231」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-100-20240124」 upgrade to 「8.1.4-6-20241231」 success
+ERROR    tests.pages.ops.base_ops:base_ops.py:795 No minor versions found
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [38.49417543411255] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: Monitor, supported ops: ['小版本升级', '升降规格', '重 启']
+ERROR    tests.utils.err_log_utils:err_log_utils.py:27
+[SPEC]: realtime-replication-8.1.3-26-20240821-HeadlessService
+[REASON]: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("//h5[contains(text(),'实例列表')]/ancestor::div[contains(@class,'lce-block')]//div[contains(@class,'ant-segmented')]//label").nth(1)
+  -     - locator resolved to <label class="ant-segmented-item">…</label>
+  -   - attempting click action
+  -     2 × waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -     - retrying click action
+  -     - waiting 20ms
+  -     2 × waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -     - retrying click action
+  -       - waiting 100ms
+  -     55 × waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/realtime-replication-8.1.3-26-20240821-HeadlessService_1750304002.png)
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: realtime-replication-8.1.3-26-20240821-HeadlessService, Time: 579.5910441875458
+FAILED
+tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[realtime-replication-8.1.3-26-20240821-HostNetwork]
+-------------------------------- live log setup --------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+-------------------------------- live log call ---------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : realtime-replication
+  ├─ Version      : 8.1.3-26-20240821
+  └─ Network Mode : HostNetwork
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb realtime-replication 8.1.3-26-20240821 HostNetwork]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-qqmqerp8
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     3 × locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:293 Cluster is ready after 27 checks
+INFO     tests.pages.tasks.base_task:base_task.py:48 Successfully navigated to task logs page
+INFO     tests.pages.tasks.base_task:base_task.py:133 Successfully closed task details
+INFO     tests.pages.tasks.base_task:base_task.py:175 Successfully navigated to cluster overview page
+INFO     tests.pages.tasks.base_task:base_task.py:209 Successfully completed task workflow for CreateCluster
+INFO     tests.pages.ops.base_ops:base_ops.py:540 Stopping cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:545 Cluster stop success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster stop time: [34.06862187385559] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:567 Starting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:572 Cluster start success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster start time: [63.70030617713928] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:594 Restarting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:599 Cluster restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster restart time: [84.28187155723572] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: DamengDB, supported ops: ['小版本升级', '主备切换', '存储扩容', '升降规格', '水平伸缩', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:851 Switching over ...
+INFO     tests.pages.ops.base_ops:base_ops.py:856 Switch over success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Switch over time: [14.654334783554077] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:648 Expanding storage ...
+INFO     tests.pages.ops.base_ops:base_ops.py:653 Expand storage success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Storage expansion time: [3.241710901260376] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:702 Vscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:711 Vscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [74.21071934700012] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:735 Hscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:740 Hscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Horizontal scale time: [24.853948831558228] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+INFO     tests.pages.ops.base_ops:base_ops.py:765 Spec restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [43.82022452354431] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-26-20240821」 to 「8.1.3-100-20240124」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-26-20240821」 upgrade to 「8.1.3-100-20240124」 success
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-100-20240124」 to 「8.1.4-6-20241231」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-100-20240124」 upgrade to 「8.1.4-6-20241231」 success
+INFO     tests.pages.ops.base_ops:base_ops.py:783 All minor version upgrades completed.
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [38.258153438568115] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: Monitor, supported ops: ['小版本升级', '升降规格', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:709 [SKIPPED] Single spec cannot be vscale
+ERROR    tests.pages.ops.base_ops:base_ops.py:715 Vertical scale failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     589 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [304.3992929458618] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+ERROR    tests.pages.ops.base_ops:base_ops.py:769 Component restart failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     590 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [306.5213875770569] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:783 All minor version upgrades completed.
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [0.03867840766906738] seconds
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:405 Starting to delete cluster: e2e-qqmqerp8 ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:461 Waiting for cluster e2e-qqmqerp8 to be deleted
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:484 Cluster e2e-qqmqerp8 still exists, waiting...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:476 Cluster e2e-qqmqerp8 has been deleted
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: realtime-replication-8.1.3-26-20240821-HostNetwork, Time: 1178.9934828281403
+FAILED
+tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[realtime-replication-8.1.4-6-20241231-HeadlessService]
+-------------------------------- live log setup --------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+-------------------------------- live log call ---------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : realtime-replication
+  ├─ Version      : 8.1.4-6-20241231
+  └─ Network Mode : HeadlessService
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb realtime-replication 8.1.4-6-20241231 HeadlessService]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-br1q6aq3
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     3 × locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+ERROR    tests.pages.clusters.base_cluster:base_cluster.py:301 Timeout waiting for cluster to be ready after 55 checks
+ERROR    tests.utils.err_log_utils:err_log_utils.py:27
+[SPEC]: realtime-replication-8.1.4-6-20241231-HeadlessService
+[REASON]: Cluster not ready
+assert False
+ +  where False = <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8ca3b5b0>>(300000)
+ +    where <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8ca3b5b0>> = <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8ca3b5b0>.wait_for_cluster_ready
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/realtime-replication-8.1.4-6-20241231-HeadlessService_1750305513.png)
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: realtime-replication-8.1.4-6-20241231-HeadlessService, Time: 321.38450145721436
+FAILED
+tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[realtime-replication-8.1.4-6-20241231-HostNetwork]
+-------------------------------- live log setup --------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+-------------------------------- live log call ---------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : realtime-replication
+  ├─ Version      : 8.1.4-6-20241231
+  └─ Network Mode : HostNetwork
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb realtime-replication 8.1.4-6-20241231 HostNetwork]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-k95gbz8x
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     3 × locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+ERROR    tests.pages.clusters.base_cluster:base_cluster.py:301 Timeout waiting for cluster to be ready after 55 checks
+ERROR    tests.utils.err_log_utils:err_log_utils.py:27
+[SPEC]: realtime-replication-8.1.4-6-20241231-HostNetwork
+[REASON]: Cluster not ready
+assert False
+ +  where False = <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8da21a80>>(300000)
+ +    where <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8da21a80>> = <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8da21a80>.wait_for_cluster_ready
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/realtime-replication-8.1.4-6-20241231-HostNetwork_1750305843.png)
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: realtime-replication-8.1.4-6-20241231-HostNetwork, Time: 324.8599908351898
+FAILED
+
+=================================== FAILURES ===================================
+_ TestDamengDB.test_damengdb_cluster[standalone-8.1.3-26-20240821-HeadlessService] _
+Test failed due to ERROR log(s):
+ERROR tests.pages.ops.base_ops:795 No minor versions found
+ERROR tests.pages.clusters.base_cluster:454 Failed to delete cluster: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for get_by_role("switch").first
+  -     - locator resolved to <button type="button" role="switch" aria-checked="true" __id="node_ocltwsqhcf1" __events="[object Object]" __inner__="[object Object]" class="ant-switch ant-switch-small ant-switch-checked" _unsafe_mixedsetter____condition____select="BoolSetter">…</button>
+  -   - attempting click action
+  -     2 × waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -     - retrying click action
+  -     - waiting 20ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   2 × retrying click action
+  -       - waiting 100ms
+  -       - waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   13 × retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+
+ERROR tests.pages.clusters.damengdb_cluster:28 Failed to delete DamengDB cluster: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for get_by_role("switch").first
+  -     - locator resolved to <button type="button" role="switch" aria-checked="true" __id="node_ocltwsqhcf1" __events="[object Object]" __inner__="[object Object]" class="ant-switch ant-switch-small ant-switch-checked" _unsafe_mixedsetter____condition____select="BoolSetter">…</button>
+  -   - attempting click action
+  -     2 × waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -     - retrying click action
+  -     - waiting 20ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   2 × retrying click action
+  -       - waiting 100ms
+  -       - waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   13 × retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+
+ERROR tests.utils.err_log_utils:27
+[SPEC]: standalone-8.1.3-26-20240821-HeadlessService
+[REASON]: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for get_by_role("switch").first
+  -     - locator resolved to <button type="button" role="switch" aria-checked="true" __id="node_ocltwsqhcf1" __events="[object Object]" __inner__="[object Object]" class="ant-switch ant-switch-small ant-switch-checked" _unsafe_mixedsetter____condition____select="BoolSetter">…</button>
+  -   - attempting click action
+  -     2 × waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -     - retrying click action
+  -     - waiting 20ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   2 × retrying click action
+  -       - waiting 100ms
+  -       - waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   13 × retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/standalone-8.1.3-26-20240821-HeadlessService_1750300104.png)
+------------------------------ Captured log setup ------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+------------------------------ Captured log call -------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : standalone
+  ├─ Version      : 8.1.3-26-20240821
+  └─ Network Mode : HeadlessService
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb standalone 8.1.3-26-20240821 HeadlessService]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-gbcg2wqu
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     4 × locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:293 Cluster is ready after 16 checks
+INFO     tests.pages.tasks.base_task:base_task.py:48 Successfully navigated to task logs page
+INFO     tests.pages.tasks.base_task:base_task.py:133 Successfully closed task details
+INFO     tests.pages.tasks.base_task:base_task.py:175 Successfully navigated to cluster overview page
+INFO     tests.pages.tasks.base_task:base_task.py:209 Successfully completed task workflow for CreateCluster
+INFO     tests.pages.ops.base_ops:base_ops.py:540 Stopping cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:545 Cluster stop success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster stop time: [24.127524852752686] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:567 Starting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:572 Cluster start success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster start time: [23.72861361503601] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:594 Restarting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:599 Cluster restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster restart time: [44.07714223861694] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: DamengDB, supported ops: ['小版本升级', '存储扩容', '升降规格', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:648 Expanding storage ...
+INFO     tests.pages.ops.base_ops:base_ops.py:653 Expand storage success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Storage expansion time: [3.0701487064361572] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:702 Vscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:711 Vscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [44.03486657142639] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+INFO     tests.pages.ops.base_ops:base_ops.py:765 Spec restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [54.09095811843872] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-26-20240821」 to 「8.1.3-100-20240124」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-26-20240821」 upgrade to 「8.1.3-100-20240124」 success
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-100-20240124」 to 「8.1.4-6-20241231」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-100-20240124」 upgrade to 「8.1.4-6-20241231」 success
+ERROR    tests.pages.ops.base_ops:base_ops.py:795 No minor versions found
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [37.985909938812256] seconds
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:405 Starting to delete cluster: e2e-gbcg2wqu ...
+ERROR    tests.pages.clusters.base_cluster:base_cluster.py:454 Failed to delete cluster: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for get_by_role("switch").first
+  -     - locator resolved to <button type="button" role="switch" aria-checked="true" __id="node_ocltwsqhcf1" __events="[object Object]" __inner__="[object Object]" class="ant-switch ant-switch-small ant-switch-checked" _unsafe_mixedsetter____condition____select="BoolSetter">…</button>
+  -   - attempting click action
+  -     2 × waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -     - retrying click action
+  -     - waiting 20ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   2 × retrying click action
+  -       - waiting 100ms
+  -       - waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   13 × retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+
+ERROR    tests.pages.clusters.damengdb_cluster:damengdb_cluster.py:28 Failed to delete DamengDB cluster: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for get_by_role("switch").first
+  -     - locator resolved to <button type="button" role="switch" aria-checked="true" __id="node_ocltwsqhcf1" __events="[object Object]" __inner__="[object Object]" class="ant-switch ant-switch-small ant-switch-checked" _unsafe_mixedsetter____condition____select="BoolSetter">…</button>
+  -   - attempting click action
+  -     2 × waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -     - retrying click action
+  -     - waiting 20ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   2 × retrying click action
+  -       - waiting 100ms
+  -       - waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   13 × retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+
+ERROR    tests.utils.err_log_utils:err_log_utils.py:27
+[SPEC]: standalone-8.1.3-26-20240821-HeadlessService
+[REASON]: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for get_by_role("switch").first
+  -     - locator resolved to <button type="button" role="switch" aria-checked="true" __id="node_ocltwsqhcf1" __events="[object Object]" __inner__="[object Object]" class="ant-switch ant-switch-small ant-switch-checked" _unsafe_mixedsetter____condition____select="BoolSetter">…</button>
+  -   - attempting click action
+  -     2 × waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -     - retrying click action
+  -     - waiting 20ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   2 × retrying click action
+  -       - waiting 100ms
+  -       - waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   13 × retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+  -        - waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+  -     - waiting for element to be visible, enabled and stable
+  -     - element is visible, enabled and stable
+  -     - scrolling into view if needed
+  -     - done scrolling
+  -     - <input readonly value="" type="search" role="combobox" unselectable="on" id="basic_version" autocomplete="off" aria-required="true" aria-expanded="true" aria-haspopup="listbox" aria-autocomplete="list" aria-owns="basic_version_list" aria-controls="basic_version_list" class="ant-select-selection-search-input" aria-activedescendant="basic_version_list_-1"/> from <div>…</div> subtree intercepts pointer events
+  -   - retrying click action
+  -     - waiting 500ms
+
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/standalone-8.1.3-26-20240821-HeadlessService_1750300104.png)
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: standalone-8.1.3-26-20240821-HeadlessService, Time: 376.63241147994995
+_ TestDamengDB.test_damengdb_cluster[standalone-8.1.4-6-20241231-HeadlessService] _
+Test failed due to ERROR log(s):
+ERROR tests.pages.clusters.base_cluster:301 Timeout waiting for cluster to be ready after 55 checks
+ERROR tests.utils.err_log_utils:27
+[SPEC]: standalone-8.1.4-6-20241231-HeadlessService
+[REASON]: Cluster not ready
+assert False
+ +  where False = <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8d990a00>>(300000)
+ +    where <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8d990a00>> = <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8d990a00>.wait_for_cluster_ready
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/standalone-8.1.4-6-20241231-HeadlessService_1750300782.png)
+------------------------------ Captured log setup ------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+------------------------------ Captured log call -------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : standalone
+  ├─ Version      : 8.1.4-6-20241231
+  └─ Network Mode : HeadlessService
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb standalone 8.1.4-6-20241231 HeadlessService]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-o8ttl58e
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+ERROR    tests.pages.clusters.base_cluster:base_cluster.py:301 Timeout waiting for cluster to be ready after 55 checks
+ERROR    tests.utils.err_log_utils:err_log_utils.py:27
+[SPEC]: standalone-8.1.4-6-20241231-HeadlessService
+[REASON]: Cluster not ready
+assert False
+ +  where False = <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8d990a00>>(300000)
+ +    where <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8d990a00>> = <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8d990a00>.wait_for_cluster_ready
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/standalone-8.1.4-6-20241231-HeadlessService_1750300782.png)
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: standalone-8.1.4-6-20241231-HeadlessService, Time: 322.820494890213
+_ TestDamengDB.test_damengdb_cluster[standalone-8.1.4-6-20241231-HostNetwork] __
+Test failed due to ERROR log(s):
+ERROR tests.pages.clusters.base_cluster:301 Timeout waiting for cluster to be ready after 55 checks
+ERROR tests.utils.err_log_utils:27
+[SPEC]: standalone-8.1.4-6-20241231-HostNetwork
+[REASON]: Cluster not ready
+assert False
+ +  where False = <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8c0a7550>>(300000)
+ +    where <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8c0a7550>> = <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8c0a7550>.wait_for_cluster_ready
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/standalone-8.1.4-6-20241231-HostNetwork_1750301109.png)
+------------------------------ Captured log setup ------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+------------------------------ Captured log call -------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : standalone
+  ├─ Version      : 8.1.4-6-20241231
+  └─ Network Mode : HostNetwork
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb standalone 8.1.4-6-20241231 HostNetwork]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-z1kxirup
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     4 × locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+ERROR    tests.pages.clusters.base_cluster:base_cluster.py:301 Timeout waiting for cluster to be ready after 55 checks
+ERROR    tests.utils.err_log_utils:err_log_utils.py:27
+[SPEC]: standalone-8.1.4-6-20241231-HostNetwork
+[REASON]: Cluster not ready
+assert False
+ +  where False = <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8c0a7550>>(300000)
+ +    where <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8c0a7550>> = <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8c0a7550>.wait_for_cluster_ready
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/standalone-8.1.4-6-20241231-HostNetwork_1750301109.png)
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: standalone-8.1.4-6-20241231-HostNetwork, Time: 321.76808500289917
+_ TestDamengDB.test_damengdb_cluster[realtime-replication-8.1.3-100-20240124-HeadlessService] _
+Test failed due to ERROR log(s):
+ERROR tests.pages.ops.base_ops:715 Vertical scale failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     588 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+ERROR tests.pages.ops.base_ops:769 Component restart failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     590 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+------------------------------ Captured log setup ------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+------------------------------ Captured log call -------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : realtime-replication
+  ├─ Version      : 8.1.3-100-20240124
+  └─ Network Mode : HeadlessService
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb realtime-replication 8.1.3-100-20240124 HeadlessService]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-z9rgb5ac
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     3 × locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:293 Cluster is ready after 23 checks
+INFO     tests.pages.tasks.base_task:base_task.py:48 Successfully navigated to task logs page
+INFO     tests.pages.tasks.base_task:base_task.py:133 Successfully closed task details
+INFO     tests.pages.tasks.base_task:base_task.py:175 Successfully navigated to cluster overview page
+INFO     tests.pages.tasks.base_task:base_task.py:209 Successfully completed task workflow for CreateCluster
+INFO     tests.pages.ops.base_ops:base_ops.py:540 Stopping cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:545 Cluster stop success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster stop time: [34.090935468673706] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:567 Starting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:572 Cluster start success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster start time: [54.173086404800415] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:594 Restarting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:599 Cluster restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster restart time: [94.41587352752686] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: DamengDB, supported ops: ['小版本升级', '主备切换', '存储扩容', '升降规格', '水平伸缩', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:851 Switching over ...
+INFO     tests.pages.ops.base_ops:base_ops.py:856 Switch over success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Switch over time: [14.723299026489258] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:648 Expanding storage ...
+INFO     tests.pages.ops.base_ops:base_ops.py:653 Expand storage success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Storage expansion time: [3.34656023979187] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:702 Vscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:711 Vscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [84.71294403076172] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:735 Hscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:740 Hscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Horizontal scale time: [24.623602390289307] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+INFO     tests.pages.ops.base_ops:base_ops.py:765 Spec restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [53.230891942977905] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-100-20240124」 to 「8.1.4-6-20241231」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-100-20240124」 upgrade to 「8.1.4-6-20241231」 success
+INFO     tests.pages.ops.base_ops:base_ops.py:783 All minor version upgrades completed.
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [3.7429733276367188] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: Monitor, supported ops: ['小版本升级', '升降规格', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:709 [SKIPPED] Single spec cannot be vscale
+ERROR    tests.pages.ops.base_ops:base_ops.py:715 Vertical scale failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     588 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [301.6188886165619] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+ERROR    tests.pages.ops.base_ops:base_ops.py:769 Component restart failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     590 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [305.56154799461365] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:783 All minor version upgrades completed.
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [0.03541231155395508] seconds
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:405 Starting to delete cluster: e2e-z9rgb5ac ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:461 Waiting for cluster e2e-z9rgb5ac to be deleted
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:484 Cluster e2e-z9rgb5ac still exists, waiting...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:476 Cluster e2e-z9rgb5ac has been deleted
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: realtime-replication-8.1.3-100-20240124-HeadlessService, Time: 1137.7722058296204
+_ TestDamengDB.test_damengdb_cluster[realtime-replication-8.1.3-100-20240124-HostNetwork] _
+Test failed due to ERROR log(s):
+ERROR tests.pages.ops.base_ops:715 Vertical scale failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     589 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+ERROR tests.pages.ops.base_ops:769 Component restart failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     590 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+------------------------------ Captured log setup ------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+------------------------------ Captured log call -------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : realtime-replication
+  ├─ Version      : 8.1.3-100-20240124
+  └─ Network Mode : HostNetwork
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb realtime-replication 8.1.3-100-20240124 HostNetwork]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-h2mj0i60
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     3 × locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:293 Cluster is ready after 26 checks
+INFO     tests.pages.tasks.base_task:base_task.py:48 Successfully navigated to task logs page
+INFO     tests.pages.tasks.base_task:base_task.py:133 Successfully closed task details
+INFO     tests.pages.tasks.base_task:base_task.py:175 Successfully navigated to cluster overview page
+INFO     tests.pages.tasks.base_task:base_task.py:209 Successfully completed task workflow for CreateCluster
+INFO     tests.pages.ops.base_ops:base_ops.py:540 Stopping cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:545 Cluster stop success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster stop time: [43.891093015670776] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:567 Starting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:572 Cluster start success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster start time: [54.73015260696411] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:594 Restarting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:599 Cluster restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster restart time: [93.64831924438477] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: DamengDB, supported ops: ['小版本升级', '主备切换', '存储扩容', '升降规格', '水平伸缩', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:851 Switching over ...
+INFO     tests.pages.ops.base_ops:base_ops.py:856 Switch over success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Switch over time: [14.382840633392334] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:648 Expanding storage ...
+INFO     tests.pages.ops.base_ops:base_ops.py:653 Expand storage success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Storage expansion time: [3.0728797912597656] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:702 Vscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:711 Vscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [83.82165217399597] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:735 Hscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:740 Hscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Horizontal scale time: [33.7655885219574] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+INFO     tests.pages.ops.base_ops:base_ops.py:765 Spec restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [43.01565861701965] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-100-20240124」 to 「8.1.4-6-20241231」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-100-20240124」 upgrade to 「8.1.4-6-20241231」 success
+INFO     tests.pages.ops.base_ops:base_ops.py:783 All minor version upgrades completed.
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [3.5563647747039795] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: Monitor, supported ops: ['小版本升级', '升降规格', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:709 [SKIPPED] Single spec cannot be vscale
+ERROR    tests.pages.ops.base_ops:base_ops.py:715 Vertical scale failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     589 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [301.65073013305664] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+ERROR    tests.pages.ops.base_ops:base_ops.py:769 Component restart failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     590 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [305.2264268398285] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:783 All minor version upgrades completed.
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [0.04277920722961426] seconds
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:405 Starting to delete cluster: e2e-h2mj0i60 ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:461 Waiting for cluster e2e-h2mj0i60 to be deleted
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:484 Cluster e2e-h2mj0i60 still exists, waiting...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:476 Cluster e2e-h2mj0i60 has been deleted
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: realtime-replication-8.1.3-100-20240124-HostNetwork, Time: 1160.9332728385925
+_ TestDamengDB.test_damengdb_cluster[realtime-replication-8.1.3-26-20240821-HeadlessService] _
+Test failed due to ERROR log(s):
+ERROR tests.pages.ops.base_ops:795 No minor versions found
+ERROR tests.utils.err_log_utils:27
+[SPEC]: realtime-replication-8.1.3-26-20240821-HeadlessService
+[REASON]: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("//h5[contains(text(),'实例列表')]/ancestor::div[contains(@class,'lce-block')]//div[contains(@class,'ant-segmented')]//label").nth(1)
+  -     - locator resolved to <label class="ant-segmented-item">…</label>
+  -   - attempting click action
+  -     2 × waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -     - retrying click action
+  -     - waiting 20ms
+  -     2 × waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -     - retrying click action
+  -       - waiting 100ms
+  -     55 × waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/realtime-replication-8.1.3-26-20240821-HeadlessService_1750304002.png)
+------------------------------ Captured log setup ------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+------------------------------ Captured log call -------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : realtime-replication
+  ├─ Version      : 8.1.3-26-20240821
+  └─ Network Mode : HeadlessService
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb realtime-replication 8.1.3-26-20240821 HeadlessService]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-rimovrrm
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     3 × locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:293 Cluster is ready after 22 checks
+INFO     tests.pages.tasks.base_task:base_task.py:48 Successfully navigated to task logs page
+INFO     tests.pages.tasks.base_task:base_task.py:133 Successfully closed task details
+INFO     tests.pages.tasks.base_task:base_task.py:175 Successfully navigated to cluster overview page
+INFO     tests.pages.tasks.base_task:base_task.py:209 Successfully completed task workflow for CreateCluster
+INFO     tests.pages.ops.base_ops:base_ops.py:540 Stopping cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:545 Cluster stop success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster stop time: [44.7009801864624] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:567 Starting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:572 Cluster start success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster start time: [53.73950982093811] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:594 Restarting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:599 Cluster restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster restart time: [93.864182472229] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: DamengDB, supported ops: ['小版本升级', '主备切换', '存储扩容', '升降规格', '水平伸缩', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:851 Switching over ...
+INFO     tests.pages.ops.base_ops:base_ops.py:856 Switch over success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Switch over time: [14.42765760421753] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:648 Expanding storage ...
+INFO     tests.pages.ops.base_ops:base_ops.py:653 Expand storage success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Storage expansion time: [3.096911668777466] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:702 Vscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:711 Vscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [84.0138897895813] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:735 Hscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:740 Hscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Horizontal scale time: [24.036902904510498] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+INFO     tests.pages.ops.base_ops:base_ops.py:765 Spec restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [42.951355934143066] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-26-20240821」 to 「8.1.3-100-20240124」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-26-20240821」 upgrade to 「8.1.3-100-20240124」 success
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-100-20240124」 to 「8.1.4-6-20241231」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-100-20240124」 upgrade to 「8.1.4-6-20241231」 success
+ERROR    tests.pages.ops.base_ops:base_ops.py:795 No minor versions found
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [38.49417543411255] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: Monitor, supported ops: ['小版本升级', '升降规格', '重 启']
+ERROR    tests.utils.err_log_utils:err_log_utils.py:27
+[SPEC]: realtime-replication-8.1.3-26-20240821-HeadlessService
+[REASON]: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("//h5[contains(text(),'实例列表')]/ancestor::div[contains(@class,'lce-block')]//div[contains(@class,'ant-segmented')]//label").nth(1)
+  -     - locator resolved to <label class="ant-segmented-item">…</label>
+  -   - attempting click action
+  -     2 × waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -     - retrying click action
+  -     - waiting 20ms
+  -     2 × waiting for element to be visible, enabled and stable
+  -       - element is visible, enabled and stable
+  -       - scrolling into view if needed
+  -       - done scrolling
+  -       - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -     - retrying click action
+  -       - waiting 100ms
+  -     55 × waiting for element to be visible, enabled and stable
+  -        - element is visible, enabled and stable
+  -        - scrolling into view if needed
+  -        - done scrolling
+  -        - <div tabindex="-1" class="ant-modal-wrap">…</div> from <div>…</div> subtree intercepts pointer events
+  -      - retrying click action
+  -        - waiting 500ms
+
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/realtime-replication-8.1.3-26-20240821-HeadlessService_1750304002.png)
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: realtime-replication-8.1.3-26-20240821-HeadlessService, Time: 579.5910441875458
+_ TestDamengDB.test_damengdb_cluster[realtime-replication-8.1.3-26-20240821-HostNetwork] _
+Test failed due to ERROR log(s):
+ERROR tests.pages.ops.base_ops:715 Vertical scale failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     589 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+ERROR tests.pages.ops.base_ops:769 Component restart failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     590 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+------------------------------ Captured log setup ------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+------------------------------ Captured log call -------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : realtime-replication
+  ├─ Version      : 8.1.3-26-20240821
+  └─ Network Mode : HostNetwork
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb realtime-replication 8.1.3-26-20240821 HostNetwork]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-qqmqerp8
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     3 × locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:293 Cluster is ready after 27 checks
+INFO     tests.pages.tasks.base_task:base_task.py:48 Successfully navigated to task logs page
+INFO     tests.pages.tasks.base_task:base_task.py:133 Successfully closed task details
+INFO     tests.pages.tasks.base_task:base_task.py:175 Successfully navigated to cluster overview page
+INFO     tests.pages.tasks.base_task:base_task.py:209 Successfully completed task workflow for CreateCluster
+INFO     tests.pages.ops.base_ops:base_ops.py:540 Stopping cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:545 Cluster stop success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster stop time: [34.06862187385559] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:567 Starting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:572 Cluster start success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster start time: [63.70030617713928] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:594 Restarting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:599 Cluster restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster restart time: [84.28187155723572] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: DamengDB, supported ops: ['小版本升级', '主备切换', '存储扩容', '升降规格', '水平伸缩', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:851 Switching over ...
+INFO     tests.pages.ops.base_ops:base_ops.py:856 Switch over success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Switch over time: [14.654334783554077] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:648 Expanding storage ...
+INFO     tests.pages.ops.base_ops:base_ops.py:653 Expand storage success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Storage expansion time: [3.241710901260376] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:702 Vscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:711 Vscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [74.21071934700012] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:735 Hscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:740 Hscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Horizontal scale time: [24.853948831558228] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+INFO     tests.pages.ops.base_ops:base_ops.py:765 Spec restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [43.82022452354431] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-26-20240821」 to 「8.1.3-100-20240124」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-26-20240821」 upgrade to 「8.1.3-100-20240124」 success
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「8.1.3-100-20240124」 to 「8.1.4-6-20241231」...
+INFO     tests.pages.ops.base_ops:base_ops.py:825 「8.1.3-100-20240124」 upgrade to 「8.1.4-6-20241231」 success
+INFO     tests.pages.ops.base_ops:base_ops.py:783 All minor version upgrades completed.
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [38.258153438568115] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: Monitor, supported ops: ['小版本升级', '升降规格', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:709 [SKIPPED] Single spec cannot be vscale
+ERROR    tests.pages.ops.base_ops:base_ops.py:715 Vertical scale failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     589 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [304.3992929458618] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+ERROR    tests.pages.ops.base_ops:base_ops.py:769 Component restart failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     590 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [306.5213875770569] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:783 All minor version upgrades completed.
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [0.03867840766906738] seconds
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:405 Starting to delete cluster: e2e-qqmqerp8 ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:461 Waiting for cluster e2e-qqmqerp8 to be deleted
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:484 Cluster e2e-qqmqerp8 still exists, waiting...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:476 Cluster e2e-qqmqerp8 has been deleted
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: realtime-replication-8.1.3-26-20240821-HostNetwork, Time: 1178.9934828281403
+_ TestDamengDB.test_damengdb_cluster[realtime-replication-8.1.4-6-20241231-HeadlessService] _
+Test failed due to ERROR log(s):
+ERROR tests.pages.clusters.base_cluster:301 Timeout waiting for cluster to be ready after 55 checks
+ERROR tests.utils.err_log_utils:27
+[SPEC]: realtime-replication-8.1.4-6-20241231-HeadlessService
+[REASON]: Cluster not ready
+assert False
+ +  where False = <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8ca3b5b0>>(300000)
+ +    where <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8ca3b5b0>> = <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8ca3b5b0>.wait_for_cluster_ready
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/realtime-replication-8.1.4-6-20241231-HeadlessService_1750305513.png)
+------------------------------ Captured log setup ------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+------------------------------ Captured log call -------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : realtime-replication
+  ├─ Version      : 8.1.4-6-20241231
+  └─ Network Mode : HeadlessService
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb realtime-replication 8.1.4-6-20241231 HeadlessService]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-br1q6aq3
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     3 × locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+ERROR    tests.pages.clusters.base_cluster:base_cluster.py:301 Timeout waiting for cluster to be ready after 55 checks
+ERROR    tests.utils.err_log_utils:err_log_utils.py:27
+[SPEC]: realtime-replication-8.1.4-6-20241231-HeadlessService
+[REASON]: Cluster not ready
+assert False
+ +  where False = <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8ca3b5b0>>(300000)
+ +    where <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8ca3b5b0>> = <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8ca3b5b0>.wait_for_cluster_ready
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/realtime-replication-8.1.4-6-20241231-HeadlessService_1750305513.png)
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: realtime-replication-8.1.4-6-20241231-HeadlessService, Time: 321.38450145721436
+_ TestDamengDB.test_damengdb_cluster[realtime-replication-8.1.4-6-20241231-HostNetwork] _
+Test failed due to ERROR log(s):
+ERROR tests.pages.clusters.base_cluster:301 Timeout waiting for cluster to be ready after 55 checks
+ERROR tests.utils.err_log_utils:27
+[SPEC]: realtime-replication-8.1.4-6-20241231-HostNetwork
+[REASON]: Cluster not ready
+assert False
+ +  where False = <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8da21a80>>(300000)
+ +    where <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8da21a80>> = <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8da21a80>.wait_for_cluster_ready
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/realtime-replication-8.1.4-6-20241231-HostNetwork_1750305843.png)
+------------------------------ Captured log setup ------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+------------------------------ Captured log call -------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : damengdb
+  ├─ Mode         : realtime-replication
+  ├─ Version      : 8.1.4-6-20241231
+  └─ Network Mode : HostNetwork
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [damengdb realtime-replication 8.1.4-6-20241231 HostNetwork]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-k95gbz8x
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     3 × locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+ERROR    tests.pages.clusters.base_cluster:base_cluster.py:301 Timeout waiting for cluster to be ready after 55 checks
+ERROR    tests.utils.err_log_utils:err_log_utils.py:27
+[SPEC]: realtime-replication-8.1.4-6-20241231-HostNetwork
+[REASON]: Cluster not ready
+assert False
+ +  where False = <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8da21a80>>(300000)
+ +    where <bound method BaseClusterPage.wait_for_cluster_ready of <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8da21a80>> = <tests.pages.clusters.damengdb_cluster.DamengDBClusterPage object at 0x716a8da21a80>.wait_for_cluster_ready
+[SCREENSHOT]:  (screenshot saved at reports/screenshots/realtime-replication-8.1.4-6-20241231-HostNetwork_1750305843.png)
+INFO     web.tests.v0_30.test_clusters.test_damengdb:test_damengdb.py:77 Finished spec: realtime-replication-8.1.4-6-20241231-HostNetwork, Time: 324.8599908351898
+=============================== warnings summary ===============================
+../usr/local/lib/python3.10/dist-packages/urllib3/connectionpool.py:1099
+  /usr/local/lib/python3.10/dist-packages/urllib3/connectionpool.py:1099: InsecureRequestWarning: Unverified HTTPS request is being made to host 'api.idc1.kubeblocks.com'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+------------ Generated html report: file:///web/reports/report.html ------------
+=========================== short test summary info ============================
+FAILED tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[standalone-8.1.3-26-20240821-HeadlessService]
+FAILED tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[standalone-8.1.4-6-20241231-HeadlessService]
+FAILED tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[standalone-8.1.4-6-20241231-HostNetwork]
+FAILED tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[realtime-replication-8.1.3-100-20240124-HeadlessService]
+FAILED tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[realtime-replication-8.1.3-100-20240124-HostNetwork]
+FAILED tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[realtime-replication-8.1.3-26-20240821-HeadlessService]
+FAILED tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[realtime-replication-8.1.3-26-20240821-HostNetwork]
+FAILED tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[realtime-replication-8.1.4-6-20241231-HeadlessService]
+FAILED tests/v0_30/test_clusters/test_damengdb.py::TestDamengDB::test_damengdb_cluster[realtime-replication-8.1.4-6-20241231-HostNetwork]
+====== 9 failed, 3 passed, 29 deselected, 1 warning in 6775.63s (1:52:55) ======
+summary
+FAIL! -- 3 Passed | 9 Failed | 29 Pending | 0 Skipped
+result：
+Test Suite Failed
+测试失败，退出码: 1

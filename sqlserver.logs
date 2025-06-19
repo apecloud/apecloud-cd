@@ -1,0 +1,224 @@
+Defaulted container "e2e-test" out of: e2e-test, init-e2e (init)
+未检测到当前虚拟环境，继续执行...
+更新 .env.test 文件...
+当前工作目录: /web
+env-init=false 或未指定，跳过虚拟环境检查，直接运行测试...
+运行测试：python3 ./run_tests.py --version 0.30 --test_type smoke --db_type sqlserver --env test --headless true
+运行测试：python3 ./run_tests.py --version 0.30 --test_type smoke --db_type sqlserver --env test --headless true
+执行测试路径: tests/v0_30
+测试类型: smoke
+运行环境: test
+测试参数: -s -v tests/v0_30 --html=reports/report.html -m smoke -k sqlserver --db_type=sqlserver --env=test --headless=true
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.10.12', 'Platform': 'Linux-6.8.0-60-generic-x86_64-with-glibc2.35', 'Packages': {'pytest': '7.4.3', 'pluggy': '1.5.0'}, 'Plugins': {'html': '4.1.1', 'xdist': '3.7.0', 'playwright': '0.4.3', 'base-url': '2.1.0', 'metadata': '3.1.1'}, 'Base URL': ''}
+rootdir: /web
+configfile: pytest.ini
+plugins: html-4.1.1, xdist-3.7.0, playwright-0.4.3, base-url-2.1.0, metadata-3.1.1
+collecting ... collected 21 items / 19 deselected / 2 selected
+
+tests/v0_30/test_clusters/test_sqlserver.py::TestSQLServer::test_sqlserver_cluster[cluster-2022.14.0-None]
+-------------------------------- live log setup --------------------------------
+INFO     web.conftest:conftest.py:79 Found env file at: /web/.env.test
+INFO     web.conftest:conftest.py:161 Loaded environment: test
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+-------------------------------- live log call ---------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : mssql
+  ├─ Mode         : cluster
+  ├─ Version      : 2022.14.0
+  └─ Network Mode : None
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [mssql cluster 2022.14.0 None]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-tez8rjms
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:293 Cluster is ready after 25 checks
+INFO     tests.pages.tasks.base_task:base_task.py:48 Successfully navigated to task logs page
+INFO     tests.pages.tasks.base_task:base_task.py:133 Successfully closed task details
+INFO     tests.pages.tasks.base_task:base_task.py:175 Successfully navigated to cluster overview page
+INFO     tests.pages.tasks.base_task:base_task.py:209 Successfully completed task workflow for CreateCluster
+INFO     tests.pages.ops.base_ops:base_ops.py:540 Stopping cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:545 Cluster stop success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster stop time: [24.790043354034424] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:567 Starting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:572 Cluster start success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster start time: [44.165035009384155] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:594 Restarting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:599 Cluster restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster restart time: [134.08112931251526] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: SQL Server, supported ops: ['小版本升级', '主备切换', '存储扩容', '升降规格', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:851 Switching over ...
+INFO     tests.pages.ops.base_ops:base_ops.py:856 Switch over success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Switch over time: [74.88558411598206] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:648 Expanding storage ...
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Storage expansion time: [303.537565946579] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:702 Vscaling ...
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [304.04618763923645] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [303.14742517471313] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「2022.14.0」 to 「2022.19.0」...
+ERROR    tests.pages.ops.base_ops:base_ops.py:831 Upgrade failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     590 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [604.8641295433044] seconds
+INFO     tests.pages.clusters.sqlserver_cluster:sqlserver_cluster.py:33 Deleting SQL Server cluster using direct navigation
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:405 Starting to delete cluster: e2e-tez8rjms ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:461 Waiting for cluster e2e-tez8rjms to be deleted
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:484 Cluster e2e-tez8rjms still exists, waiting...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:476 Cluster e2e-tez8rjms has been deleted
+INFO     web.tests.v0_30.test_clusters.test_sqlserver:test_sqlserver.py:47 Finished spec: cluster-2022.14.0-None, Time: 1959.4209446907043
+FAILED
+tests/v0_30/test_clusters/test_sqlserver.py::TestSQLServer::test_sqlserver_cluster[cluster-2022.19.0-None]
+-------------------------------- live log setup --------------------------------
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+-------------------------------- live log call ---------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : mssql
+  ├─ Mode         : cluster
+  ├─ Version      : 2022.19.0
+  └─ Network Mode : None
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [mssql cluster 2022.19.0 None]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-ke861v6x
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:279 Failed to check cluster running status: Locator.wait_for: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("span[__id=\"node_ocloqmt77mz\"]") to be visible
+  -     - locator resolved to hidden <span class="ant-typography" __id="node_ocloqmt77mz" __inner__="[object Object]"></span>
+
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:293 Cluster is ready after 25 checks
+INFO     tests.pages.tasks.base_task:base_task.py:48 Successfully navigated to task logs page
+INFO     tests.pages.tasks.base_task:base_task.py:133 Successfully closed task details
+INFO     tests.pages.tasks.base_task:base_task.py:175 Successfully navigated to cluster overview page
+INFO     tests.pages.tasks.base_task:base_task.py:209 Successfully completed task workflow for CreateCluster
+INFO     tests.pages.ops.base_ops:base_ops.py:540 Stopping cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:545 Cluster stop success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster stop time: [54.53805685043335] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:567 Starting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:572 Cluster start success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster start time: [54.634459257125854] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:594 Restarting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:599 Cluster restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster restart time: [144.209374666214] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: SQL Server, supported ops: ['主备切换', '存储扩容', '升降规格', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:851 Switching over ...
+INFO     tests.pages.ops.base_ops:base_ops.py:856 Switch over success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Switch over time: [14.833765506744385] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:648 Expanding storage ...
+INFO     tests.pages.ops.base_ops:base_ops.py:653 Expand storage success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Storage expansion time: [3.5230698585510254] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:702 Vscaling ...
+INFO     tests.pages.ops.base_ops:base_ops.py:711 Vscale success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [144.0533685684204] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+INFO     tests.pages.ops.base_ops:base_ops.py:765 Spec restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [113.23331093788147] seconds
+INFO     tests.pages.clusters.sqlserver_cluster:sqlserver_cluster.py:33 Deleting SQL Server cluster using direct navigation
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:405 Starting to delete cluster: e2e-ke861v6x ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:461 Waiting for cluster e2e-ke861v6x to be deleted
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:484 Cluster e2e-ke861v6x still exists, waiting...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:476 Cluster e2e-ke861v6x has been deleted
+INFO     web.tests.v0_30.test_clusters.test_sqlserver:test_sqlserver.py:47 Finished spec: cluster-2022.19.0-None, Time: 693.5213513374329
+PASSED
+
+=================================== FAILURES ===================================
+_________ TestSQLServer.test_sqlserver_cluster[cluster-2022.14.0-None] _________
+Test failed due to ERROR log(s):
+ERROR tests.pages.ops.base_ops:831 Upgrade failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     590 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+------------------------------ Captured log setup ------------------------------
+INFO     web.conftest:conftest.py:79 Found env file at: /web/.env.test
+INFO     web.conftest:conftest.py:161 Loaded environment: test
+INFO     tests.pages.login_page:login_page.py:14 Navigating to sign-in page: http://console.idc1.kubeblocks.com
+INFO     tests.pages.login_page:login_page.py:85 Switched to password login
+INFO     tests.pages.login_page:login_page.py:92 Entered username: kailu
+INFO     tests.pages.login_page:login_page.py:99 Entered password
+------------------------------ Captured log call -------------------------------
+WARNING  tests.pages.clusters.base_cluster:base_cluster.py:858 Attempt 1 to click create button failed: Create button not found with any selector
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:802 Switching to environment: idc1
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:905 Switch to Dark layout
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:172
+📦 Cluster Spec:
+  ├─ Engine       : mssql
+  ├─ Mode         : cluster
+  ├─ Version      : 2022.14.0
+  └─ Network Mode : None
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:180 Creating cluster: [mssql cluster 2022.14.0 None]
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:183 Setting cluster name to: e2e-tez8rjms
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:659 Selected single availability zone
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:199 Cluster creating ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:286 Waiting for cluster to be ready
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:293 Cluster is ready after 25 checks
+INFO     tests.pages.tasks.base_task:base_task.py:48 Successfully navigated to task logs page
+INFO     tests.pages.tasks.base_task:base_task.py:133 Successfully closed task details
+INFO     tests.pages.tasks.base_task:base_task.py:175 Successfully navigated to cluster overview page
+INFO     tests.pages.tasks.base_task:base_task.py:209 Successfully completed task workflow for CreateCluster
+INFO     tests.pages.ops.base_ops:base_ops.py:540 Stopping cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:545 Cluster stop success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster stop time: [24.790043354034424] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:567 Starting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:572 Cluster start success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster start time: [44.165035009384155] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:594 Restarting cluster ...
+INFO     tests.pages.ops.base_ops:base_ops.py:599 Cluster restart success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster restart time: [134.08112931251526] seconds
+INFO     tests.pages.ops.ops_runner:ops_runner.py:56 Testing spec: SQL Server, supported ops: ['小版本升级', '主备切换', '存储扩容', '升降规格', '重 启']
+INFO     tests.pages.ops.base_ops:base_ops.py:851 Switching over ...
+INFO     tests.pages.ops.base_ops:base_ops.py:856 Switch over success
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Switch over time: [74.88558411598206] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:648 Expanding storage ...
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Storage expansion time: [303.537565946579] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:702 Vscaling ...
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Vertical scale time: [304.04618763923645] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:760 Restarting component ...
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Component restart time: [303.14742517471313] seconds
+INFO     tests.pages.ops.base_ops:base_ops.py:813 Upgrading from 「2022.14.0」 to 「2022.19.0」...
+ERROR    tests.pages.ops.base_ops:base_ops.py:831 Upgrade failed: Locator.wait_for: Timeout 300000ms exceeded.
+Call log:
+  - waiting for locator("//div[contains(@class, \"ant-space\") and contains(., \"运维任务：\") and @class=\"ant-space ant-space-horizontal ant-space-align-end\"]") to be detached
+  -     590 × locator resolved to visible <div __id="node_ocltfx09u57" __inner__="[object Object]" _unsafe_mixedsetter_size_select="NumberSetter" class="ant-space ant-space-horizontal ant-space-align-end">…</div>
+
+INFO     tests.pages.ops.ops_runner:ops_runner.py:22 Cluster upgrade time: [604.8641295433044] seconds
+INFO     tests.pages.clusters.sqlserver_cluster:sqlserver_cluster.py:33 Deleting SQL Server cluster using direct navigation
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:405 Starting to delete cluster: e2e-tez8rjms ...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:461 Waiting for cluster e2e-tez8rjms to be deleted
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:484 Cluster e2e-tez8rjms still exists, waiting...
+INFO     tests.pages.clusters.base_cluster:base_cluster.py:476 Cluster e2e-tez8rjms has been deleted
+INFO     web.tests.v0_30.test_clusters.test_sqlserver:test_sqlserver.py:47 Finished spec: cluster-2022.14.0-None, Time: 1959.4209446907043
+=============================== warnings summary ===============================
+../usr/local/lib/python3.10/dist-packages/urllib3/connectionpool.py:1099
+  /usr/local/lib/python3.10/dist-packages/urllib3/connectionpool.py:1099: InsecureRequestWarning: Unverified HTTPS request is being made to host 'api.idc1.kubeblocks.com'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+------------ Generated html report: file:///web/reports/report.html ------------
+=========================== short test summary info ============================
+FAILED tests/v0_30/test_clusters/test_sqlserver.py::TestSQLServer::test_sqlserver_cluster[cluster-2022.14.0-None]
+====== 1 failed, 1 passed, 19 deselected, 1 warning in 2664.53s (0:44:24) ======
+summary
+FAIL! -- 1 Passed | 1 Failed | 19 Pending | 0 Skipped
+result：
+Test Suite Failed
+测试失败，退出码: 1
