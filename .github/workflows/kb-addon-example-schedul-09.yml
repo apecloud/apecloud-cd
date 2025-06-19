@@ -3,7 +3,7 @@ name: KubeBlocks Addons Examples Schedule 09
 on:
   workflow_dispatch:
   schedule:
-    - cron: '30 17 * * 0-4' # Runs at 02:30 UTC on Mon to Friday
+    - cron: '30 17 * * 0-4' # Runs at 01:30 UTC on Mon to Friday
 
 run-name: KB:${{ vars.KUBEBLOCKS_VERSION_09 }} Addons Examples Test on ${{ vars.CLOUD_PROVIDER }}:${{ vars.KUBEBLOCKS_TEST_TYPE_09 }}
 
