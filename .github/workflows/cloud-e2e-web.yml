@@ -7,7 +7,7 @@ on:
         description: "The specify version of GO (e.g. sqlserver,damengdb)"
         type: string
         required: false
-        default: 'postgresql'
+        default: 'sqlserver,damengdb'
       CLOUD_ENV_NAME:
         description: "The cloud env name of test (e.g. idc1) "
         type: string
@@ -34,7 +34,7 @@ on:
         description: "The specify version of GO (e.g. sqlserver,damengdb)"
         type: string
         required: false
-        default: 'mysql'
+        default: 'sqlserver,damengdb'
       CLOUD_ENV_NAME:
         description: "The cloud env name of test (e.g. idc1) "
         type: string
