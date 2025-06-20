@@ -56,7 +56,7 @@ on:
         required: false
         default: 'main'
 
-run-name: Cloud E2E Web Test ${{ inputs.TEST_ENGINES }} on IDC:${{ inputs.CLOUD_ENV_NAME }} Ref:${{ inputs.E2ETEST_BRANCH }}
+run-name: Cloud E2E Web Test on IDC:${{ inputs.CLOUD_ENV_NAME }} ${{ inputs.TEST_ENGINES }} Ref:${{ inputs.E2ETEST_BRANCH }}
 
 env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
