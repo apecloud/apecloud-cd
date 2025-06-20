@@ -56,7 +56,7 @@ on:
         required: false
         default: ''
 
-run-name: Cloud E2E API Test ${{ inputs.TEST_TYPE }} on Env:${{ inputs.CLOUD_ENV_NAME }} Ref:${{ inputs.CLOUD_BRANCH }}
+run-name: Cloud E2E API Test on Env:${{ inputs.CLOUD_ENV_NAME }} ${{ inputs.TEST_TYPE }} Ref:${{ inputs.CLOUD_BRANCH }}
 
 env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}

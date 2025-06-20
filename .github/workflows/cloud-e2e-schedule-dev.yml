@@ -44,5 +44,5 @@ jobs:
 #      BRANCH_NAME: "main"
 #      WORKFLOW_ID: "cloud-e2e-engine.yml"
 #      APECD_REF: "main"
-#      EXTRA_ARGS: "TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES }}#CLOUD_ENV_NAME=dev#CLOUD_BRANCH=main#CURRENT_VERSION=${{ vars.CURRENT_RELEASE_VERSION }}#TEST_REPORT=true"
+#      EXTRA_ARGS: "TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES }}#CLOUD_ENV_NAME=dev#CLOUD_BRANCH=main#CURRENT_VERSION=${{ vars.CURRENT_RELEASE_VERSION }}#TEST_REPORT=false"
 #    secrets: inherit

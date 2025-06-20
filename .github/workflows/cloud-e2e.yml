@@ -106,7 +106,7 @@ on:
         required: false
         default: false
 
-run-name: E2E Test ${{ inputs.TEST_TYPE }} ${{ inputs.TEST_ENGINES }} on Env:${{ inputs.CLOUD_ENV_NAME }} Ref:${{ inputs.CLOUD_BRANCH }}
+run-name: E2E Test ${{ inputs.TEST_TYPE }} on Env:${{ inputs.CLOUD_ENV_NAME }} ${{ inputs.TEST_ENGINES }} Ref:${{ inputs.CLOUD_BRANCH }}
 
 env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
