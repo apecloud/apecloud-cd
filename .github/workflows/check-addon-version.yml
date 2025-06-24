@@ -99,6 +99,8 @@ jobs:
               addon_images="$(helm template ${ADDON_NAME} addons/${ADDON_NAME} --dependency-update | egrep "image:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/" | grep -v "IMAGE_TAG" | awk '{print $2}' | sort -u)"
               for image in $(echo "${addon_images}"); do
                   echo "$image"
+                  image_tmp="${image/docker.io\//}"
+                  image_tmp="${image_tmp/apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com\//}"
                   ADDON_IMAGES="${ADDON_IMAGES}|${image}"
               done
           fi
