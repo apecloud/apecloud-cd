@@ -101,7 +101,7 @@ jobs:
                   echo "$image"
                   image_tmp="${image/docker.io\//}"
                   image_tmp="${image_tmp/apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com\//}"
-                  ADDON_IMAGES="${ADDON_IMAGES}|${image}"
+                  ADDON_IMAGES="${ADDON_IMAGES}|${image_tmp}"
               done
           fi
           echo "addon-images=${ADDON_IMAGES}" >> $GITHUB_OUTPUT
