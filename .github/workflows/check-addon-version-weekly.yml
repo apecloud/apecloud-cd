@@ -88,6 +88,6 @@ jobs:
           
           python3 .github/utils/send_mesage.py \
               --send-type check-addon-version \
-              --url "${{ vars.CICD_WEBHOOK }}" \
+              --url "${{ vars.TEST_BOT_WEBHOOK }}" \
               --title "$test_title" \
               --result "$TEST_RESULT"
