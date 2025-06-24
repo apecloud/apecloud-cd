@@ -126,6 +126,7 @@ jobs:
           ADDON_NAME="${{ inputs.ADDON }}"
           IMAGE_NAME=""
           IMAGE_NAME_2=""
+          IMAGE_NAME_3=""
           case "$ADDON_NAME" in
               mysql)
                   IMAGE_NAME="library/mysql"
@@ -133,7 +134,7 @@ jobs:
               ;;
               postgresql)
                   IMAGE_NAME="library/postgres"
-                  IMAGE_NAME_2="apecloud/postgres"
+                  IMAGE_NAME_2="apecloud/spilo"
               ;;
               redis)
                   IMAGE_NAME="redis/redis-stack-server"
@@ -162,6 +163,7 @@ jobs:
               elasticsearch)
                   IMAGE_NAME="library/elasticsearch"
                   IMAGE_NAME_2="apecloud/elasticsearch"
+                  IMAGE_NAME_3="elasticsearch"
               ;;
           esac
           
@@ -190,9 +192,15 @@ jobs:
           
               latest_image="docker.io/${IMAGE_NAME}:$latest_version"
               latest_image_2="docker.io/${IMAGE_NAME_2}:$latest_version"
+              latest_image_3="docker.io/${IMAGE_NAME_3}:$latest_version"
+              latest_image_4=""
               if [[ "${ADDON_NAME}" == "rabbitmq" ]]; then
-                  latest_image="${latest_image}-management"
-                  latest_image_2="${latest_image_2}-management"
+                  latest_image_3="${latest_image}-management"
+                  latest_image_4="${latest_image_2}-management"
+              elif [[ "${ADDON_NAME}" == "postgresql" ]]; then
+                  latest_image_4="${latest_image_2}-pgvector-v0.6.1"
+              elif [[ "${ADDON_NAME}" == "kafka" ]]; then
+                  latest_image_4="${latest_image_2}-debian-"
               fi
               
               kb_addon_check_exists=F
@@ -200,7 +208,7 @@ jobs:
           
               if [[ -n "${KB_ADDON_IMAGES}" ]]; then
                   for kb_addon_image in $(echo "${KB_ADDON_IMAGES}" | sed 's/|/ /g'); do
-                      if [[ "$kb_addon_image" == "$latest_image" || "$kb_addon_image" == "$latest_image_2" ]]; then
+                      if [[ "$kb_addon_image" == "$latest_image" || "$kb_addon_image" == "$latest_image_2" || "$kb_addon_image" == "$latest_image_3" || "$kb_addon_image" == "$latest_image_4"* ]]; then
                           echo "✅ $(tput -T xterm setaf 2)${latest_image} exists in kubeblocks-addons $(tput -T xterm sgr0)"
                           kb_addon_check_exists=T
                           break
@@ -212,7 +220,7 @@ jobs:
           
               if [[ -n "${APE_ADDON_IMAGES}" ]]; then
                   for ap_addon_image in $(echo "${APE_ADDON_IMAGES}" | sed 's/|/ /g'); do
-                      if [[ "$ap_addon_image" == "$latest_image" || "$ap_addon_image" == "$latest_image_2" ]]; then
+                      if [[ "$ap_addon_image" == "$latest_image" || "$ap_addon_image" == "$latest_image_2"  || "$ap_addon_image" == "$latest_image_3" || "$ap_addon_image" == "$latest_image_4"* ]]; then
                           echo "✅ $(tput -T xterm setaf 2)${latest_image} exists in apecloud-addons $(tput -T xterm sgr0)"
                           ape_addon_check_exists=T
                           break
