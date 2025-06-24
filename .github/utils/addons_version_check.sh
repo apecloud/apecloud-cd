@@ -27,24 +27,24 @@ get_latest_versions() {
         if [ -z "$names" ]; then
             break
         fi
-        # 过滤版本
+        # Filter Version
         filtered=$(echo "$names" | grep -E "${pattern}")
         if [ "$image" == "rabbitmq" ]; then
             filtered=$(echo "$filtered" | sed 's/-management$//')
         fi
         results+=("$filtered")
-        # 如果已经有匹配结果，可以 break（可选：如需所有页则注释掉）
+        # If there are already matching results, you can break (optional: comment out if all pages are required)
         if [ -n "$filtered" ]; then
             break
         fi
-        # 检查是否还有下一页
+        # Check if there is a next page
         next=$(echo "$resp" | jq -r '.next')
         if [ "$next" == "null" ]; then
             break
         fi
         page=$((page+1))
     done
-    # 合并所有结果，排序、去重、分组取最大
+    # Merge all results, sort, remove duplicates, group and take the maximum value
     printf "%s\n" "${results[@]}" \
     | sort -V \
     | awk -F. '{
