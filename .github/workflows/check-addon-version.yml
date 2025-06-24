@@ -114,7 +114,9 @@ jobs:
               addon_images="$(helm template ${ADDON_NAME} addons/${ADDON_NAME} --dependency-update | egrep "image:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/" | grep -v "IMAGE_TAG" | awk '{print $2}' | sort -u)"
               for image in $(echo "${addon_images}"); do
                   echo "$image"
-                  ADDON_IMAGES="${ADDON_IMAGES}|${image}"
+                  image_tmp="${image/docker.io\//}"
+                  image_tmp="${image_tmp/apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com\//}"
+                  ADDON_IMAGES="${ADDON_IMAGES}|${image_tmp}"
               done
           fi
           echo "addon-images=${ADDON_IMAGES}" >> $GITHUB_OUTPUT
@@ -194,11 +196,11 @@ jobs:
                   CI_JOB_URL=""
               fi
           
-              latest_image="docker.io/${IMAGE_NAME}:$latest_version"
-              latest_image_2="docker.io/${IMAGE_NAME_2}:$latest_version"
+              latest_image="${IMAGE_NAME}:$latest_version"
+              latest_image_2="${IMAGE_NAME_2}:$latest_version"
               latest_image_3=""
               if [[ -n "${IMAGE_NAME_3}" ]]; then
-                  latest_image_3="docker.io/${IMAGE_NAME_3}:$latest_version"
+                  latest_image_3="${IMAGE_NAME_3}:$latest_version"
               fi
               latest_image_4=""
               if [[ "${ADDON_NAME}" == "rabbitmq" ]]; then
@@ -227,7 +229,7 @@ jobs:
           
               if [[ -n "${APE_ADDON_IMAGES}" ]]; then
                   for ap_addon_image in $(echo "${APE_ADDON_IMAGES}" | sed 's/|/ /g'); do
-                      if [[ "$ap_addon_image" == "$latest_image" || "$ap_addon_image" == "$latest_image_2"  || ( -n "$latest_image_4" && "$ap_addon_image" == "$latest_image_3") || ( -n "$latest_image_4" && "$ap_addon_image" == "$latest_image_4"*) ]]; then
+                      if [[ "$ap_addon_image" == "$latest_image" || "$ap_addon_image" == "$latest_image_2"  || ( -n "$latest_image_3" && "$ap_addon_image" == "$latest_image_3") || ( -n "$latest_image_4" && "$ap_addon_image" == "$latest_image_4"*) ]]; then
                           echo "✅ $(tput -T xterm setaf 2)${latest_image} exists in apecloud-addons $(tput -T xterm sgr0)"
                           ape_addon_check_exists=T
                           break

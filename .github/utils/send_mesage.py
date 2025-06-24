@@ -1124,7 +1124,7 @@ def send_check_addon_version_message(url_v, result_v, title_v):
                 if ret[3] == "T":
                     high_color = "green"
 
-                image_color = "orange"
+                image_color = "red"
                 if ret[2] == "T" or ret[3] == "T":
                     image_color = "green"
 
