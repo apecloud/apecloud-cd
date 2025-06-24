@@ -1,0 +1,233 @@
+name: Addon Version Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      ADDON:
+        description: "check addons (default: mysql)"
+        type: string
+        required: true
+        default: ""
+      KBADDON_REF:
+        description: "The branch name of kubeblocks-addons"
+        type: string
+        required: false
+        default: 'release-0.9'
+      APEADDON_REF:
+        description: "The branch name of apecloud-addons"
+        type: string
+        required: false
+        default: 'release-0.9'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+  workflow_call:
+    inputs:
+      ADDON:
+        description: "check addons (default: mysql)"
+        type: string
+        required: true
+        default: ""
+      KBADDON_REF:
+        description: "The branch name of kubeblocks-addons"
+        type: string
+        required: false
+        default: 'release-0.9'
+      APEADDON_REF:
+        description: "The branch name of apecloud-addons"
+        type: string
+        required: false
+        default: 'release-0.9'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+    outputs:
+      check-addon-version:
+        description: "check addon version"
+        value: ${{ jobs.check-version.outputs.check-addon-version }}
+
+env:
+  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  DOCKER_REGISTRY_URL: docker.io
+  HELM_VERSION: "v3.16.3"
+
+jobs:
+  check-version:
+    name: check-version-${{ inputs.ADDON }}
+    runs-on: ubuntu-latest
+    outputs:
+      check-addon-version: ${{ steps.check-addon-version.outputs.check_addon_version }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: Checkout kubeblocks-addons Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/kubeblocks-addons
+          path: kubeblocks-addons
+          ref: ${{ inputs.KBADDON_REF }}
+
+      - name: Checkout apecloud-addons Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-addons
+          path: apecloud-addons
+          ref: ${{ inputs.APEADDON_REF }}
+          token: ${{ env.GH_TOKEN }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Get kubeblocks-addons Images
+        id: get-kb-addon-images
+        run: |
+          ADDON_NAME="${{ inputs.ADDON }}"
+          ADDON_IMAGES=""
+          cd kubeblocks-addons
+          if [[ -d "addons/${ADDON_NAME}" ]]; then
+              addon_images="$(helm template ${ADDON_NAME} addons/${ADDON_NAME} --dependency-update | egrep "image:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/" | grep -v "IMAGE_TAG" | awk '{print $2}' | sort -u)"
+              for image in $(echo "${addon_images}"); do
+                  echo "$image"
+                  ADDON_IMAGES="${ADDON_IMAGES}|${image}"
+              done
+          fi
+          echo "addon-images=${ADDON_IMAGES}" >> $GITHUB_OUTPUT
+
+      - name: Get apecloud-addons Images
+        id: get-ape-addon-images
+        run: |
+          ADDON_NAME="${{ inputs.ADDON }}"
+          ADDON_IMAGES=""
+          cd apecloud-addons
+          if [[ -d "addons/${ADDON_NAME}" ]]; then
+              addon_images="$(helm template ${ADDON_NAME} addons/${ADDON_NAME} --dependency-update | egrep "image:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/" | grep -v "IMAGE_TAG" | awk '{print $2}' | sort -u)"
+              for image in $(echo "${addon_images}"); do
+                  echo "$image"
+                  ADDON_IMAGES="${ADDON_IMAGES}|${image}"
+              done
+          fi
+          echo "addon-images=${ADDON_IMAGES}" >> $GITHUB_OUTPUT
+
+      - name: check addon version
+        id: check-addon-version
+        shell: bash
+        run: |
+          ADDON_NAME="${{ inputs.ADDON }}"
+          IMAGE_NAME=""
+          IMAGE_NAME_2=""
+          case "$ADDON_NAME" in
+              mysql)
+                  IMAGE_NAME="library/mysql"
+                  IMAGE_NAME_2="apecloud/mysql"
+              ;;
+              postgresql)
+                  IMAGE_NAME="library/postgres"
+                  IMAGE_NAME_2="apecloud/postgres"
+              ;;
+              redis)
+                  IMAGE_NAME="redis/redis-stack-server"
+                  IMAGE_NAME_2="apecloud/redis-stack-server"
+              ;;
+              mongodb)
+                  IMAGE_NAME="library/mongo"
+                  IMAGE_NAME_2="apecloud/mongo"
+              ;;
+              kafka)
+                  IMAGE_NAME="bitnami/kafka"
+                  IMAGE_NAME_2="apecloud/kafka"
+              ;;
+              qdrant)
+                  IMAGE_NAME="qdrant/qdrant"
+                  IMAGE_NAME_2="apecloud/qdrant"
+              ;;
+              rabbitmq)
+                  IMAGE_NAME="library/rabbitmq"
+                  IMAGE_NAME_2="apecloud/rabbitmq"
+              ;;
+              milvus)
+                  IMAGE_NAME="milvusdb/milvus"
+                  IMAGE_NAME_2="apecloud/milvus"
+              ;;
+              elasticsearch)
+                  IMAGE_NAME="library/elasticsearch"
+                  IMAGE_NAME_2="apecloud/elasticsearch"
+              ;;
+          esac
+          
+          LATEST_VERSIONS=$(bash ${{ github.workspace }}/apecloud-cd/.github/utils/addons_version_check.sh ${ADDON_NAME})
+          KB_ADDON_IMAGES="${{ steps.get-kb-addon-images.outputs.addon-images }}"
+          APE_ADDON_IMAGES="${{ steps.get-ape-addon-images.outputs.addon-images }}"
+          check_exists=0
+          index=0
+          SET_JOB_URL="false"
+          CI_JOB_URL=""
+          CHECK_ADDON_VERSION=""
+          for latest_version in $(echo "${LATEST_VERSIONS}"); do
+              index=$((index+1))
+          
+              if [[ -z "${CI_JOB_URL}" && "${SET_JOB_URL}" == "false"  ]]; then
+                  CI_JOB_URL=$(bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+                      --type 44 \
+                      --github-repo "${{ github.repository }}" \
+                      --github-token "${{ env.GH_TOKEN }}" \
+                      --run-id "$GITHUB_RUN_ID" \
+                      --test-result "check-version-${ADDON_NAME}")
+                  SET_JOB_URL="true"
+              else
+                  CI_JOB_URL=""
+              fi
+          
+              latest_image="docker.io/${IMAGE_NAME}:$latest_version"
+              latest_image_2="docker.io/${IMAGE_NAME_2}:$latest_version"
+              kb_addon_check_exists=0
+              ape_addon_check_exists=0
+          
+              if [[ -n "${KB_ADDON_IMAGES}" ]]; then
+                  for kb_addon_image in $(echo "${KB_ADDON_IMAGES}" | sed 's/|/ /g'); do
+                      if [[ "$kb_addon_image" == "$latest_image" || "$kb_addon_image" == "$latest_image_2" ]]; then
+                          echo "✅ $(tput -T xterm setaf 2)${latest_image} exists in kubeblocks-addons $(tput -T xterm sgr0)"
+                          kb_addon_check_exists=1
+                          break
+                      fi
+                  done
+              else
+                  kb_addon_check_exists=""
+              fi
+          
+              if [[ -n "${APE_ADDON_IMAGES}" ]]; then
+                  for ap_addon_image in $(echo "${APE_ADDON_IMAGES}" | sed 's/|/ /g'); do
+                      if [[ "$ap_addon_image" == "$latest_image" || "$ap_addon_image" == "$latest_image_2" ]]; then
+                          echo "✅ $(tput -T xterm setaf 2)${latest_image} exists in apecloud-addons $(tput -T xterm sgr0)"
+                          ape_addon_check_exists=1
+                          break
+                      fi
+                  done
+              else
+                  ape_addon_check_exists=""
+              fi
+          
+              if [[ ("$kb_addon_check_exists" == "0" || -z "$kb_addon_check_exists") && ("$ape_addon_check_exists" == "0" || -z "$ape_addon_check_exists") ]]; then
+                  check_exists=1
+                  echo "❌ $(tput -T xterm setaf 1)${latest_image} does not exist in kubeblocks-addons and apecloud-addons $(tput -T xterm sgr0)"
+              fi
+          
+              latest_image_tmp="${IMAGE_NAME}:$latest_version"
+              CHECK_ADDON_VERSION="${CHECK_ADDON_VERSION}##${ADDON_NAME}|${latest_image_tmp}|${kb_addon_check_exists}|${ape_addon_check_exists}|${CI_JOB_URL}"
+          done
+          echo "CHECK_ADDON_VERSION: ${CHECK_ADDON_VERSION}"
+          echo "check_addon_version=${CHECK_ADDON_VERSION}" >> $GITHUB_OUTPUT
+          
+          if [[ $check_exists -eq 1 ]]; then
+              exit 1
+          fi
