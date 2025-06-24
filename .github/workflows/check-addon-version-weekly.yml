@@ -1,4 +1,4 @@
-name: Trivy Scan Weekly
+name: Check Addon Version Weekly
 
 on:
   workflow_dispatch:
@@ -7,55 +7,55 @@ on:
 
 jobs:
   mysql:
-    uses: ./.github/workflows/addon-version-check.yml
+    uses: ./.github/workflows/check-addon-version.yml
     with:
       ADDON: "mysql"
     secrets: inherit
 
   postgresql:
-    uses: ./.github/workflows/addon-version-check.yml
+    uses: ./.github/workflows/check-addon-version.yml
     with:
       ADDON: "postgresql"
     secrets: inherit
 
   redis:
-    uses: ./.github/workflows/addon-version-check.yml
+    uses: ./.github/workflows/check-addon-version.yml
     with:
       ADDON: "redis"
     secrets: inherit
 
   mongodb:
-    uses: ./.github/workflows/addon-version-check.yml
+    uses: ./.github/workflows/check-addon-version.yml
     with:
       ADDON: "mongodb"
     secrets: inherit
 
   kafka:
-    uses: ./.github/workflows/addon-version-check.yml
+    uses: ./.github/workflows/check-addon-version.yml
     with:
       ADDON: "kafka"
     secrets: inherit
 
   qdrant:
-    uses: ./.github/workflows/addon-version-check.yml
+    uses: ./.github/workflows/check-addon-version.yml
     with:
       ADDON: "qdrant"
     secrets: inherit
 
   rabbitmq:
-    uses: ./.github/workflows/addon-version-check.yml
+    uses: ./.github/workflows/check-addon-version.yml
     with:
       ADDON: "rabbitmq"
     secrets: inherit
 
   milvus:
-    uses: ./.github/workflows/addon-version-check.yml
+    uses: ./.github/workflows/check-addon-version.yml
     with:
       ADDON: "milvus"
     secrets: inherit
     
   elasticsearch:
-    uses: ./.github/workflows/addon-version-check.yml
+    uses: ./.github/workflows/check-addon-version.yml
     with:
       ADDON: "elasticsearch"
     secrets: inherit

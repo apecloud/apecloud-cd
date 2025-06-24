@@ -1,4 +1,4 @@
-name: Addon Version Check
+name: Check Addon Version
 
 on:
   workflow_dispatch:
