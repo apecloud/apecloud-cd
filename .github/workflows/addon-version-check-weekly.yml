@@ -1,0 +1,93 @@
+name: Trivy Scan Weekly
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1' # Runs at 08:00 UTC on Mon
+
+jobs:
+  mysql:
+    uses: ./.github/workflows/addon-version-check.yml
+    with:
+      ADDON: "mysql"
+    secrets: inherit
+
+  postgresql:
+    uses: ./.github/workflows/addon-version-check.yml
+    with:
+      ADDON: "postgresql"
+    secrets: inherit
+
+  redis:
+    uses: ./.github/workflows/addon-version-check.yml
+    with:
+      ADDON: "redis"
+    secrets: inherit
+
+  mongodb:
+    uses: ./.github/workflows/addon-version-check.yml
+    with:
+      ADDON: "mongodb"
+    secrets: inherit
+
+  kafka:
+    uses: ./.github/workflows/addon-version-check.yml
+    with:
+      ADDON: "kafka"
+    secrets: inherit
+
+  qdrant:
+    uses: ./.github/workflows/addon-version-check.yml
+    with:
+      ADDON: "qdrant"
+    secrets: inherit
+
+  rabbitmq:
+    uses: ./.github/workflows/addon-version-check.yml
+    with:
+      ADDON: "rabbitmq"
+    secrets: inherit
+
+  milvus:
+    uses: ./.github/workflows/addon-version-check.yml
+    with:
+      ADDON: "milvus"
+    secrets: inherit
+    
+  elasticsearch:
+    uses: ./.github/workflows/addon-version-check.yml
+    with:
+      ADDON: "elasticsearch"
+    secrets: inherit
+
+  send-message:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    needs: [ mysql, postgresql, redis, mongodb, kafka, qdrant, rabbitmq, milvus, elasticsearch ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+
+      - name: send message
+        run: |
+          TEST_RESULT="${{ needs.mysql.outputs.check-addon-version }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.postgresql.outputs.check-addon-version }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.redis.outputs.check-addon-version }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.mongodb.outputs.check-addon-version }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.kafka.outputs.check-addon-version }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.qdrant.outputs.check-addon-version }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.rabbitmq.outputs.check-addon-version }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.milvus.outputs.check-addon-version }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.elasticsearch.outputs.check-addon-version }}"
+          
+          export TZ='Asia/Shanghai'
+          date_ret=$(date +%Y-%m-%d-%T)
+          test_title="[Weekly] Check Addon Version [${date_ret}]"
+          
+          python3 .github/utils/send_mesage.py \
+              --send-type check-addon-version \
+              --url "${{ vars.CICD_WEBHOOK }}" \
+              --title "$test_title" \
+              --result "$TEST_RESULT"
