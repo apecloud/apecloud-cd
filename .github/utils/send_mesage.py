@@ -1052,7 +1052,7 @@ def send_check_addon_version_message(url_v, result_v, title_v):
             {
                 "tag": "column",
                 "width": "weighted",
-                "weight": 2,
+                "weight": 1,
                 "vertical_align": "top",
                 "elements": [
                     {
@@ -1065,7 +1065,7 @@ def send_check_addon_version_message(url_v, result_v, title_v):
             {
                 "tag": "column",
                 "width": "weighted",
-                "weight": 5,
+                "weight": 4,
                 "vertical_align": "top",
                 "elements": [
                     {
@@ -1083,7 +1083,7 @@ def send_check_addon_version_message(url_v, result_v, title_v):
                 "elements": [
                     {
                         "tag": "markdown",
-                        "content": "**Public**",
+                        "content": "**Comm.**",
                         "text_align": "center"
                     }
                 ]
@@ -1096,7 +1096,7 @@ def send_check_addon_version_message(url_v, result_v, title_v):
                 "elements": [
                     {
                         "tag": "markdown",
-                        "content": "**Enterprise**",
+                        "content": "**Ent.**",
                         "text_align": "center"
                     }
                 ]
@@ -1117,15 +1117,15 @@ def send_check_addon_version_message(url_v, result_v, title_v):
                     item_name_tmp = " "
 
                 critical_color = "red"
-                if ret[2] == "1":
+                if ret[2] == "T":
                     critical_color = "green"
 
                 high_color = "red"
-                if ret[3] == "1":
+                if ret[3] == "T":
                     high_color = "green"
 
                 image_color = "orange"
-                if ret[2] == "1" or ret[3] == "1":
+                if ret[2] == "T" or ret[3] == "T":
                     image_color = "green"
 
                 json_ret = {
@@ -1136,7 +1136,7 @@ def send_check_addon_version_message(url_v, result_v, title_v):
                         {
                             "tag": "column",
                             "width": "weighted",
-                            "weight": 2,
+                            "weight": 1,
                             "vertical_align": "center",
                             "elements": [
                                 {
@@ -1149,7 +1149,7 @@ def send_check_addon_version_message(url_v, result_v, title_v):
                         {
                             "tag": "column",
                             "width": "weighted",
-                            "weight": 5,
+                            "weight": 4,
                             "vertical_align": "center",
                             "elements": [
                                 {

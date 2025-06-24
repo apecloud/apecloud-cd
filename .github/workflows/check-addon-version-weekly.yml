@@ -84,7 +84,7 @@ jobs:
           
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
-          test_title="[Weekly] Check Addon Version [${date_ret}]"
+          test_title="[Weekly] Check addon supports the latest official version [${date_ret}]"
           
           python3 .github/utils/send_mesage.py \
               --send-type check-addon-version \

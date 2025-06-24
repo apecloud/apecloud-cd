@@ -190,14 +190,19 @@ jobs:
           
               latest_image="docker.io/${IMAGE_NAME}:$latest_version"
               latest_image_2="docker.io/${IMAGE_NAME_2}:$latest_version"
-              kb_addon_check_exists=0
-              ape_addon_check_exists=0
+              if [[ "${ADDON_NAME}" == "rabbitmq" ]]; then
+                  latest_image="${latest_image}-management"
+                  latest_image_2="${latest_image_2}-management"
+              fi
+              
+              kb_addon_check_exists=F
+              ape_addon_check_exists=F
           
               if [[ -n "${KB_ADDON_IMAGES}" ]]; then
                   for kb_addon_image in $(echo "${KB_ADDON_IMAGES}" | sed 's/|/ /g'); do
                       if [[ "$kb_addon_image" == "$latest_image" || "$kb_addon_image" == "$latest_image_2" ]]; then
                           echo "✅ $(tput -T xterm setaf 2)${latest_image} exists in kubeblocks-addons $(tput -T xterm sgr0)"
-                          kb_addon_check_exists=1
+                          kb_addon_check_exists=T
                           break
                       fi
                   done
@@ -209,7 +214,7 @@ jobs:
                   for ap_addon_image in $(echo "${APE_ADDON_IMAGES}" | sed 's/|/ /g'); do
                       if [[ "$ap_addon_image" == "$latest_image" || "$ap_addon_image" == "$latest_image_2" ]]; then
                           echo "✅ $(tput -T xterm setaf 2)${latest_image} exists in apecloud-addons $(tput -T xterm sgr0)"
-                          ape_addon_check_exists=1
+                          ape_addon_check_exists=T
                           break
                       fi
                   done
@@ -217,7 +222,7 @@ jobs:
                   ape_addon_check_exists=""
               fi
           
-              if [[ ("$kb_addon_check_exists" == "0" || -z "$kb_addon_check_exists") && ("$ape_addon_check_exists" == "0" || -z "$ape_addon_check_exists") ]]; then
+              if [[ ("$kb_addon_check_exists" == "F" || -z "$kb_addon_check_exists") && ("$ape_addon_check_exists" == "F" || -z "$ape_addon_check_exists") ]]; then
                   check_exists=1
                   echo "❌ $(tput -T xterm setaf 1)${latest_image} does not exist in kubeblocks-addons and apecloud-addons $(tput -T xterm sgr0)"
               fi
