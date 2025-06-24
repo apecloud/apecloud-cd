@@ -131,10 +131,12 @@ jobs:
               mysql)
                   IMAGE_NAME="library/mysql"
                   IMAGE_NAME_2="apecloud/mysql"
+                  IMAGE_NAME_3="mysql"
               ;;
               postgresql)
                   IMAGE_NAME="library/postgres"
                   IMAGE_NAME_2="apecloud/spilo"
+                  IMAGE_NAME_3="postgres"
               ;;
               redis)
                   IMAGE_NAME="redis/redis-stack-server"
@@ -143,6 +145,7 @@ jobs:
               mongodb)
                   IMAGE_NAME="library/mongo"
                   IMAGE_NAME_2="apecloud/mongo"
+                  IMAGE_NAME_3="mongo"
               ;;
               kafka)
                   IMAGE_NAME="bitnami/kafka"
@@ -155,6 +158,7 @@ jobs:
               rabbitmq)
                   IMAGE_NAME="library/rabbitmq"
                   IMAGE_NAME_2="apecloud/rabbitmq"
+                  IMAGE_NAME_3="rabbitmq"
               ;;
               milvus)
                   IMAGE_NAME="milvusdb/milvus"
