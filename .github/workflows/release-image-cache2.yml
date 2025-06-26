@@ -169,7 +169,10 @@ jobs:
           for add_addon in $(echo "$add_addons" | sed 's/|/ /g'); do
               kb_addon_dir="${kubeblocks_addons_dir}/${add_addon}"
               ape_addon_dir="${apecloud_addons_dir}/${add_addon}"
-              if [[ -d "${kb_addon_dir}" && ! -d "${ape_addon_dir}" ]]; then
+              if [[ -d "${kb_addon_dir}" ]]; then
+                  if [[ -d "${ape_addon_dir}" ]]; then
+                      rm -rf ${ape_addon_dir}
+                  fi
                   echo "copy $kb_addon_dir to $ape_addon_dir"
                   cp -r ${kb_addon_dir} ${apecloud_addons_dir}
               fi
