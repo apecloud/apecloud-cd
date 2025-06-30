@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       TEST_TYPE:
-        description: "The specify version of GO (e.g. openapi-test|adminapi-test)"
+        description: "The type of API will be tested (e.g. openapi-test|adminapi-test)"
         type: string
         required: false
         default: 'openapi-test|adminapi-test'
@@ -31,7 +31,7 @@ on:
   workflow_call:
     inputs:
       TEST_TYPE:
-        description: "The specify version of GO (e.g. openapi-test|adminapi-test)"
+        description: "The type of API will be tested (e.g. openapi-test|adminapi-test)"
         type: string
         required: false
         default: 'openapi-test|adminapi-test'
