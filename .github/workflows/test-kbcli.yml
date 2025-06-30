@@ -292,7 +292,7 @@ jobs:
               cmd="${cmd} --test-type '${{ inputs.cluster-test-type }}' "
           fi
           
-          if [[ -z "${PREVIOUS_VERSION}" ]]; then
+          if [[ -z "${PREVIOUS_VERSION}" || "${{ inputs.test-args }}" != *"--ape-local apelocal"* ]]; then
               common_cmd=" --chaos-mesh true "
               KB_VERSION_TMP="${KB_VERSION}"
               if [[ "${KB_VERSION_TMP}" != "v"* ]]; then
