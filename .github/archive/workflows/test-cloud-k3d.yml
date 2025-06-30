@@ -61,7 +61,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: "1.22"
+          go-version: "1.23.1"
 
       - name: setup k3d k3s
         uses: nolar/setup-k3d-k3s@v1
