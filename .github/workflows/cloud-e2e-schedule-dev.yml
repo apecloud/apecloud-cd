@@ -3,7 +3,7 @@ name: Cloud E2E Schedule Dev
 on:
   workflow_dispatch:
   schedule:
-    - cron: '30 21 * * 0-4' # Runs at 05:30 UTC on Mon to Friday
+    - cron: '30 22 * * 0-4' # Runs at 06:30 UTC on Mon to Friday
 
 jobs:
   release-e2e-image:
