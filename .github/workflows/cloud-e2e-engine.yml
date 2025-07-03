@@ -375,45 +375,54 @@ jobs:
           
           ENGINE_SUMMARY=$(python3 test/report/parse_ginkgo.py summary ${test_file_log_tmp_path})
           TEST_JOB_INDEX="${{ matrix.test-job-index }}"
-          echo "TEST_JOB_INDEX:${TEST_JOB_INDEX}"
           case "${TEST_JOB_INDEX}" in
               01)
+                  echo "TEST_JOB_INDEX:${TEST_JOB_INDEX}"
                   echo test-result-1="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-1="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
               ;; 
               02)
+                  echo "TEST_JOB_INDEX:${TEST_JOB_INDEX}"
                   echo test-result-2="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-2="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
               ;; 
               03)
+                  echo "TEST_JOB_INDEX:${TEST_JOB_INDEX}"
                   echo test-result-3="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-3="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
               ;; 
               04)
+                  echo "TEST_JOB_INDEX:${TEST_JOB_INDEX}"
                   echo test-result-4="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-4="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
               ;; 
               05)
+                  echo "TEST_JOB_INDEX:${TEST_JOB_INDEX}"
                   echo test-result-5="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-5="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
               ;; 
               06)
+                  echo "TEST_JOB_INDEX:${TEST_JOB_INDEX}"
                   echo test-result-6="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-6="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
               ;; 
               07)
+                  echo "TEST_JOB_INDEX:${TEST_JOB_INDEX}"
                   echo test-result-7="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-7="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
               ;; 
               08)
+                  echo "TEST_JOB_INDEX:${TEST_JOB_INDEX}"
                   echo test-result-8="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-8="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
               ;;  
               09)
+                  echo "TEST_JOB_INDEX:${TEST_JOB_INDEX}"
                   echo test-result-9="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-9="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
               ;;  
               10)
+                  echo "TEST_JOB_INDEX:${TEST_JOB_INDEX}"
                   echo test-result-10="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-10="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
               ;; 
@@ -450,42 +459,52 @@ jobs:
               test_job_index=${test_engines_all#*|}
               case "${test_job_index}" in
                   01)
+                      echo "test-job-index:${test_job_index}"
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-1 }}"
                       TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                   ;;
                   02)
+                      echo "test-job-index:${test_job_index}"
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-2 }}"
                       TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                   ;;
                   03)
+                      echo "test-job-index:${test_job_index}"
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-3 }}"
                       TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"
                   ;;
                   04)
+                      echo "test-job-index:${test_job_index}"
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-4 }}"
                       TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
                   ;;
                   05)
+                      echo "test-job-index:${test_job_index}"
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-5 }}"
                       TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
                   ;;
                   06)
+                      echo "test-job-index:${test_job_index}"
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-6 }}"
                       TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
                   ;;
                   07)
+                      echo "test-job-index:${test_job_index}"
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-7 }}"
                       TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
                   ;;
                   08)
+                      echo "test-job-index:${test_job_index}"
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-8 }}"
                       TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
                   ;;
                   09)
+                      echo "test-job-index:${test_job_index}"
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-9 }}"
                       TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
                   ;;
                   10)
+                      echo "test-job-index:${test_job_index}"
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-10 }}"
                       TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
                   ;;
@@ -514,6 +533,7 @@ jobs:
               test_job_index=${test_engines_all#*|}
               case "${test_job_index}" in
                   01)
+                      echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-1 }}"
                       TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
@@ -532,6 +552,7 @@ jobs:
                       fi
                   ;;
                   02)
+                      echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-2 }}"
                       TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
@@ -550,6 +571,7 @@ jobs:
                       fi
                   ;;
                   03)
+                      echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-3 }}"
                       TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
@@ -568,6 +590,7 @@ jobs:
                       fi
                   ;;
                   04)
+                      echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-4 }}"
                       TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
@@ -586,6 +609,7 @@ jobs:
                       fi
                   ;;
                   05)
+                      echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-5 }}"
                       TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
@@ -604,6 +628,7 @@ jobs:
                       fi
                   ;;
                   06)
+                      echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-6 }}"
                       TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
@@ -622,6 +647,7 @@ jobs:
                       fi
                   ;;
                   07)
+                      echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-7 }}"
                       TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
@@ -640,6 +666,7 @@ jobs:
                       fi
                   ;;
                   08)
+                      echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-8 }}"
                       TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
@@ -658,6 +685,7 @@ jobs:
                       fi
                   ;;
                   09)
+                      echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-9 }}"
                       TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
@@ -676,6 +704,7 @@ jobs:
                       fi
                   ;;
                   10)
+                      echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-10 }}"
                       TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
