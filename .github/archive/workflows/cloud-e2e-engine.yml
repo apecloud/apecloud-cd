@@ -78,6 +78,17 @@ env:
   ACK_KUBECONFIG_PROD: ${{ secrets.ACK_KUBECONFIG_PROD }}
   ACK_KUBECONFIG_INTL_PROD: ${{ secrets.ACK_KUBECONFIG_INTL_PROD }}
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
+  OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
+  OSS_ENDPOINT: "oss-cn-zhangjiakou.aliyuncs.com"
+  OSS_BUCKET: "kubeblocks-oss"
+  PYTHON_VERSION: "3.11"
+  ENGINE_REPORT_FILE_NAME: "TEST_REPORT_CLOUD_API_ENGINE.pdf"
+  AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+
 
 
 jobs:
@@ -198,6 +209,17 @@ jobs:
       test-summary-8: ${{ steps.get_test_result.outputs.test-summary-8 }}
       test-summary-9: ${{ steps.get_test_result.outputs.test-summary-9 }}
       test-summary-10: ${{ steps.get_test_result.outputs.test-summary-10 }}
+      engine-test-result-1: ${{ steps.get_test_result.outputs.engine-test-result-1 }}
+      engine-test-result-2: ${{ steps.get_test_result.outputs.engine-test-result-2 }}
+      engine-test-result-3: ${{ steps.get_test_result.outputs.engine-test-result-3 }}
+      engine-test-result-4: ${{ steps.get_test_result.outputs.engine-test-result-4 }}
+      engine-test-result-5: ${{ steps.get_test_result.outputs.engine-test-result-5 }}
+      engine-test-result-6: ${{ steps.get_test_result.outputs.engine-test-result-6 }}
+      engine-test-result-7: ${{ steps.get_test_result.outputs.engine-test-result-7 }}
+      engine-test-result-8: ${{ steps.get_test_result.outputs.engine-test-result-8 }}
+      engine-test-result-9: ${{ steps.get_test_result.outputs.engine-test-result-9 }}
+      engine-test-result-10: ${{ steps.get_test_result.outputs.engine-test-result-10 }}
+      test-date: ${{ steps.upload_test_result.outputs.test-date }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout testinfra Code
@@ -349,8 +371,9 @@ jobs:
               sleep 1
           done
           set -e
-         
+          
           cat ${test_file_log_path}
+          
           test_ret="$( grep "Test Suite Failed" ${test_file_log_path} || true )"
           TEST_RESULT_ALL="$(cat ${test_file_log_path} | (egrep 'SUCCESS!|FAIL!' | grep -- '--' || true))"
           echo "test result all:${TEST_RESULT_ALL}"
@@ -361,7 +384,6 @@ jobs:
           if [[ -z "$TEST_RESULT" ]]; then
               TEST_RESULT="$(cat ${test_file_log_path} | (egrep 'SUCCESS!|FAIL!' | grep -- '--' || true) | tail -n 1)"
               TEST_RESULT=$(python3 ${{ github.workspace }}/apecloud-cd/.github/utils/remove_ansi.py --ansi-str "$TEST_RESULT")
-              echo "test result remove ansi:${TEST_RESULT}"
           fi
           
           if [[ -z "$TEST_RESULT" ]]; then
@@ -369,7 +391,6 @@ jobs:
               if [[ -n "$test_ret" || -z "${TEST_RESULT_ALL}" ]]; then
                   TEST_RESULT="[FAILED]"
               fi
-              echo "test result PASSED or FAILED:${TEST_RESULT}"
           fi
           
           file_log_tmp="test_result_tmp.log"
@@ -379,52 +400,61 @@ jobs:
           echo "${E2E_TEST_RESULT_LOG}" > ${test_file_log_tmp_path}
           
           ENGINE_SUMMARY=$(python3 test/report/parse_ginkgo.py summary ${test_file_log_tmp_path})
+          ENGINE_TEST_RESULT=$(python3 test/report/parse_ginkgo.py engine ${test_file_log_tmp_path})
+          
           TEST_JOB_INDEX="${{ matrix.test-job-index }}"
-          echo "TEST_JOB_INDEX:${TEST_JOB_INDEX}"
           case "${TEST_JOB_INDEX}" in
               01)
                   echo test-result-1="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-1="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
+                  echo 'engine-test-result-1'=${ENGINE_TEST_RESULT} >> $GITHUB_OUTPUT
               ;; 
               02)
                   echo test-result-2="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-2="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
+                  echo 'engine-test-result-2'=${ENGINE_TEST_RESULT} >> $GITHUB_OUTPUT
               ;; 
               03)
                   echo test-result-3="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-3="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
+                  echo 'engine-test-result-3'=${ENGINE_TEST_RESULT} >> $GITHUB_OUTPUT
               ;; 
               04)
                   echo test-result-4="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-4="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
+                  echo 'engine-test-result-4'=${ENGINE_TEST_RESULT} >> $GITHUB_OUTPUT
               ;; 
               05)
                   echo test-result-5="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-5="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
+                  echo 'engine-test-result-5'=${ENGINE_TEST_RESULT} >> $GITHUB_OUTPUT
               ;; 
               06)
                   echo test-result-6="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-6="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
+                  echo 'engine-test-result-6'=${ENGINE_TEST_RESULT} >> $GITHUB_OUTPUT
               ;; 
               07)
                   echo test-result-7="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-7="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
+                  echo 'engine-test-result-7'=${ENGINE_TEST_RESULT} >> $GITHUB_OUTPUT
               ;; 
               08)
                   echo test-result-8="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-8="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
+                  echo 'engine-test-result-8'=${ENGINE_TEST_RESULT} >> $GITHUB_OUTPUT
               ;;  
               09)
                   echo test-result-9="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-9="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
+                  echo 'engine-test-result-9'=${ENGINE_TEST_RESULT} >> $GITHUB_OUTPUT
               ;;  
               10)
                   echo test-result-10="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-10="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
+                  echo 'engine-test-result-10'=${ENGINE_TEST_RESULT} >> $GITHUB_OUTPUT
               ;; 
           esac
-          echo "TEST_RESULT:${TEST_RESULT}"
-          echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
           
           if [[ -n "$test_ret" ]]; then
               exit 1
@@ -450,6 +480,8 @@ jobs:
           TEST_ENGINES_ALL="${{ needs.get-test-engine.outputs.test-engines-all }}"
           APECLOUD_CURRENT_VERSION="${{ needs.get-test-engine.outputs.current-version }}"
           TEST_DATE=${{ needs.get-test-engine.outputs.test-date }}
+          OSS_URL="https://${{ env.OSS_BUCKET }}.${{ env.OSS_ENDPOINT }}/reports/apecloud/${APECLOUD_CURRENT_VERSION}/${TEST_DATE}"
+          TEST_REPORT_URL="${OSS_URL}/${ENGINE_REPORT_FILE_NAME}"
           TEST_RESULT_ALL=""
           for test_engines_all in $(echo "${TEST_ENGINES_ALL}" | sed 's/##/ /g'); do
               test_engines=${test_engines_all%%|*}
@@ -526,6 +558,7 @@ jobs:
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
                               --type 45 \
+                              --report-url "${TEST_REPORT_URL}" \
                               --test-result "${TEST_RESULT_ALL}" \
                               --coverage-result "${ENGINE_SUMMARY}")"
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
@@ -544,6 +577,7 @@ jobs:
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
                               --type 45 \
+                              --report-url "${TEST_REPORT_URL}" \
                               --test-result "${TEST_RESULT_ALL}" \
                               --coverage-result "${ENGINE_SUMMARY}")"
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
@@ -562,6 +596,7 @@ jobs:
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
                               --type 45 \
+                              --report-url "${TEST_REPORT_URL}" \
                               --test-result "${TEST_RESULT_ALL}" \
                               --coverage-result "${ENGINE_SUMMARY}")"
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
@@ -580,6 +615,7 @@ jobs:
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
                               --type 45 \
+                              --report-url "${TEST_REPORT_URL}" \
                               --test-result "${TEST_RESULT_ALL}" \
                               --coverage-result "${ENGINE_SUMMARY}")"
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
@@ -598,6 +634,7 @@ jobs:
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
                               --type 45 \
+                              --report-url "${TEST_REPORT_URL}" \
                               --test-result "${TEST_RESULT_ALL}" \
                               --coverage-result "${ENGINE_SUMMARY}")"
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
@@ -616,6 +653,7 @@ jobs:
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
                               --type 45 \
+                              --report-url "${TEST_REPORT_URL}" \
                               --test-result "${TEST_RESULT_ALL}" \
                               --coverage-result "${ENGINE_SUMMARY}")"
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
@@ -634,6 +672,7 @@ jobs:
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
                               --type 45 \
+                              --report-url "${TEST_REPORT_URL}" \
                               --test-result "${TEST_RESULT_ALL}" \
                               --coverage-result "${ENGINE_SUMMARY}")"
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
@@ -652,6 +691,7 @@ jobs:
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
                               --type 45 \
+                              --report-url "${TEST_REPORT_URL}" \
                               --test-result "${TEST_RESULT_ALL}" \
                               --coverage-result "${ENGINE_SUMMARY}")"
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
@@ -670,6 +710,7 @@ jobs:
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
                               --type 45 \
+                              --report-url "${TEST_REPORT_URL}" \
                               --test-result "${TEST_RESULT_ALL}" \
                               --coverage-result "${ENGINE_SUMMARY}")"
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
@@ -688,6 +729,7 @@ jobs:
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
                               --type 45 \
+                              --report-url "${TEST_REPORT_URL}" \
                               --test-result "${TEST_RESULT_ALL}" \
                               --coverage-result "${ENGINE_SUMMARY}")"
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
@@ -700,4 +742,154 @@ jobs:
                       fi
                   ;;
               esac
+          done
+
+  upload-report:
+    needs: [ get-test-engine, e2e-engine-test ]
+    runs-on: ubuntu-latest
+    if: ${{ always() && inputs.TEST_REPORT }}
+    steps:
+      - name: Checkout testinfra Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/testinfra
+          path: ./
+          token: ${{ env.GH_TOKEN }}
+
+      - name: Checkout pystan2 Code
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          repository: stan-dev/pystan2
+          ref: "v2.19.1.1"
+          path: pystan2
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "${{ env.PYTHON_VERSION }}"
+
+      - name: install gen report env
+        run: |
+          # locale gen zh_CN.UTF-8
+          sudo locale-gen zh_CN.UTF-8
+          sudo update-locale
+          locale -a
+          
+          # install wkhtmltopdf
+          sudo rm /etc/apt/sources.list.d/microsoft-prod.list
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends wkhtmltopdf fonts-wqy-zenhei fonts-wqy-microhei   
+          
+          # install Cython and NumPy
+          pip3 install Cython==3.0.9 NumPy==1.24.3
+          
+          # install pystan 2.19.1.1
+          cd pystan2
+          python3 setup.py install
+          
+          # install python requirements
+          cd ${{ github.workspace }}/test/report
+          sed -i 's/^appscript==.*/#appscript==/' requirements.txt
+          pip3 install -r requirements.txt
+
+      - name: Setup ossutil
+        uses: manyuanrong/setup-ossutil@v2.0
+        with:
+          access-key-id: "${{ env.OSS_KEY_ID }}"
+          access-key-secret: "${{ env.OSS_KEY_SECRET }}"
+          endpoint: "${{ env.OSS_ENDPOINT }}"
+
+      - name: Upload engine report to oss
+        id: upload_test_result
+        run: |
+          engine_file_log="test_engine_api_result.txt"
+          engine_file_log_tmp="test_engine_api_result_tmp.txt"
+          engine_file_log_path="${{ github.workspace }}/${engine_file_log}"
+          engine_file_log_path_tmp="${{ github.workspace }}/${engine_file_log_tmp}"
+          touch ${engine_file_log_path} ${engine_file_log_path_tmp}
+          
+          CLOUD_BRANCH="${{ needs.get-test-engine.outputs.cloud-branch }}"
+          CLOUD_ENV_NAME="${{ needs.get-test-engine.outputs.cloud-env-name }}"
+          TEST_ENGINES_ALL="${{ needs.get-test-engine.outputs.test-engines-all }}"
+          for test_engines_all in $(echo "${TEST_ENGINES_ALL}" | sed 's/##/ /g'); do
+              test_job_index=${test_engines_all#*|}
+              case "${test_job_index}" in
+                  01)
+                      ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-1 }}"
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                  ;;
+                  02)
+                      ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-2 }}"
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                  ;;
+                  03)
+                      ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-3 }}"
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                  ;;
+                  04)
+                      ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-4 }}"
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                  ;;
+                  05)
+                      ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-5 }}"
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                  ;;
+                  06)
+                      ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-6 }}"
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                  ;;
+                  07)
+                      ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-7 }}"
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                  ;;
+                  08)
+                      ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-8 }}"
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                  ;;
+                  09)
+                      ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-9 }}"
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                  ;;
+                  10)
+                      ENGINE_TEST_RESULT="${{ needs.e2e-engine-test.outputs.engine-test-result-10 }}"
+                      echo "${ENGINE_TEST_RESULT}" >> ${engine_file_log_path}
+                  ;;
+              esac
+          done
+          sed -E 's/(\[PASSED\]|\[FAILED\]|\[TIMEDOUT\])/\n\1/g;s/(\[END\])/\n\1\n/g;s/\] +/\]/g' ${engine_file_log_path} > ${engine_file_log_path_tmp}
+          cat ${engine_file_log_path_tmp}
+          cd test/report
+          bash update_test_period.sh ./md
+          mkdir -p reports/cn
+          for i in $(seq 1 3); do
+              python3 ./report.py \
+                  --type=engine \
+                  --raw=${engine_file_log_path_tmp} \
+                  --main_report=${ENGINE_REPORT_FILE_NAME}
+              gen_ret=$?
+              if [[ $gen_ret -eq 0 ]]; then
+                  break
+              fi
+              sleep 1
+          done
+          
+          APECLOUD_CURRENT_VERSION="${{ needs.get-test-engine.outputs.current-version }}"
+          TEST_DATE=${{ needs.get-test-engine.outputs.test-date }}
+          OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/apecloud/${APECLOUD_CURRENT_VERSION}/${TEST_DATE}"
+          upload_file_name="${{ github.workspace }}/test/report/reports/cn/${ENGINE_REPORT_FILE_NAME}"
+          if [[ ! -f "${upload_file_name}" ]]; then
+              echo "$(tput -T xterm setaf 3)::warning title=not found upload file$(tput -T xterm sgr0)"
+              exit 1
+          fi
+          for i in $(seq 1 3); do
+              ossutil cp -rf "${upload_file_name}" "${OSS_DIR}/${ENGINE_REPORT_FILE_NAME}"
+              upload_ret=$?
+              if [[ $upload_ret -eq 0 ]]; then
+                  echo "$(tput -T xterm setaf 2)upload ${ENGINE_REPORT_FILE_NAME} to oss successfully$(tput -T xterm sgr0)"
+                  break
+              else
+                  echo "$(tput -T xterm setaf 3)::warning title=upload ${ENGINE_REPORT_FILE_NAME} to oss failure$(tput -T xterm sgr0)"
+              fi
+              sleep 1
           done
