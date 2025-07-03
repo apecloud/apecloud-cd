@@ -89,15 +89,10 @@ jobs:
       cloud-branch: ${{ steps.get_test_engine.outputs.cloud-branch }}
       cloud-env-name: ${{ steps.get_test_engine.outputs.cloud-env-name }}
       current-version: ${{ steps.get_test_engine.outputs.current-version }}
-      test-date: ${{ steps.get_test_engine.outputs.test-date }}
     steps:
       - name: Get test engine
         id: get_test_engine
         run: |
-          export TZ='Asia/Shanghai'
-          TEST_DATE="$(date +%Y%m%d)"
-          echo test-date=${TEST_DATE} >> $GITHUB_OUTPUT
-          
           TEST_ENGINES="${{ inputs.TEST_ENGINES }}"
           if [[ -z "$TEST_ENGINES" ]]; then
               TEST_ENGINES="mysql"
@@ -449,7 +444,6 @@ jobs:
           CLOUD_ENV_NAME="${{ needs.get-test-engine.outputs.cloud-env-name }}"
           TEST_ENGINES_ALL="${{ needs.get-test-engine.outputs.test-engines-all }}"
           APECLOUD_CURRENT_VERSION="${{ needs.get-test-engine.outputs.current-version }}"
-          TEST_DATE=${{ needs.get-test-engine.outputs.test-date }}
           TEST_RESULT_ALL=""
           for test_engines_all in $(echo "${TEST_ENGINES_ALL}" | sed 's/##/ /g'); do
               test_engines=${test_engines_all%%|*}
