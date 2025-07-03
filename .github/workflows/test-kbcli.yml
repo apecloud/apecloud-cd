@@ -293,7 +293,7 @@ jobs:
           fi
           
           if [[ -z "${PREVIOUS_VERSION}" || "${{ inputs.test-args }}" != *"--ape-local apelocal"* ]]; then
-              common_cmd=" --chaos-mesh true "
+              common_cmd=" --chaos-mesh true --drain-node true "
               KB_VERSION_TMP="${KB_VERSION}"
               if [[ "${KB_VERSION_TMP}" != "v"* ]]; then
                   KB_VERSION_TMP="v${KB_VERSION_TMP}"
