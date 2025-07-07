@@ -53,6 +53,7 @@ env:
   K3D_NAME: kbcloud
   CLOUD_LICENSE: ${{ secrets.CLOUD_LICENSE }}
   DOCKER_REGISTRY_URL: docker.io
+  DOCKER_REGISTRY_URL_INDEX: "https://index.docker.io/v1/"
   DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
@@ -223,6 +224,13 @@ jobs:
         id: deploy_kb_cloud_env
         run: |
           sleep 10
+          KB_SYSTEM_NAMESPACE="kb-system"
+          kubectl create namespace ${KB_SYSTEM_NAMESPACE}
+          kubectl create secret docker-registry kb-addon-test-registry-key \
+              --docker-server="${{ env.DOCKER_REGISTRY_URL_INDEX }}" \
+              --docker-username='${{ env.DOCKER_REGISTRY_USER }}' \
+              --docker-password='${{ env.DOCKER_REGISTRY_PASSWORD }}' \
+              --docker-email="" -n ${KB_SYSTEM_NAMESPACE}
           check_status=0
           for i in {1..200}; do
               if kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" | grep Completed ; then
@@ -232,6 +240,23 @@ jobs:
               fi
               echo "Waiting for KB Cloud Env to be ready..."
               kubectl get pods -n kb-system
+              KB_ADDON_SA=$(kubectl get serviceaccount -n kb-system | grep kubeblocks-addon-installer)
+              patch_sa_flag=0
+              if [[ -n "${KB_ADDON_SA}" && $patch_sa_flag -eq 0 ]]; then
+                  echo "patch serviceaccount kubeblocks-addon-installer..."
+                  for i in {1..5}; do
+                      kubectl patch -p '{"imagePullSecrets":[{"name":"kb-addon-test-registry-key"}]}' \
+                        --type=merge serviceaccount -n kb-system kubeblocks-addon-installer
+                      patch_ret=$?
+                      if [[ $patch_ret -eq 0 ]]; then
+                          echo "$(tput -T xterm setaf 2)patch serviceaccount kubeblocks-addon-installer success $(tput -T xterm sgr0)"
+                          patch_sa_flag=1
+                          break
+                      fi    
+                      echo "Waiting for patch serviceaccount kubeblocks-addon-installer..."
+                      sleep 1
+                  done
+              fi
               echo ""
               sleep 5
           done
