@@ -98,9 +98,8 @@ jobs:
         continue-on-error: true
         shell: bash
         run: |
-          aws eks --region ${{ env.AWS_REGION }} update-kubeconfig --name ${{ env.AWS_CLUSTER }} \
-              --role-arn $(aws iam get-role --role-name ${{ env.AWS_CLUSTER }}-admin-role --query 'Role.Arn' --output text)
-  
+          aws eks --region ${{ env.AWS_REGION }} update-kubeconfig --name ${{ env.AWS_CLUSTER }}
+          
           runner_pod_exists=$(kubectl get pod -n ${{ inputs.RUNNER_NAMESAPCE }} | (grep "${{ inputs.RUNNER_NAME }}"||true))
           if [[ -n "${runner_pod_exists}" ]]; then
               kubectl delete pod -n ${{ inputs.RUNNER_NAMESAPCE }} "${{ inputs.RUNNER_NAME }}" --force
