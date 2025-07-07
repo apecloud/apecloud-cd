@@ -225,13 +225,11 @@ jobs:
         id: deploy_kb_cloud_env
         run: |
           sleep 10
-          KB_SYSTEM_NAMESPACE="kb-system"
-          kubectl create namespace ${KB_SYSTEM_NAMESPACE}
           kubectl create secret docker-registry kb-addon-test-registry-key \
               --docker-server="${{ env.DOCKER_REGISTRY_URL_INDEX }}" \
               --docker-username='${{ env.DOCKER_REGISTRY_USER }}' \
               --docker-password='${{ env.DOCKER_REGISTRY_PASSWORD }}' \
-              --docker-email="" -n ${KB_SYSTEM_NAMESPACE}
+              --docker-email="" -n kb-system
           check_status=0
           for i in {1..200}; do
               if kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" | grep Completed ; then
