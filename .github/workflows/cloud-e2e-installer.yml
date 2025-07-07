@@ -59,6 +59,7 @@ env:
   JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
   JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
   PROJECT_ID: 165897
+  UPGRADE_RESULT: 0
 
 jobs:
   get-cloud-branch:
@@ -464,51 +465,22 @@ jobs:
             --set images.hook.tag=${CLOUD_VERSION} \
             --set images.cubetranFront.tag=${CLOUD_VERSION} \
             --reset-then-reuse-values
+          
+          upgrade_ret=$?
+          if [[ $upgrade_ret -eq 0 ]]; then
+              echo UPGRADE_RESULT=1 >> $GITHUB_ENV
+          fi
 
-      - name: check kb-cloud-installer upgrade pod Completed
+      - name: upgrade result
+        if: ${{ always() }}
         id: upgrade_kb_cloud
         run: |
-          sleep 10
-          check_status=0
-          for i in {1..200}; do
-              if kubectl get pods -n kb-cloud | grep "kb-cloud-installer" | grep Completed ; then
-                  echo "KB Cloud is ready"
-                  check_status=1
-                  break
-              fi
-              echo "Waiting for KB Cloud to be ready..."
-              kubectl get pods -n kb-cloud
-              echo ""
-              sleep 5
-          done
-          
-          upgrade_result="[PASSED]"
-          if [[ $check_status -eq 0 ]]; then
-              echo "KB Cloud is not ready"
-              upgrade_result="[FAILED]"
-              echo upgrade-result="${upgrade_result}" >> $GITHUB_OUTPUT
-          
-              installer_pods=$(kubectl get pods -n kb-cloud | grep "kb-cloud-installer" )
-              echo "installer pod: $installer_pods"
-              installer_pod_names="$(echo "${installer_pods}" | awk '{print $1}')"
-              for installer_pod_name in $(echo "${installer_pod_names}"); do
-                  echo "==================== pod ${installer_pod_name} logs ===================="
-                  kubectl logs -n kb-cloud ${installer_pod_name}
-              done 
-          
-              # logs kb-cloud error pod 
-              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" | awk '{print $1}')
-              echo "kb-cloud error pod: $kb_cloud_error_pods"
-              for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
-                  echo "==================== pod ${kb_cloud_error_pod} logs ===================="
-                  kubectl logs -n kb-cloud ${kb_cloud_error_pod}
-                  echo ""
-              done
-          
-              exit 1
-          else
-              echo upgrade-result="${upgrade_result}" >> $GITHUB_OUTPUT
+          upgrade_result="[FAILED]"
+          if [[ "${UPGRADE_RESULT}" == "1" ]]; then
+              echo "upgrade kb cloud success"
+              upgrade_result="[PASSED]"
           fi
+          echo upgrade-result="${upgrade_result}" >> $GITHUB_OUTPUT
 
   send-message:
     needs: [ get-cloud-branch, installer-test, upgrade-test ]
