@@ -239,9 +239,9 @@ jobs:
               fi
               echo "Waiting for KB Cloud Env to be ready..."
               kubectl get pods -n kb-system
-              KB_ADDON_SA=$(kubectl get serviceaccount -n kb-system | grep kubeblocks-addon-installer)
+              KB_ADDON_SA="$(kubectl get serviceaccounts -n kb-system | (grep "kubeblocks-addon-installer" || true) | awk 'NR==1{print $1}')"
               patch_sa_flag=0
-              if [[ -n "${KB_ADDON_SA}" && $patch_sa_flag -eq 0 ]]; then
+              if [[ -n "${KB_ADDON_SA}" && ${patch_sa_flag} -eq 0 ]]; then
                   echo "patch serviceaccount kubeblocks-addon-installer..."
                   for i in {1..5}; do
                       kubectl patch -p '{"imagePullSecrets":[{"name":"kb-addon-test-registry-key"}]}' \
