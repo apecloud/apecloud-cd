@@ -60,7 +60,7 @@ env:
   K3D_NAME: default
   REGION: us-central1
   AWS_REGION: "ap-northeast-1"
-  AWS_CLUSTER: "foxlake-dev-001"
+  AWS_CLUSTER: "kubechat"
   JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
 
 permissions:

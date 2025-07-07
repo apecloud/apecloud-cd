@@ -77,7 +77,7 @@ env:
   CLUSTER_NAME: "infracreate-gke"
   GCP_REGION: "us-central1"
   AWS_REGION: "ap-northeast-1"
-  AWS_CLUSTER: "foxlake-dev-001"
+  AWS_CLUSTER: "kubechat"
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 

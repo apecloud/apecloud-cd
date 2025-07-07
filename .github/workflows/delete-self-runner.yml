@@ -51,7 +51,7 @@ run-name: Delete Self Runner ${{ inputs.GITHUB_REPO }} ${{ inputs.RUNNER_NAME }}
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   AWS_REGION: "ap-northeast-1"
-  AWS_CLUSTER: "foxlake-dev-001"
+  AWS_CLUSTER: "kubechat"
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
