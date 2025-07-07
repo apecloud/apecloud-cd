@@ -9,6 +9,7 @@ DEFAULT_DELETE_FORCE="false"
 DEFAULT_HELM_CHARTS_PROJECT_ID=85949 # helm-charts
 DEFAULT_ADDONS_PROJECT_ID=150246 # addons
 DEFAULT_APPLICATIONS_PROJECT_ID=152630 # applications
+DEFAULT_ENTERPRISE_PROJECT_ID=165897 # enterprise
 DEFAULT_HELM_CHARTS_LIST="kubeblocks|kubeblocks-cloud"
 DEFAULT_ADDONS_LIST="[oceanbase]|[starrocks]"
 DEFAULT_CHARTS_DIR="../deploy"
@@ -53,6 +54,7 @@ main() {
     local HELM_CHARTS_PROJECT_ID=$DEFAULT_HELM_CHARTS_PROJECT_ID
     local ADDONS_PROJECT_ID=$DEFAULT_ADDONS_PROJECT_ID
     local APPLICATIONS_PROJECT_ID=$DEFAULT_APPLICATIONS_PROJECT_ID
+    local ENTERPRISE_PROJECT_ID=$DEFAULT_ENTERPRISE_PROJECT_ID
     local HELM_CHARTS_LIST=$DEFAULT_HELM_CHARTS_LIST
     local ADDONS_LIST=$DEFAULT_ADDONS_LIST
     local CHARTS_DIR=$DEFAULT_CHARTS_DIR
@@ -291,6 +293,9 @@ get_project_id() {
             ;;
             *applications*)
                 PROJECT_ID_TMP=$APPLICATIONS_PROJECT_ID
+            ;;
+            *enterprise*)
+                PROJECT_ID_TMP=$ENTERPRISE_PROJECT_ID
             ;;
         esac
         return

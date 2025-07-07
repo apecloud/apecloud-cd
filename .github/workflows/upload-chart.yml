@@ -17,7 +17,7 @@ on:
         required: false
         default: ''
       PROJECT_ID:
-        description: "The jihulab project id to upload (e.g. kubeblocks/addons/applications)"
+        description: "The jihulab project id to upload (e.g. kubeblocks/addons/applications/enterprise)"
         type: string
         required: false
         default: ''
