@@ -55,6 +55,9 @@ env:
   DOCKER_REGISTRY_URL: docker.io
   DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
+  JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
+  PROJECT_ID: 165897
 
 jobs:
   get-cloud-branch:
@@ -416,20 +419,26 @@ jobs:
 
       - name: upgrade kb cloud to ${{ needs.get-cloud-branch.outputs.cloud-branch }}
         run: |
-          helm uninstall installer --namespace kb-cloud
-          sleep 2
+          echo "add helm chart repo"
+          helm repo add kubeblocks-enterprise \
+            --username ${JIHULAB_ACCESS_USER} \
+            --password ${JIHULAB_ACCESS_TOKEN} \
+            https://jihulab.com/api/v4/projects/${PROJECT_ID}/packages/helm/stable
           
+          echo "update helm chart repo"
+          helm repo update kubeblocks-enterprise
+          
+          echo "upgrade kubeblocks cloud"
           CLOUD_VERSION="${{ needs.get-cloud-branch.outputs.cloud-branch }}"
-          helm install installer-upgrade kb-chart/kb-cloud-installer \
-              --namespace kb-cloud \
-              --create-namespace \
-              --version ${CLOUD_VERSION} \
-              --set version=${CLOUD_VERSION} \
-              --set image.registry="docker.io" \
-              --set kubernetesProvider=k3d \
-              --set fqdn.domain=mytest.kubeblocks.com \
-              --set tls.enabled=true \
-              --set action=upgrade
+          helm upgrade --install kb-cloud kubeblocks-enterprise/kubeblocks-cloud \
+            --version ${CLOUD_VERSION} --namespace kb-cloud \
+            --set images.apiserver.tag=${CLOUD_VERSION} \
+            --set images.cr4w.tag=${CLOUD_VERSION} \
+            --set images.openconsole.tag=${CLOUD_VERSION} \
+            --set images.openconsoleAdmin.tag=${CLOUD_VERSION} \
+            --set images.hook.tag=${CLOUD_VERSION} \
+            --set images.cubetranFront.tag=${CLOUD_VERSION} \
+            --reset-then-reuse-values
 
       - name: check kb-cloud-installer upgrade pod Completed
         id: upgrade_kb_cloud
