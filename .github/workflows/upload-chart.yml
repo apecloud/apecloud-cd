@@ -57,10 +57,20 @@ jobs:
           fi
 
       - name: Checkout helm-charts Code
+        if: ${{ inputs.PROJECT_ID != 'enterprise' && inputs.PROJECT_ID != '165897' }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/helm-charts
           path: helm-charts
+          token: ${{ env.CR_TOKEN }}
+          ref: gh-pages
+
+      - name: Checkout helm-charts-enterprise Code
+        if: ${{ inputs.PROJECT_ID == 'enterprise' || inputs.PROJECT_ID == '165897' }}
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/helm-charts-enterprise
+          path: helm-charts-enterprise
           token: ${{ env.CR_TOKEN }}
           ref: gh-pages
 
@@ -85,7 +95,12 @@ jobs:
 
       - name: Fetch helm-charts History And Configure Git
         run: |
-          cd helm-charts
+          HELM_CHARTS_DIR="helm-charts"
+          PROJECT_ID_TMP="${{ inputs.PROJECT_ID }}"
+          if [[ "${PROJECT_ID_TMP}" == "enterprise" || "${PROJECT_ID_TMP}" == "165897" ]]; then
+              HELM_CHARTS_DIR=${HELM_CHARTS_DIR}-enterprise
+          fi
+          cd ${HELM_CHARTS_DIR}
           git fetch --prune --unshallow
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
@@ -95,8 +110,13 @@ jobs:
         id: upload_index_helm_charts
         shell: bash
         run: |
-          cd helm-charts
-          args=(--owner "apecloud" --repo "helm-charts")
+          HELM_CHARTS_DIR="helm-charts"
+          PROJECT_ID_TMP="${{ inputs.PROJECT_ID }}"
+          if [[ "${PROJECT_ID_TMP}" == "enterprise" || "${PROJECT_ID_TMP}" == "165897" ]]; then
+              HELM_CHARTS_DIR=${HELM_CHARTS_DIR}-enterprise
+          fi
+          cd ${HELM_CHARTS_DIR}
+          args=(--owner "apecloud" --repo "${HELM_CHARTS_DIR}")
           UPLOAD_FLAG=0
           echo "upload-flag=${UPLOAD_FLAG}" >> $GITHUB_OUTPUT
           
@@ -111,7 +131,12 @@ jobs:
         if: ${{ steps.upload_index_helm_charts.outputs.upload-flag == '0' }}
         shell: bash
         run: |
-          cd helm-charts
-          args=(--owner "apecloud" --repo "helm-charts")
+          HELM_CHARTS_DIR="helm-charts"
+          PROJECT_ID_TMP="${{ inputs.PROJECT_ID }}"
+          if [[ "${PROJECT_ID_TMP}" == "enterprise" || "${PROJECT_ID_TMP}" == "165897" ]]; then
+              HELM_CHARTS_DIR=${HELM_CHARTS_DIR}-enterprise
+          fi
+          cd ${HELM_CHARTS_DIR}
+          args=(--owner "apecloud" --repo "${HELM_CHARTS_DIR}")
           
           bash ${{ github.workspace }}/.github/utils/helm_release_update_index.sh "${args[@]}"
