@@ -579,7 +579,7 @@ jobs:
           TEST_RESULT="${TEST_RESULT}##upgrade-test|v${{ inputs.K3S_VERSION }}|upgrade-${CLOUD_BRANCH}|${UPGRADE_RESULT}"
           echo "TEST_RESULT:${TEST_RESULT}" 
           
-          TEST_RESULT=$( bash .github/utils/utils.sh --type 46 \
+          TEST_RESULT=$( bash .github/utils/utils.sh --type 38 \
               --github-repo "${{ github.repository }}" \
               --github-token "${{ env.GH_TOKEN }}" \
               --test-result "${TEST_RESULT}" \
