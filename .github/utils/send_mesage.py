@@ -470,12 +470,12 @@ def send_installer_message(url_v, result_v, title_v):
             {
                 "tag": "column",
                 "width": "weighted",
-                "weight": 1,
+                "weight": 2,
                 "vertical_align": "top",
                 "elements": [
                     {
                         "tag": "markdown",
-                        "content": "**K8s Version**",
+                        "content": "**Test Type**",
                         "text_align": "center"
                     }
                 ]
@@ -483,12 +483,12 @@ def send_installer_message(url_v, result_v, title_v):
             {
                 "tag": "column",
                 "width": "weighted",
-                "weight": 2,
+                "weight": 1,
                 "vertical_align": "top",
                 "elements": [
                     {
                         "tag": "markdown",
-                        "content": "**Test Type**",
+                        "content": "**K8s Version**",
                         "text_align": "center"
                     }
                 ]
@@ -525,12 +525,12 @@ def send_installer_message(url_v, result_v, title_v):
                         {
                             "tag": "column",
                             "width": "weighted",
-                            "weight": 1,
+                            "weight": 2,
                             "vertical_align": "top",
                             "elements": [
                                 {
                                     "tag": "markdown",
-                                    "content": "<font color='orange'>" + ret[0] + "</font>",
+                                    "content": "<a href='" + ret[-1] + "'>" + ret[1] + "</a>",
                                     "text_align": "center"
                                 }
                             ]
@@ -538,12 +538,12 @@ def send_installer_message(url_v, result_v, title_v):
                         {
                             "tag": "column",
                             "width": "weighted",
-                            "weight": 2,
+                            "weight": 1,
                             "vertical_align": "top",
                             "elements": [
                                 {
                                     "tag": "markdown",
-                                    "content": "<a href='" + ret[-1] + "'>" + ret[1] + "</a>",
+                                    "content": "<font color='orange'>" + ret[0] + "</font>",
                                     "text_align": "center"
                                 }
                             ]

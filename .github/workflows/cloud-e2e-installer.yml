@@ -81,14 +81,14 @@ jobs:
     needs: [ get-cloud-branch ]
     runs-on: ubuntu-latest
     outputs:
-      installer-result-1-21: ${{ steps.install_kb_cloud.outputs.installer-result-1-21 }}
-      bootstrapper-result-1-21: ${{ steps.deploy_kb_cloud_env.outputs.bootstrapper-result-1-21 }}
+      installer-result-1-22: ${{ steps.install_kb_cloud.outputs.installer-result-1-22 }}
+      bootstrapper-result-1-22: ${{ steps.deploy_kb_cloud_env.outputs.bootstrapper-result-1-22 }}
       installer-result-1-32: ${{ steps.install_kb_cloud.outputs.installer-result-1-32 }}
       bootstrapper-result-1-32: ${{ steps.deploy_kb_cloud_env.outputs.bootstrapper-result-1-32 }}
     strategy:
       fail-fast: false
       matrix:
-        k3s-version: [ v1.21, v1.32 ]
+        k3s-version: [ v1.22, v1.32 ]
     steps:
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -178,8 +178,8 @@ jobs:
               installer_result="[FAILED]"
               
               case $K3S_VERSION in
-                  v1.21)
-                      echo installer-result-1-21="${installer_result}" >> $GITHUB_OUTPUT
+                  v1.22)
+                      echo installer-result-1-22="${installer_result}" >> $GITHUB_OUTPUT
                   ;;
                   v1.32)
                       echo installer-result-1-32="${installer_result}" >> $GITHUB_OUTPUT
@@ -206,8 +206,8 @@ jobs:
               exit 1
           else
               case $K3S_VERSION in
-                  v1.21)
-                      echo installer-result-1-21="${installer_result}" >> $GITHUB_OUTPUT
+                  v1.22)
+                      echo installer-result-1-22="${installer_result}" >> $GITHUB_OUTPUT
                   ;;
                   v1.32)
                       echo installer-result-1-32="${installer_result}" >> $GITHUB_OUTPUT
@@ -290,8 +290,8 @@ jobs:
               bootstrapper_result="[FAILED]"
               
               case $K3S_VERSION in
-                  v1.21)
-                      echo bootstrapper-result-1-21="${bootstrapper_result}" >> $GITHUB_OUTPUT
+                  v1.22)
+                      echo bootstrapper-result-1-22="${bootstrapper_result}" >> $GITHUB_OUTPUT
                   ;;
                   v1.32)
                       echo bootstrapper-result-1-32="${bootstrapper_result}" >> $GITHUB_OUTPUT
@@ -334,8 +334,8 @@ jobs:
               exit 1
           else
               case $K3S_VERSION in
-                  v1.21)
-                      echo bootstrapper-result-1-21="${bootstrapper_result}" >> $GITHUB_OUTPUT
+                  v1.22)
+                      echo bootstrapper-result-1-22="${bootstrapper_result}" >> $GITHUB_OUTPUT
                   ;;
                   v1.32)
                       echo bootstrapper-result-1-32="${bootstrapper_result}" >> $GITHUB_OUTPUT
@@ -535,7 +535,7 @@ jobs:
           CLOUD_BRANCH="${{ needs.get-cloud-branch.outputs.cloud-branch }}"
           TEST_RESULT=""
           echo "get installer test result"
-          INSTALLER_RESULT_1_21="${{ needs.installer-test.outputs.installer-result-1-21 }}"
+          INSTALLER_RESULT_1_21="${{ needs.installer-test.outputs.installer-result-1-22 }}"
           INSTALLER_RESULT_1_32="${{ needs.installer-test.outputs.installer-result-1-32 }}"
           if [[ -z "${INSTALLER_RESULT_1_21}" ]]; then
               INSTALLER_RESULT_1_21="[FAILED]"
@@ -544,7 +544,7 @@ jobs:
               INSTALLER_RESULT_1_32="[FAILED]"
           fi
           
-          BOOTSTRAPPER_RESULT_1_21="${{ needs.installer-test.outputs.bootstrapper-result-1-21 }}"
+          BOOTSTRAPPER_RESULT_1_21="${{ needs.installer-test.outputs.bootstrapper-result-1-22 }}"
           BOOTSTRAPPER_RESULT_1_32="${{ needs.installer-test.outputs.bootstrapper-result-1-32 }}"
           if [[ -z "${BOOTSTRAPPER_RESULT_1_21}" ]]; then
               BOOTSTRAPPER_RESULT_1_21="[FAILED]"
@@ -564,9 +564,9 @@ jobs:
               UPGRADE_RESULT="[FAILED]"
           fi
           
-          TEST_RESULT="installer-test-v1.21|v1.21|installer-${CLOUD_BRANCH}|${INSTALLER_RESULT_1_21}"
+          TEST_RESULT="installer-test-v1.22|v1.22|installer-${CLOUD_BRANCH}|${INSTALLER_RESULT_1_21}"
           if [[ "${{ inputs.CURRENT_VERSION }}" != 'v0.28' && "${{ inputs.CURRENT_VERSION }}" != '0.28' ]]; then
-              TEST_RESULT="${TEST_RESULT}##installer-test-v1.21|v1.21|bootstrapper-${CLOUD_BRANCH}|${BOOTSTRAPPER_RESULT_1_21}"
+              TEST_RESULT="${TEST_RESULT}##installer-test-v1.22|v1.22|bootstrapper-${CLOUD_BRANCH}|${BOOTSTRAPPER_RESULT_1_21}"
           
               TEST_RESULT="${TEST_RESULT}##installer-test-v1.32|v1.32|installer-${CLOUD_BRANCH}|${INSTALLER_RESULT_1_32}"
               TEST_RESULT="${TEST_RESULT}##installer-test-v1.32|v1.32|bootstrapper-${CLOUD_BRANCH}|${BOOTSTRAPPER_RESULT_1_32}"
