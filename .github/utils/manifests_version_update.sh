@@ -102,7 +102,7 @@ update_manifests_file_version() {
 
     echo "KUBEBLOCKS_VERSION:${KUBEBLOCKS_VERSION}"
     charts_name=("kubeblocks-cloud" "kb-cloud-installer")
-    update_images=("openconsole" "apiserver" "task-manager" "cubetran-front" "cr4w" "relay" "sentry" "sentry-init" "apecloud-charts" "kubeblocks-installer" "dms" "servicemirror" "kb-cloud-hook" "apecloud-addon-charts")
+    update_images=("openconsole" "apiserver" "task-manager" "cubetran-front" "cr4w" "relay" "sentry" "sentry-init" "apecloud-charts" "kubeblocks-installer" "dms" "servicemirror" "kb-cloud-hook" "kb-cloud-docs" "apecloud-addon-charts")
     for chart_name in "${charts_name[@]}"; do
         if [[ "${chart_name}" == "kb-cloud-installer" ]]; then
             yq e -i ".${chart_name}[0].version=\"${RELEASE_VERSION_TMP}\"" "${MANIFESTS_FILE}"
