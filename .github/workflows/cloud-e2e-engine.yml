@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       TEST_ENGINES:
-        description: "The specify version of GO (e.g. clickhouse,damengdb,elasticsearch,gaussdb,goldendb,kafka,kingbase,loki,minio,mongodb,mysql,oceanbase,oceanbase-proxy,postgresql,qdrant,rabbitmq,redis,rocketmq,starrocks,tdsql,tidb,vastbase,victoria-metrics,zookeeper)"
+        description: "The specify version of GO (e.g. mysql,postgresql,redis)"
         type: string
         required: false
         default: 'mysql'
@@ -36,7 +36,7 @@ on:
   workflow_call:
     inputs:
       TEST_ENGINES:
-        description: "The specify version of GO (e.g. clickhouse,damengdb,elasticsearch,gaussdb,goldendb,kafka,kingbase,loki,minio,mongodb,mysql,oceanbase,oceanbase-proxy,postgresql,qdrant,rabbitmq,redis,rocketmq,starrocks,tdsql,tidb,vastbase,victoria-metrics,zookeeper)"
+        description: "The specify version of GO (e.g. mysql,postgresql,redis)"
         type: string
         required: false
         default: 'mysql'
@@ -163,10 +163,106 @@ jobs:
               fi
           fi
           echo current-version="$CURRENT_VERSION" >> $GITHUB_OUTPUT
-  
+
+  e2e-cluster-clear:
+    needs: [ get-test-engine ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout testinfra Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/testinfra
+          path: ./
+          token: ${{ env.GH_TOKEN }}
+
+      - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
+        id: cloud_env
+        run: |
+          mkdir -p $HOME/.kube
+          touch $HOME/.kube/config
+          CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
+          if [[ -z "$CLOUD_ENV_NAME" ]]; then
+              CLOUD_ENV_NAME="dev"
+          fi
+          echo CLOUD_ENV_NAME="$CLOUD_ENV_NAME" >> $GITHUB_ENV
+          
+          E2E_ENV_VARS=""
+          case "$CLOUD_ENV_NAME" in
+              dev)
+                  echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_DEV }}"
+              ;;
+              demo)
+                  echo '${{ env.ACK_KUBECONFIG_DEMO }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_DEMO }}"
+              ;;
+              idc)
+                  echo '${{ env.IDC_KUBECONFIG }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC }}"
+              ;;
+              idc1)
+                  echo '${{ env.IDC_KUBECONFIG_1 }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC1 }}"
+              ;;
+              idc2)
+                  echo '${{ env.IDC_KUBECONFIG_2 }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC2 }}"
+              ;;
+              idc4)
+                  echo '${{ env.IDC_KUBECONFIG_4 }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC4 }}"
+              ;;
+              prod)
+                  echo '${{ env.ACK_KUBECONFIG_PROD }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_PROD }}"
+              ;;
+              intl_prod)
+                  echo '${{ env.ACK_KUBECONFIG_INTL_PROD }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_INTL_PROD }}"
+              ;;
+          esac
+          echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
+
+      - name: run e2e clear cluster
+        run: |
+          run_file_log="run_e2e_clear_result.log"
+          touch ${run_file_log} 
+          
+          for env_vars in $(echo "${E2E_ENV_VARS}" | sed 's/|/ /g'); do
+              eval_cmd="export $env_vars"
+              echo "$eval_cmd"
+              eval "$eval_cmd"
+          done
+          # run e2e clear cluster
+          bash test/cloud/test_cloud_e2e_clear.sh \
+              --release-version "${{ needs.get-test-engine.outputs.cloud-branch }}" | tee -a ${run_file_log}
+          
+          CLOUD_E2E_CLEAR_POD_NAME="$(cat ${run_file_log} | grep '\[CLOUD-E2E-CLEAR-POD-NAME\]' || true )"
+          if [[ -n "${CLOUD_E2E_CLEAR_POD_NAME}" && "$CLOUD_E2E_CLEAR_POD_NAME" == "[CLOUD-E2E-CLEAR-POD-NAME]"* ]]; then
+              CLOUD_E2E_CLEAR_POD_NAME=${CLOUD_E2E_CLEAR_POD_NAME#*"[CLOUD-E2E-CLEAR-POD-NAME]"}      
+          fi
+          echo CLOUD_E2E_CLEAR_POD_NAME="$CLOUD_E2E_CLEAR_POD_NAME" >> $GITHUB_ENV
+
+      - name: Waiting for Cloud E2E Clear Pod to be Completed
+        run: |
+          set +e
+          set -o nounset
+          sleep 2
+          while true; do
+              if kubectl get pods -n default | grep "${CLOUD_E2E_CLEAR_POD_NAME}" | egrep "Completed|Error" ; then
+                  echo "Cloud E2E Clear is Done"
+                  break
+              fi
+              if kubectl get pods -n default | grep "${CLOUD_E2E_CLEAR_POD_NAME}" | egrep "Running|Error" ; then
+                  kubectl logs -n default ${CLOUD_E2E_CLEAR_POD_NAME} --tail=5
+              else
+                  echo "Waiting for Cloud E2E Clear Pod to be Completed..."
+              fi
+              sleep 1
+          done
 
   e2e-engine-test:
-    needs: [ get-test-engine ]
+    needs: [ get-test-engine, e2e-cluster-clear ]
     name: ${{ matrix.test-engine }}
     strategy:
       max-parallel: 1
