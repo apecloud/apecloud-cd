@@ -1104,7 +1104,7 @@ jobs:
              yashandb-pre, redis-cluster-pre, dmdb-pre, minio-pre,
              orchestrator-pre, rabbitmq-pre, loki-pre, victoria-metrics-pre, gaussdb-pre,
              damengdb-pre, kingbase-pre, vastbase-pre, mssql-pre, rocketmq-pre,
-             goldendb-pre, tdsql-pre, greatsql-pre
+             goldendb-pre, tdsql-pre, greatsql-pre,
              asmysql-proxy-pre, asmysql-orc-pre, asmysql-orc-proxy-pre]
     steps:
       - uses: actions/checkout@v4
