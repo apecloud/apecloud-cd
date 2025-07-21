@@ -251,6 +251,28 @@ jobs:
           while true; do
               if kubectl get pods -n default | grep "${CLOUD_E2E_CLEAR_POD_NAME}" | egrep "Completed|Error" ; then
                   echo "Cloud E2E Clear is Done"
+          
+                  set +e
+                  set -o nounset
+                  for i in $(seq 1 10); do
+                      kubectl logs -n default ${CLOUD_E2E_CLEAR_POD_NAME} 
+                      log_ret=$?
+                      if [[ $log_ret -eq 0 ]]; then
+                          break
+                      fi
+                      sleep 1
+                  done
+                  
+                  for i in $(seq 1 10); do
+                      kubectl delete pod -n default ${CLOUD_E2E_CLEAR_POD_NAME} --force
+                      delete_ret=$?
+                      if [[ $delete_ret -eq 0 ]]; then
+                          break
+                      fi
+                      sleep 1
+                  done
+                  set -e
+          
                   break
               fi
               if kubectl get pods -n default | grep "${CLOUD_E2E_CLEAR_POD_NAME}" | egrep "Running|Error" ; then
