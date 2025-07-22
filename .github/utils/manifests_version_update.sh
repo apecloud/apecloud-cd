@@ -126,6 +126,7 @@ update_manifests_file_version() {
                         kbInstaller_version="${RELEASE_VERSION}-${KUBEBLOCKS_VERSION}-offline"
                         yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${kbInstaller_version}\"" "${MANIFESTS_FILE}"
                         update_kbInstaller_version "${kbInstaller_version}"
+                        update_air_gap_config_version "${RELEASE_VERSION}"
                     elif [[ "${manifests_image}" == "apecloud/dms:"* && -n "${DMS_VERSION}" ]]; then
                         yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${DMS_VERSION}\"" "${MANIFESTS_FILE}"
                     elif [[ "${manifests_image}" == "apecloud/servicemirror:"* && -n "${SERVICEMIRROR_VERSION}" ]]; then
@@ -162,7 +163,7 @@ update_manifests_file_version() {
 
 get_dependencies_version() {
     if [[ ! -f "${CLOUD_CHART_FILE}" ]]; then
-        echo "$(tput -T xterm setaf 3)::warning title=Not found cloud chart file:${INSTALLER_CHART_FILE} $(tput -T xterm sgr0)"
+        echo "$(tput -T xterm setaf 3)::warning title=Not found cloud chart file:${CLOUD_CHART_FILE} $(tput -T xterm sgr0)"
         return
     fi
     cloud_dependencies=$(yq e '.dependencies[].name' "${CLOUD_CHART_FILE}")
@@ -181,6 +182,19 @@ get_dependencies_version() {
     done
 }
 
+update_air_gap_config_version() {
+    air_gap_config_version="${1}"
+    if [[ ! -f "${AIR_GAP_CONFIG_FILE}" ]]; then
+        echo "$(tput -T xterm setaf 3)::warning title=Not found air gap config file:${AIR_GAP_CONFIG_FILE} $(tput -T xterm sgr0)"
+        return
+    fi
+    if [[ "$UNAME" == "Darwin" ]]; then
+        sed -i '' "s/^version:.*/version: \"${air_gap_config_version}\"/" "${AIR_GAP_CONFIG_FILE}"
+    else
+        sed -i "s/^version:.*/version: \"${air_gap_config_version}\"/" "${AIR_GAP_CONFIG_FILE}"
+    fi
+}
+
 main() {
     local RELEASE_VERSION_TMP=""
     local KUBEBLOCKS_VERSION=""
@@ -192,6 +206,7 @@ main() {
     local CLOUD_CHART_FILE="deploy/helm/Chart.yaml"
     local KUBEBLOCKS_ADDON_DIR="kubeblocks-addons/addons"
     local APECLOUD_ADDON_DIR="apecloud-addons/addons"
+    local AIR_GAP_CONFIG_FILE="fountain/air-gap/config.yaml"
 
     get_dependencies_version
     update_manifests_file_version
