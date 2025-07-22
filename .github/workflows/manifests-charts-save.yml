@@ -125,6 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release-version: ${{ steps.save-charts.outputs.release-version }}
+      air-gap-tool-result: ${{ steps.upload_air_gap_tool.outputs.air_gap_tool_result }}
     steps:
       - name: Checkout Code
         if: ${{ inputs.GITHUB_REPO == '' }}
@@ -192,6 +193,50 @@ jobs:
           access-key-secret: "${{ env.OSS_KEY_SECRET }}"
           endpoint: "${{ env.OSS_ENDPOINT }}"
 
+      - name: Upload manifests to oss
+        run: |
+          MANIFESTS_FILE="${{ inputs.MANIFESTS_FILE }}"
+          VALUES_FILE="${MANIFESTS_FILE%/*}/deploy-values.yaml"
+          RELEASE_VERSION="${{ inputs.RELEASE_VERSION }}"
+          ossutil cp -rf ./${MANIFESTS_FILE} oss://${{ env.OSS_BUCKET }}/manifests/${RELEASE_VERSION}/manifests.yaml
+          upload_ret=$?
+          if [[ $upload_ret -eq 0 ]]; then
+              echo "upload ${MANIFESTS_FILE} to oss successfully"
+          else
+              echo "upload ${MANIFESTS_FILE} to oss failed"
+          fi 
+          ossutil cp -rf ./${VALUES_FILE} oss://${{ env.OSS_BUCKET }}/manifests/${RELEASE_VERSION}/values.yaml
+          upload_ret=$?
+          if [[ $upload_ret -eq 0 ]]; then
+              echo "upload ${VALUES_FILE} to oss successfully"
+          else
+              echo "upload ${VALUES_FILE} to oss failed"
+          fi
+
+      - name: Upload air-gap tool to oss
+        id: upload_air_gap_tool
+        run: |
+          AIR_GAP_TOOL_RESULT=""
+          if [[ -d "fountain/air-gap" ]]; then
+              cd fountain
+              RELEASE_VERSION="${{ inputs.RELEASE_VERSION }}"
+              AIR_GAP_NAME="air-gap"
+              AIR_GAP_TOOL_NAME="kbe-airgap-tool-${RELEASE_VERSION}.tar.gz"
+              echo "tar ${AIR_GAP_NAME}"
+              tar -czvf ${AIR_GAP_TOOL_NAME} ${AIR_GAP_NAME}
+              
+              ossutil cp -rf ./${AIR_GAP_TOOL_NAME} oss://${{ env.OSS_BUCKET }}/tools/apecloud/${AIR_GAP_TOOL_NAME}
+              upload_ret=$?
+              if [[ $upload_ret -eq 0 ]]; then
+                  AIR_GAP_TOOL_RESULT="success"
+                  echo "upload ${AIR_GAP_TOOL_NAME} to oss successfully"
+              else
+                  AIR_GAP_TOOL_RESULT="error"
+                  echo "upload ${AIR_GAP_TOOL_NAME} to oss failed"
+              fi
+          fi
+          echo "air_gap_tool_result=${AIR_GAP_TOOL_RESULT}" >> $GITHUB_OUTPUT
+
       - name: Upload charts to oss
         id: upload_to_oss
         run: |
@@ -211,6 +256,8 @@ jobs:
     outputs:
       chart-pkg-name: ${{ steps.get_save_result.outputs.chart_pkg_name }}
       save-result: ${{ steps.get_save_result.outputs.save_result }}
+      air-gap-tool-pkg-name: ${{ steps.get_save_result.outputs.air_gap_tool_pkg_name }}
+      save-air-gap-tool-result: ${{ steps.get_save_result.outputs.save_air_gap_tool_result }}
     steps:
       - name: get save result
         id: get_save_result
@@ -223,6 +270,14 @@ jobs:
           fi
           echo 'save_result='$SAVE_RESULT >> $GITHUB_OUTPUT
           echo 'chart_pkg_name='${CHART_PKG_NAME} >> $GITHUB_OUTPUT
+          
+          AIR_GAP_TOOL_RESULT="${{ needs.save-charts.outputs.air-gap-tool-result }}"
+          AIR_GAP_TOOL_PKG_NAME="kbe-airgap-tool-${{ needs.save-charts.outputs.release-version }}.tar.gz"
+          if [[ "AIR_GAP_TOOL_RESULT" == "success" ]]; then
+              AIR_GAP_TOOL_PKG_NAME="http://kubeblocks-oss.${{ env.OSS_ENDPOINT }}/tools/apecloud/${AIR_GAP_TOOL_PKG_NAME}"
+          fi
+          echo 'save_air_gap_tool_result='${AIR_GAP_TOOL_RESULT} >> $GITHUB_OUTPUT
+          echo 'air_gap_tool_pkg_name='${AIR_GAP_TOOL_PKG_NAME} >> $GITHUB_OUTPUT
 
   send-message:
     needs: [ save-result ]
@@ -231,6 +286,18 @@ jobs:
     with:
       TYPE: "2"
       CONTENT: "save chart ${{ needs.save-result.outputs.chart-pkg-name }} ${{ needs.save-result.outputs.save-result }}"
+      BOT_TYPE: "${{ inputs.BOT_TYPE }}"
+      BOT_WEBHOOK: "${{ inputs.BOT_WEBHOOK }}"
+      APECD_REF: ${{ inputs.APECD_REF }}
+    secrets: inherit
+
+  send-message-air-gap:
+    needs: [ save-result ]
+    if: ${{ always() && needs.save-result.outputs.air-gap-tool-pkg-name != '' }}
+    uses: ./.github/workflows/feishui-message.yml
+    with:
+      TYPE: "2"
+      CONTENT: "save tool ${{ needs.save-result.outputs.air-gap-tool-pkg-name }} ${{ needs.save-result.outputs.save-air-gap-tool-result }}"
       BOT_TYPE: "${{ inputs.BOT_TYPE }}"
       BOT_WEBHOOK: "${{ inputs.BOT_WEBHOOK }}"
       APECD_REF: ${{ inputs.APECD_REF }}
