@@ -273,7 +273,7 @@ jobs:
           
           AIR_GAP_TOOL_RESULT="${{ needs.save-charts.outputs.air-gap-tool-result }}"
           AIR_GAP_TOOL_PKG_NAME="kbe-airgap-tool-${{ needs.save-charts.outputs.release-version }}.tar.gz"
-          if [[ "AIR_GAP_TOOL_RESULT" == "success" ]]; then
+          if [[ "${AIR_GAP_TOOL_RESULT}" == "success" ]]; then
               AIR_GAP_TOOL_PKG_NAME="http://kubeblocks-oss.${{ env.OSS_ENDPOINT }}/tools/apecloud/${AIR_GAP_TOOL_PKG_NAME}"
           fi
           echo 'save_air_gap_tool_result='${AIR_GAP_TOOL_RESULT} >> $GITHUB_OUTPUT
@@ -293,7 +293,7 @@ jobs:
 
   send-message-air-gap:
     needs: [ save-result ]
-    if: ${{ always() && needs.save-result.outputs.air-gap-tool-pkg-name != '' }}
+    if: ${{ always() && needs.save-result.outputs.save-air-gap-tool-result != '' }}
     uses: ./.github/workflows/feishui-message.yml
     with:
       TYPE: "2"
