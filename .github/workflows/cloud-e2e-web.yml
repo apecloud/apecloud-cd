@@ -21,7 +21,7 @@ on:
       CURRENT_VERSION:
         description: "The current release version (e.g. 0.30) "
         type: string
-        required: false
+        required: true
         default: ''
       APECD_REF:
         description: "The branch name of apecloud-cd"
