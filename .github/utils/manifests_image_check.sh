@@ -13,7 +13,7 @@ main() {
         return
     fi
 
-    images=$(yq e ".*[].images[]" ${MANIFESTS_FILE})
+    images=$(yq e ".*[].images[]" ${MANIFESTS_FILE} | sort -u)
     if [[ -z "${images}"  ]]; then
         echo "$(tput -T xterm setaf 3)::warning title=No images found in manifests file:${MANIFESTS_FILE} $(tput -T xterm sgr0)"
         return

@@ -25,7 +25,7 @@ save_charts_package() {
     tar_flag=0
     for i in {1..10}; do
         for chart_name in $(echo "$charts_name"); do
-            if [[ -z "$chart_name" || "$chart_name" == "#"* || "$chart_name" == "kata" ]]; then
+            if [[ -z "$chart_name" || "$chart_name" == "#"* || "$chart_name" == "kata" || "$chart_name" == "dbdrag" ]]; then
                 continue
             fi
             chart_versions=$(yq e '[.'${chart_name}'[].version] | join("|")' ${MANIFESTS_FILE})
@@ -81,7 +81,7 @@ save_charts_package() {
 }
 
 main() {
-    local ENT_REPO_NAME="kbcli-test-enterprise"
+    local ENT_REPO_NAME="kb-ent"
     local APP_PKG_NAME=""
     local REPO_URL="https://github.com/apecloud/helm-charts/releases/download"
     local KB_ENT_REPO_URL="https://jihulab.com/api/v4/projects/${CHART_PROJECT_ID}/packages/helm/stable"
