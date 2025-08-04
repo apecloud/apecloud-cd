@@ -167,24 +167,6 @@ jobs:
           token: ${{ env.GH_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
 
-      - name: Checkout kubeblocks-addons Code
-        uses: actions/checkout@v4
-        if: ${{ github.repository == 'apecloud/apecloud' && inputs.KUBEBLOCKS_ADDON_BRANCH != '' }}
-        with:
-          repository: apecloud/kubeblocks-addons
-          path: kubeblocks-addons
-          token: ${{ env.GH_TOKEN }}
-          ref: ${{ inputs.KUBEBLOCKS_ADDON_BRANCH }}
-
-      - name: Checkout apecloud-addons Code
-        uses: actions/checkout@v4
-        if: ${{ github.repository == 'apecloud/apecloud' && inputs.APECLOUD_ADDON_BRANCH != '' }}
-        with:
-          repository: apecloud/apecloud-addons
-          path: apecloud-addons
-          token: ${{ env.GH_TOKEN }}
-          ref: ${{ inputs.APECLOUD_ADDON_BRANCH }}
-
       - name: get release commit
         id: get_release_commit
         run: |
