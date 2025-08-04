@@ -2,58 +2,58 @@
 MANIFESTS_FILE=${1:-""}
 RELEASE_VERSION=${2:-""}
 
-update_addon_chart_version() {
-    if [[ ! -f "${MANIFESTS_FILE}" ]]; then
-        echo "$(tput -T xterm setaf 3)::warning title=Not found manifests file:${MANIFESTS_FILE} $(tput -T xterm sgr0)"
-        return
-    fi
-
-    charts_name=$(yq e "to_entries|map(.key)|.[]"  ${MANIFESTS_FILE})
-    for chart_name in $(echo "${charts_name}"); do
-        is_addon=$(yq e "."${chart_name}"[0].isAddon" ${MANIFESTS_FILE})
-        if [[ "$is_addon" == "false" && "${chart_name}" != "minio" ]]; then
-            continue
-        fi
-        chart_version=$(yq e "."${chart_name}"[0].version"  ${MANIFESTS_FILE})
-        is_enterprise=$(yq e "."${chart_name}"[0].isEnterprise"  ${MANIFESTS_FILE})
-
-        # update addon isEnterprise
-        if [[ "$is_addon" == "true" && -d "${INSTALLER_ADDON_DIR}"  ]]; then
-            for installer_addon_chart in $(ls ${INSTALLER_ADDON_DIR}); do
-                installer_addon_chart_dir="${INSTALLER_ADDON_DIR}/${installer_addon_chart}"
-                installer_addon_enterprise=$(yq e ".isEnterprise"  ${installer_addon_chart_dir})
-                installer_addon_name=$(yq e ".name"  ${installer_addon_chart_dir})
-                if [[ "$installer_addon_name" == "$chart_name" && "$is_enterprise" != "${installer_addon_enterprise}" ]]; then
-                    echo "set ${installer_addon_name} isEnterprise to ${installer_addon_enterprise}"
-                    is_enterprise="${installer_addon_enterprise}"
-                    yq e -i ".${chart_name}[0].isEnterprise=${installer_addon_enterprise}" "${MANIFESTS_FILE}"
-                fi
-            done
-        fi
-
-        if [[ "$is_enterprise" == "true" ]]; then
-            addon_chart_file="${APECLOUD_ADDON_DIR}/${chart_name}/Chart.yaml"
-        else
-            addon_chart_file="${KUBEBLOCKS_ADDON_DIR}/${chart_name}/Chart.yaml"
-        fi
-
-        if [[ -f "${addon_chart_file}" ]]; then
-            addon_chart_version=$(yq e ".version" "${addon_chart_file}")
-            if [[ "${chart_version}" != "${addon_chart_version}" ]]; then
-                yq e -i ".${chart_name}[0].version=\"${addon_chart_version}\"" "${MANIFESTS_FILE}"
-                chart_version="${addon_chart_version}"
-            fi
-        fi
-
-        installer_addon_chart_file="${INSTALLER_ADDON_DIR}/${chart_name}.yaml"
-        if [[ -f "${installer_addon_chart_file}" ]]; then
-            installer_addon_chart_version=$(yq e ".version" "${installer_addon_chart_file}")
-            if [[ "${chart_version}" != "${installer_addon_chart_version}" ]]; then
-                yq e -i ".version=\"${chart_version}\"" "${installer_addon_chart_file}"
-            fi
-        fi
-    done
-}
+# update_addon_chart_version() {
+#     if [[ ! -f "${MANIFESTS_FILE}" ]]; then
+#         echo "$(tput -T xterm setaf 3)::warning title=Not found manifests file:${MANIFESTS_FILE} $(tput -T xterm sgr0)"
+#         return
+#     fi
+#
+#     charts_name=$(yq e "to_entries|map(.key)|.[]"  ${MANIFESTS_FILE})
+#     for chart_name in $(echo "${charts_name}"); do
+#         is_addon=$(yq e "."${chart_name}"[0].isAddon" ${MANIFESTS_FILE})
+#         if [[ "$is_addon" == "false" && "${chart_name}" != "minio" ]]; then
+#             continue
+#         fi
+#         chart_version=$(yq e "."${chart_name}"[0].version"  ${MANIFESTS_FILE})
+#         is_enterprise=$(yq e "."${chart_name}"[0].isEnterprise"  ${MANIFESTS_FILE})
+#
+#         # update addon isEnterprise
+#         if [[ "$is_addon" == "true" && -d "${INSTALLER_ADDON_DIR}"  ]]; then
+#             for installer_addon_chart in $(ls ${INSTALLER_ADDON_DIR}); do
+#                 installer_addon_chart_dir="${INSTALLER_ADDON_DIR}/${installer_addon_chart}"
+#                 installer_addon_enterprise=$(yq e ".isEnterprise"  ${installer_addon_chart_dir})
+#                 installer_addon_name=$(yq e ".name"  ${installer_addon_chart_dir})
+#                 if [[ "$installer_addon_name" == "$chart_name" && "$is_enterprise" != "${installer_addon_enterprise}" ]]; then
+#                     echo "set ${installer_addon_name} isEnterprise to ${installer_addon_enterprise}"
+#                     is_enterprise="${installer_addon_enterprise}"
+#                     yq e -i ".${chart_name}[0].isEnterprise=${installer_addon_enterprise}" "${MANIFESTS_FILE}"
+#                 fi
+#             done
+#         fi
+#
+#         if [[ "$is_enterprise" == "true" ]]; then
+#             addon_chart_file="${APECLOUD_ADDON_DIR}/${chart_name}/Chart.yaml"
+#         else
+#             addon_chart_file="${KUBEBLOCKS_ADDON_DIR}/${chart_name}/Chart.yaml"
+#         fi
+#
+#         if [[ -f "${addon_chart_file}" ]]; then
+#             addon_chart_version=$(yq e ".version" "${addon_chart_file}")
+#             if [[ "${chart_version}" != "${addon_chart_version}" ]]; then
+#                 yq e -i ".${chart_name}[0].version=\"${addon_chart_version}\"" "${MANIFESTS_FILE}"
+#                 chart_version="${addon_chart_version}"
+#             fi
+#         fi
+#
+#         installer_addon_chart_file="${INSTALLER_ADDON_DIR}/${chart_name}.yaml"
+#         if [[ -f "${installer_addon_chart_file}" ]]; then
+#             installer_addon_chart_version=$(yq e ".version" "${installer_addon_chart_file}")
+#             if [[ "${chart_version}" != "${installer_addon_chart_version}" ]]; then
+#                 yq e -i ".version=\"${chart_version}\"" "${installer_addon_chart_file}"
+#             fi
+#         fi
+#     done
+# }
 
 update_kbInstaller_version() {
     kbInstaller_version="${1}"
@@ -123,7 +123,11 @@ update_manifests_file_version() {
                     fi
 
                     if [[ "${manifests_image}" == "apecloud/kubeblocks-installer:"* ]]; then
-                        kbInstaller_version="${RELEASE_VERSION}-${KUBEBLOCKS_VERSION}-offline"
+                        kbInstaller_version="${RELEASE_VERSION}-offline"
+                        if [[ "${RELEASE_VERSION}" == "v1.1."* || "${RELEASE_VERSION}" == "v1.0."* || "${RELEASE_VERSION}" == "v0.30."* || "${RELEASE_VERSION}" == "v0.28."* ]]; then
+                            kbInstaller_version="${RELEASE_VERSION}-${KUBEBLOCKS_VERSION}-offline"
+                        fi
+
                         yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${kbInstaller_version}\"" "${MANIFESTS_FILE}"
                         update_kbInstaller_version "${kbInstaller_version}"
                         update_air_gap_config_version "${RELEASE_VERSION}"
@@ -204,8 +208,8 @@ main() {
     local INSTALLER_CHART_FILE="deploy/installer/values.yaml"
     local INSTALLER_ADDON_DIR="docker/kb-installer/addons"
     local CLOUD_CHART_FILE="deploy/helm/Chart.yaml"
-    local KUBEBLOCKS_ADDON_DIR="kubeblocks-addons/addons"
-    local APECLOUD_ADDON_DIR="apecloud-addons/addons"
+#     local KUBEBLOCKS_ADDON_DIR="kubeblocks-addons/addons"
+#     local APECLOUD_ADDON_DIR="apecloud-addons/addons"
     local AIR_GAP_CONFIG_FILE="fountain/air-gap/config.yaml"
 
     get_dependencies_version

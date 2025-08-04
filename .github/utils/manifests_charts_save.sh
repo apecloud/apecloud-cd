@@ -25,39 +25,43 @@ save_charts_package() {
     tar_flag=0
     for i in {1..10}; do
         for chart_name in $(echo "$charts_name"); do
-            if [[ -z "$chart_name" || "$chart_name" == "#"* || "$chart_name" == "kata" ]]; then
+            if [[ -z "$chart_name" || "$chart_name" == "#"* || "$chart_name" == "kata" || "$chart_name" == "dbdrag" ]]; then
                 continue
             fi
-            is_enterprise=$(yq e "."${chart_name}"[0].isEnterprise"  ${MANIFESTS_FILE})
-            chart_version=$(yq e "."${chart_name}"[0].version"  ${MANIFESTS_FILE})
-            chart_tmp="${chart_name}-${chart_version}"
-            case $chart_name in
-                kubeblocks-cloud)
-                    if [[ -z "$RELEASE_VERSION" ]]; then
-                        RELEASE_VERSION="${chart_version}"
-                    elif [[ "$RELEASE_VERSION" != "v"* ]]; then
-                        RELEASE_VERSION="v${RELEASE_VERSION}"
-                    fi
-                    APP_PKG_NAME="${KB_CHART_NAME}-${RELEASE_VERSION}.tar.gz"
-                    echo "helm repo add ${ENT_REPO_NAME} --username ${CHART_ACCESS_USER} --password ${CHART_ACCESS_TOKEN} ${KB_ENT_REPO_URL}"
-                    helm repo add ${ENT_REPO_NAME} --username ${CHART_ACCESS_USER} --password ${CHART_ACCESS_TOKEN} ${KB_ENT_REPO_URL}
-                    helm repo update ${ENT_REPO_NAME}
-                ;;
-            esac
+            chart_versions=$(yq e '[.'${chart_name}'[].version] | join("|")' ${MANIFESTS_FILE})
+            chart_index=0
+            for chart_version in $(echo "$chart_versions" | sed 's/|/ /g'); do
+                is_enterprise=$(yq e "."${chart_name}"[${chart_index}].isEnterprise"  ${MANIFESTS_FILE})
+                chart_tmp="${chart_name}-${chart_version}"
+                case $chart_name in
+                    kubeblocks-cloud)
+                        if [[ -z "$RELEASE_VERSION" ]]; then
+                            RELEASE_VERSION="${chart_version}"
+                        elif [[ "$RELEASE_VERSION" != "v"* ]]; then
+                            RELEASE_VERSION="v${RELEASE_VERSION}"
+                        fi
+                        APP_PKG_NAME="${KB_CHART_NAME}-${RELEASE_VERSION}.tar.gz"
+                        echo "helm repo add ${ENT_REPO_NAME} --username ${CHART_ACCESS_USER} --password ${CHART_ACCESS_TOKEN} ${KB_ENT_REPO_URL}"
+                        helm repo add ${ENT_REPO_NAME} --username ${CHART_ACCESS_USER} --password ${CHART_ACCESS_TOKEN} ${KB_ENT_REPO_URL}
+                        helm repo update ${ENT_REPO_NAME}
+                    ;;
+                esac
 
-            echo "fetch chart $chart_tmp"
-            for j in {1..10}; do
-                if [[ "$is_enterprise" == "true" ]]; then
-                    helm pull -d ${KB_CHART_NAME} ${ENT_REPO_NAME}/${chart_name} --version ${chart_version}
-                else
-                    helm fetch -d ${KB_CHART_NAME} "$REPO_URL/${chart_tmp}/${chart_tmp}.tgz"
-                fi
-                ret_msg=$?
-                if [[ $ret_msg -eq 0 ]]; then
-                    echo "$(tput -T xterm setaf 2)fetch chart $chart_tmp success$(tput -T xterm sgr0)"
-                    break
-                fi
-                sleep 1
+                echo "fetch chart $chart_tmp"
+                for j in {1..10}; do
+                    if [[ "$is_enterprise" == "true" ]]; then
+                        helm pull -d ${KB_CHART_NAME} ${ENT_REPO_NAME}/${chart_name} --version ${chart_version}
+                    else
+                        helm fetch -d ${KB_CHART_NAME} "$REPO_URL/${chart_tmp}/${chart_tmp}.tgz"
+                    fi
+                    ret_msg=$?
+                    if [[ $ret_msg -eq 0 ]]; then
+                        echo "$(tput -T xterm setaf 2)fetch chart $chart_tmp success$(tput -T xterm sgr0)"
+                        break
+                    fi
+                    sleep 1
+                done
+                chart_index=$(( $chart_index + 1 ))
             done
         done
         echo "tar ${KB_CHART_NAME}"

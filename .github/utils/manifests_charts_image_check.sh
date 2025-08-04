@@ -116,42 +116,46 @@ check_charts_images() {
             continue
         fi
         set_values=""
-        is_enterprise=$(yq e "."${chart_name}"[0].isEnterprise"  ${MANIFESTS_FILE})
-        chart_version=$(yq e "."${chart_name}"[0].version"  ${MANIFESTS_FILE})
-        chart_images=$(yq e "."${chart_name}"[0].images[]"  ${MANIFESTS_FILE})
-        case $chart_name in
-            kubeblocks-cloud)
-                set_values="${set_values} --set images.apiserver.tag=${chart_version} "
-                set_values="${set_values} --set images.sentry.tag=${chart_version} "
-                set_values="${set_values} --set images.sentryInit.tag=${chart_version} "
-                set_values="${set_values} --set images.relay.tag=${chart_version} "
-                set_values="${set_values} --set images.cr4w.tag=${chart_version} "
-                set_values="${set_values} --set images.openconsole.tag=${chart_version} "
-                set_values="${set_values} --set images.openconsoleAdmin.tag=${chart_version} "
-                set_values="${set_values} --set images.taskManager.tag=${chart_version} "
-            ;;
-            kb-cloud-installer)
-                set_values="${set_values} --set version=${chart_version} "
-            ;;
-            ingress-nginx)
-                set_values="${set_values} --set controller.image.image=apecloud/controller "
-                set_values="${set_values} --set controller.image.digest= "
-                set_values="${set_values} --set controller.admissionWebhooks.patch.image.image=apecloud/kube-webhook-certgen "
-                set_values="${set_values} --set controller.admissionWebhooks.patch.image.digest= "
-            ;;
-            gemini)
-                set_values="${set_values} --set cr-exporter.enabled=true "
-            ;;
-            kubebench)
-                set_values="${set_values} --set image.tag=0.0.12 "
-                set_values="${set_values} --set kubebenchImages.exporter=apecloud/kubebench:0.0.12"
-                set_values="${set_values} --set kubebenchImages.tools=apecloud/kubebench:0.0.12"
-            ;;
-            dbdrag)
-                continue
-            ;;
-        esac
-        check_images "$is_enterprise" "$chart_version" "$chart_name" "$chart_images" "$set_values" &
+        chart_versions=$(yq e '[.'${chart_name}'[].version] | join("|")' ${MANIFESTS_FILE})
+        chart_index=0
+        for chart_version in $(echo "$chart_versions" | sed 's/|/ /g'); do
+            is_enterprise=$(yq e "."${chart_name}"[${chart_index}].isEnterprise"  ${MANIFESTS_FILE})
+            chart_images=$(yq e "."${chart_name}"[${chart_index}].images[]"  ${MANIFESTS_FILE})
+            case $chart_name in
+                kubeblocks-cloud)
+                    set_values="${set_values} --set images.apiserver.tag=${chart_version} "
+                    set_values="${set_values} --set images.sentry.tag=${chart_version} "
+                    set_values="${set_values} --set images.sentryInit.tag=${chart_version} "
+                    set_values="${set_values} --set images.relay.tag=${chart_version} "
+                    set_values="${set_values} --set images.cr4w.tag=${chart_version} "
+                    set_values="${set_values} --set images.openconsole.tag=${chart_version} "
+                    set_values="${set_values} --set images.openconsoleAdmin.tag=${chart_version} "
+                    set_values="${set_values} --set images.taskManager.tag=${chart_version} "
+                ;;
+                kb-cloud-installer)
+                    set_values="${set_values} --set version=${chart_version} "
+                ;;
+                ingress-nginx)
+                    set_values="${set_values} --set controller.image.image=apecloud/controller "
+                    set_values="${set_values} --set controller.image.digest= "
+                    set_values="${set_values} --set controller.admissionWebhooks.patch.image.image=apecloud/kube-webhook-certgen "
+                    set_values="${set_values} --set controller.admissionWebhooks.patch.image.digest= "
+                ;;
+                gemini)
+                    set_values="${set_values} --set cr-exporter.enabled=true "
+                ;;
+                kubebench)
+                    set_values="${set_values} --set image.tag=0.0.12 "
+                    set_values="${set_values} --set kubebenchImages.exporter=apecloud/kubebench:0.0.12"
+                    set_values="${set_values} --set kubebenchImages.tools=apecloud/kubebench:0.0.12"
+                ;;
+                dbdrag)
+                    continue
+                ;;
+            esac
+            check_images "$is_enterprise" "$chart_version" "$chart_name" "$chart_images" "$set_values" &
+            chart_index=$(( $chart_index + 1 ))
+        done
     done
     wait
     cat exit_result
