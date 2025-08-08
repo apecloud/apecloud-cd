@@ -226,6 +226,7 @@ jobs:
           
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
               --github-repo "${{ github.repository }}" \
+              --github-token "${{ env.GITHUB_TOKEN }}" \
               --test-result "${TEST_RESULT}" \
               --run-id "$GITHUB_RUN_ID" )
           

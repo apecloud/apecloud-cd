@@ -87,6 +87,14 @@ EOF
 GITHUB_API="https://api.github.com"
 DEFAULT_GITHUB_REPO=apecloud/kubeblocks
 
+is_number() {
+    if [[ "$1" =~ ^-?[0-9]+$ ]]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
 gh_curl() {
     if [[ -z "$GITHUB_TOKEN" ]]; then
         curl -H "Accept: application/vnd.github.v3.raw" \
@@ -348,6 +356,10 @@ get_test_result() {
         jobs_url="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=$i"
         jobs_list=$( gh_curl -s $jobs_url )
         total_count=$( echo "$jobs_list" | jq '.total_count' )
+        if [[ "$total_count" == "null" || $(is_number "$total_count") == "false" ]]; then
+            echo "total_count:${total_count}"
+            break
+        fi
         for i in $(seq 0 $total_count); do
             if [[ "$i" == "$total_count" ]]; then
                 break
@@ -376,6 +388,10 @@ get_e2e_test_result() {
         jobs_url="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=$i"
         jobs_list=$( gh_curl -s $jobs_url )
         total_count=$( echo "$jobs_list" | jq '.total_count' )
+        if [[ "$total_count" == "null" || $(is_number "$total_count") == "false" ]]; then
+            echo "total_count:${total_count}"
+            break
+        fi
         for i in $(seq 0 $total_count); do
             if [[ "$i" == "$total_count" ]]; then
                 break
@@ -414,6 +430,10 @@ get_ginkgo_test_result() {
         jobs_url="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=$i"
         jobs_list=$( gh_curl -s $jobs_url )
         total_count=$( echo "$jobs_list" | jq '.total_count' )
+        if [[ "$total_count" == "null" || $(is_number "$total_count") == "false" ]]; then
+            echo "total_count:${total_count}"
+            break
+        fi
         for i in $(seq 0 $total_count); do
             if [[ "$i" == "$total_count" ]]; then
                 break
@@ -443,6 +463,10 @@ get_cloud_test_result() {
         jobs_url="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=$i"
         jobs_list=$( gh_curl -s $jobs_url )
         total_count=$( echo "$jobs_list" | jq '.total_count' )
+        if [[ "$total_count" == "null" || $(is_number "$total_count") == "false" ]]; then
+            echo "total_count:${total_count}"
+            break
+        fi
         for i in $(seq 0 $total_count); do
             if [[ "$i" == "$total_count" ]]; then
                 break
@@ -460,6 +484,10 @@ get_job_url() {
     jobs_url="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=1"
     jobs_list=$( gh_curl -s $jobs_url )
     total_count=$( echo "$jobs_list" | jq '.total_count' )
+    if [[ "$total_count" == "null" || $(is_number "$total_count") == "false" ]]; then
+        echo "total_count:${total_count}"
+        return
+    fi
     for i in $(seq 0 $total_count); do
         job_name=$( echo "$jobs_list" | jq ".jobs[$i].name" --raw-output )
         if [[ "$job_name" == *"$JOB_NAME" ]]; then
@@ -1096,6 +1124,10 @@ get_gh_job_url() {
         jobs_url="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=$i"
         jobs_list=$( gh_curl -s $jobs_url )
         total_count=$( echo "$jobs_list" | jq '.total_count' )
+        if [[ "$total_count" == "null" || $(is_number "$total_count") == "false" ]]; then
+            echo "total_count:${total_count}"
+            break
+        fi
         for i in $(seq 0 $total_count); do
             if [[ "$i" == "$total_count" ]]; then
                 break
