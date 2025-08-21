@@ -191,7 +191,7 @@ jobs:
               installer_pod_names="$(echo "${installer_pods}" | awk '{print $1}')"
               for installer_pod_name in $(echo "${installer_pod_names}"); do
                   echo "==================== pod ${installer_pod_name} logs ===================="
-                  kubectl logs -n kb-cloud ${installer_pod_name}
+                  kubectl logs --tail 100 -n kb-cloud ${installer_pod_name}
               done 
           
               # logs kb-cloud error pod 
@@ -199,7 +199,7 @@ jobs:
               echo "kb-cloud error pod: $kb_cloud_error_pods"
               for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
                   echo "==================== pod ${kb_cloud_error_pod} logs ===================="
-                  kubectl logs -n kb-cloud ${kb_cloud_error_pod}
+                  kubectl logs --tail 100 -n kb-cloud ${kb_cloud_error_pod}
                   echo ""
               done
           
@@ -303,7 +303,7 @@ jobs:
               bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | grep -v "ImagePull" | awk '{print $1}')"
               for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
                   echo "==================== pod ${bootstrapper_pod_name} logs ===================="
-                  kubectl logs -n kb-system ${bootstrapper_pod_name}
+                  kubectl logs --tail 100 -n kb-system ${bootstrapper_pod_name}
               done 
           
               # describe image pull error bootstrapper pod
@@ -318,7 +318,7 @@ jobs:
               echo "kb-system error pod: $kb_system_error_pods"
               for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
                   echo "==================== pod ${kb_system_error_pod} logs ===================="
-                  kubectl logs -n kb-system ${kb_system_error_pod}
+                  kubectl logs --tail 100 -n kb-system ${kb_system_error_pod}
                   echo ""
               done
           
@@ -463,7 +463,7 @@ jobs:
               installer_pod_names="$(echo "${installer_pods}" | awk '{print $1}')"
               for installer_pod_name in $(echo "${installer_pod_names}"); do
                   echo "==================== pod ${installer_pod_name} logs ===================="
-                  kubectl logs -n kb-cloud ${installer_pod_name}
+                  kubectl logs --tail 100 -n kb-cloud ${installer_pod_name}
               done 
           
               # logs kb-cloud error pod 
@@ -471,7 +471,7 @@ jobs:
               echo "kb-cloud error pod: $kb_cloud_error_pods"
               for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
                   echo "==================== pod ${kb_cloud_error_pod} logs ===================="
-                  kubectl logs -n kb-cloud ${kb_cloud_error_pod}
+                  kubectl logs --tail 100 -n kb-cloud ${kb_cloud_error_pod}
                   echo ""
               done
           
