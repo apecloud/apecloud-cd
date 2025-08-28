@@ -148,7 +148,7 @@ main() {
     local KB_REPO_URL="https://apecloud.github.io/helm-charts"
     local KB_ENT_REPO_NAME="kb-ent-charts"
     local KB_ENT_REPO_URL="https://jihulab.com/api/v4/projects/${CHART_PROJECT_ID}/packages/helm/stable"
-    #add_chart_repo
+    add_chart_repo
 
     upgrade_charts_addon
 }
