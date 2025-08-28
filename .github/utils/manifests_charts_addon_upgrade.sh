@@ -21,6 +21,7 @@ upgrade_charts_addon() {
     upgrade_flag=0
     deploy_addons=$(helm list -n kb-system | (grep "kb-addon-" || true) | awk '{print $1}')
     charts_name=$(yq e "to_entries|map(.key)|.[]"  ${MANIFESTS_FILE})
+    kubeblocks_version="$(helm get metadata -n kb-system kubeblocks | (grep "VERSION:" | grep -v "APP_VERSION:" || true ) | awk '{print $2}')"
     for chart_name in $(echo "$charts_name"); do
         # check engine type
         chart_type=$(yq e "."${chart_name}"[0].type"  ${MANIFESTS_FILE})
@@ -45,12 +46,62 @@ upgrade_charts_addon() {
 
         # check deploy addon commit id
         deploy_addon_commit_id=""
+        deploy_chart_version=""
         if [[ -n "${deploy_addon_tmp}" ]]; then
             deploy_addon_commit_id="$(helm get notes -n kb-system ${deploy_addon_tmp} | (grep "Commit ID:" || true) | awk '{print $3}')"
+            deploy_chart_version=$(helm get metadata -n kb-system ${deploy_addon_tmp} | (grep "VERSION:" | grep -v "APP_VERSION:" || true ) | awk '{print $2}')
         fi
 
         is_enterprise=$(yq e "."${chart_name}"[0].isEnterprise"  ${MANIFESTS_FILE})
-        chart_version=$(yq e "."${chart_name}"[0].version"  ${MANIFESTS_FILE})
+        chart_version_list=$(yq e "."${chart_name}"[].version"  ${MANIFESTS_FILE})
+        chart_version=""
+        # compare same version
+        for chartVersion in $(echo "$chart_version_list"); do
+            if [[ "$chartVersion" == "$deploy_chart_version" ]]; then
+                chart_version="$chartVersion"
+                break
+            fi
+        done
+
+        # compare same head version
+        if [[ -z "$chart_version" ]]; then
+            for chart_version_tmp in $(echo "$chart_version_list"); do
+                chart_version_tmp=${chartVersion%-*}
+                deploy_chart_version_tmp=${deploy_chart_version%-*}
+                if [[ "$chart_version_tmp" == "$deploy_chart_version_tmp" ]]; then
+                    chart_version="$chartVersion"
+                    break
+                fi
+            done
+        fi
+
+        # compare same head2 version
+        if [[ -z "$chart_version" ]]; then
+            for chart_version_tmp in $(echo "$chart_version_list"); do
+                chart_version_tmp=${chartVersion%-*}
+                chart_version_tmp=${chart_version_tmp%.*}
+                deploy_chart_version_tmp=${deploy_chart_version%-*}
+                deploy_chart_version_tmp=${deploy_chart_version_tmp%.*}
+                if [[ "$chart_version_tmp" == "$deploy_chart_version_tmp" ]]; then
+                    chart_version="$chartVersion"
+                    break
+                fi
+            done
+        fi
+
+        # compare with kubeblocks same head2 version
+        if [[ -z "$chart_version" ]]; then
+            for chartVersion in $(echo "$chart_version_list"); do
+                chart_version_tmp=${chartVersion%-*}
+                chart_version_tmp=${chart_version_tmp%.*}
+                kubeblocks_version_tmp=${kubeblocks_version%-*}
+                kubeblocks_version_tmp=${kubeblocks_version_tmp%.*}
+                if [[ "$chart_version_tmp" == "$kubeblocks_version_tmp" ]]; then
+                    chart_version="$chartVersion"
+                    break
+                fi
+            done
+        fi
 
         helm_chart_repo_tmp="${KB_REPO_NAME}"
         if [[ "$is_enterprise" == "true" ]]; then
@@ -97,7 +148,7 @@ main() {
     local KB_REPO_URL="https://apecloud.github.io/helm-charts"
     local KB_ENT_REPO_NAME="kb-ent-charts"
     local KB_ENT_REPO_URL="https://jihulab.com/api/v4/projects/${CHART_PROJECT_ID}/packages/helm/stable"
-    add_chart_repo
+    #add_chart_repo
 
     upgrade_charts_addon
 }
