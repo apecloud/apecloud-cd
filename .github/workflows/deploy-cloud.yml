@@ -218,7 +218,7 @@ jobs:
     secrets: inherit
 
   upgrade-addon:
-    if: ${{ inputs.UPGRADE_ADDON }}
+    if: ${{ inputs.UPGRADE_ADDON && startsWith(inputs.CLOUD_ENV_NAME, 'idc') }}
     permissions:
       contents: 'read'
       id-token: 'write'
