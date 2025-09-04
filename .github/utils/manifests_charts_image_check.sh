@@ -102,6 +102,54 @@ check_images() {
     done
 }
 
+check_addon_charts_images() {
+    chart_version_tmp=${1:-""}
+    chart_name_tmp=${2:-""}
+    chart_images_tmp=${3:-""}
+    addon_charts_images=""
+    charts_name=$(yq e "to_entries|map(.key)|.[]"  ${MANIFESTS_FILE})
+    for chart_name in $(echo "$charts_name"); do
+        if [[ -z "$chart_name" || "$chart_name" == "#"* || "$chart_name" == "kata" ]]; then
+            continue
+        fi
+        chart_versions=$(yq e '[.'${chart_name}'[].version] | join("|")' ${MANIFESTS_FILE})
+        chart_index=0
+        for chart_version in $(echo "$chart_versions" | sed 's/|/ /g'); do
+            engine_type=$(yq e "."${chart_name}"[${chart_index}].type"  ${MANIFESTS_FILE})
+            if [[ "${engine_type}" == "engine" ]]; then
+            addon_charts_image="apecloud/apecloud-addon-charts:${chart_name}-${chart_version}"
+            addon_charts_images="${addon_charts_images}|${addon_charts_image}"
+            fi
+            chart_index=$(( $chart_index + 1 ))
+        done
+    done
+    if [[ -n "$addon_charts_images" ]]; then
+        repository=""
+        check_flag_all=0
+        for image in $( echo "$addon_charts_images" | sed 's/|/ /g'); do
+            repository=$image
+            echo "check image: $repository"
+            check_flag=0
+            for chart_image in $( echo "$chart_images_tmp" ); do
+                if [[ "$chart_image" == "$repository" ]]; then
+                    check_flag=1
+                    break
+                fi
+            done
+
+            if [[ $check_flag -eq 0 ]]; then
+                check_flag_all=1
+                echo "$(tput -T xterm setaf 1)::error title=Not found ${chart_name_tmp} ${chart_version_tmp} image:$repository in manifests file:${MANIFESTS_FILE}$(tput -T xterm sgr0)"
+                echo 1 > exit_result
+            fi
+            repository=""
+        done
+        if [[ $check_flag_all -eq 0 ]]; then
+            echo "$(tput -T xterm setaf 2)Check addon charts in ${chart_name_tmp} ${chart_version_tmp} success$(tput -T xterm sgr0)"
+        fi
+    fi
+}
+
 check_charts_images() {
     touch exit_result
     echo 0 > exit_result
@@ -153,6 +201,9 @@ check_charts_images() {
                     continue
                 ;;
             esac
+            if [[ "$chart_name" == "kubeblocks-cloud" ]]; then
+                check_addon_charts_images "$chart_version" "$chart_name" "$chart_images" &
+            fi
             check_images "$is_enterprise" "$chart_version" "$chart_name" "$chart_images" "$set_values" &
             chart_index=$(( $chart_index + 1 ))
         done
