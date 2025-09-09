@@ -1004,7 +1004,7 @@ jobs:
     secrets: inherit
 
   mssql-pre:
-    if: ${{ inputs.CLOUD_PROVIDER != 'aks' && inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mssql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mssql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
