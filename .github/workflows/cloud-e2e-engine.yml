@@ -111,7 +111,7 @@ jobs:
                   test_engines_tmp="${test_engines_tmp},${engine_tmp}"
               fi
           
-              KB_CLOUD_TEST_ENGINES_PRE="4"
+              KB_CLOUD_TEST_ENGINES_PRE="${{ vars.KB_CLOUD_TEST_ENGINES_PRE }}"
               if [[ -z "${KB_CLOUD_TEST_ENGINES_PRE}" ]]; then
                   KB_CLOUD_TEST_ENGINES_PRE=4
               fi
