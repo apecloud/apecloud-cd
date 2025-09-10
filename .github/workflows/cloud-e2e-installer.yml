@@ -508,16 +508,50 @@ jobs:
               echo UPGRADE_RESULT=1 >> $GITHUB_ENV
           fi
 
-      - name: upgrade result
+      - name: check upgrade result
         if: ${{ always() }}
         id: upgrade_kb_cloud
         run: |
-          upgrade_result="[FAILED]"
-          if [[ "${UPGRADE_RESULT}" == "1" ]]; then
-              echo "upgrade kb cloud success"
-              upgrade_result="[PASSED]"
+          upgrade_result="[PASSED]"
+          if [[ "${UPGRADE_RESULT}" != "1" ]]; then
+              echo "upgrade KB Cloud failed"
+              upgrade_result="[FAILED]"
+              echo upgrade-result="${upgrade_result}" >> $GITHUB_OUTPUT
+              exit 1
           fi
-          echo upgrade-result="${upgrade_result}" >> $GITHUB_OUTPUT
+          
+          sleep 10
+          check_status=0
+          for i in {1..200}; do
+              if ! (kubectl get pods -n kb-cloud --no-headers | grep -v "Running" | grep -v "Completed") ; then
+                  echo "KB Cloud is ready"
+                  check_status=1
+                  break
+              fi
+              echo "Waiting for KB Cloud to be ready..."
+              kubectl get pods -n kb-cloud
+              echo ""
+              sleep 5
+          done
+          
+          if [[ $check_status -eq 0 ]]; then
+              echo "KB Cloud is not ready"
+              upgrade_result="[FAILED]"
+              echo upgrade-result="${upgrade_result}" >> $GITHUB_OUTPUT
+          
+              # logs kb-cloud error pod 
+              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud --no-headers | grep -v "Completed" | grep -v "Running" | awk '{print $1}')
+              echo "kb-cloud error pod: $kb_cloud_error_pods"
+              for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
+                  echo "==================== pod ${kb_cloud_error_pod} logs ===================="
+                  kubectl logs --tail 100 -n kb-cloud ${kb_cloud_error_pod}
+                  echo ""
+              done
+          
+              exit 1
+          else
+              echo upgrade-result="${upgrade_result}" >> $GITHUB_OUTPUT
+          fi
 
   send-message:
     needs: [ get-cloud-branch, installer-test, upgrade-test ]
