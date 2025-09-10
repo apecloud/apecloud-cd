@@ -3,7 +3,13 @@ name: Cloud E2E Schedule Idc
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 12 * * 0-4' # Runs at 15:00 + 5 UTC on Mon to Friday
+    - cron: '0 21 * * 0' # Runs at 5:00 UTC on Mon
+    - cron: '0 21 * * 1' # Runs at 5:00 UTC on Tue
+    - cron: '0 21 * * 2' # Runs at 5:00 UTC on Wed
+    - cron: '0 21 * * 3' # Runs at 5:00 UTC on Thu
+    - cron: '0 21 * * 4' # Runs at 5:00 UTC on Fri
+    - cron: '0 21 * * 5' # Runs at 5:00 UTC on Sat
+    - cron: '0 21 * * 6' # Runs at 5:00 UTC on Sun
 
 jobs:
   release-e2e-image:
@@ -25,13 +31,33 @@ jobs:
         ALPINE_IMAGE=apecloud/alpine:3.16
     secrets: inherit
 
+  schedule-cron:
+    runs-on: ubuntu-latest
+    outputs:
+      day-of-week: ${{ steps.get_tag_name.outputs.day-of-week }}
+    steps:
+      - name: get schedule cron
+        id: get-schedule-cron
+        run: |
+          SCHEDULE_CRON=${{ github.event.schedule }}
+          echo "SCHEDULE_CRON:${SCHEDULE_CRON}"
+          DAY_OF_WEEK="${SCHEDULE_CRON##* }"
+          echo "DAY_OF_WEEK:${DAY_OF_WEEK}"
+          if [[ "${SCHEDULE_CRON}" == "0 21 * * 6" || "${DAY_OF_WEEK}" == "6" ]]; then
+              DAY_OF_WEEK=""
+          else
+              DAY_OF_WEEK=$(( DAY_OF_WEEK + 1 ))
+          fi
+          echo "DAY_OF_WEEK2:${DAY_OF_WEEK}"
+          echo day-of-week="${DAY_OF_WEEK}" >> $GITHUB_OUTPUT
+
   e2e-engine-test-10:
-    needs: [ release-e2e-image ]
+    needs: [ release-e2e-image, schedule-cron ]
     uses: ./.github/workflows/trigger-workflow.yml
     with:
       GITHUB_REPO: "apecloud/apecloud-cd"
       BRANCH_NAME: "main"
       WORKFLOW_ID: "cloud-e2e-engine.yml"
       APECD_REF: "main"
-      EXTRA_ARGS: "TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_10 }}#CLOUD_ENV_NAME=idc2#CLOUD_BRANCH=release-1.1#CURRENT_VERSION=v1.1#TEST_REPORT=false"
+      EXTRA_ARGS: "TEST_INDEX=${{ needs.schedule-cron.outputs.day-of-week }}#TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_10 }}#CLOUD_ENV_NAME=idc2#CLOUD_BRANCH=release-1.1#CURRENT_VERSION=v1.1#TEST_REPORT=false"
     secrets: inherit

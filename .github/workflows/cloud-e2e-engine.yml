@@ -28,9 +28,9 @@ on:
         type: string
         required: false
         default: ''
-      TEST_REPORT:
-        description: "Test report (default: false)"
-        type: boolean
+      TEST_INDEX:
+        description: "Test index"
+        type: string
         required: false
         default: false
   workflow_call:
@@ -60,9 +60,9 @@ on:
         type: string
         required: false
         default: ''
-      TEST_REPORT:
-        description: "Test report (default: false)"
-        type: boolean
+      TEST_INDEX:
+        description: "Test index"
+        type: string
         required: false
         default: false
 
@@ -93,6 +93,7 @@ jobs:
       - name: Get test engine
         id: get_test_engine
         run: |
+          TEST_INDEX="${{ inputs.TEST_INDEX }}"
           TEST_ENGINES="${{ inputs.TEST_ENGINES }}"
           if [[ -z "$TEST_ENGINES" ]]; then
               TEST_ENGINES="mysql"
@@ -116,6 +117,12 @@ jobs:
               fi
               if [[ $(( engine_index % ${KB_CLOUD_TEST_ENGINES_PRE} )) == 0 ]]; then
                   test_job_index=$(( test_job_index + 1 ))
+                  if [[ -n "${TEST_INDEX}" && "${TEST_INDEX}" != "7" && "${TEST_INDEX}" != "${test_job_index}" ]]; then
+                      echo "TEST_INDEX:${TEST_INDEX} not equal to test job index:${test_job_index}, Skip test."
+                      test_engines_tmp=""
+                      continue
+                  fi
+          
                   test_job_index_tmp=$(printf "%02d" $test_job_index)
                   if [[ -z "${test_engines}" ]]; then
                       test_engines_all="${test_engines_tmp}|${test_job_index_tmp}"
@@ -125,18 +132,21 @@ jobs:
                       test_engines="${test_engines},{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
                   fi
                   test_engines_tmp=""
-          
               fi
           done
           if [[ -n "${test_engines_tmp}" ]]; then
               test_job_index=$(( test_job_index + 1 ))
-              test_job_index_tmp=$(printf "%02d" $test_job_index)
-              if [[ -z "${test_engines}" ]]; then
-                  test_engines_all="${test_engines_tmp}|${test_job_index_tmp}"
-                  test_engines="{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+              if [[ -n "${TEST_INDEX}" && "${TEST_INDEX}" != "7" && "${TEST_INDEX}" != "${test_job_index}" ]]; then
+                  echo "TEST_INDEX:${TEST_INDEX} not equal to test job index:${test_job_index}, Skip test."
               else
-                  test_engines_all="${test_engines_all}##${test_engines_tmp}|${test_job_index_tmp}"
-                  test_engines="${test_engines},{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+                  test_job_index_tmp=$(printf "%02d" $test_job_index)
+                  if [[ -z "${test_engines}" ]]; then
+                      test_engines_all="${test_engines_tmp}|${test_job_index_tmp}"
+                      test_engines="{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+                  else
+                      test_engines_all="${test_engines_all}##${test_engines_tmp}|${test_job_index_tmp}"
+                      test_engines="${test_engines},{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+                fi
               fi
           fi
           echo "${test_engines}"
