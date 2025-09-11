@@ -113,6 +113,20 @@ jobs:
       k3s-version: ${{ inputs.CLUSTER_VERSION }}
     secrets: inherit
 
+  test-postgresql-etcd:
+    if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgresql-etcd|') || endsWith(inputs.TEST_TYPE, 'postgresql-etcd')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
+    needs: [ enable-runner ]
+    uses: ./.github/workflows/test-kbcli-k3s.yml
+    with:
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "2"
+      test-type-name: "postgresql-etcd"
+      test-args: "--external-etcd true ${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      k3s-version: ${{ inputs.CLUSTER_VERSION }}
+    secrets: inherit
+
   test-redis:
     if: ${{ needs.enable-runner.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ enable-runner ]
@@ -720,7 +734,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ test-apecloud-mysql, test-postgresql, test-redis, test-mongodb, test-kafka, test-pulsar,
              test-weaviate, test-qdrant, test-greptimedb, test-nebula,
-             test-risingwave, test-starrocks, test-etcd, test-asmysql,
+             test-risingwave, test-starrocks, test-etcd, test-asmysql, test-postgresql-etcd,
              test-openldap, test-milvus, test-clickhouse, test-pika, test-opensearch, test-elasticsearch,
              test-vllm, test-tdengine, test-orioledb, test-vanilla-pg, test-ggml, test-zookeeper,
              test-mariadb, test-tidb, test-xinference, test-oracle, test-opengauss, test-influxdb,
@@ -1107,6 +1121,9 @@ jobs:
               fi
           fi
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* && "${{ inputs.KB_VERSION }}" != "v0.9."* ]]; then
+              if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"postgresql-etcd|"* || "${{ inputs.TEST_TYPE }}" == *"postgresql-etcd" ]]; then
+                  TEST_RESULT="${TEST_RESULT}##postgresql-etcd|${{ needs.test-postgresql-etcd.outputs.test-result }}"
+              fi
               if [[ "${{ inputs.TEST_TYPE }}" == '' || "${{ inputs.TEST_TYPE }}" == *"asmysql-proxy|"* || "${{ inputs.TEST_TYPE }}" == *"asmysql-proxy" ]]; then
                   TEST_RESULT="${TEST_RESULT}##asmysql-proxy|${{ needs.test-asmysql-proxy.outputs.test-result }}"
               fi
