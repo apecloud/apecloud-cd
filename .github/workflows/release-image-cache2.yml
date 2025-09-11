@@ -261,12 +261,47 @@ jobs:
                           addon_chart_version="${addon_chart_version/v/}"
                       fi
                       IMAGE_PUSH_TAG="${IMAGE_NAME}:${addon_chart_name}-${addon_chart_version}"
+          
+                      releases_notes_file="addons/${addon_dir}/releases_notes.yaml"
+                      if [[ -f "${releases_notes_file}" ]]; then
+                          released_flag=0
+                          RELEASE_VERSIONS=$(yq e ".releases[].version" ${releases_notes_file})
+                          for release_version in ${RELEASE_VERSIONS}; do
+                              if [[ "${release_version}" == "${addon_chart_version}" ]]; then
+                                  echo "$(tput -T xterm setaf 1)::error title=Image ${IMAGE_PUSH_TAG} has been released and cannot be overwritten.$(tput -T xterm sgr0)"
+                                  released_flag=1
+                              fi
+                          done
+                          if [[ $released_flag -eq 1 ]]; then
+                              continue
+                          fi
+                      fi
+                      
                       DOCKERHUB_PUSH_TAGS="${DOCKERHUB_PUSH_TAGS},${DOCKER_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
                       ALIYUN_PUSH_TAGS="${ALIYUN_PUSH_TAGS},${ALIYUN_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
                       ALIYUN_NEW_PUSH_TAGS="${ALIYUN_NEW_PUSH_TAGS},${ALIYUN_REGISTRY_URL_NEW}/${IMAGE_PUSH_TAG}"
                       GOOGLE_PUSH_TAGS="${GOOGLE_PUSH_TAGS},${GOOGLE_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
                   fi
               done
+          elif [[ "${IMAGE_NAME}" == "apecloud/apecloud-addon-charts" && -d "addons" ]]; then
+              addon_chart_name="${IMAGE_TAG_NAME%-[0-9]*}"
+              addon_chart_file="addons/${addon_chart_name}/Chart.yaml"
+              if [[ -f "${addon_chart_file}" ]]; then
+                  addon_chart_version=$(yq eval '.version' "${addon_chart_file}")
+                  if [[ "${addon_chart_version}" == "v"* ]]; then
+                      addon_chart_version="${addon_chart_version/v/}"
+                  fi
+                  releases_notes_file="addons/${addon_chart_name}/releases_notes.yaml"
+                  if [[ -f "${releases_notes_file}" ]]; then
+                      RELEASE_VERSIONS=$(yq e ".releases[].version" ${releases_notes_file})
+                      for release_version in ${RELEASE_VERSIONS}; do
+                          if [[ "${release_version}" == "${addon_chart_version}" ]]; then
+                              echo "$(tput -T xterm setaf 1)::error title=${IMAGE_NAME} tag ${IMAGE_TAG_NAME} has been released and cannot be overwritten.$(tput -T xterm sgr0)"
+                              exit 1
+                          fi
+                      done
+                  fi
+              fi
           fi
           
           echo dockerhub-push-tags="${DOCKERHUB_PUSH_TAGS}" >> $GITHUB_OUTPUT

@@ -56,7 +56,12 @@ filter_charts() {
 lookup_changed_charts() {
     local changed_files
     if [[ -n "$SPECIFY_CHART" ]]; then
-        changed_files="$SPECIFY_CHART"
+        if [[ "${SPECIFY_CHART}" == *"|"* ]]; then
+            changed_files=$(echo "$SPECIFY_CHART" | sed 's/|/ /g')
+        else
+            changed_files="$SPECIFY_CHART"
+        fi
+
     else
         changed_files=$(ls -1 "$charts_dir")
         if [[ "$changed_files" == *"gemini-monitor"* ]]; then
