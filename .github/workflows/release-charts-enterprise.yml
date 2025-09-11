@@ -180,6 +180,65 @@ jobs:
           echo VERSION=$version >> $GITHUB_OUTPUT
           echo APP_VERSION=$app_version >> $GITHUB_OUTPUT
 
+      - name: Check Addons Version Released
+        if: ${{ inputs.CHART_DIR == 'addons' || inputs.CHART_DIR == 'addons-cluster' }}
+        id: check_addons_version
+        run: |
+          echo "check addons version released"
+          RELEASE_VERSION="${{ steps.get_version.outputs.VERSION }}"
+          RELEASE_VERSION_TMP="${RELEASE_VERSION}"
+          CHART_DIR="${{ inputs.CHART_DIR }}"
+          CHART_DIR="${CHART_DIR%/*}"
+          SPECIFY_CHART="${{ inputs.SPECIFY_CHART }}"
+          SPECIFY_ADDONS_CHARTS=""
+          released_flag=0
+          
+          for chart_dir in $(find ${CHART_DIR} -maxdepth 1 -type d); do
+              check_flag=0
+              if [[ -z "${RELEASE_VERSION}" ]]; then
+                  RELEASE_VERSION_TMP=""
+              fi
+              chart_name=$(basename ${chart_dir})
+              if [[ -n "${SPECIFY_CHART}" && "${chart_name}" != "${SPECIFY_CHART}" ]]; then
+                  continue
+              fi
+          
+              releases_notes_file="${chart_dir}/releases_notes.yaml"
+              if [[ -f "${releases_notes_file}" ]]; then
+                  if [[ -z "${RELEASE_VERSION_TMP}" ]]; then
+                      addon_chart_path="${chart_dir}/Chart.yaml"
+                      RELEASE_VERSION_TMP=$(yq e ".version" ${addon_chart_path})
+                  fi
+          
+                  RELEASE_VERSIONS=$(yq e ".releases[].version" ${releases_notes_file})
+                  for release_version in ${RELEASE_VERSIONS}; do
+                      if [[ "${release_version}" == "${RELEASE_VERSION_TMP}" ]]; then
+                          echo "$(tput -T xterm setaf 1)::error title=${CHART_DIR} ${chart_name} version ${RELEASE_VERSION_TMP} has been released and cannot be overwritten.$(tput -T xterm sgr0)"
+                          released_flag=1
+                          check_flag=1
+                          break
+                      fi
+                  done
+          
+                  if [[ -z "${SPECIFY_CHART}" && -n "${RELEASE_VERSION_TMP}" && $check_flag -eq 0 ]]; then
+                      if [[ -z "${SPECIFY_ADDONS_CHARTS} ]]; then
+                          SPECIFY_ADDONS_CHARTS="${chart_name}"
+                      else
+                          SPECIFY_ADDONS_CHARTS="${SPECIFY_ADDONS_CHARTS}|${chart_name}"
+                      fi
+                  fi
+              fi
+          done
+          
+          if [[ ${released_flag} -eq 1 ]]; then
+              if [[ -z "${SPECIFY_CHART}" ]]; then
+                  echo "SPECIFY_ADDONS_CHARTS:${SPECIFY_ADDONS_CHARTS}"
+                  echo specify-addons-charts="${SPECIFY_ADDONS_CHARTS}" >> $GITHUB_OUTPUT
+              else
+                  exit 1
+              fi
+          fi
+
       - name: Bump helm chart version
         if: inputs.MAKE_OPS
         run: |
@@ -235,6 +294,11 @@ jobs:
           
           if [[ -n "${{ inputs.SPECIFY_CHART }}" ]]; then
               args+=(--specify-chart "${{ inputs.SPECIFY_CHART }}" )
+          else
+              SPECIFY_ADDONS_CHARTS="${{ steps.check_addons_version.outputs.specify-addons-charts }}"
+              if [[ -n "${SPECIFY_ADDONS_CHARTS}" ]]; then
+                  args+=(--specify-chart "${SPECIFY_ADDONS_CHARTS}" )
+              fi
           fi
           
           "${{ github.workspace }}/apecloud-cd/.github/utils/helm_package.sh" "${args[@]}"
@@ -376,6 +440,11 @@ jobs:
           
           if [[ -n "${{ inputs.SPECIFY_CHART }}" ]]; then
               args+=(--specify-chart "${{ inputs.SPECIFY_CHART }}" )
+          else
+              SPECIFY_ADDONS_CHARTS="${{ steps.check_addons_version.outputs.specify-addons-charts }}"
+              if [[ -n "${SPECIFY_ADDONS_CHARTS}" ]]; then
+                  args+=(--specify-chart "${SPECIFY_ADDONS_CHARTS}" )
+              fi
           fi
           
           "${{ github.workspace }}/apecloud-cd/.github/utils/helm_package.sh" "${args[@]}"
