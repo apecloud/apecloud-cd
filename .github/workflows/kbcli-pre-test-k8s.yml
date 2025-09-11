@@ -119,6 +119,23 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
+  postgresql-etcd-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'postgresql-etcd|') || endsWith(inputs.TEST_TYPE, 'postgresql-etcd')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "2"
+      test-type-name: "postgresql-etcd-pre"
+      test-args: "--external-etcd true ${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
   redis-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ install-kubeblocks-pre ]
@@ -1091,7 +1108,7 @@ jobs:
   send-message:
     if: ${{ inputs.previous-version && always() }}
     runs-on: ubuntu-latest
-    needs: [ install-kubeblocks-pre, apecloud-mysql-pre, postgresql-pre,
+    needs: [ install-kubeblocks-pre, apecloud-mysql-pre, postgresql-pre, postgresql-etcd-pre,
              redis-pre, mongodb-pre, kafka-pre, pulsar-pre,
              weaviate-pre, qdrant-pre, greptimedb-pre,
              nebula-pre, risingwave-pre, starrocks-pre, etcd-pre, oceanbase-pre,
@@ -1348,6 +1365,9 @@ jobs:
               fi
           fi
           if [[ "${{ inputs.release-version }}" != "v0.5."* && "${{ inputs.release-version }}" != "v0.6."* && "${{ inputs.release-version }}" != "v0.7."* && "${{ inputs.release-version }}" != "v0.8."* && "${{ inputs.release-version }}" != "v0.9."* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"postgresql-etcd|"* || "$TEST_TYPE" == *"postgresql-etcd" ]]; then
+                  TEST_RESULT="${TEST_RESULT}##postgresql-etcd-pre|${{ needs.postgresql-etcd-pre.outputs.test-result }}"
+              fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"asmysql-proxy|"* || "$TEST_TYPE" == *"asmysql-proxy" ]]; then
                   TEST_RESULT="${TEST_RESULT}##asmysql-proxy-pre|${{ needs.asmysql-proxy-pre.outputs.test-result }}"
               fi
