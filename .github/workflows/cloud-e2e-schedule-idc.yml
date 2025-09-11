@@ -39,7 +39,7 @@ jobs:
       - name: get schedule cron
         id: get-schedule-cron
         run: |
-          SCHEDULE_CRON=${{ github.event.schedule }}
+          SCHEDULE_CRON="${{ github.event.schedule }}"
           echo "SCHEDULE_CRON:${SCHEDULE_CRON}"
           DAY_OF_WEEK="${SCHEDULE_CRON##* }"
           echo "DAY_OF_WEEK:${DAY_OF_WEEK}"
