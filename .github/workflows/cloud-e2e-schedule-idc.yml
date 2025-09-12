@@ -59,5 +59,5 @@ jobs:
       BRANCH_NAME: "main"
       WORKFLOW_ID: "cloud-e2e-engine.yml"
       APECD_REF: "main"
-      EXTRA_ARGS: "TEST_INDEX=${{ needs.schedule-cron.outputs.day-of-week }}#TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_10 }}#CLOUD_ENV_NAME=idc2#CLOUD_BRANCH=release-1.1#CURRENT_VERSION=v1.1#TEST_REPORT=false"
+      EXTRA_ARGS: "TEST_INDEX=${{ needs.schedule-cron.outputs.day-of-week }}#TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_10 }}#CLOUD_ENV_NAME=idc2#CLOUD_BRANCH=release-1.1#CURRENT_VERSION=v1.1"
     secrets: inherit
