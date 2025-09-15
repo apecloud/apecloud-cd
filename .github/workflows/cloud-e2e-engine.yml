@@ -32,7 +32,7 @@ on:
         description: "Test index"
         type: string
         required: false
-        default: false
+        default: ''
   workflow_call:
     inputs:
       TEST_ENGINES:
@@ -64,7 +64,7 @@ on:
         description: "Test index"
         type: string
         required: false
-        default: false
+        default: ''
 
 run-name: Cloud E2E Engine Test on Env:${{ inputs.CLOUD_ENV_NAME }} ${{ inputs.TEST_ENGINES }} Ref:${{ inputs.CLOUD_BRANCH }}
 
