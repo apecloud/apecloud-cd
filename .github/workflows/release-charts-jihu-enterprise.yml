@@ -186,8 +186,8 @@ jobs:
                       fi
                   done
           
-                  if [[ -z "${SPECIFY_CHART}" && -n "${RELEASE_VERSION_TMP}" && $check_flag -eq 0 ]]; then
-                      if [[ -z "${SPECIFY_ADDONS_CHARTS} ]]; then
+                  if [[ -z "${SPECIFY_CHART}" && -n "${RELEASE_VERSION_TMP}" && ${check_flag} -eq 0 ]]; then
+                      if [[ -z "${SPECIFY_ADDONS_CHARTS}" ]]; then
                           SPECIFY_ADDONS_CHARTS="${chart_name}"
                       else
                           SPECIFY_ADDONS_CHARTS="${SPECIFY_ADDONS_CHARTS}|${chart_name}"
