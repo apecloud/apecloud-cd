@@ -34,7 +34,7 @@ jobs:
   schedule-cron:
     runs-on: ubuntu-latest
     outputs:
-      day-of-week: ${{ steps.get_tag_name.outputs.day-of-week }}
+      day-of-week: ${{ steps.get-schedule-cron.outputs.day-of-week }}
     steps:
       - name: get schedule cron
         id: get-schedule-cron
