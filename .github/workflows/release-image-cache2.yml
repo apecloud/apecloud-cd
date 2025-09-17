@@ -89,7 +89,7 @@ on:
         required: false
         default: 'main'
       ADD_ADDONS:
-        description: "The addons of kubeblocks-addons add to apecloud-addons"
+        description: "The addons of kubeblocks-addons"
         type: string
         required: false
         default: ''
@@ -150,34 +150,6 @@ jobs:
           path: apecloud-cd
           token: ${{ env.GITHUB_TOKEN }}
           ref: ${{ inputs.APECD_REF }}
-
-      - name: Checkout kubeblocks-addons Code
-        uses: actions/checkout@v4
-        if: ${{ inputs.IMG == 'apecloud/apecloud-addon-charts' && inputs.ADD_ADDONS != '' }}
-        with:
-          fetch-depth: 0
-          repository: apecloud/kubeblocks-addons
-          path: kubeblocks-addons
-          token: ${{ env.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name }}
-
-      - name: copy kubeblocks addons ${{ inputs.ADD_ADDONS }}
-        if: ${{ inputs.IMG == 'apecloud/apecloud-addon-charts' && inputs.ADD_ADDONS != '' }}
-        run: |
-          kubeblocks_addons_dir="./kubeblocks-addons/addons"
-          apecloud_addons_dir="./addons"
-          add_addons="${{ inputs.ADD_ADDONS }}"
-          for add_addon in $(echo "$add_addons" | sed 's/|/ /g'); do
-              kb_addon_dir="${kubeblocks_addons_dir}/${add_addon}"
-              ape_addon_dir="${apecloud_addons_dir}/${add_addon}"
-              if [[ -d "${kb_addon_dir}" ]]; then
-                  if [[ -d "${ape_addon_dir}" ]]; then
-                      rm -rf ${ape_addon_dir}
-                  fi
-                  echo "copy $kb_addon_dir to $ape_addon_dir"
-                  cp -r ${kb_addon_dir} ${apecloud_addons_dir}
-              fi
-          done
 
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
@@ -252,7 +224,22 @@ jobs:
           GOOGLE_PUSH_TAGS="${GOOGLE_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
           
           if [[ "${IMAGE_TAG_NAME}" == "v"*"."*"."* && "${IMAGE_NAME}" == "apecloud/apecloud-addon-charts" && -d "addons" ]]; then
+              add_addons="${{ inputs.ADD_ADDONS }}"
               for addon_dir in $(ls addons); do
+                  if [[ -n "${add_addons}" ]]; then
+                      echo "add addon: ${add_addons}"
+                      add_addons_flag=0
+                      for add_addon in $(echo "$add_addons" | sed 's/|/ /g'); do
+                          if [[ "${addon_dir}" == "${add_addon}" ]]; then
+                              add_addons_flag=1
+                              break
+                          fi
+                      done
+                      if [[ $add_addons_flag -eq 0 ]]; then
+                          continue
+                      fi
+                  fi
+                  
                   addon_chart_file="addons/${addon_dir}/Chart.yaml"
                   if [[ -f "${addon_chart_file}" ]]; then
                       addon_chart_name=$(yq eval '.name' "${addon_chart_file}")
