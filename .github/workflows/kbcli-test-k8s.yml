@@ -17,12 +17,12 @@ on:
         required: false
         default: ''
       TEST_TYPE:
-        description: 'test type (e.g. apecloud-mysql|postgresql|redis|mongodb|kafka|pulsar|weaviate|qdrant|
+        description: 'test type (e.g. apecloud-mysql|postgresql|postgresql-etcd|redis|mongodb|mongodb-shard|kafka|pulsar|weaviate|qdrant|
         greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|orioledb|vanilla-pg|asmysql|openldap|
         polardbx|opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|pika|ggml|zookeeper|mariadb|tidb|xinference|
         oracle|opengauss|influxdb|flink|solr|mogdb|oceanbase-ent|starrocks-ent|yashandb|
         redis-cluster|dmdb|minio|orchestrator|rabbitmq|loki|victoria-metrics|gaussdb|damengdb|
-        kingbase|vastbase|mssql|rocketmq|goldendb|tdsql|greatsql)'
+        kingbase|vastbase|mssql|rocketmq|goldendb|tdsql|greatsql|greatdb)'
         type: string
         required: false
         default: ''
@@ -232,7 +232,7 @@ jobs:
     secrets: inherit
 
   test-mongodb:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb')) }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb|') || endsWith(inputs.TEST_TYPE, 'mongodb')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -242,6 +242,24 @@ jobs:
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "6"
       test-type-name: "mongodb"
+      test-args: "${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-mongodb-shard:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb-shard|') || endsWith(inputs.TEST_TYPE, 'mongodb-shard')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "67"
+      test-type-name: "mongodb-shard"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
@@ -1222,7 +1240,7 @@ jobs:
     secrets: inherit
 
   test-greatsql:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'greatsql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.1.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'greatsql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -1239,13 +1257,31 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-greatdb:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'greatdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/test-kbcli.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "66"
+      test-type-name: "greatdb"
+      test-args: "${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
     outputs:
       test-date: ${{ steps.upload_test_result.outputs.test-date }}
     needs: [ test-playground, test-kubeblocks, test-apecloud-mysql, test-postgresql, test-redis,
-             test-mongodb, test-kafka, test-pulsar, test-weaviate, test-qdrant,
+             test-mongodb, test-mongodb-shard, test-kafka, test-pulsar, test-weaviate, test-qdrant,
              test-greptimedb, test-nebula, test-risingwave, test-starrocks,
              test-etcd, test-oceanbase, test-asmysql, test-asmysql-proxy,
              test-asmysql-orc, test-asmysql-orc-proxy, test-postgresql-etcd,
@@ -1257,7 +1293,7 @@ jobs:
              test-yashandb, test-redis-cluster, test-dmdb, test-minio, test-orchestrator,
              test-rabbitmq, test-loki, test-victoria-metrics, test-gaussdb, test-damengdb,
              test-kingbase, test-vastbase, test-mssql, test-rocketmq, test-goldendb,
-             test-tdsql, test-greatsql ]
+             test-tdsql, test-greatsql, test-greatdb ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1556,6 +1592,16 @@ jobs:
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"greatsql"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##greatsql|${{ needs.test-greatsql.outputs.test-result }}"
                   cmd="${cmd_head} \"${{ needs.test-greatsql.outputs.test-result-report }}\" "
+                  eval "$cmd"
+              fi
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"greatdb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##greatdb|${{ needs.test-greatdb.outputs.test-result }}"
+                  cmd="${cmd_head} \"${{ needs.test-greatdb.outputs.test-result-report }}\" "
+                  eval "$cmd"
+              fi
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mongodb-shard"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##mongodb-shard|${{ needs.test-mongodb-shard.outputs.test-result }}"
+                  cmd="${cmd_head} \"${{ needs.test-mongodb-shard.outputs.test-result-report }}\" "
                   eval "$cmd"
               fi
           fi
