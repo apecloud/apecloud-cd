@@ -1599,16 +1599,16 @@ jobs:
                   cmd="${cmd_head} \"${{ needs.test-greatdb.outputs.test-result-report }}\" "
                   eval "$cmd"
               fi
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mongodb-shard"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##mongodb-shard|${{ needs.test-mongodb-shard.outputs.test-result }}"
+                  cmd="${cmd_head} \"${{ needs.test-mongodb-shard.outputs.test-result-report }}\" "
+                  eval "$cmd"
+              fi
           fi
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* && "${{ inputs.KB_VERSION }}" != "v0.9."* ]]; then
               if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"postgresql-etcd|"* || "$TEST_TYPE" == *"postgresql-etcd") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
                   TEST_RESULT="${TEST_RESULT}##postgresql-etcd|${{ needs.test-postgresql-etcd.outputs.test-result }}"
                   cmd="${cmd_head} \"${{ needs.test-postgresql-etcd.outputs.test-result-report }}\" "
-                  eval "$cmd"
-              fi
-              if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"mongodb-shard|"* || "$TEST_TYPE" == *"mongodb-shard") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
-                  TEST_RESULT="${TEST_RESULT}##mongodb-shard|${{ needs.test-mongodb-shard.outputs.test-result }}"
-                  cmd="${cmd_head} \"${{ needs.test-mongodb-shard.outputs.test-result-report }}\" "
                   eval "$cmd"
               fi
               if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"asmysql-proxy|"* || "$TEST_TYPE" == *"asmysql-proxy") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then

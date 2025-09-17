@@ -1394,13 +1394,13 @@ jobs:
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"greatdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##greatdb-pre|${{ needs.greatdb-pre.outputs.test-result }}"
               fi
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mongodb-shard"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##mongodb-shard-pre|${{ needs.mongodb-shard-pre.outputs.test-result }}"
+              fi
           fi
           if [[ "${{ inputs.release-version }}" != "v0.5."* && "${{ inputs.release-version }}" != "v0.6."* && "${{ inputs.release-version }}" != "v0.7."* && "${{ inputs.release-version }}" != "v0.8."* && "${{ inputs.release-version }}" != "v0.9."* ]]; then
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"postgresql-etcd|"* || "$TEST_TYPE" == *"postgresql-etcd" ]]; then
                   TEST_RESULT="${TEST_RESULT}##postgresql-etcd-pre|${{ needs.postgresql-etcd-pre.outputs.test-result }}"
-              fi   
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mongodb-shard|"* || "$TEST_TYPE" == *"mongodb-shard" ]]; then
-                  TEST_RESULT="${TEST_RESULT}##mongodb-shard-pre|${{ needs.mongodb-shard-pre.outputs.test-result }}"
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"asmysql-proxy|"* || "$TEST_TYPE" == *"asmysql-proxy" ]]; then
                   TEST_RESULT="${TEST_RESULT}##asmysql-proxy-pre|${{ needs.asmysql-proxy-pre.outputs.test-result }}"
