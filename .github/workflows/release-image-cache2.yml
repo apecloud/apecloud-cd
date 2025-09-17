@@ -225,8 +225,14 @@ jobs:
           
           if [[ "${IMAGE_TAG_NAME}" == "v"*"."*"."* && "${IMAGE_NAME}" == "apecloud/apecloud-addon-charts" && -d "addons" ]]; then
               add_addons="${{ inputs.ADD_ADDONS }}"
+              if [[ -n "${add_addons}" && "${{ github.repository }}" == "apecloud/kubeblocks-addons" ]]; then
+                  DOCKERHUB_PUSH_TAGS=""
+                  ALIYUN_PUSH_TAGS=""
+                  ALIYUN_NEW_PUSH_TAGS=""
+                  GOOGLE_PUSH_TAGS=""
+              fi
               for addon_dir in $(ls addons); do
-                  if [[ -n "${add_addons}" ]]; then
+                  if [[ -n "${add_addons}" && "${{ github.repository }}" == "apecloud/kubeblocks-addons" ]]; then
                       echo "add addon: ${add_addons}"
                       add_addons_flag=0
                       for add_addon in $(echo "$add_addons" | sed 's/|/ /g'); do
@@ -264,10 +270,29 @@ jobs:
                           fi
                       fi
                       
-                      DOCKERHUB_PUSH_TAGS="${DOCKERHUB_PUSH_TAGS},${DOCKER_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
-                      ALIYUN_PUSH_TAGS="${ALIYUN_PUSH_TAGS},${ALIYUN_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
-                      ALIYUN_NEW_PUSH_TAGS="${ALIYUN_NEW_PUSH_TAGS},${ALIYUN_REGISTRY_URL_NEW}/${IMAGE_PUSH_TAG}"
-                      GOOGLE_PUSH_TAGS="${GOOGLE_PUSH_TAGS},${GOOGLE_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
+                      if [[ -z "{DOCKERHUB_PUSH_TAGS}" ]]; then
+                          DOCKERHUB_PUSH_TAGS="${DOCKER_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
+                      else
+                          DOCKERHUB_PUSH_TAGS="${DOCKERHUB_PUSH_TAGS},${DOCKER_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
+                      fi
+                      
+                      if [[ -z "{ALIYUN_PUSH_TAGS}" ]]; then
+                          ALIYUN_PUSH_TAGS="${ALIYUN_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
+                      else
+                          ALIYUN_PUSH_TAGS="${ALIYUN_PUSH_TAGS},${ALIYUN_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
+                      fi
+                      
+                      if [[ -z "{ALIYUN_NEW_PUSH_TAGS}" ]]; then
+                          ALIYUN_NEW_PUSH_TAGS="${ALIYUN_REGISTRY_URL_NEW}/${IMAGE_PUSH_TAG}"
+                      else
+                          ALIYUN_NEW_PUSH_TAGS="${ALIYUN_NEW_PUSH_TAGS},${ALIYUN_REGISTRY_URL_NEW}/${IMAGE_PUSH_TAG}"
+                      fi
+          
+                      if [[ -z "{GOOGLE_PUSH_TAGS}" ]]; then
+                          GOOGLE_PUSH_TAGS="${GOOGLE_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
+                      else
+                          GOOGLE_PUSH_TAGS="${GOOGLE_PUSH_TAGS},${GOOGLE_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
+                      fi
                   fi
               done
           elif [[ "${IMAGE_NAME}" == "apecloud/apecloud-addon-charts" && -d "addons" ]]; then
