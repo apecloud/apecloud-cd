@@ -250,7 +250,7 @@ jobs:
     secrets: inherit
 
   test-mongodb-shard:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb-shard|') || endsWith(inputs.TEST_TYPE, 'mongodb-shard')) }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb-shard|') || endsWith(inputs.TEST_TYPE, 'mongodb-shard')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -1240,7 +1240,7 @@ jobs:
     secrets: inherit
 
   test-greatsql:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'greatsql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.1.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'greatsql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -1258,7 +1258,7 @@ jobs:
     secrets: inherit
 
   test-greatdb:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'greatdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.1.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'greatdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
