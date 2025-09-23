@@ -224,7 +224,7 @@ jobs:
                       if [[ -z "${SPECIFY_ADDONS_CHARTS}" ]]; then
                           SPECIFY_ADDONS_CHARTS="${chart_name}"
                       else
-                          SPECIFY_ADDONS_CHARTS="${SPECIFY_ADDONS_CHARTS}|${chart_name}"
+                          SPECIFY_ADDONS_CHARTS="${SPECIFY_ADDONS_CHARTS}##${chart_name}"
                       fi
                   fi
               fi
