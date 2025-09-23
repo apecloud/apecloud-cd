@@ -292,18 +292,15 @@ jobs:
               cmd="${cmd} --test-type '${{ inputs.cluster-test-type }}' "
           fi
           
-          if [[ -z "${PREVIOUS_VERSION}" || "${{ inputs.test-args }}" != *"--ape-local apelocal"* ]]; then
+          if [[ -z "${PREVIOUS_VERSION}" && "${{ inputs.test-args }}" != *"--ape-local"* && "${{ inputs.test-args }}" != *"--only-kubectl"* ]]; then
+              # chaos mesh test
               common_cmd=" --chaos-mesh true --drain-node true "
               if [[ "${{ inputs.cloud-provider }}" == "aks" ]]; then
                   common_cmd=" --chaos-mesh true "
               fi
-              KB_VERSION_TMP="${KB_VERSION}"
-              if [[ "${KB_VERSION_TMP}" != "v"* ]]; then
-                  KB_VERSION_TMP="v${KB_VERSION_TMP}"
-              fi
-              release_tag="v"*"."*"."*
-              not_stable_release_tag="v"*"."*"."*"-"*
-              if [[ "${KB_VERSION_TMP}" == $release_tag && "${KB_VERSION_TMP}" != $not_stable_release_tag ]]; then
+          
+              # generate report
+              if [[ "${{ inputs.test-args }}" != *"--generate-output"* ]]; then
                   common_cmd=" --generate-output true ${common_cmd}"
               fi
           fi
@@ -350,6 +347,14 @@ jobs:
               echo test-result=[PASSED] >> $GITHUB_OUTPUT
           fi
 
+      - name: Setup ossutil
+        if: ${{ always() && inputs.previous-version == '' && ! contains(inputs.test-args, 'ape-local') && ! contains(inputs.test-args, 'only-kubectl') }}
+        uses: manyuanrong/setup-ossutil@v2.0
+        with:
+          access-key-id: "${{ env.OSS_KEY_ID }}"
+          access-key-secret: "${{ env.OSS_KEY_SECRET }}"
+          endpoint: "${{ env.OSS_ENDPOINT }}"
+
       - name: test result report
         if: ${{ always() }}
         id: test_result_report
@@ -363,6 +368,7 @@ jobs:
               echo test-result-report="${test_result_report}" >> $GITHUB_OUTPUT
               echo ""
               TEST_RESULT="${test_result_report}"
+              result_engine_name=""
               for test_ret in `echo "$TEST_RESULT" | sed 's/##/ /g'`; do
                   test_ret=$( echo "$test_ret" | sed 's/#/ /g' )
                   case $test_ret in
@@ -380,5 +386,31 @@ jobs:
                           echo "$test_ret"
                       ;;
                   esac
+          
+                  if [[ "${test_ret}" == "-----"*"-----" ]]; then
+                      result_engine_name=$(echo "$test_ret" | sed 's/^-----*-----\(.*\)(.*/\1/' | tr ' ' '_')
+                  fi
               done
+          
+              if [[ -n "${result_engine_name}" && -z "${PREVIOUS_VERSION}" && "${{ inputs.test-args }}" != *"--ape-local"* && "${{ inputs.test-args }}" != *"--only-kubectl"* ]]; then
+                  KUBEBLOCKS_VERSION="${{ env.KUBEBLOCKS_RELEASE_VERSION }}"
+                  OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}"
+                  upload_file_name="${result_engine_name}Test_Report.log"
+                  sed -i 's/${{ env.AWS_ACCESS_KEY_ID }}/***/g' ${FILE_LOG}
+                  sed -i 's/${{ env.AWS_SECRET_ACCESS_KEY }}/***/g' ${FILE_LOG}
+                  sed -i 's/${{ env.JIHULAB_ACCESS_TOKEN }}/***/g' ${FILE_LOG}
+                  echo "cp -r ${FILE_LOG} ${upload_file_name}"
+                  cp -r ${FILE_LOG} ${upload_file_name}
+                  for i in $(seq 1 3); do
+                      ossutil cp -rf "${upload_file_name}" "${OSS_DIR}/${upload_file_name}"
+                      upload_ret=$?
+                      if [[ $upload_ret -eq 0 ]]; then
+                          echo "$(tput -T xterm setaf 2)upload ${upload_file_name} to oss successfully$(tput -T xterm sgr0)"
+                          break
+                      else
+                          echo "$(tput -T xterm setaf 3)::warning title=upload ${upload_file_name} to oss failure$(tput -T xterm sgr0)"
+                      fi
+                      sleep 1
+                  done
+              fi
           fi
