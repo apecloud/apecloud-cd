@@ -224,7 +224,7 @@ jobs:
                       if [[ -z "${SPECIFY_ADDONS_CHARTS}" ]]; then
                           SPECIFY_ADDONS_CHARTS="${chart_name}"
                       else
-                          SPECIFY_ADDONS_CHARTS="${SPECIFY_ADDONS_CHARTS}|${chart_name}"
+                          SPECIFY_ADDONS_CHARTS="${SPECIFY_ADDONS_CHARTS}##${chart_name}"
                       fi
                   fi
               fi
@@ -300,7 +300,7 @@ jobs:
                   args+=(--specify-chart "${SPECIFY_ADDONS_CHARTS}" )
               fi
           fi
-          
+          echo "helm_package args: ${args[*]}"
           "${{ github.workspace }}/apecloud-cd/.github/utils/helm_package.sh" "${args[@]}"
 
       - name: helm lint
@@ -446,7 +446,7 @@ jobs:
                   args+=(--specify-chart "${SPECIFY_ADDONS_CHARTS}" )
               fi
           fi
-          
+          echo "helm_package args: ${args[*]}"
           "${{ github.workspace }}/apecloud-cd/.github/utils/helm_package.sh" "${args[@]}"
 
       - name: helm lint

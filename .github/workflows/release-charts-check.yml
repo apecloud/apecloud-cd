@@ -200,7 +200,7 @@ jobs:
           if [[ -n "${{ inputs.SPECIFY_CHART }}" ]]; then
               args+=(--specify-chart "${{ inputs.SPECIFY_CHART }}" )
           fi
-          
+          echo "helm_package args: ${args[*]}"
           "${{ github.workspace }}/apecloud-cd/.github/utils/helm_package.sh" "${args[@]}"
 
       - name: helm lint
