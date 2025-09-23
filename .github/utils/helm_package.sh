@@ -56,19 +56,22 @@ filter_charts() {
 lookup_changed_charts() {
     local changed_files
     if [[ -n "$SPECIFY_CHART" ]]; then
-        if [[ "${SPECIFY_CHART}" == *"|"* ]]; then
+        if [[ "${SPECIFY_CHART}" == *"##"* ]]; then
             changed_files=$(echo "$SPECIFY_CHART" | sed 's/##/ /g')
+            for changed_file in $(echo "$changed_files"); do
+                echo "$changed_file" | filter_charts
+            done
         else
             changed_files="$SPECIFY_CHART"
+            echo "$changed_files" | filter_charts
         fi
-
     else
         changed_files=$(ls -1 "$charts_dir")
         if [[ "$changed_files" == *"gemini-monitor"* ]]; then
             changed_files=$(ls -1 "$charts_dir" | (grep -v "victoria-metrics-alert" || true) )
         fi
+        echo "$changed_files" | filter_charts
     fi
-    echo "$changed_files" | filter_charts
 }
 
 package_chart() {
