@@ -7,7 +7,7 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  RELEASE_VERSION: "v1.0.2-alpha.0"
+  RELEASE_VERSION: "v1.0.2"
   BRACNH_NAME: "release-1.0"
 
 jobs:
