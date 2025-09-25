@@ -12,6 +12,7 @@ env:
 
 jobs:
   release-addons-version-check:
+    name: ${{ matrix.repo }}-version-check
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
