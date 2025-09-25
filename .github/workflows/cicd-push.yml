@@ -35,7 +35,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ env.GITHUB_TOKEN }}
-          repository: apecloud/${{ matrix.repo }}
+          repository: "apecloud/${{ matrix.repo }}"
           path: ./
           ref: ${{ env.BRACNH_NAME }}
 
@@ -43,15 +43,15 @@ jobs:
         if: ${{ steps.check_stable_version.outputs.stable-release == '1' }}
         run: |
           GIT_BRANCH="${{ env.BRACNH_NAME }}"
-          RELEASE_VERSION="${{ env.RELEASE_VERSION }"
+          RELEASE_VERSION="${{ env.RELEASE_VERSION }}"
           update_release_notes_script=".github/scripts/update_release_notes.py"
-          check_file_log="check_addon_stable_versions.log"
           
           if [[ -f "${update_release_notes_script}" ]]; then
+              check_file_log="check_addon_stable_versions.log"
               touch ${check_file_log} 
               python3 ${update_release_notes_script} \
-                --git-branch '${GIT_BRANCH}' \
-                --git-tag '${RELEASE_VERSION}' \
+                --git-branch "${GIT_BRANCH}" \
+                --git-tag "${RELEASE_VERSION}" \
                 --dry-run | tee -a ${check_file_log}
               NO_STABLE_VERSION=$(cat "${check_file_log}" | egrep "No stable addon versions found|Pre-release Versions")
               if [[ -n "${NO_STABLE_VERSION}" ]]; then
