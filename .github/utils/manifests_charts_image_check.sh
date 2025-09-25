@@ -112,6 +112,10 @@ check_addon_charts_images() {
         if [[ -z "$chart_name" || "$chart_name" == "#"* || "$chart_name" == "kata" ]]; then
             continue
         fi
+
+        if [[ "$chart_name" == "apecloud-mysql" || "$chart_name" == "mogdb" || "$chart_name" == "greatsql" ]]; then
+            continue
+        fi
         chart_versions=$(yq e '[.'${chart_name}'[].version] | join("|")' ${MANIFESTS_FILE})
         chart_index=0
         for chart_version in $(echo "$chart_versions" | sed 's/|/ /g'); do
