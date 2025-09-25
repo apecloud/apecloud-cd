@@ -8,7 +8,7 @@ on:
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   RELEASE_VERSION: "v1.0.2"
-  BRACNH_NAME: "main"
+  BRACNH_NAME: "release-0.9"
 
 jobs:
   release-addons-version-check:
