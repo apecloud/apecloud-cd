@@ -72,6 +72,7 @@ jobs:
 
   release-branch:
     needs: [ release-addons-version-check ]
+    runs-on: ubuntu-latest
     steps:
       - name: check stable version
         id: check_stable_version
