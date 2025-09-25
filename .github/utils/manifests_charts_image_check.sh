@@ -194,7 +194,10 @@ check_charts_images() {
                     set_values="${set_values} --set controller.admissionWebhooks.patch.image.digest= "
                 ;;
                 gemini)
-                    set_values="${set_values} --set cr-exporter.enabled=true "
+                    set_values="${set_values} --set victoria-metrics-cluster.enabled=false "
+                    set_values="${set_values} --set loki.enabled=false "
+                    set_values="${set_values} --set kubeviewer.enabled=false "
+                    set_values="${set_values} --set cr-exporter.enabled=false "
                 ;;
                 kubebench)
                     set_values="${set_values} --set image.tag=0.0.12 "
