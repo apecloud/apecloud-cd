@@ -8,7 +8,7 @@ on:
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   RELEASE_VERSION: "v1.0.2"
-  BRACNH_NAME: "release-1.0"
+  BRACNH_NAME: "main"
 
 jobs:
   release-addons-version-check:
@@ -49,15 +49,11 @@ jobs:
           if [[ -f "${update_release_notes_script}" ]]; then
               check_file_log="check_addon_stable_versions.log"
               touch ${check_file_log} 
-              echo 1
               python3 ${update_release_notes_script} \
                 --git-branch "${GIT_BRANCH}" \
                 --git-tag "${RELEASE_VERSION}" \
                 --dry-run | tee -a ${check_file_log}
-              echo 2
-              ls 
               NO_STABLE_VERSION=$(cat "${check_file_log}" | (egrep "No stable addon versions found|Pre-release Versions" || true))
-              echo 3
               if [[ -n "${NO_STABLE_VERSION}" ]]; then
                   echo "❌ $(tput -T xterm setaf 1)ERROR: No stable addon versions found!$(tput -T xterm sgr0)"
                   exit 1
