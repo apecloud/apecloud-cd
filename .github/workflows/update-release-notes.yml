@@ -95,5 +95,4 @@ jobs:
     with:
       TYPE: "2"
       CONTENT: "update ${{ github.repository }} release-notes ${{ inputs.VERSION }} error"
-      APECD_REF: "v0.1.96"
     secrets: inherit
