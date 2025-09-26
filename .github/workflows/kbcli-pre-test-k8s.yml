@@ -1214,7 +1214,7 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##starrocks-pre|${{ needs.starrocks-pre.outputs.test-result }}"
               fi
           
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"etcd"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"etcd|"* || "$TEST_TYPE" == *"etcd" ]]; then
                   TEST_RESULT="${TEST_RESULT}##etcd-pre|${{ needs.etcd-pre.outputs.test-result }}"
               fi
           

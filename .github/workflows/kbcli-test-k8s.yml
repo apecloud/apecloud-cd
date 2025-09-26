@@ -1369,7 +1369,7 @@ jobs:
                   cmd="${cmd_head} \"${{ needs.test-starrocks.outputs.test-result-report }}\" "
                   eval "$cmd"
               fi
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"etcd"* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"etcd|"* || "$TEST_TYPE" == *"etcd" ]]; then
                   TEST_RESULT="${TEST_RESULT}##etcd|${{ needs.test-etcd.outputs.test-result }}"
                   cmd="${cmd_head} \"${{ needs.test-outputs.outputs.test-result-report }}\" "
                   eval "$cmd"
