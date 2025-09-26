@@ -194,17 +194,16 @@ check_charts_images() {
                     set_values="${set_values} --set controller.admissionWebhooks.patch.image.digest= "
                 ;;
                 gemini)
-                    kubeblocks_version=$(yq e '[.kubeblocks[0].version]' ${MANIFESTS_FILE}|awk '{print $2}')
                     set_values="${set_values} --set victoria-metrics-cluster.enabled=false "
                     set_values="${set_values} --set loki.enabled=false "
                     set_values="${set_values} --set kubeviewer.enabled=false "
                     set_values="${set_values} --set cr-exporter.enabled=false "
-                    set_values="${set_values} --set kubeblocks.version=${kubeblocks_version} "
                 ;;
                 kubebench)
                     set_values="${set_values} --set image.tag=0.0.12 "
                     set_values="${set_values} --set kubebenchImages.exporter=apecloud/kubebench:0.0.12"
                     set_values="${set_values} --set kubebenchImages.tools=apecloud/kubebench:0.0.12"
+                    set_values="${set_values} --set kubebenchImages.tpcc=apecloud/benchmarksql:1.0"
                 ;;
                 dbdrag)
                     continue
