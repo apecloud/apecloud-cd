@@ -412,7 +412,7 @@ jobs:
     secrets: inherit
 
   test-etcd:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'etcd|') || endsWith(inputs.TEST_TYPE, 'etcd')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'etcd|') || endsWith(inputs.TEST_TYPE, 'etcd')) && ! endsWith(inputs.TEST_TYPE, '-etcd') && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/test-kbcli.yml
     with:
@@ -1369,7 +1369,7 @@ jobs:
                   cmd="${cmd_head} \"${{ needs.test-starrocks.outputs.test-result-report }}\" "
                   eval "$cmd"
               fi
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"etcd|"* || "$TEST_TYPE" == *"etcd" ]]; then
+              if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"etcd|"* || "$TEST_TYPE" == *"etcd") && "$TEST_TYPE" != *"-etcd"* ) ]]; then
                   TEST_RESULT="${TEST_RESULT}##etcd|${{ needs.test-etcd.outputs.test-result }}"
                   cmd="${cmd_head} \"${{ needs.test-outputs.outputs.test-result-report }}\" "
                   eval "$cmd"

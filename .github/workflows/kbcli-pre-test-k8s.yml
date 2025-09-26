@@ -319,7 +319,7 @@ jobs:
     secrets: inherit
 
   etcd-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.TEST_TYPE, 'etcd|') || endsWith(inputs.TEST_TYPE, 'etcd')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.TEST_TYPE, 'etcd|') || endsWith(inputs.TEST_TYPE, 'etcd')) && ! endsWith(inputs.TEST_TYPE, '-etcd') && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/test-kbcli-pre.yml
     with:
@@ -1214,7 +1214,7 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##starrocks-pre|${{ needs.starrocks-pre.outputs.test-result }}"
               fi
           
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"etcd|"* || "$TEST_TYPE" == *"etcd" ]]; then
+              if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"etcd|"* || "$TEST_TYPE" == *"etcd") && "$TEST_TYPE" != *"-etcd"*) ]]; then
                   TEST_RESULT="${TEST_RESULT}##etcd-pre|${{ needs.etcd-pre.outputs.test-result }}"
               fi
           
