@@ -398,6 +398,9 @@ jobs:
           
               if [[ -n "${result_engine_name}" && -z "${PREVIOUS_VERSION}" && "${{ inputs.test-args }}" != *"--ape-local"* && "${{ inputs.test-args }}" != *"--only-kubectl"* ]]; then
                   KUBEBLOCKS_VERSION="${{ env.KUBEBLOCKS_RELEASE_VERSION }}"
+                  if [[ "${KUBEBLOCKS_VERSION}" != "v"* ]]; then
+                      KUBEBLOCKS_VERSION="v${KUBEBLOCKS_VERSION}"
+                  fi
                   OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}"
                   upload_file_name="${result_engine_name}Test_Report.log"
                   sed -i 's/${{ env.AWS_ACCESS_KEY_ID }}/***/g' ${FILE_LOG}
