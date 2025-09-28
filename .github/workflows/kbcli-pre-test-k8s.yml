@@ -777,6 +777,23 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
+  doris-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'doris')) && contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/test-kbcli-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "41"
+      test-type-name: "doris-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
   mogdb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mogdb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
     needs: [ install-kubeblocks-pre ]
@@ -1145,7 +1162,7 @@ jobs:
              tdengine-pre, milvus-pre, clickhouse-pre, pika-pre, opensearch-pre,
              elasticsearch-pre, vllm-pre, orioledb-pre, vanilla-pg-pre, ggml-pre,
              zookeeper-pre, mariadb-pre , tidb-pre, xinference-pre, oracle-pre, 
-             opengauss-pre, influxdb-pre, flink-pre, solr-pre,
+             opengauss-pre, influxdb-pre, flink-pre, solr-pre, doris-pre,
              mogdb-pre, oceanbase-ent-pre, starrocks-ent-pre,
              yashandb-pre, redis-cluster-pre, dmdb-pre, minio-pre,
              orchestrator-pre, rabbitmq-pre, loki-pre, victoria-metrics-pre, gaussdb-pre,
@@ -1399,6 +1416,9 @@ jobs:
               fi
           fi
           if [[ "${{ inputs.release-version }}" != "v0.5."* && "${{ inputs.release-version }}" != "v0.6."* && "${{ inputs.release-version }}" != "v0.7."* && "${{ inputs.release-version }}" != "v0.8."* && "${{ inputs.release-version }}" != "v0.9."* ]]; then
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"doris"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##doris-pre|${{ needs.doris-pre.outputs.test-result }}"
+              fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"postgresql-etcd|"* || "$TEST_TYPE" == *"postgresql-etcd" ]]; then
                   TEST_RESULT="${TEST_RESULT}##postgresql-etcd-pre|${{ needs.postgresql-etcd-pre.outputs.test-result }}"
               fi
