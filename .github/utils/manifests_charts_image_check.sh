@@ -69,7 +69,7 @@ check_images() {
                 continue
             fi
 
-            if [[ -n "$repository" && ("$repository" == *"apecloud/dm:8.1.4-6-20241231"* || "$repository" == *"apecloud/relay"* || "$repository" == *"apecloud/kubeviewer"*) ]]; then
+            if [[ -n "$repository" && ("$repository" == *"apecloud/relay"* || "$repository" == *"apecloud/kubeviewer"*) ]]; then
                 repository=""
                 continue
             fi
@@ -89,7 +89,12 @@ check_images() {
             done
 
             if [[ $check_flag -eq 0 ]]; then
-                echo "$(tput -T xterm setaf 1)::error title=Not found ${chart_name_tmp} ${chart_version_tmp} image:$repository in manifests file:${MANIFESTS_FILE}$(tput -T xterm sgr0)"
+                check_result_tmp="$(tput -T xterm setaf 1)Not found ${chart_name_tmp} ${chart_version_tmp} image:${repository} in manifests file:${MANIFESTS_FILE}$(tput -T xterm sgr0)"
+                echo "${check_result_tmp}"
+                CHECK_RESULTS="$(cat check_manifest_result)"
+                if [[ "${CHECK_RESULTS}" != *"${check_result_tmp}"* ]]; then
+                    echo "${check_result_tmp}" >> check_manifest_result
+                fi
                 echo 1 > exit_result
             fi
             repository=""
@@ -143,7 +148,12 @@ check_addon_charts_images() {
 
             if [[ $check_flag -eq 0 ]]; then
                 check_flag_all=1
-                echo "$(tput -T xterm setaf 1)::error title=Not found ${chart_name_tmp} ${chart_version_tmp} image:$repository in manifests file:${MANIFESTS_FILE}$(tput -T xterm sgr0)"
+                check_result_tmp="$(tput -T xterm setaf 1)Not found ${chart_name_tmp} ${chart_version_tmp} image:$repository in manifests file:${MANIFESTS_FILE}$(tput -T xterm sgr0)"
+                echo "${check_result_tmp}"
+                CHECK_RESULTS="$(cat check_manifest_result)"
+                if [[ "${CHECK_RESULTS}" != *"${check_result_tmp}"* ]]; then
+                    echo "${check_result_tmp}" >> check_manifest_result
+                fi
                 echo 1 > exit_result
             fi
             repository=""
@@ -155,10 +165,11 @@ check_addon_charts_images() {
 }
 
 check_charts_images() {
-    touch exit_result
+    touch exit_result check_manifest_result
     echo 0 > exit_result
+    echo "" > check_manifest_result
     if [[ ! -f "${MANIFESTS_FILE}" ]]; then
-        echo "$(tput -T xterm setaf 1)::error title=Not found manifests file:${MANIFESTS_FILE} $(tput -T xterm sgr0)"
+        echo "$(tput -T xterm setaf 1)Not found manifests file:${MANIFESTS_FILE} $(tput -T xterm sgr0)"
         return
     fi
 
@@ -217,6 +228,7 @@ check_charts_images() {
         done
     done
     wait
+    cat check_manifest_result
     cat exit_result
     exit $(cat exit_result)
 }
