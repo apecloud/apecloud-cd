@@ -499,7 +499,7 @@ jobs:
               done 
           
               # describe image pull error bootstrapper pod
-              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | (egrep "ImagePull|Pending" || true) | awk '{print $1}')"
+              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | (egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')"
               for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
                   echo "==================== pod ${bootstrapper_pod_name} describe ===================="
                   kubectl describe pod -n kb-system ${bootstrapper_pod_name}
