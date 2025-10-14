@@ -3,6 +3,36 @@
 set +e
 set -o nounset
 
+update_kb_monitor_resources() {
+    while true; do
+        gemini_monitor_deploy=$(helm list -n kb-system | (grep "kb-monitor" | grep "deployed" || true))
+        if [[ -z "${gemini_monitor_deploy}" ]]; then
+            echo "Waiting for Gemini monitor to be ready..."
+            sleep 10
+            continue
+        fi
+
+        gemini_monitor_version="$(helm get metadata -n kb-system kb-monitor | (grep "VERSION:" | grep -v "APP_VERSION:" || true ) | awk '{print $2}')"
+        if [[ -z "${gemini_monitor_version}" ]]; then
+            sleep 5
+            continue
+        fi
+
+        echo "update kb-monitor resources requests"
+        helm upgrade --install kb-monitor kb-chart/gemini-monitor \
+            --version ${gemini_monitor_version} --namespace kb-system \
+            --set monitorConfig.collectOteldMetrics.resources.requests.cpu="100m" \
+            --set monitorConfig.collectOteldMetrics.resources.requests.memory="128Mi" \
+            --set monitorConfig.resources.requests.cpu="100m" \
+            --set monitorConfig.resources.requests.memory="128Mi" \
+            --reset-then-reuse-values
+        echo "update kb-monitor resources done"
+        break
+    done
+}
+
+update_kb_monitor_resources
+
 patch_kb_monitor_metrics_collector_resources() {
     echo "Patch kb-monitor-metrics-collector resources"
     kubectl patch deployment kb-monitor-metrics-collector -n kb-system --type='json' -p='[
@@ -64,7 +94,7 @@ check_kb_monitor_resources() {
     fi
 }
 
-check_kb_monitor() {
+check_kb_monitor_old() {
     patch_times=1
     patch_flag=0
     while true; do
@@ -100,5 +130,3 @@ check_kb_monitor() {
         sleep 5
     done
 }
-
-check_kb_monitor

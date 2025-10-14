@@ -283,7 +283,7 @@ jobs:
           
           cloud_e2e_installer_script="${{ github.workspace }}/apecloud-cd/.github/utils/cloud_e2e_installer.sh"
           if [[ -f "${cloud_e2e_installer_script}" ]]; then
-              echo "patch kb-monitor resources"
+              echo "update kb-monitor resources"
               bash ${cloud_e2e_installer_script} &
           fi
           
@@ -318,6 +318,9 @@ jobs:
           bootstrapper_result="[PASSED]"
           K3S_VERSION="${{ matrix.k3s-version }}"
           if [[ $check_status -eq 0 ]]; then
+              echo "==================== describe node ===================="
+              kubectl describe node
+              df -h
               echo "KB Cloud Env is not ready"
               bootstrapper_result="[FAILED]"
               
@@ -364,10 +367,7 @@ jobs:
                   kubectl describe pod -n kb-system ${kb_system_error_pod}
                   echo ""
               done
-              echo "==================== describe node ===================="
-              kubectl describe node
               set -e
-              df -h
               exit 1
           else
               case $K3S_VERSION in
@@ -378,9 +378,6 @@ jobs:
                       echo bootstrapper-result-1-32="${bootstrapper_result}" >> $GITHUB_OUTPUT
                   ;;
               esac
-              echo "==================== describe node ===================="
-              kubectl describe node
-              df -h
           fi
 
   upgrade-test:
@@ -391,6 +388,29 @@ jobs:
       upgrade-result: ${{ steps.upgrade_kb_cloud.outputs.upgrade-result }}
       cloud-pre-version: ${{ steps.cloud_pre_version.outputs.cloud-pre-version }}
     steps:
+      - name: Free disk space
+        continue-on-error: true
+        run: |
+          echo "Free space first:"
+          df -h
+          
+          mnt_storage=$(df -h | (grep "/mnt" | grep "100%" ||true))
+          if [[ -n "${mnt_storage}" ]]; then
+            echo "Disk is full, please rerun the workflow."
+            exit 1
+          fi
+          
+          sudo mkdir -p /mnt/new-storage
+          sudo touch /etc/docker/daemon.json
+          sudo tee /etc/docker/daemon.json <<EOF
+          {
+            "data-root": "/mnt/new-storage"
+          }
+          EOF
+          sudo systemctl restart docker
+          echo "Free space second:"
+          df -h
+
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
         with:
@@ -577,6 +597,9 @@ jobs:
           done
           
           if [[ $check_status -eq 0 ]]; then
+              echo "==================== describe node ===================="
+              kubectl describe node
+              df -h
               echo "KB Cloud is not ready"
               upgrade_result="[FAILED]"
               echo upgrade-result="${upgrade_result}" >> $GITHUB_OUTPUT
@@ -589,15 +612,9 @@ jobs:
                   kubectl logs --tail 100 -n kb-cloud ${kb_cloud_error_pod}
                   echo ""
               done
-          
-              echo "==================== describe node ===================="
-              kubectl describe node
-          
               exit 1
           else
               echo upgrade-result="${upgrade_result}" >> $GITHUB_OUTPUT
-              echo "==================== describe node ===================="
-              kubectl describe node
           fi
 
   send-message:
