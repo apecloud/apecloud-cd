@@ -330,7 +330,8 @@ jobs:
                   kubectl describe pod -n kb-system ${kb_system_error_pod}
                   echo ""
               done
-          
+              echo "==================== describe node ===================="
+              kubectl describe node
               exit 1
           else
               case $K3S_VERSION in
@@ -341,6 +342,8 @@ jobs:
                       echo bootstrapper-result-1-32="${bootstrapper_result}" >> $GITHUB_OUTPUT
                   ;;
               esac
+              echo "==================== describe node ===================="
+              kubectl describe node
           fi
 
   upgrade-test:
@@ -548,9 +551,14 @@ jobs:
                   echo ""
               done
           
+              echo "==================== describe node ===================="
+              kubectl describe node
+          
               exit 1
           else
               echo upgrade-result="${upgrade_result}" >> $GITHUB_OUTPUT
+              echo "==================== describe node ===================="
+              kubectl describe node
           fi
 
   send-message:
