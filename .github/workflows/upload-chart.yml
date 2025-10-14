@@ -29,26 +29,37 @@ env:
   JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
   JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
   CR_VERSION: 1.4.1
-
+  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  K3D_NAME: kbcloud
+  CLOUD_LICENSE: ${{ secrets.CLOUD_LICENSE }}
+  DOCKER_REGISTRY_URL: docker.io
+  DOCKER_REGISTRY_URL_INDEX: "https://index.docker.io/v1/"
+  DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  PROJECT_ID: 165897
+  UPGRADE_RESULT: 0
 
 jobs:
-  upload-chart:
-    permissions:
-      contents: write
+  installer-test:
+    name: installer-test-${{ matrix.k3s-version }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        k3s-version: [ v1.22, v1.32 ]
     steps:
       - name: Free disk space
         continue-on-error: true
         run: |
           echo "Free space first:"
           df -h
-          
+
           mnt_storage=$(df -h | (grep "/mnt" | grep "100%" ||true))
           if [[ -n "${mnt_storage}" ]]; then
             echo "Disk is full, please rerun the workflow."
             exit 1
           fi
-          
+
           sudo mkdir -p /mnt/new-storage
           sudo touch /etc/docker/daemon.json
           sudo tee /etc/docker/daemon.json <<EOF
@@ -60,6 +71,281 @@ jobs:
           echo "Free space second:"
           df -h
 
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.30.4"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "v3.16.3"
+
+      - name: setup k3d k3s
+        uses: apecloud-inc/setup-k3d-k3s@v2
+        with:
+          k3d-name: "${{ env.K3D_NAME }}"
+          version: "${{ matrix.k3s-version }}"
+          github-token: ${{ env.GH_TOKEN }}
+          k3d-args: -p 443:443@loadbalancer -p 80:80@loadbalancer --agents 3
+
+      - name: update k3d coredns cm
+        run: |
+          for i in {1..3}; do
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 37
+              sleep 1
+          done
+
+      - name: install cert-manager
+        run: |
+          helm repo add jetstack https://charts.jetstack.io --force-update
+          helm install \
+              cert-manager jetstack/cert-manager \
+              --namespace cert-manager \
+              --create-namespace \
+              --version v1.16.0 \
+              --set crds.enabled=true
+
+      - name: install kb cloud
+        run: |
+          helm repo add kb-chart https://apecloud.github.io/helm-charts
+
+          helm install installer kb-chart/kb-cloud-installer \
+              --namespace kb-cloud \
+              --create-namespace \
+              --version v2.1.0-alpha.39} \
+              --set image.registry="docker.io" \
+              --set version=v2.1.0-alpha.39} \
+              --set kubernetesProvider=k3d \
+              --set fqdn.domain=mytest.kubeblocks.com \
+              --set tls.enabled=true \
+              --set metaDB.zalandoOperator.clusterConfig.resources.requests.cpu="100m" \
+              --set metaDB.zalandoOperator.clusterConfig.resources.requests.memory="128Mi"
+
+      - if: ${{ env.DOCKER_REGISTRY_USER != '' && env.DOCKER_REGISTRY_PASSWORD != '' }}
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY_URL }}
+          username: ${{ env.DOCKER_REGISTRY_USER }}
+          password: ${{ env.DOCKER_REGISTRY_PASSWORD }}
+
+      - name: check kb-cloud-installer pod Completed
+        id: install_kb_cloud
+        run: |
+          sleep 10
+          check_status=0
+          for i in {1..200}; do
+              if kubectl get pods -n kb-cloud | grep "kb-cloud-installer" | grep Completed ; then
+                  echo "KB Cloud is ready"
+                  check_status=1
+                  break
+              fi
+              echo "Waiting for KB Cloud to be ready..."
+              kubectl get pods -n kb-cloud
+              df -h
+              echo ""
+              sleep 5
+          done
+
+          installer_result="[PASSED]"
+          K3S_VERSION="${{ matrix.k3s-version }}"
+          if [[ $check_status -eq 0 ]]; then
+              echo "KB Cloud is not ready"
+              installer_result="[FAILED]"
+
+              case $K3S_VERSION in
+                  v1.22)
+                      echo installer-result-1-22="${installer_result}" >> $GITHUB_OUTPUT
+                  ;;
+                  v1.32)
+                      echo installer-result-1-32="${installer_result}" >> $GITHUB_OUTPUT
+                  ;;
+              esac
+
+              installer_pods=$(kubectl get pods -n kb-cloud | grep "kb-cloud-installer" )
+              echo "installer pod: $installer_pods"
+              installer_pod_names="$(echo "${installer_pods}" | awk '{print $1}')"
+              for installer_pod_name in $(echo "${installer_pod_names}"); do
+                  echo "==================== pod ${installer_pod_name} logs ===================="
+                  kubectl logs --tail 100 -n kb-cloud ${installer_pod_name}
+              done 
+
+              # logs kb-cloud error pod 
+              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" | awk '{print $1}')
+              echo "kb-cloud error pod: $kb_cloud_error_pods"
+              for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
+                  echo "==================== pod ${kb_cloud_error_pod} logs ===================="
+                  kubectl logs --tail 100 -n kb-cloud ${kb_cloud_error_pod}
+                  echo ""
+              done
+
+              exit 1
+          else
+              case $K3S_VERSION in
+                  v1.22)
+                      echo installer-result-1-22="${installer_result}" >> $GITHUB_OUTPUT
+                  ;;
+                  v1.32)
+                      echo installer-result-1-32="${installer_result}" >> $GITHUB_OUTPUT
+                  ;;
+              esac
+          fi
+
+      - name: deploy KB Cloud Env
+        run: |
+          echo "get k8s config"
+          k8s_cluster_name=$(kubectl config get-clusters | sed '1d')
+          kubectl config set-cluster ${k8s_cluster_name} --insecure-skip-tls-verify=true
+          k8s_kubeconfig_yaml=$(kubectl config view --minify -o yaml --raw)
+          kubeconfig_file_name="k8s_kubeconfig_file.yaml"
+          touch ${kubeconfig_file_name}
+          echo "${k8s_kubeconfig_yaml}" > ${kubeconfig_file_name}
+          yq e -i '.clusters[0].cluster.server = "https://kubernetes.default:443"' ${kubeconfig_file_name}
+          k8s_kubeconfig=$(cat ${kubeconfig_file_name})
+          echo "------------------------------------------------------------"
+          echo "${k8s_kubeconfig}"
+          echo "------------------------------------------------------------"
+          K8S_KUBECONFIG="$(echo "${k8s_kubeconfig}" | base64)"
+
+          CLOUD_LICENSE="${{ env.CLOUD_LICENSE }}"
+          echo "deploy KB Cloud Env"
+
+          helm install bootstrapper kb-chart/kb-cloud-bootstrapper \
+            --namespace kb-system \
+            --create-namespace \
+            --version v2.1.0-alpha.39} \
+            --set image.registry="docker.io" \
+            --set license="${CLOUD_LICENSE}" \
+            --set kubeconfig="${K8S_KUBECONFIG}"
+
+      - name: check kb-cloud-bootstrapper pod Completed
+        id: deploy_kb_cloud_env
+        run: |
+          sleep 10
+          kubectl create secret docker-registry kb-addon-test-registry-key \
+              --docker-server="${{ env.DOCKER_REGISTRY_URL_INDEX }}" \
+              --docker-username='${{ env.DOCKER_REGISTRY_USER }}' \
+              --docker-password='${{ env.DOCKER_REGISTRY_PASSWORD }}' \
+              --docker-email="" -n kb-system
+          check_status=0
+          patch_sa_flag=0
+
+          cloud_e2e_installer_script="${{ github.workspace }}/apecloud-cd/.github/utils/cloud_e2e_installer.sh"
+          if [[ -f "${cloud_e2e_installer_script}" ]]; then
+              echo "patch kb-monitor resources"
+              bash ${cloud_e2e_installer_script} &
+          fi
+
+          for i in {1..200}; do
+              if kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" | grep Completed ; then
+                  echo "KB Cloud Env is ready"
+                  check_status=1
+                  break
+              fi
+              echo "Waiting for KB Cloud Env to be ready..."
+              kubectl get pods -n kb-system
+              df -h
+              KB_ADDON_SA="$(kubectl get serviceaccounts -n kb-system | (grep "kubeblocks-addon-installer" || true) | awk 'NR==1{print $1}')"
+              if [[ -n "${KB_ADDON_SA}" && ${patch_sa_flag} -eq 0 ]]; then
+                  echo "patch serviceaccount kubeblocks-addon-installer..."
+                  for i in {1..5}; do
+                      kubectl patch -p '{"imagePullSecrets":[{"name":"kb-addon-test-registry-key"}]}' \
+                        --type=merge serviceaccount -n kb-system kubeblocks-addon-installer
+                      patch_ret=$?
+                      if [[ $patch_ret -eq 0 ]]; then
+                          echo "$(tput -T xterm setaf 2)patch serviceaccount kubeblocks-addon-installer success $(tput -T xterm sgr0)"
+                          patch_sa_flag=1
+                          break
+                      fi    
+                      echo "Waiting for patch serviceaccount kubeblocks-addon-installer..."
+                      sleep 1
+                  done
+              fi
+              echo ""
+              sleep 5
+          done
+
+          bootstrapper_result="[PASSED]"
+          K3S_VERSION="${{ matrix.k3s-version }}"
+          if [[ $check_status -eq 0 ]]; then
+              echo "KB Cloud Env is not ready"
+              bootstrapper_result="[FAILED]"
+
+              case $K3S_VERSION in
+                  v1.22)
+                      echo bootstrapper-result-1-22="${bootstrapper_result}" >> $GITHUB_OUTPUT
+                  ;;
+                  v1.32)
+                      echo bootstrapper-result-1-32="${bootstrapper_result}" >> $GITHUB_OUTPUT
+                  ;;
+              esac
+
+              bootstrapper_pods=$(kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" )
+              echo "bootstrapper pod: $bootstrapper_pods"
+              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | grep -v "ImagePull" | awk '{print $1}')"
+              for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
+                  echo "==================== pod ${bootstrapper_pod_name} logs ===================="
+                  kubectl logs --tail 100 -n kb-system ${bootstrapper_pod_name}
+              done 
+
+              # describe image pull error bootstrapper pod
+              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | (egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')"
+              for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
+                  echo "==================== pod ${bootstrapper_pod_name} describe ===================="
+                  kubectl describe pod -n kb-system ${bootstrapper_pod_name}
+              done 
+
+              # logs kb-system error pod 
+              set +e
+              set -o nounset
+              kb_system_error_pods=$(kubectl get pods -n kb-system | grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Evicted" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" | awk '{print $1}')
+              echo "kb-system error pod: $kb_system_error_pods"
+              for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
+                  echo "==================== pod ${kb_system_error_pod} logs ===================="
+                  kubectl logs --tail 100 -n kb-system ${kb_system_error_pod}
+                  echo ""
+              done
+
+              # describe image pull error kb-system pod
+              kb_system_error_pods=$(kubectl get pods -n kb-system | grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | (egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')
+              echo "kb-system image pull error pod: $kb_system_error_pods"
+              for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
+                  echo "==================== pod ${kb_system_error_pod} describe ===================="
+                  kubectl describe pod -n kb-system ${kb_system_error_pod}
+                  echo ""
+              done
+              echo "==================== describe node ===================="
+              kubectl describe node
+              set -e
+              df -h
+              exit 1
+          else
+              case $K3S_VERSION in
+                  v1.22)
+                      echo bootstrapper-result-1-22="${bootstrapper_result}" >> $GITHUB_OUTPUT
+                  ;;
+                  v1.32)
+                      echo bootstrapper-result-1-32="${bootstrapper_result}" >> $GITHUB_OUTPUT
+                  ;;
+              esac
+              echo "==================== describe node ===================="
+              kubectl describe node
+              df -h
+          fi
+  
+
+#  upload-chart:
+#    permissions:
+#      contents: write
+#    runs-on: ubuntu-latest
+#    steps:
 #      - uses: actions/checkout@v4
 #        with:
 #          fetch-depth: 0
