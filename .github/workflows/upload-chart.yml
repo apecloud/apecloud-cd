@@ -2,25 +2,25 @@ name: Upload Chart
 
 on:
   push:
-    branches:
-      - 'main'
-    paths:
-      - 'upload-charts/*.tgz'
-  workflow_dispatch:
-    inputs:
-      CHART_PACKAGE_NAME:
-        description: "The package name of helm chart, push to apecloud-cd upload-charts dir first (e.g. pyroscope-0.2.92.tgz)"
-        required: false
-        default: ''
-      CHART_PACKAGE_URL:
-        description: "The package url of helm chart"
-        required: false
-        default: ''
-      PROJECT_ID:
-        description: "The jihulab project id to upload (e.g. kubeblocks/addons/applications/enterprise)"
-        type: string
-        required: false
-        default: ''
+#    branches:
+#      - 'main'
+#    paths:
+#      - 'upload-charts/*.tgz'
+#  workflow_dispatch:
+#    inputs:
+#      CHART_PACKAGE_NAME:
+#        description: "The package name of helm chart, push to apecloud-cd upload-charts dir first (e.g. pyroscope-0.2.92.tgz)"
+#        required: false
+#        default: ''
+#      CHART_PACKAGE_URL:
+#        description: "The package url of helm chart"
+#        required: false
+#        default: ''
+#      PROJECT_ID:
+#        description: "The jihulab project id to upload (e.g. kubeblocks/addons/applications/enterprise)"
+#        type: string
+#        required: false
+#        default: ''
 
 run-name: upload ${{ inputs.CHART_PACKAGE_NAME }} ${{ inputs.CHART_PACKAGE_URL }}
 
@@ -37,106 +37,129 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: install cr
-        run: |
-          bash ${{ github.workspace }}/.github/utils/helm_package.sh --install-cr true
-
-      - name: copy helm chart
-        run: |
-          if [[ -n "${{ inputs.CHART_PACKAGE_URL }}" ]]; then
-              PACKAGE_NAME=$(echo "${{ inputs.CHART_PACKAGE_URL }}" | rev | cut -d'/' -f1 | rev)
-              curl -L -O  ${{ inputs.CHART_PACKAGE_URL }} 
-              mv $PACKAGE_NAME .cr-release-packages
-          elif [[ -n "${{ inputs.CHART_PACKAGE_NAME }}" ]]; then
-              cp upload-charts/${{ inputs.CHART_PACKAGE_NAME }} .cr-release-packages
-          else
-              bash ${{ github.workspace }}/.github/utils/utils.sh --type 20
-          fi
-
-      - name: Checkout helm-charts Code
-        if: ${{ inputs.PROJECT_ID != 'enterprise' && inputs.PROJECT_ID != '165897' }}
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/helm-charts
-          path: helm-charts
-          token: ${{ env.CR_TOKEN }}
-          ref: gh-pages
-
-      - name: Checkout helm-charts-enterprise Code
-        if: ${{ inputs.PROJECT_ID == 'enterprise' || inputs.PROJECT_ID == '165897' }}
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/helm-charts-enterprise
-          path: helm-charts-enterprise
-          token: ${{ env.CR_TOKEN }}
-          ref: gh-pages
-
-      - name: Checkout kubeblocks-addons Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/kubeblocks-addons
-          path: kubeblocks-addons
-          token: ${{ env.CR_TOKEN }}
-
-      - name: Upload Helm Charts to Jihulab
-        run: |
-          ls .cr-release-packages
-          cd .cr-release-packages
-          bash ${{ github.workspace }}/.github/utils/release_gitlab.sh \
-            --type 3 \
-            --asset-path ./ \
-            --charts-dir "${{ github.workspace }}/kubeblocks-addons/addons|${{ github.workspace }}/deploy" \
-            --access-token "${{ env.JIHULAB_ACCESS_TOKEN }}" \
-            --access-user "${{ env.JIHULAB_ACCESS_USER }}" \
-            --project-id "${{ inputs.PROJECT_ID }}"
-
-      - name: Fetch helm-charts History And Configure Git
-        run: |
-          HELM_CHARTS_DIR="helm-charts"
-          PROJECT_ID_TMP="${{ inputs.PROJECT_ID }}"
-          if [[ "${PROJECT_ID_TMP}" == "enterprise" || "${PROJECT_ID_TMP}" == "165897" ]]; then
-              HELM_CHARTS_DIR=${HELM_CHARTS_DIR}-enterprise
-          fi
-          cd ${HELM_CHARTS_DIR}
-          git fetch --prune --unshallow
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
-      - name: Upload and Index Helm Charts
+      - name: Free disk space
         continue-on-error: true
-        id: upload_index_helm_charts
-        shell: bash
         run: |
-          HELM_CHARTS_DIR="helm-charts"
-          PROJECT_ID_TMP="${{ inputs.PROJECT_ID }}"
-          if [[ "${PROJECT_ID_TMP}" == "enterprise" || "${PROJECT_ID_TMP}" == "165897" ]]; then
-              HELM_CHARTS_DIR=${HELM_CHARTS_DIR}-enterprise
-          fi
-          cd ${HELM_CHARTS_DIR}
-          args=(--owner "apecloud" --repo "${HELM_CHARTS_DIR}")
-          UPLOAD_FLAG=0
-          echo "upload-flag=${UPLOAD_FLAG}" >> $GITHUB_OUTPUT
+          echo "Free space first:"
+          df -h
           
-          bash ${{ github.workspace }}/.github/utils/helm_release.sh "${args[@]}"
-          index_ret=$?
-          if [[ $index_ret -eq 0 ]]; then
-              UPLOAD_FLAG=1
-              echo "upload-flag=${UPLOAD_FLAG}" >> $GITHUB_OUTPUT
+          mnt_storage=$(df -h | (grep "/mnt" | grep "100%" ||true))
+          if [[ -n "${mnt_storage}" ]]; then
+            echo "Disk is full, please rerun the workflow."
+            exit 1
           fi
+          
+          sudo mkdir -p /mnt/new-storage
+          sudo touch /etc/docker/daemon.json
+          sudo tee /etc/docker/daemon.json <<EOF
+          {
+            "data-root": "/mnt/new-storage"
+          }
+          EOF
+          sudo systemctl restart docker
+          echo "Free space second:"
+          df -h
 
-      - name: Index Helm Charts retry
-        if: ${{ steps.upload_index_helm_charts.outputs.upload-flag == '0' }}
-        shell: bash
-        run: |
-          HELM_CHARTS_DIR="helm-charts"
-          PROJECT_ID_TMP="${{ inputs.PROJECT_ID }}"
-          if [[ "${PROJECT_ID_TMP}" == "enterprise" || "${PROJECT_ID_TMP}" == "165897" ]]; then
-              HELM_CHARTS_DIR=${HELM_CHARTS_DIR}-enterprise
-          fi
-          cd ${HELM_CHARTS_DIR}
-          args=(--owner "apecloud" --repo "${HELM_CHARTS_DIR}")
-          
-          bash ${{ github.workspace }}/.github/utils/helm_release_update_index.sh "${args[@]}"
+#      - uses: actions/checkout@v4
+#        with:
+#          fetch-depth: 0
+#      - name: install cr
+#        run: |
+#          bash ${{ github.workspace }}/.github/utils/helm_package.sh --install-cr true
+#
+#      - name: copy helm chart
+#        run: |
+#          if [[ -n "${{ inputs.CHART_PACKAGE_URL }}" ]]; then
+#              PACKAGE_NAME=$(echo "${{ inputs.CHART_PACKAGE_URL }}" | rev | cut -d'/' -f1 | rev)
+#              curl -L -O  ${{ inputs.CHART_PACKAGE_URL }}
+#              mv $PACKAGE_NAME .cr-release-packages
+#          elif [[ -n "${{ inputs.CHART_PACKAGE_NAME }}" ]]; then
+#              cp upload-charts/${{ inputs.CHART_PACKAGE_NAME }} .cr-release-packages
+#          else
+#              bash ${{ github.workspace }}/.github/utils/utils.sh --type 20
+#          fi
+#
+#      - name: Checkout helm-charts Code
+#        if: ${{ inputs.PROJECT_ID != 'enterprise' && inputs.PROJECT_ID != '165897' }}
+#        uses: actions/checkout@v4
+#        with:
+#          repository: apecloud/helm-charts
+#          path: helm-charts
+#          token: ${{ env.CR_TOKEN }}
+#          ref: gh-pages
+#
+#      - name: Checkout helm-charts-enterprise Code
+#        if: ${{ inputs.PROJECT_ID == 'enterprise' || inputs.PROJECT_ID == '165897' }}
+#        uses: actions/checkout@v4
+#        with:
+#          repository: apecloud/helm-charts-enterprise
+#          path: helm-charts-enterprise
+#          token: ${{ env.CR_TOKEN }}
+#          ref: gh-pages
+#
+#      - name: Checkout kubeblocks-addons Code
+#        uses: actions/checkout@v4
+#        with:
+#          repository: apecloud/kubeblocks-addons
+#          path: kubeblocks-addons
+#          token: ${{ env.CR_TOKEN }}
+#
+#      - name: Upload Helm Charts to Jihulab
+#        run: |
+#          ls .cr-release-packages
+#          cd .cr-release-packages
+#          bash ${{ github.workspace }}/.github/utils/release_gitlab.sh \
+#            --type 3 \
+#            --asset-path ./ \
+#            --charts-dir "${{ github.workspace }}/kubeblocks-addons/addons|${{ github.workspace }}/deploy" \
+#            --access-token "${{ env.JIHULAB_ACCESS_TOKEN }}" \
+#            --access-user "${{ env.JIHULAB_ACCESS_USER }}" \
+#            --project-id "${{ inputs.PROJECT_ID }}"
+#
+#      - name: Fetch helm-charts History And Configure Git
+#        run: |
+#          HELM_CHARTS_DIR="helm-charts"
+#          PROJECT_ID_TMP="${{ inputs.PROJECT_ID }}"
+#          if [[ "${PROJECT_ID_TMP}" == "enterprise" || "${PROJECT_ID_TMP}" == "165897" ]]; then
+#              HELM_CHARTS_DIR=${HELM_CHARTS_DIR}-enterprise
+#          fi
+#          cd ${HELM_CHARTS_DIR}
+#          git fetch --prune --unshallow
+#          git config user.name "$GITHUB_ACTOR"
+#          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+#
+#      - name: Upload and Index Helm Charts
+#        continue-on-error: true
+#        id: upload_index_helm_charts
+#        shell: bash
+#        run: |
+#          HELM_CHARTS_DIR="helm-charts"
+#          PROJECT_ID_TMP="${{ inputs.PROJECT_ID }}"
+#          if [[ "${PROJECT_ID_TMP}" == "enterprise" || "${PROJECT_ID_TMP}" == "165897" ]]; then
+#              HELM_CHARTS_DIR=${HELM_CHARTS_DIR}-enterprise
+#          fi
+#          cd ${HELM_CHARTS_DIR}
+#          args=(--owner "apecloud" --repo "${HELM_CHARTS_DIR}")
+#          UPLOAD_FLAG=0
+#          echo "upload-flag=${UPLOAD_FLAG}" >> $GITHUB_OUTPUT
+#
+#          bash ${{ github.workspace }}/.github/utils/helm_release.sh "${args[@]}"
+#          index_ret=$?
+#          if [[ $index_ret -eq 0 ]]; then
+#              UPLOAD_FLAG=1
+#              echo "upload-flag=${UPLOAD_FLAG}" >> $GITHUB_OUTPUT
+#          fi
+#
+#      - name: Index Helm Charts retry
+#        if: ${{ steps.upload_index_helm_charts.outputs.upload-flag == '0' }}
+#        shell: bash
+#        run: |
+#          HELM_CHARTS_DIR="helm-charts"
+#          PROJECT_ID_TMP="${{ inputs.PROJECT_ID }}"
+#          if [[ "${PROJECT_ID_TMP}" == "enterprise" || "${PROJECT_ID_TMP}" == "165897" ]]; then
+#              HELM_CHARTS_DIR=${HELM_CHARTS_DIR}-enterprise
+#          fi
+#          cd ${HELM_CHARTS_DIR}
+#          args=(--owner "apecloud" --repo "${HELM_CHARTS_DIR}")
+#
+#          bash ${{ github.workspace }}/.github/utils/helm_release_update_index.sh "${args[@]}"
