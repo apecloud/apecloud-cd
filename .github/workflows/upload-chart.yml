@@ -119,9 +119,9 @@ jobs:
           helm install installer kb-chart/kb-cloud-installer \
               --namespace kb-cloud \
               --create-namespace \
-              --version v2.1.0-alpha.39} \
+              --version v2.1.0-alpha.39 \
               --set image.registry="docker.io" \
-              --set version=v2.1.0-alpha.39} \
+              --set version=v2.1.0-alpha.39 \
               --set kubernetesProvider=k3d \
               --set fqdn.domain=mytest.kubeblocks.com \
               --set tls.enabled=true \
@@ -220,7 +220,7 @@ jobs:
           helm install bootstrapper kb-chart/kb-cloud-bootstrapper \
             --namespace kb-system \
             --create-namespace \
-            --version v2.1.0-alpha.39} \
+            --version v2.1.0-alpha.39 \
             --set image.registry="docker.io" \
             --set license="${CLOUD_LICENSE}" \
             --set kubeconfig="${K8S_KUBECONFIG}"
