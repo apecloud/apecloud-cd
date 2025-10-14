@@ -3,7 +3,7 @@
 set +e
 set -o nounset
 
-check_kb_monitor() {
+update_kb_monitor_resources() {
     while true; do
         gemini_monitor_deploy=$(helm list -n kb-system | (grep "kb-monitor" | grep "deployed" || true))
         if [[ -z "${gemini_monitor_deploy}" ]]; then
@@ -31,7 +31,7 @@ check_kb_monitor() {
     done
 }
 
-check_kb_monitor
+update_kb_monitor_resources
 
 patch_kb_monitor_metrics_collector_resources() {
     echo "Patch kb-monitor-metrics-collector resources"
