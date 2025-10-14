@@ -260,7 +260,7 @@ jobs:
           
           cloud_e2e_installer_script="${{ github.workspace }}/apecloud-cd/.github/utils/cloud_e2e_installer.sh"
           if [[ -f "${cloud_e2e_installer_script}" ]]; then
-              # patch kb-monitor resources
+              echo "patch kb-monitor resources"
               bash ${cloud_e2e_installer_script} &
           fi
           
