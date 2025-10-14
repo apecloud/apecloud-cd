@@ -257,6 +257,13 @@ jobs:
               --docker-email="" -n kb-system
           check_status=0
           patch_sa_flag=0
+          
+          cloud_e2e_installer_script="${{ github.workspace }}/apecloud-cd/.github/utils/cloud_e2e_installer.sh"
+          if [[ -f "${cloud_e2e_installer_script}" ]]; then
+              echo "patch kb-monitor resources"
+              bash ${cloud_e2e_installer_script} &
+          fi
+          
           for i in {1..200}; do
               if kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" | grep Completed ; then
                   echo "KB Cloud Env is ready"
