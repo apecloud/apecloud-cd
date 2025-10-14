@@ -68,6 +68,12 @@ check_kb_monitor() {
     patch_times=1
     patch_flag=0
     while true; do
+        gemini_monitor_deploy=$(helm list -n kb-system | (grep "gemini-monitor" | grep "deployed" || true))
+        if [[ -z "${gemini_monitor_deploy}" ]]; then
+            echo "Waiting for Gemini monitor to be ready..."
+            continue
+        fi
+
         kb_monitor_metrics_collector_deployment=$(kubectl get deployment -n kb-system | (grep "kb-monitor-metrics-collector" || true ))
         if [[ -n "${kb_monitor_metrics_collector_deployment}" ]]; then
             check_kb_monitor_metrics_collector_resources

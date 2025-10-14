@@ -90,6 +90,29 @@ jobs:
       matrix:
         k3s-version: [ v1.22, v1.32 ]
     steps:
+      - name: Free disk space
+        continue-on-error: true
+        run: |
+          echo "Free space first:"
+          df -h
+          
+          mnt_storage=$(df -h | (grep "/mnt" | grep "100%" ||true))
+          if [[ -n "${mnt_storage}" ]]; then
+            echo "Disk is full, please rerun the workflow."
+            exit 1
+          fi
+          
+          sudo mkdir -p /mnt/new-storage
+          sudo touch /etc/docker/daemon.json
+          sudo tee /etc/docker/daemon.json <<EOF
+          {
+            "data-root": "/mnt/new-storage"
+          }
+          EOF
+          sudo systemctl restart docker
+          echo "Free space second:"
+          df -h
+
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
         with:
@@ -323,7 +346,9 @@ jobs:
               done 
           
               # logs kb-system error pod 
-              kb_system_error_pods=$(kubectl get pods -n kb-system | grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" | awk '{print $1}')
+              set +e
+              set -o nounset
+              kb_system_error_pods=$(kubectl get pods -n kb-system | grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Evicted" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" | awk '{print $1}')
               echo "kb-system error pod: $kb_system_error_pods"
               for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
                   echo "==================== pod ${kb_system_error_pod} logs ===================="
@@ -341,6 +366,8 @@ jobs:
               done
               echo "==================== describe node ===================="
               kubectl describe node
+              set -e
+              df -h
               exit 1
           else
               case $K3S_VERSION in
@@ -353,6 +380,7 @@ jobs:
               esac
               echo "==================== describe node ===================="
               kubectl describe node
+              df -h
           fi
 
   upgrade-test:
