@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch-name: [ "release-1.1" ]
+        branch-name: [ "release-1.1", "release-2.0" ]
     uses: ./.github/workflows/release-image-cache.yml
     with:
       GITHUB_REPO: "apecloud/apecloud"
@@ -59,5 +59,27 @@ jobs:
       BRANCH_NAME: "main"
       WORKFLOW_ID: "cloud-e2e-engine.yml"
       APECD_REF: "main"
-      EXTRA_ARGS: "TEST_INDEX=${{ needs.schedule-cron.outputs.day-of-week }}#TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_10 }}#CLOUD_ENV_NAME=idc2#CLOUD_BRANCH=release-1.1#CURRENT_VERSION=v1.1"
+      EXTRA_ARGS: "CLOUD_ENV_NAME=idc2#CLOUD_BRANCH=release-1.1#CURRENT_VERSION=v1.1#TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_10 }}#TEST_INDEX=${{ needs.schedule-cron.outputs.day-of-week }}"
+    secrets: inherit
+
+  e2e-engine-test-20-10:
+    needs: [ release-e2e-image, schedule-cron ]
+    uses: ./.github/workflows/trigger-workflow.yml
+    with:
+      GITHUB_REPO: "apecloud/apecloud-cd"
+      BRANCH_NAME: "main"
+      WORKFLOW_ID: "cloud-e2e-engine.yml"
+      APECD_REF: "main"
+      EXTRA_ARGS: "CLOUD_ENV_NAME=idc1#CLOUD_BRANCH=release-2.0#CURRENT_VERSION=v2.0#TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_10 }}#TEST_INDEX=${{ needs.schedule-cron.outputs.day-of-week }}"
+    secrets: inherit
+
+  e2e-engine-test-20-09:
+    needs: [ release-e2e-image, schedule-cron ]
+    uses: ./.github/workflows/trigger-workflow.yml
+    with:
+      GITHUB_REPO: "apecloud/apecloud-cd"
+      BRANCH_NAME: "main"
+      WORKFLOW_ID: "cloud-e2e-engine.yml"
+      APECD_REF: "main"
+      EXTRA_ARGS: "CLOUD_TEST_ENV=idc#CLOUD_ENV_NAME=idc1#CLOUD_BRANCH=release-2.0#CURRENT_VERSION=v2.0#TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_10 }}#TEST_INDEX=${{ needs.schedule-cron.outputs.day-of-week }}"
     secrets: inherit
