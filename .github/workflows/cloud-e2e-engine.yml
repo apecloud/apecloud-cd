@@ -33,6 +33,11 @@ on:
         type: string
         required: false
         default: ''
+      CLOUD_TEST_ENV:
+        description: "The cloud test env"
+        type: string
+        required: false
+        default: ''
   workflow_call:
     inputs:
       TEST_ENGINES:
@@ -62,6 +67,11 @@ on:
         default: ''
       TEST_INDEX:
         description: "Test index"
+        type: string
+        required: false
+        default: ''
+      CLOUD_TEST_ENV:
+        description: "The cloud test env"
         type: string
         required: false
         default: ''
@@ -243,6 +253,12 @@ jobs:
               echo "$eval_cmd"
               eval "$eval_cmd"
           done
+          
+          CLOUD_TEST_ENV="${{ inputs.CLOUD_TEST_ENV }}"
+          if [[ -n "${CLOUD_TEST_ENV}" ]]; then
+              export KB_CLOUD_TEST_ENVIRONMENT="${CLOUD_TEST_ENV}"
+          fi
+          
           # run e2e clear cluster
           bash test/cloud/test_cloud_e2e_clear.sh \
               --release-version "${{ needs.get-test-engine.outputs.cloud-branch }}" | tee -a ${run_file_log}
@@ -408,6 +424,11 @@ jobs:
               echo "$eval_cmd"
               eval "$eval_cmd"
           done
+          
+          CLOUD_TEST_ENV="${{ inputs.CLOUD_TEST_ENV }}"
+          if [[ -n "${CLOUD_TEST_ENV}" ]]; then
+              export KB_CLOUD_TEST_ENVIRONMENT="${CLOUD_TEST_ENV}"
+          fi
           
           TEST_ENGINES="${{ matrix.test-engine }}"
           TEST_JOB_INDEX="${{ matrix.test-job-index }}"
