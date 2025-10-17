@@ -76,7 +76,7 @@ on:
         required: false
         default: ''
 
-run-name: Cloud E2E Engine Test on Env:${{ inputs.CLOUD_ENV_NAME }} ${{ inputs.TEST_ENGINES }} Ref:${{ inputs.CLOUD_BRANCH }}
+run-name: Cloud E2E Engine Test on Env:${{ inputs.CLOUD_ENV_NAME }}:${{ inputs.CLOUD_TEST_ENV }} ${{ inputs.TEST_ENGINES }} Ref:${{ inputs.CLOUD_BRANCH }}
 
 env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
@@ -264,7 +264,8 @@ jobs:
           
           # run e2e clear cluster
           bash test/cloud/test_cloud_e2e_clear.sh \
-              --release-version "${{ needs.get-test-engine.outputs.cloud-branch }}" | tee -a ${run_file_log}
+              --release-version "${{ needs.get-test-engine.outputs.cloud-branch }}" \
+              --env "${CLOUD_TEST_ENV}" | tee -a ${run_file_log}
           
           CLOUD_E2E_CLEAR_POD_NAME="$(cat ${run_file_log} | grep '\[CLOUD-E2E-CLEAR-POD-NAME\]' || true )"
           if [[ -n "${CLOUD_E2E_CLEAR_POD_NAME}" && "$CLOUD_E2E_CLEAR_POD_NAME" == "[CLOUD-E2E-CLEAR-POD-NAME]"* ]]; then
@@ -445,7 +446,8 @@ jobs:
           bash test/cloud/test_cloud_e2e.sh \
               --test-type "engine-test" \
               --pod-index "${TEST_JOB_INDEX}" \
-              --release-version "${{ needs.get-test-engine.outputs.cloud-branch }}" | tee -a ${run_file_log}
+              --release-version "${{ needs.get-test-engine.outputs.cloud-branch }}" \
+              --env "${CLOUD_TEST_ENV}" | tee -a ${run_file_log}
           
           CLOUD_E2E_TEST_POD_NAME="$(cat ${run_file_log} | grep '\[CLOUD-E2E-TEST-POD-NAME\]' || true )"
           if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" && "$CLOUD_E2E_TEST_POD_NAME" == "[CLOUD-E2E-TEST-POD-NAME]"* ]]; then
@@ -674,7 +676,13 @@ jobs:
               --run-id "$GITHUB_RUN_ID" )
           echo "TEST_RESULT_ALL:${TEST_RESULT_ALL}"
           
-          TEST_TITLE="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Engine Test [${date_ret}]"
+          CLOUD_ENV_NAME_TMP="${CLOUD_ENV_NAME}"
+          CLOUD_TEST_ENV="${{ inputs.CLOUD_TEST_ENV }}"
+          if [[ -n "${CLOUD_TEST_ENV}" ]]; then
+              CLOUD_ENV_NAME_TMP="${CLOUD_TEST_ENV}"
+          fi
+          
+          TEST_TITLE="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME_TMP}] Cloud E2E Engine Test [${date_ret}]"
           
           python3 .github/utils/send_mesage.py \
               --send-type ginkgo \
@@ -690,7 +698,7 @@ jobs:
                   01)
                       echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-1 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME_TMP}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -709,7 +717,7 @@ jobs:
                   02)
                       echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-2 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME_TMP}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -728,7 +736,7 @@ jobs:
                   03)
                       echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-3 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME_TMP}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -747,7 +755,7 @@ jobs:
                   04)
                       echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-4 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME_TMP}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -766,7 +774,7 @@ jobs:
                   05)
                       echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-5 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME_TMP}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -785,7 +793,7 @@ jobs:
                   06)
                       echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-6 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME_TMP}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -804,7 +812,7 @@ jobs:
                   07)
                       echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-7 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME_TMP}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -823,7 +831,7 @@ jobs:
                   08)
                       echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-8 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME_TMP}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -842,7 +850,7 @@ jobs:
                   09)
                       echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-9 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME_TMP}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
@@ -861,7 +869,7 @@ jobs:
                   10)
                       echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-10 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
+                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME_TMP}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
                           ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
