@@ -500,6 +500,10 @@ jobs:
               fi
               sleep 1
           done
+          
+          # patch e2e retain backup
+          kubectl get backup -n kubeblocks-cloud-ns -o name | (grep "e2e-" || true) | xargs -I {} kubectl patch {} -n kubeblocks-cloud-ns --type='json' -p='[{"op": "replace", "path": "/spec/deletionPolicy", "value": "Delete"}]'
+          
           set -e
          
           cat ${test_file_log_path}
