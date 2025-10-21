@@ -258,8 +258,8 @@ jobs:
           if [[ -n "${CLOUD_TEST_ENV}" ]]; then
               echo "export KB_CLOUD_TEST_ENVIRONMENT=${CLOUD_TEST_ENV}"
               export KB_CLOUD_TEST_ENVIRONMENT="${CLOUD_TEST_ENV}"
-              echo " export KB_CLOUD_TEST_NODE=node3""
-              export KB_CLOUD_TEST_NODE=node3"
+              echo "export KB_CLOUD_TEST_NODE=node3"
+              export KB_CLOUD_TEST_NODE="node3"
           fi
           
           # run e2e clear cluster
@@ -433,8 +433,8 @@ jobs:
           if [[ -n "${CLOUD_TEST_ENV}" ]]; then
               echo "export KB_CLOUD_TEST_ENVIRONMENT=${CLOUD_TEST_ENV}"
               export KB_CLOUD_TEST_ENVIRONMENT="${CLOUD_TEST_ENV}"
-              echo " export KB_CLOUD_TEST_NODE=node3""
-              export KB_CLOUD_TEST_NODE=node3"
+              echo "export KB_CLOUD_TEST_NODE=node3"
+              export KB_CLOUD_TEST_NODE="node3"
           fi
           
           TEST_ENGINES="${{ matrix.test-engine }}"
