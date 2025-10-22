@@ -38,6 +38,11 @@ on:
         type: string
         required: false
         default: ''
+      CLOUD_TEST_KB_VERSION:
+        description: "The cloud test kubeblocks version"
+        type: string
+        required: false
+        default: ''
   workflow_call:
     inputs:
       TEST_ENGINES:
@@ -75,8 +80,13 @@ on:
         type: string
         required: false
         default: ''
+      CLOUD_TEST_KB_VERSION:
+        description: "The cloud test kubeblocks version"
+        type: string
+        required: false
+        default: ''
 
-run-name: Cloud E2E Engine Test on Env:${{ inputs.CLOUD_ENV_NAME }}:${{ inputs.CLOUD_TEST_ENV }} ${{ inputs.TEST_ENGINES }} Ref:${{ inputs.CLOUD_BRANCH }}
+run-name: Cloud E2E Engine Test on Env:${{ inputs.CLOUD_ENV_NAME }}:${{ inputs.CLOUD_TEST_ENV }}:${{ inputs.CLOUD_TEST_KB_VERSION }} ${{ inputs.TEST_ENGINES }} Ref:${{ inputs.CLOUD_BRANCH }}
 
 env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
@@ -261,6 +271,9 @@ jobs:
               echo "export KB_CLOUD_TEST_NODE=node3"
               export KB_CLOUD_TEST_NODE="node3"
           fi
+          CLOUD_TEST_KB_VERSION="${{ inputs.CLOUD_TEST_KB_VERSION }}"
+          echo "export KB_CLOUD_TEST_KUBEBLOCKS_VERSION=${CLOUD_TEST_KB_VERSION}"
+          export KB_CLOUD_TEST_KUBEBLOCKS_VERSION="${CLOUD_TEST_KB_VERSION}"
           
           # run e2e clear cluster
           bash test/cloud/test_cloud_e2e_clear.sh \
@@ -436,6 +449,9 @@ jobs:
               echo "export KB_CLOUD_TEST_NODE=node3"
               export KB_CLOUD_TEST_NODE="node3"
           fi
+          CLOUD_TEST_KB_VERSION="${{ inputs.CLOUD_TEST_KB_VERSION }}"
+          echo "export KB_CLOUD_TEST_KUBEBLOCKS_VERSION=${CLOUD_TEST_KB_VERSION}"
+          export KB_CLOUD_TEST_KUBEBLOCKS_VERSION="${CLOUD_TEST_KB_VERSION}"
           
           TEST_ENGINES="${{ matrix.test-engine }}"
           TEST_JOB_INDEX="${{ matrix.test-job-index }}"
