@@ -344,7 +344,7 @@ set_runs_jobs() {
     jobs_name=$1
     jobs_url=$2
     for test_ret in `echo "$TEST_RESULT" | sed 's/##/ /g'`; do
-        test_type=${test_ret%|*}
+        test_type=${test_ret%%|*}
         if [[ "$jobs_name" == *"$test_type" && "$jobs_name" != *"-${test_type}" ]]; then
             TEST_RET=$TEST_RET"##$test_ret|$jobs_url"
         fi
@@ -914,26 +914,87 @@ parse_test_result() {
     if [[ ! -f "${test_result_report_output_file_log}" ]]; then
         touch "${test_result_report_output_file_log}"
     fi
-    for test_ret in `echo "$TEST_RESULT" | sed 's/##/ /g'`; do
-        test_ret=$( echo "$test_ret" | sed 's/#/ /g' )
+
+    PASSED_COUNT=0
+    FAILED_COUNT=0
+    SKIPPED_COUNT=0
+    TEST_VERSION=""
+    TEST_MODE=""
+    FIRST_FAILED_OPS=""
+    test_result_flag=0
+    for test_ret_info in `echo "$TEST_RESULT" | sed 's/##/ /g'`; do
+        if [[ $test_result_flag -eq 0 && "$test_ret_info" == *"#Test#Result--"* ]]; then
+            test_result_flag=1
+        fi
+
+        test_ret=$( echo "$test_ret_info" | sed 's/#/ /g' )
         echo "$test_ret" >> "${test_result_report_output_file_log}"
         case $test_ret in
             *\[PASSED\]*)
-                echo "$(tput -T xterm setaf 2)$test_ret$(tput -T xterm sgr0)"
+                PASSED_COUNT=$(($PASSED_COUNT + 1))
             ;;
-            *\[SKIPPED\]*|*\[WARNING\]*)
-                echo "$(tput -T xterm setaf 3)$test_ret$(tput -T xterm sgr0)"
+            *\[SKIPPED\]*)
+                SKIPPED_COUNT=$(($SKIPPED_COUNT + 1))
             ;;
             *\[FAILED\]*)
-                echo "$(tput -T xterm setaf 1)$test_ret$(tput -T xterm sgr0)"
-                EXIT_FLAG=1
-            ;;
-            *)
-                echo "$test_ret"
+                FAILED_COUNT=$(($FAILED_COUNT + 1))
             ;;
         esac
+
+        # get test version and mode
+        if [[ $test_result_flag -eq 1 && "$test_ret" == *"[Create]"* && -z "${TEST_VERSION}" ]]; then
+            test_ret_index=0
+            for test_ret_tmp in `echo "$test_ret_info" | sed 's/|/ /g'`; do
+                test_ret_index=$(($test_ret_index + 1))
+                if [[ $test_ret_index -eq 3 || "$test_ret_tmp" == *"ServiceVersion="* || "$test_ret_tmp" == *"Topology="* || "$test_ret_tmp" == *"ClusterVersion="* ]]; then
+                    for test_ret_detail in `echo "$test_ret_tmp" | sed 's/;/ /g'`; do
+                        if [[ ("$test_ret_detail" == *"ServiceVersion="*) || (-z "${TEST_VERSION}" && "$test_ret_detail" == *"ClusterVersion=") ]]; then
+                            TEST_VERSION=$(echo "${test_ret_detail}" | grep -o '[0-9].*')
+                        elif [[ "$test_ret_detail" == *"Topology="* ]]; then
+                            test_ret_detail_tmp=${test_ret_detail/[/}
+                            test_ret_detail_tmp=${test_ret_detail_tmp/Topology=/}
+                            test_ret_detail_tmp=${test_ret_detail_tmp/]/}
+                            TEST_MODE=${test_ret_detail_tmp}
+                        fi
+                    done
+                    break
+                fi
+            done
+        fi
+
+        # get first failed ops
+        if [[ $FAILED_COUNT -eq 1 && -z "${FIRST_FAILED_OPS}" ]]; then
+            test_ret_index=0
+            for test_ret_tmp in `echo "$test_ret_info" | sed 's/|/ /g'`; do
+                test_ret_index=$(($test_ret_index + 1))
+                if [[ $test_ret_index -eq 2 ]]; then
+                    FIRST_FAILED_OPS=${test_ret_tmp//#/}
+                    if [[ ! ("${FIRST_FAILED_OPS}" == "[Failover]" || "${FIRST_FAILED_OPS}" == "[NoFailover]" || "${FIRST_FAILED_OPS}" == "[Backup]" || "${FIRST_FAILED_OPS}" == "[Restore]") ]]; then
+                        break
+                    fi
+                elif [[ $test_ret_index -eq 3 || "${FIRST_FAILED_OPS}" == "[Failover]" || "${FIRST_FAILED_OPS}" == "[NoFailover]" || "${FIRST_FAILED_OPS}" == "[Backup]" || "${FIRST_FAILED_OPS}" == "[Restore]" ]]; then
+                    for test_ret_detail in `echo "$test_ret_tmp" | sed 's/;/ /g'`; do
+                        if [[ "$test_ret_detail" == *"HA="* ]]; then
+                            test_ret_detail_tmp=${test_ret_detail/[/}
+                            test_ret_detail_tmp=${test_ret_detail_tmp/HA=/}
+                            test_ret_detail_tmp=${test_ret_detail_tmp/]/}
+                            FIRST_FAILED_OPS="${FIRST_FAILED_OPS}${test_ret_detail_tmp}"
+                            break
+                        elif [[ "$test_ret_detail" == *"BackupMethod="* ]]; then
+                            test_ret_detail_tmp=${test_ret_detail/[/}
+                            test_ret_detail_tmp=${test_ret_detail_tmp/BackupMethod=/}
+                            test_ret_detail_tmp=${test_ret_detail_tmp/]/}
+                            FIRST_FAILED_OPS="${FIRST_FAILED_OPS}${test_ret_detail_tmp}"
+                            break
+                        fi
+                    done
+                    break
+                fi
+            done
+        fi
     done
     echo ""  >> ${test_result_report_output_file_log}
+    echo "|${TEST_VERSION}|${TEST_MODE}|${PASSED_COUNT}|${FAILED_COUNT}|${SKIPPED_COUNT}|${FIRST_FAILED_OPS}"
 }
 
 update_k3d_coredns_cm() {
