@@ -1339,402 +1339,337 @@ jobs:
 
       - name: send message
         run: |
-          test_result_count="test-result-count.txt"
           TEST_TYPE="${{ inputs.TEST_TYPE }}"
           cmd_head="bash .github/utils/utils.sh --type 36 --test-result "
           TEST_RESULT="playground|${{ needs.test-playground.outputs.test-result }}##install-kubeblocks|${{ needs.test-kubeblocks.outputs.test-result }}"
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"apecloud-mysql"* ]]; then
-            TEST_RESULT="${TEST_RESULT}##apecloud-mysql|${{ needs.test-apecloud-mysql.outputs.test-result }}"
+            TEST_RESULT+="##apecloud-mysql|${{ needs.test-apecloud-mysql.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-apecloud-mysql.outputs.test-result-report }}\" "
-            eval "$cmd"
-            [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+            TEST_RESULT+=$(eval "$cmd")
           fi
           if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"postgresql|"* || "$TEST_TYPE" == *"postgresql") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
-            TEST_RESULT="${TEST_RESULT}##postgresql|${{ needs.test-postgresql.outputs.test-result }}"
+            TEST_RESULT+="##postgresql|${{ needs.test-postgresql.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-postgresql.outputs.test-result-report }}\" "
-            eval "$cmd"
-            [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+            TEST_RESULT+=$(eval "$cmd")
           fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"redis|"* || "$TEST_TYPE" == *"redis" ]]; then
-            TEST_RESULT="${TEST_RESULT}##redis|${{ needs.test-redis.outputs.test-result }}"
+            TEST_RESULT+="##redis|${{ needs.test-redis.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-redis.outputs.test-result-report }}\" "
-            eval "$cmd"
-            [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+            TEST_RESULT+=$(eval "$cmd")
           fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mongodb"* ]]; then
-            TEST_RESULT="${TEST_RESULT}##mongodb|${{ needs.test-mongodb.outputs.test-result }}"
+            TEST_RESULT+="##mongodb|${{ needs.test-mongodb.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-mongodb.outputs.test-result-report }}\" "
-            eval "$cmd"
-            [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+            TEST_RESULT+=$(eval "$cmd")
           fi
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* ]]; then
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"kafka"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##kafka|${{ needs.test-kafka.outputs.test-result }}"
+              TEST_RESULT+="##kafka|${{ needs.test-kafka.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-kafka.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"pulsar|"* || "$TEST_TYPE" == *"pulsar" ]]; then
-              TEST_RESULT="${TEST_RESULT}##pulsar|${{ needs.test-pulsar.outputs.test-result }}"
+              TEST_RESULT+="##pulsar|${{ needs.test-pulsar.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-pulsar.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"weaviate"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##weaviate|${{ needs.test-weaviate.outputs.test-result }}"
+              TEST_RESULT+="##weaviate|${{ needs.test-weaviate.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-weaviate.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"qdrant"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##qdrant|${{ needs.test-qdrant.outputs.test-result }}"
+              TEST_RESULT+="##qdrant|${{ needs.test-qdrant.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-qdrant.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
           fi
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* ]]; then
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"greptimedb"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##greptimedb|${{ needs.test-greptimedb.outputs.test-result }}"
+              TEST_RESULT+="##greptimedb|${{ needs.test-greptimedb.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-greptimedb.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"nebula"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##nebula|${{ needs.test-nebula.outputs.test-result }}"
+              TEST_RESULT+="##nebula|${{ needs.test-nebula.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-nebula.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"risingwave"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##risingwave|${{ needs.test-risingwave.outputs.test-result }}"
+              TEST_RESULT+="##risingwave|${{ needs.test-risingwave.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-risingwave.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"starrocks|"* || "$TEST_TYPE" == *"starrocks" ]]; then
-              TEST_RESULT="${TEST_RESULT}##starrocks|${{ needs.test-starrocks.outputs.test-result }}"
+              TEST_RESULT+="##starrocks|${{ needs.test-starrocks.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-starrocks.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"etcd|"* || "$TEST_TYPE" == *"etcd") && "$TEST_TYPE" != *"-etcd"* ) ]]; then
-              TEST_RESULT="${TEST_RESULT}##etcd|${{ needs.test-etcd.outputs.test-result }}"
+              TEST_RESULT+="##etcd|${{ needs.test-etcd.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-outputs.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase|"* || "$TEST_TYPE" == *"oceanbase" ]]; then
-              TEST_RESULT="${TEST_RESULT}##oceanbase|${{ needs.test-oceanbase.outputs.test-result }}"
+              TEST_RESULT+="##oceanbase|${{ needs.test-oceanbase.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-oceanbase.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"asmysql|"* || "$TEST_TYPE" == *"asmysql" ]]; then
-              TEST_RESULT="${TEST_RESULT}##asmysql|${{ needs.test-asmysql.outputs.test-result }}"
+              TEST_RESULT+="##asmysql|${{ needs.test-asmysql.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-asmysql.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"openldap"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##openldap|${{ needs.test-openldap.outputs.test-result }}"
+              TEST_RESULT+="##openldap|${{ needs.test-openldap.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-openldap.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"polardbx"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##polardbx|${{ needs.test-polardbx.outputs.test-result }}"
+              TEST_RESULT+="##polardbx|${{ needs.test-polardbx.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-polardbx.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"milvus"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##milvus|${{ needs.test-milvus.outputs.test-result }}"
+              TEST_RESULT+="##milvus|${{ needs.test-milvus.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-milvus.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"clickhouse"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##clickhouse|${{ needs.test-clickhouse.outputs.test-result }}"
+              TEST_RESULT+="##clickhouse|${{ needs.test-clickhouse.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-clickhouse.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"opensearch"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##opensearch|${{ needs.test-opensearch.outputs.test-result }}"
+              TEST_RESULT+="##opensearch|${{ needs.test-opensearch.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-opensearch.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"elasticsearch"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##elasticsearch|${{ needs.test-elasticsearch.outputs.test-result }}"
+              TEST_RESULT+="##elasticsearch|${{ needs.test-elasticsearch.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-elasticsearch.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"tdengine"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##tdengine|${{ needs.test-tdengine.outputs.test-result }}"
+              TEST_RESULT+="##tdengine|${{ needs.test-tdengine.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-tdengine.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"vllm"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##vllm|${{ needs.test-vllm.outputs.test-result }}"
+              TEST_RESULT+="##vllm|${{ needs.test-vllm.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-vllm.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"orioledb"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##orioledb|${{ needs.test-orioledb.outputs.test-result }}"
+              TEST_RESULT+="##orioledb|${{ needs.test-orioledb.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-orioledb.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"vanilla-pg"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##vanilla-pg|${{ needs.test-vanilla-pg.outputs.test-result }}"
+              TEST_RESULT+="##vanilla-pg|${{ needs.test-vanilla-pg.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-vanilla-pg.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"ggml"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##ggml|${{ needs.test-ggml.outputs.test-result }}"
+              TEST_RESULT+="##ggml|${{ needs.test-ggml.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-ggml.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"zookeeper"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##zookeeper|${{ needs.test-zookeeper.outputs.test-result }}"
+              TEST_RESULT+="##zookeeper|${{ needs.test-zookeeper.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-zookeeper.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mariadb"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##mariadb|${{ needs.test-mariadb.outputs.test-result }}"
+              TEST_RESULT+="##mariadb|${{ needs.test-mariadb.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-mariadb.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
           fi
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* ]]; then
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"tidb"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##tidb|${{ needs.test-tidb.outputs.test-result }}"
+              TEST_RESULT+="##tidb|${{ needs.test-tidb.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-tidb.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"xinference"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##xinference|${{ needs.test-xinference.outputs.test-result }}"
+              TEST_RESULT+="##xinference|${{ needs.test-xinference.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-xinference.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oracle|"* || "$TEST_TYPE" == *"oracle" ]]; then
-              TEST_RESULT="${TEST_RESULT}##oracle|${{ needs.test-oracle.outputs.test-result }}"
+              TEST_RESULT+="##oracle|${{ needs.test-oracle.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-oracle.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"opengauss"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##opengauss|${{ needs.test-opengauss.outputs.test-result }}"
+              TEST_RESULT+="##opengauss|${{ needs.test-opengauss.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-opengauss.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"influxdb"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##influxdb|${{ needs.test-influxdb.outputs.test-result }}"
+              TEST_RESULT+="##influxdb|${{ needs.test-influxdb.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-influxdb.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"flink"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##flink|${{ needs.test-flink.outputs.test-result }}"
+              TEST_RESULT+="##flink|${{ needs.test-flink.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-flink.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mogdb"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##mogdb|${{ needs.test-mogdb.outputs.test-result }}"
+              TEST_RESULT+="##mogdb|${{ needs.test-mogdb.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-mogdb.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"redis-cluster"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##redis-cluster|${{ needs.test-redis-cluster.outputs.test-result }}"
+              TEST_RESULT+="##redis-cluster|${{ needs.test-redis-cluster.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-redis-cluster.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
           fi
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* ]]; then
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"solr"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##solr|${{ needs.test-solr.outputs.test-result }}"
+              TEST_RESULT+="##solr|${{ needs.test-solr.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-solr.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase-ent"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##oceanbase-ent|${{ needs.test-oceanbase-ent.outputs.test-result }}"
+              TEST_RESULT+="##oceanbase-ent|${{ needs.test-oceanbase-ent.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-oceanbase-ent.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"starrocks-ent"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##starrocks-ent|${{ needs.test-starrocks-ent.outputs.test-result }}"
+              TEST_RESULT+="##starrocks-ent|${{ needs.test-starrocks-ent.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-starrocks-ent.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"yashandb"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##yashandb|${{ needs.test-yashandb.outputs.test-result }}"
+              TEST_RESULT+="##yashandb|${{ needs.test-yashandb.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-yashandb.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"dmdb"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##dmdb|${{ needs.test-dmdb.outputs.test-result }}"
+              TEST_RESULT+="##dmdb|${{ needs.test-dmdb.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-dmdb.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"minio"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##minio|${{ needs.test-minio.outputs.test-result }}"
+              TEST_RESULT+="##minio|${{ needs.test-minio.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-minio.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"orchestrator"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##orchestrator|${{ needs.test-orchestrator.outputs.test-result }}"
+              TEST_RESULT+="##orchestrator|${{ needs.test-orchestrator.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-orchestrator.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"rabbitmq"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##rabbitmq|${{ needs.test-rabbitmq.outputs.test-result }}"
+              TEST_RESULT+="##rabbitmq|${{ needs.test-rabbitmq.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-rabbitmq.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"loki"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##loki|${{ needs.test-loki.outputs.test-result }}"
+              TEST_RESULT+="##loki|${{ needs.test-loki.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-loki.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"victoria-metrics"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##victoria-metrics|${{ needs.test-victoria-metrics.outputs.test-result }}"
+              TEST_RESULT+="##victoria-metrics|${{ needs.test-victoria-metrics.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-victoria-metrics.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"gaussdb"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##gaussdb|${{ needs.test-gaussdb.outputs.test-result }}"
+              TEST_RESULT+="##gaussdb|${{ needs.test-gaussdb.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-gaussdb.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"damengdb"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##damengdb|${{ needs.test-damengdb.outputs.test-result }}"
+              TEST_RESULT+="##damengdb|${{ needs.test-damengdb.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-damengdb.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"kingbase"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##kingbase|${{ needs.test-kingbase.outputs.test-result }}"
+              TEST_RESULT+="##kingbase|${{ needs.test-kingbase.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-kingbase.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"vastbase"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##vastbase|${{ needs.test-vastbase.outputs.test-result }}"
+              TEST_RESULT+="##vastbase|${{ needs.test-vastbase.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-vastbase.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mssql"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##mssql|${{ needs.test-mssql.outputs.test-result }}"
+              TEST_RESULT+="##mssql|${{ needs.test-mssql.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-mssql.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"rocketmq"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##rocketmq|${{ needs.test-rocketmq.outputs.test-result }}"
+              TEST_RESULT+="##rocketmq|${{ needs.test-rocketmq.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-rocketmq.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"goldendb"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##goldendb|${{ needs.test-goldendb.outputs.test-result }}"
+              TEST_RESULT+="##goldendb|${{ needs.test-goldendb.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-goldendb.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"tdsql"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##tdsql|${{ needs.test-tdsql.outputs.test-result }}"
+              TEST_RESULT+="##tdsql|${{ needs.test-tdsql.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-tdsql.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"greatsql"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##greatsql|${{ needs.test-greatsql.outputs.test-result }}"
+              TEST_RESULT+="##greatsql|${{ needs.test-greatsql.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-greatsql.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"greatdb"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##greatdb|${{ needs.test-greatdb.outputs.test-result }}"
+              TEST_RESULT+="##greatdb|${{ needs.test-greatdb.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-greatdb.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mongodb-shard"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##mongodb-shard|${{ needs.test-mongodb-shard.outputs.test-result }}"
+              TEST_RESULT+="##mongodb-shard|${{ needs.test-mongodb-shard.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-mongodb-shard.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
           fi
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* && "${{ inputs.KB_VERSION }}" != "v0.9."* ]]; then
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"doris"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##doris|${{ needs.test-doris.outputs.test-result }}"
+              TEST_RESULT+="##doris|${{ needs.test-doris.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-doris.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"postgresql-etcd|"* || "$TEST_TYPE" == *"postgresql-etcd") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
-              TEST_RESULT="${TEST_RESULT}##postgresql-etcd|${{ needs.test-postgresql-etcd.outputs.test-result }}"
+              TEST_RESULT+="##postgresql-etcd|${{ needs.test-postgresql-etcd.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-postgresql-etcd.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"asmysql-proxy|"* || "$TEST_TYPE" == *"asmysql-proxy") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
-              TEST_RESULT="${TEST_RESULT}##asmysql-proxy|${{ needs.test-asmysql-proxy.outputs.test-result }}"
+              TEST_RESULT+="##asmysql-proxy|${{ needs.test-asmysql-proxy.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-asmysql-proxy.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"asmysql-orc|"* || "$TEST_TYPE" == *"asmysql-orc") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
-              TEST_RESULT="${TEST_RESULT}##asmysql-orc|${{ needs.test-asmysql-orc.outputs.test-result }}"
+              TEST_RESULT+="##asmysql-orc|${{ needs.test-asmysql-orc.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-asmysql-orc.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"asmysql-orc-proxy|"* || "$TEST_TYPE" == *"asmysql-orc-proxy") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
-              TEST_RESULT="${TEST_RESULT}##asmysql-orc-proxy|${{ needs.test-asmysql-orc-proxy.outputs.test-result }}"
+              TEST_RESULT+="##asmysql-orc-proxy|${{ needs.test-asmysql-orc-proxy.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-asmysql-orc-proxy.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"hadoop"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##hadoop|${{ needs.test-hadoop.outputs.test-result }}"
+              TEST_RESULT+="##hadoop|${{ needs.test-hadoop.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-hadoop.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"hive"* ]]; then
-              TEST_RESULT="${TEST_RESULT}##hive|${{ needs.test-hive.outputs.test-result }}"
+              TEST_RESULT+="##hive|${{ needs.test-hive.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-hive.outputs.test-result-report }}\" "
-              eval "$cmd"
-              [[ -s "${test_result_count}" ]] && TEST_RESULT+=$(< "${test_result_count}")
+              TEST_RESULT+=$(eval "$cmd")
             fi
           fi
           
@@ -1984,7 +1919,7 @@ jobs:
 #              if [[ ! -f "${report_file_path}/${report_file}" || "${report_file}" != *".pdf" ]]; then
 #                  continue
 #              fi
-#              TEST_RESULT="${TEST_RESULT}##${report_file}|${OSS_URL}/${report_file}"
+#              TEST_RESULT+="##${report_file}|${OSS_URL}/${report_file}"
 #          done
 #
 #          REPORT_BOT_WEBHOOK="${{ vars.REPORT_BOT_WEBHOOK }}"

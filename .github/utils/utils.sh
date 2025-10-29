@@ -915,10 +915,6 @@ parse_test_result() {
         touch "${test_result_report_output_file_log}"
     fi
 
-    test_result_report_count="test-result-count.txt"
-    if [[ ! -f "${test_result_report_count}" ]]; then
-        touch "${test_result_report_count}"
-    fi
     PASSED_COUNT=0
     FAILED_COUNT=0
     SKIPPED_COUNT=0
@@ -936,22 +932,12 @@ parse_test_result() {
         case $test_ret in
             *\[PASSED\]*)
                 PASSED_COUNT=$(($PASSED_COUNT + 1))
-                echo "$(tput -T xterm setaf 2)$test_ret$(tput -T xterm sgr0)"
             ;;
             *\[SKIPPED\]*)
                 SKIPPED_COUNT=$(($SKIPPED_COUNT + 1))
-                echo "$(tput -T xterm setaf 3)$test_ret$(tput -T xterm sgr0)"
-            ;;
-            *\[WARNING\]*)
-                echo "$(tput -T xterm setaf 3)$test_ret$(tput -T xterm sgr0)"
             ;;
             *\[FAILED\]*)
                 FAILED_COUNT=$(($FAILED_COUNT + 1))
-                echo "$(tput -T xterm setaf 1)$test_ret$(tput -T xterm sgr0)"
-                EXIT_FLAG=1
-            ;;
-            *)
-                echo "$test_ret"
             ;;
         esac
 
@@ -1007,8 +993,8 @@ parse_test_result() {
             done
         fi
     done
-    echo "|${TEST_VERSION}|${TEST_MODE}|${PASSED_COUNT}|${FAILED_COUNT}|${SKIPPED_COUNT}|${FIRST_FAILED_OPS}" > ${test_result_report_count}
     echo ""  >> ${test_result_report_output_file_log}
+    echo "|${TEST_VERSION}|${TEST_MODE}|${PASSED_COUNT}|${FAILED_COUNT}|${SKIPPED_COUNT}|${FIRST_FAILED_OPS}"
 }
 
 update_k3d_coredns_cm() {
