@@ -1327,6 +1327,234 @@ def send_check_addon_version_message(url_v, result_v, title_v):
     print(res.text)
 
 
+def send_kbcli_message(url_v, result_v, title_v):
+    print("send message")
+    json_results = []
+    json_ret = {
+        "tag": "column_set",
+        "flex_mode": "none",
+        "background_style": "grey",
+        "columns": [
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 2,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Type**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 2,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Version**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 2,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Mode**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 1,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Pass**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 1,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Fail**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 1,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Skip**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 3,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Failed Ops**",
+                        "text_align": "center"
+                    }
+                ]
+            }
+        ]
+    }
+    json_results.append(json_ret)
+
+    if result_v:
+        result_array = result_v.split("##")
+        for results in result_array:
+            if results:
+                summary_color = "red"
+                if "[PASSED]" in results:
+                    summary_color = "green"
+
+                ret = results.split("|")
+                json_ret = {
+                    "tag": "column_set",
+                    "flex_mode": "none",
+                    "background_style": "default",
+                    "columns": [
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 2,
+                            "vertical_align": "top",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<a href='" + ret[8] + "'>" + ret[0] + "</a>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 2,
+                            "vertical_align": "top",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<font color='" + summary_color + "'>" + ret[2] + "</font>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 2,
+                            "vertical_align": "top",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<font color='" + summary_color + "'>" + ret[3] + "</font>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 1,
+                            "vertical_align": "top",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<font color='" + summary_color + "'>" + ret[4] + "</font>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 1,
+                            "vertical_align": "top",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<font color='" + summary_color + "'>" + ret[5] + "</font>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 1,
+                            "vertical_align": "top",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<font color='" + summary_color + "'>" + ret[6] + "</font>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 3,
+                            "vertical_align": "top",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<font color='" + summary_color + "'>" + ret[7] + "</font>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        }
+                    ],
+                }
+                json_results.append(json_ret)
+
+    card = json.dumps({
+        "header": {
+            "template": "blue",
+            "title": {
+                "tag": "plain_text",
+                "content": title_v
+            }
+        },
+        "elements": json_results
+    })
+    body = json.dumps({"msg_type": "interactive", "card": card})
+    headers = {"Content-Type": "application/json"}
+    res = requests.post(url=url_v, data=body, headers=headers)
+    print(res.text)
+
+
 def parse_result(result_v):
     print(result_v)
     parts = result_v.split('|')
@@ -1357,6 +1585,8 @@ if __name__ == '__main__':
         send_trivy_scan_message(url, result, title)
     elif send_type == "check-addon-version":
         send_check_addon_version_message(url, result, title)
+    elif send_type == "kbcli":
+        send_kbcli_message(url, result, title)
     else:
         send_message(url, result, title)
 
