@@ -31,7 +31,49 @@ update_kb_monitor_resources() {
     done
 }
 
+patch_oteld_resources() {
+    echo "Patch oteld resources"
+    kubectl patch oteld kb-monitor -n kb-system --type='merge' -p '
+{
+  "spec": {
+    "resources": {
+      "requests": {
+        "cpu": "100m",
+        "memory": "128Mi"
+      }
+    },
+    "systemConfigSpec": {
+      "oteldMetricsCollector": {
+        "resources": {
+          "requests": {
+            "cpu": "100m",
+            "memory": "128Mi"
+          }
+        }
+      },
+      "resources": {
+        "requests": {
+          "cpu": "100m",
+          "memory": "128Mi"
+        }
+      }
+    }
+  }
+}'
+}
+
+check_oteld_resources() {
+    oteld_resources=$(kubectl get oteld kb-monitor -n kb-system -o json | jq '.spec.resources')
+    oteld_request_cpu=$(echo "${oteld_resources}" | jq -r '.requests.cpu')
+    oteld_request_memory=$(echo "${oteld_resources}" | jq -r '.requests.memory')
+    if [[ ! ("${oteld_request_cpu}" == "100m" || "${oteld_request_memory}" == "128Mi") ]]; then
+        echo "oteld_resources:${oteld_resources}"
+        patch_oteld_resources
+    fi
+}
+
 update_kb_monitor_resources
+check_oteld_resources
 
 patch_kb_monitor_metrics_collector_resources() {
     echo "Patch kb-monitor-metrics-collector resources"
