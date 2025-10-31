@@ -17,8 +17,8 @@ on:
 run-name: Preflight ${{ inputs.IMAGE }} ${{ inputs.SUBMIT }}
 
 env:
-  REDHAT_API_KEY: ${{ secrets.REDHAT_API_KEY }}
-  REDHAT_COMPONENT_PID: ${{ secrets.REDHAT_COMPONENT_PID }}
+  PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_KEY }}
+  PFLT_CERTIFICATION_COMPONENT_ID: ${{ secrets.REDHAT_COMPONENT_PID }}
   PFLT_VERSION: "1.14.1"
 
 jobs:
@@ -34,19 +34,24 @@ jobs:
           preflight version
 
       - name: preflight check
-        if: ${{ ! inputs.SUBMIT }}
-        env:
-          PFLT_PYXIS_API_TOKEN: ${{ env.REDHAT_API_KEY }}
-          PFLT_CERTIFICATION_COMPONENT_ID: ${{ env.REDHAT_COMPONENT_PID }}
+        id: preflight_check
         run: |
           IMAGE="${{ inputs.IMAGE }}"
-          preflight check container ${IMAGE}
+          preflight_log="preflight_check_container_log.log"
+          touch ${preflight_log}
+          preflight check container ${IMAGE} | tee -a ${preflight_log}
+          preflight_ret="$( grep "\"passed\": false," ${preflight_log} || true )"
+          if [[ -n "$preflight_ret" ]]; then
+              echo "$(tput -T xterm setaf 1)Preflight result: FAILED$(tput -T xterm sgr0)"
+              echo preflight-check-result=FAILED >> $GITHUB_OUTPUT
+              exit 1
+          else
+              echo "$(tput -T xterm setaf 2)Preflight result: PASSED$(tput -T xterm sgr0)"
+              echo preflight-check-result=PASSED >> $GITHUB_OUTPUT
+          fi
 
       - name: preflight submit
-        if: ${{ inputs.SUBMIT }}
-        env:
-          PFLT_PYXIS_API_TOKEN: ${{ env.REDHAT_API_KEY }}
-          PFLT_CERTIFICATION_COMPONENT_ID: ${{ env.REDHAT_COMPONENT_PID }}
+        if: ${{ inputs.SUBMIT && steps.preflight_check.outputs.preflight-check-result != 'FAILED' }}
         run: |
           IMAGE="${{ inputs.IMAGE }}"
           preflight check container ${IMAGE} --submit
