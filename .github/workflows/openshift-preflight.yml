@@ -40,7 +40,7 @@ jobs:
           preflight_log="preflight_check_container_log.log"
           touch ${preflight_log}
           preflight check container ${IMAGE} | tee -a ${preflight_log}
-          preflight_ret="$( egrep "Preflight result: FAILED" ${preflight_log} || true )"
+          preflight_ret="$( grep "\"passed\": false," ${preflight_log} || true )"
           if [[ -n "$preflight_ret" ]]; then
               echo "$(tput -T xterm setaf 1)Preflight result: FAILED$(tput -T xterm sgr0)"
               echo preflight-check-result=FAILED >> $GITHUB_OUTPUT
