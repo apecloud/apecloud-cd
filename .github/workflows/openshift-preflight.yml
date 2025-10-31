@@ -1,0 +1,52 @@
+name: OpenShift Preflight
+
+on:
+  workflow_dispatch:
+    inputs:
+      IMAGE:
+        description: "Preflight check container image (e.g. docker.io/apecloud/kubeblocks:1.0.1-certified)"
+        required: true
+        default: ''
+      SUBMIT:
+        description: "Submit check container results to Red Hat (default: false)"
+        type: boolean
+        required: false
+        default: false
+
+
+run-name: Preflight ${{ inputs.IMAGE }} ${{ inputs.SUBMIT }}
+
+env:
+  REDHAT_API_KEY: ${{ secrets.REDHAT_API_KEY }}
+  REDHAT_COMPONENT_PID: ${{ secrets.REDHAT_COMPONENT_PID }}
+  PFLT_VERSION: "1.14.1"
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install preflight
+        run: |
+          PFLT_VERSION=${{ env.PFLT_VERSION }}
+          wget https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/download/${PFLT_VERSION}/preflight-linux-amd64
+          chmod +x preflight-linux-amd64
+          mv preflight-linux-amd64 /usr/local/bin/preflight
+          preflight version
+
+      - name: preflight check
+        if: ${{ ! inputs.SUBMIT }}
+        env:
+          PFLT_PYXIS_API_TOKEN: ${{ env.REDHAT_API_KEY }}
+          PFLT_CERTIFICATION_COMPONENT_ID: ${{ env.REDHAT_COMPONENT_PID }}
+        run: |
+          IMAGE="${{ inputs.IMAGE }}"
+          preflight check container ${IMAGE}
+
+      - name: preflight submit
+        if: ${{ inputs.SUBMIT }}
+        env:
+          PFLT_PYXIS_API_TOKEN: ${{ env.REDHAT_API_KEY }}
+          PFLT_CERTIFICATION_COMPONENT_ID: ${{ env.REDHAT_COMPONENT_PID }}
+        run: |
+          IMAGE="${{ inputs.IMAGE }}"
+          preflight check container ${IMAGE} --submit
