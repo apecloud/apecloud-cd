@@ -69,7 +69,7 @@ check_images() {
                 continue
             fi
 
-            if [[ -n "$repository" && ("$repository" == *"apecloud/relay"* || "$repository" == *"apecloud/kubeviewer"*) ]]; then
+            if [[ -n "$repository" && ("$repository" == *"apecloud/relay"* || "$repository" == *"apecloud/kubeviewer"* || "$repository" == *"apecloud/be-ubuntu"*) ]]; then
                 repository=""
                 continue
             fi
