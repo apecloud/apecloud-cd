@@ -1359,7 +1359,7 @@ jobs:
         run: |
           TEST_TYPE="${{ inputs.TEST_TYPE }}"
           cmd_head="bash .github/utils/utils.sh --type 36 --test-result "
-          TEST_RESULT="playground|${{ needs.test-playground.outputs.test-result }}|||||||##install-kubeblocks|${{ needs.test-kubeblocks.outputs.test-result }}|||||||"
+          TEST_RESULT="playground|${{ needs.test-playground.outputs.test-result }}##install-kubeblocks|${{ needs.test-kubeblocks.outputs.test-result }}"
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"apecloud-mysql"* ]]; then
             TEST_RESULT+="##apecloud-mysql|${{ needs.test-apecloud-mysql.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-apecloud-mysql.outputs.test-result-report }}\" "
