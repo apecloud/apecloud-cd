@@ -50,10 +50,10 @@ def get_status_str_color(status_str):
     elif "FAIL!" in status_str or "Failed" in status_str:
         status_str = status_str.replace(f"" + status_str + "",
                                         f"<font color='red'>" + status_str + "</font>")
-    elif "Pending" in status_str :
+    elif "Pending" in status_str:
         status_str = status_str.replace(f"" + status_str + "",
                                         f"<font color='orange'>" + status_str + "</font>")
-    elif "Skipped" in status_str :
+    elif "Skipped" in status_str:
         status_str = status_str.replace(f"" + status_str + "",
                                         f"<font color='blue'>" + status_str + "</font>")
     else:
@@ -1338,7 +1338,7 @@ def send_kbcli_message(url_v, result_v, title_v):
             {
                 "tag": "column",
                 "width": "weighted",
-                "weight": 2,
+                "weight": 1,
                 "vertical_align": "top",
                 "elements": [
                     {
@@ -1351,7 +1351,20 @@ def send_kbcli_message(url_v, result_v, title_v):
             {
                 "tag": "column",
                 "width": "weighted",
-                "weight": 2,
+                "weight": 1,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Pass|Fail|Skip**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 1,
                 "vertical_align": "top",
                 "elements": [
                     {
@@ -1364,7 +1377,7 @@ def send_kbcli_message(url_v, result_v, title_v):
             {
                 "tag": "column",
                 "width": "weighted",
-                "weight": 2,
+                "weight": 1,
                 "vertical_align": "top",
                 "elements": [
                     {
@@ -1378,45 +1391,6 @@ def send_kbcli_message(url_v, result_v, title_v):
                 "tag": "column",
                 "width": "weighted",
                 "weight": 1,
-                "vertical_align": "top",
-                "elements": [
-                    {
-                        "tag": "markdown",
-                        "content": "**Pass**",
-                        "text_align": "center"
-                    }
-                ]
-            },
-            {
-                "tag": "column",
-                "width": "weighted",
-                "weight": 1,
-                "vertical_align": "top",
-                "elements": [
-                    {
-                        "tag": "markdown",
-                        "content": "**Fail**",
-                        "text_align": "center"
-                    }
-                ]
-            },
-            {
-                "tag": "column",
-                "width": "weighted",
-                "weight": 1,
-                "vertical_align": "top",
-                "elements": [
-                    {
-                        "tag": "markdown",
-                        "content": "**Skip**",
-                        "text_align": "center"
-                    }
-                ]
-            },
-            {
-                "tag": "column",
-                "width": "weighted",
-                "weight": 3,
                 "vertical_align": "top",
                 "elements": [
                     {
@@ -1437,8 +1411,17 @@ def send_kbcli_message(url_v, result_v, title_v):
                 summary_color = "red"
                 if "[PASSED]" in results:
                     summary_color = "green"
+                ret_tmp = results.split("|")
+                if len(ret_tmp) < 8:
+                    ret = [ret_tmp[0], ret_tmp[1], "", "", "", "", "", "", ret_tmp[2]]
+                else:
+                    ret = ret_tmp
 
-                ret = results.split("|")
+                if ret[4] == "":
+                    result_status = "<font color='" + summary_color + "'>" + ret[1] + "</font>"
+                else:
+                    result_status = "<font color='" + summary_color + "'>" + ret[4] + " | " + ret[5] + " | " + ret[6] + "</font>"
+
                 json_ret = {
                     "tag": "column_set",
                     "flex_mode": "none",
@@ -1447,7 +1430,7 @@ def send_kbcli_message(url_v, result_v, title_v):
                         {
                             "tag": "column",
                             "width": "weighted",
-                            "weight": 2,
+                            "weight": 1,
                             "vertical_align": "top",
                             "elements": [
                                 {
@@ -1460,7 +1443,20 @@ def send_kbcli_message(url_v, result_v, title_v):
                         {
                             "tag": "column",
                             "width": "weighted",
-                            "weight": 2,
+                            "weight": 1,
+                            "vertical_align": "top",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": result_status,
+                                    "text_align": "center"
+                                }
+                            ]
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 1,
                             "vertical_align": "top",
                             "elements": [
                                 {
@@ -1473,7 +1469,7 @@ def send_kbcli_message(url_v, result_v, title_v):
                         {
                             "tag": "column",
                             "width": "weighted",
-                            "weight": 2,
+                            "weight": 1,
                             "vertical_align": "top",
                             "elements": [
                                 {
@@ -1487,45 +1483,6 @@ def send_kbcli_message(url_v, result_v, title_v):
                             "tag": "column",
                             "width": "weighted",
                             "weight": 1,
-                            "vertical_align": "top",
-                            "elements": [
-                                {
-                                    "tag": "markdown",
-                                    "content": "<font color='" + summary_color + "'>" + ret[4] + "</font>",
-                                    "text_align": "center"
-                                }
-                            ]
-                        },
-                        {
-                            "tag": "column",
-                            "width": "weighted",
-                            "weight": 1,
-                            "vertical_align": "top",
-                            "elements": [
-                                {
-                                    "tag": "markdown",
-                                    "content": "<font color='" + summary_color + "'>" + ret[5] + "</font>",
-                                    "text_align": "center"
-                                }
-                            ]
-                        },
-                        {
-                            "tag": "column",
-                            "width": "weighted",
-                            "weight": 1,
-                            "vertical_align": "top",
-                            "elements": [
-                                {
-                                    "tag": "markdown",
-                                    "content": "<font color='" + summary_color + "'>" + ret[6] + "</font>",
-                                    "text_align": "center"
-                                }
-                            ]
-                        },
-                        {
-                            "tag": "column",
-                            "width": "weighted",
-                            "weight": 3,
                             "vertical_align": "top",
                             "elements": [
                                 {
@@ -1589,4 +1546,3 @@ if __name__ == '__main__':
         send_kbcli_message(url, result, title)
     else:
         send_message(url, result, title)
-
