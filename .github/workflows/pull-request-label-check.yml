@@ -8,6 +8,11 @@ on:
         type: string
         required: false
         default: 'pick'
+      EXTRA_LABEL:
+        description: 'Set extra label'
+        type: string
+        required: false
+        default: ''
 
 
 env:
@@ -36,4 +41,92 @@ jobs:
               exit 1
           else
               echo "$(tput -T xterm setaf 2)Check ${CHECK_LABEL} label on ${PR_LABELS} successfully! $(tput -T xterm sgr0)"
+          fi
+
+      - name: Checkout apecloud-cd Code
+        if: ${{ inputs.EXTRA_LABEL != '' && inputs.EXTRA_LABEL == 'chart-release' }}
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+
+      - name: extra label set
+        continue-on-error: true
+        if: ${{ inputs.EXTRA_LABEL != '' && inputs.EXTRA_LABEL == 'chart-release' }}
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
+          ADD_LABEL_NAME=""
+          REMOVE_LABEL_NAME=""
+          for pr_label in $(echo "${PR_LABELS}"); do
+              label_name_tmp=""
+              if [[ "${pr_label}" == "pick-"* ]]; then
+                  label_name_tmp="chart-release-${pr_label/pick-/}"
+              fi
+          
+              if [[ -n "${label_name_tmp}" ]]; then
+                  if [[ -z "${ADD_LABEL_NAME}" ]]; then
+                      ADD_LABEL_NAME=${label_name_tmp}
+                  else
+                      ADD_LABEL_NAME="${ADD_LABEL_NAME},${label_name_tmp}"
+                  fi
+              fi
+          done
+          echo "ADD_LABEL_NAME:${ADD_LABEL_NAME}"
+          
+          for pr_label in $(echo "${PR_LABELS}"); do
+              label_name_tmp=""
+              if [[ -n "${ADD_LABEL_NAME}" && "${pr_label}" == "chart-release-"* && *"${pr_label}"* != "${ADD_LABEL_NAME}" ]]; then
+                  label_name_tmp="${pr_label}"
+              elif [[ -z "${ADD_LABEL_NAME}" && "${pr_label}" == "chart-release-"*  ]]; then
+                  label_name_tmp="${pr_label}"
+              fi
+          
+              if [[ -n "${label_name_tmp}" ]]; then
+                  if [[ -z "${REMOVE_LABEL_NAME}" ]]; then
+                      REMOVE_LABEL_NAME=${label_name_tmp}
+                  else
+                      REMOVE_LABEL_NAME="${REMOVE_LABEL_NAME},${label_name_tmp}"
+                  fi
+              fi
+          done
+          echo "REMOVE_LABEL_NAME:${REMOVE_LABEL_NAME}"
+          
+          if [[ -n "${REMOVE_LABEL_NAME}" ]]; then
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+                  --type 33 \
+                  --github-repo "${{ github.repository }}" \
+                  --github-token "${{ env.GH_TOKEN }}" \
+                  --pr-number "${PR_NUMBER}" \
+                  --label-name "${REMOVE_LABEL_NAME}" \
+                  --label-ops "REMOVE"
+          
+              check_remove_label=0
+              for i in $(seq 1 60); do
+                  sleep 1
+                  PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
+                  for pr_label in $(echo "${PR_LABELS}"); do
+                      for remove_label in $(echo "${REMOVE_LABEL_NAME} | sed 's/,/ /g'"); do
+                          if [[ "${remove_label}" == "${pr_label}" ]]; then
+                              check_remove_label=1
+                              break
+                          fi
+                      done
+                  done
+                  echo "checking remove label: ${PR_LABELS}"
+                  if [[ ${check_remove_label} -eq 0 ]]; then
+                      echo "remove label ${PR_LABELS} successfully"
+                      break
+                  fi
+              done
+          fi
+          
+          if [[ -n "${ADD_LABEL_NAME}" ]]; then
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+                --type 33 \
+                --github-repo "${{ github.repository }}" \
+                --github-token "${{ env.GH_TOKEN }}" \
+                --pr-number "${PR_NUMBER}" \
+                --label-name "${ADD_LABEL_NAME}" \
+                --label-ops "ADD"
           fi
