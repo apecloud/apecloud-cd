@@ -2,7 +2,12 @@ name: Pull Request Label Pick
 
 on:
   workflow_call:
-
+    inputs:
+      EXTRA_LABEL:
+        description: 'Set extra label'
+        type: string
+        required: false
+        default: ''
 
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -21,6 +26,7 @@ jobs:
         run: |
           PR_NUMBER="${{ github.event.issue.number }}"
           COMMENT_BODYS="${{ github.event.comment.body }}" 
+          EXTRA_LABEL="${{ inputs.EXTRA_LABEL }}"
           
           if [[ "${COMMENT_BODYS}" == *"Auto Cherry-pick Instructions"* ]]; then
               echo "Auto Cherry-pick Instructions"
@@ -36,7 +42,7 @@ jobs:
                   ADD_LABEL_NAME="nopick"
                   PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
                   for pr_label in $(echo "${PR_LABELS}"); do
-                      if [[ "${pr_label}" == "pick" || "${pr_label}" == "pick-"* ]]; then
+                      if [[ "${pr_label}" == "pick" || "${pr_label}" == "pick-"* || ( -n "${EXTRA_LABEL}" && "${pr_label}" == "chart-release-"*) ]]; then
                           if [[ -z "${REMOVE_LABEL_NAME}" ]]; then
                               REMOVE_LABEL_NAME=${pr_label}
                           else
@@ -66,8 +72,14 @@ jobs:
           
                       if [[ "${comment_body}" == "release-"* ]]; then
                           label_name_tmp="pick-${comment_body/release-/}"
+                          if [[ -n "${EXTRA_LABEL}" && "${EXTRA_LABEL}" == "chart-release" ]]; then
+                              label_name_tmp="${label_name_tmp},chart-${comment_body}"
+                          fi
                       elif [[ "${comment_body}" == "pick-"* || "${comment_body}" =~ ^([0-9]+)\.([0-9]+)$ ]]; then
                           label_name_tmp="${comment_body}"
+                          if [[ -n "${EXTRA_LABEL}" && "${EXTRA_LABEL}" == "chart-release" ]]; then
+                              label_name_tmp="${label_name_tmp},chart-release-${comment_body/pick-/}"
+                          fi
                       fi
           
                       if [[ -n "${label_name_tmp}" ]]; then
