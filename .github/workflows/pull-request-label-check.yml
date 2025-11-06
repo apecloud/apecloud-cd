@@ -26,7 +26,7 @@ jobs:
         run: |
           PR_NUMBER="${{ github.event.pull_request.number }}"
           PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
-          echo "PR_LABELS:  "
+          echo "PR_LABELS: ${PR_LABELS}"
           CHECK_LABEL="${{ inputs.CHECK_LABEL }}"
           label_exists=0
           for pr_label in $(echo "${PR_LABELS}"); do

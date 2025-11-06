@@ -1060,12 +1060,12 @@ get_cloud_pre_version() {
         head_version="${FIRST_VERSION}.${SECOND_VERSION}"
         if [[ "${VERSION}" == "v1.0."* ]]; then
             head_version="v0.28"
-            PRE_VERSIONS=$( gh release list --repo $GITHUB_REPO --limit 500 | (grep "${head_version}" || true))
+            PRE_VERSIONS=$( gh release list --repo $GITHUB_REPO --limit 1000 | (grep "${head_version}" || true))
         elif [[ "${VERSION}" == "v2.0."* ]]; then
             head_version="v1.1"
-            PRE_VERSIONS=$( gh release list --repo $GITHUB_REPO --limit 500 | (grep "${head_version}" || true))
+            PRE_VERSIONS=$( gh release list --repo $GITHUB_REPO --limit 1000 | (grep "${head_version}" || true))
         else
-            PRE_VERSIONS=$( gh release list --repo $GITHUB_REPO --limit 500 | (grep -v "${head_version}" || true))
+            PRE_VERSIONS=$( gh release list --repo $GITHUB_REPO --limit 1000 | (grep -v "${head_version}" || true))
         fi
     else
         SECOND_VERSION=$(( $SECOND_VERSION - 1 ))
@@ -1076,7 +1076,7 @@ get_cloud_pre_version() {
         if [[ "${VERSION}" == "v1.0."* ]]; then
             head_version="v0.28"
         fi
-        PRE_VERSIONS=$( gh release list --repo $GITHUB_REPO --limit 500 | (grep "${head_version}" || true))
+        PRE_VERSIONS=$( gh release list --repo $GITHUB_REPO --limit 1000 | (grep "${head_version}" || true))
     fi
     PRE_VERSION=""
     for pre_version in $(echo "$PRE_VERSIONS"); do
