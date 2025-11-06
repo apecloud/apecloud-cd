@@ -517,8 +517,10 @@ jobs:
               sleep 1
           done
           
-          # patch e2e retain backup
-          kubectl get backup -n kubeblocks-cloud-ns -o name | (grep "e2e-" || true) | xargs -I {} kubectl patch {} -n kubeblocks-cloud-ns --type='json' -p='[{"op": "replace", "path": "/spec/deletionPolicy", "value": "Delete"}]'
+          # delete e2e retain backup
+          kubectl get backup -n kubeblocks-cloud-ns -o name | (grep "e2e-" || true) | xargs -I {} kubectl delete -n kubeblocks-cloud-ns {} &
+          # patch e2e backup finalizers
+          kubectl get backup -n kubeblocks-cloud-ns -o name | (grep "e2e-" | grep "Deleting" || true) | xargs -I {} kubectl patch -p '{"metadata":{"finalizers":[]}}' --type=merge -n kubeblocks-cloud-ns &
           
           set -e
          
