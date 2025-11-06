@@ -231,8 +231,6 @@ jobs:
     outputs:
       chart-pkg-name: ${{ steps.get_save_result.outputs.chart_pkg_name }}
       save-result: ${{ steps.get_save_result.outputs.save_result }}
-      air-gap-tool-pkg-name: ${{ steps.get_save_result.outputs.air_gap_tool_pkg_name }}
-      save-air-gap-tool-result: ${{ steps.get_save_result.outputs.save_air_gap_tool_result }}
     steps:
       - name: get save result
         id: get_save_result
@@ -246,14 +244,6 @@ jobs:
           echo 'save_result='$SAVE_RESULT >> $GITHUB_OUTPUT
           echo 'chart_pkg_name='${CHART_PKG_NAME} >> $GITHUB_OUTPUT
           
-          AIR_GAP_TOOL_RESULT="${{ needs.save-charts.outputs.air-gap-tool-result }}"
-          AIR_GAP_TOOL_PKG_NAME="kbe-airgap-tool-${{ needs.save-charts.outputs.release-version }}.tar.gz"
-          if [[ "${AIR_GAP_TOOL_RESULT}" == "success" ]]; then
-              AIR_GAP_TOOL_PKG_NAME="http://kubeblocks-oss.${{ env.OSS_ENDPOINT }}/tools/apecloud/${AIR_GAP_TOOL_PKG_NAME}"
-          fi
-          echo 'save_air_gap_tool_result='${AIR_GAP_TOOL_RESULT} >> $GITHUB_OUTPUT
-          echo 'air_gap_tool_pkg_name='${AIR_GAP_TOOL_PKG_NAME} >> $GITHUB_OUTPUT
-
   send-message:
     needs: [ save-result ]
     if: ${{ always() }}
