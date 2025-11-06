@@ -125,7 +125,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release-version: ${{ steps.save-charts.outputs.release-version }}
-      air-gap-tool-result: ${{ steps.upload_air_gap_tool.outputs.air_gap_tool_result }}
     steps:
       - name: Checkout Code
         if: ${{ inputs.GITHUB_REPO == '' }}
@@ -213,30 +212,6 @@ jobs:
               echo "upload ${VALUES_FILE} to oss failed"
           fi
 
-      - name: Upload air-gap tool to oss
-        id: upload_air_gap_tool
-        run: |
-          AIR_GAP_TOOL_RESULT=""
-          if [[ -d "fountain/air-gap" ]]; then
-              cd fountain
-              RELEASE_VERSION="${{ inputs.RELEASE_VERSION }}"
-              AIR_GAP_NAME="air-gap"
-              AIR_GAP_TOOL_NAME="kbe-airgap-tool-${RELEASE_VERSION}.tar.gz"
-              echo "tar ${AIR_GAP_NAME}"
-              tar -czvf ${AIR_GAP_TOOL_NAME} ${AIR_GAP_NAME}
-              
-              ossutil cp -rf ./${AIR_GAP_TOOL_NAME} oss://${{ env.OSS_BUCKET }}/tools/apecloud/${AIR_GAP_TOOL_NAME}
-              upload_ret=$?
-              if [[ $upload_ret -eq 0 ]]; then
-                  AIR_GAP_TOOL_RESULT="success"
-                  echo "upload ${AIR_GAP_TOOL_NAME} to oss successfully"
-              else
-                  AIR_GAP_TOOL_RESULT="error"
-                  echo "upload ${AIR_GAP_TOOL_NAME} to oss failed"
-              fi
-          fi
-          echo "air_gap_tool_result=${AIR_GAP_TOOL_RESULT}" >> $GITHUB_OUTPUT
-
       - name: Upload charts to oss
         id: upload_to_oss
         run: |
@@ -286,18 +261,6 @@ jobs:
     with:
       TYPE: "2"
       CONTENT: "save chart ${{ needs.save-result.outputs.chart-pkg-name }} ${{ needs.save-result.outputs.save-result }}"
-      BOT_TYPE: "${{ inputs.BOT_TYPE }}"
-      BOT_WEBHOOK: "${{ inputs.BOT_WEBHOOK }}"
-      APECD_REF: ${{ inputs.APECD_REF }}
-    secrets: inherit
-
-  send-message-air-gap:
-    needs: [ save-result ]
-    if: ${{ always() && needs.save-result.outputs.save-air-gap-tool-result != '' }}
-    uses: ./.github/workflows/feishui-message.yml
-    with:
-      TYPE: "2"
-      CONTENT: "save tool ${{ needs.save-result.outputs.air-gap-tool-pkg-name }} ${{ needs.save-result.outputs.save-air-gap-tool-result }}"
       BOT_TYPE: "${{ inputs.BOT_TYPE }}"
       BOT_WEBHOOK: "${{ inputs.BOT_WEBHOOK }}"
       APECD_REF: ${{ inputs.APECD_REF }}
