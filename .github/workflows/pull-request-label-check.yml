@@ -114,7 +114,7 @@ jobs:
           echo "REMOVE_LABEL_NAME:${REMOVE_LABEL_NAME}"
           
           if [[ "${REAL_ADD_LABEL_NAME}" == "${REMOVE_LABEL_NAME}" ]]; then
-              echo "$(tput -T xterm setaf 2)no label need to add or remove! $(tput -T xterm sgr0)"
+              echo "$(tput -T xterm setaf 2)No need to add or remove labels! $(tput -T xterm sgr0)"
               exit 1
           fi
           
