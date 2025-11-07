@@ -253,6 +253,24 @@ jobs:
           esac
           echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
 
+      - name: clear e2e backup
+        run: |
+          backup_filter="$(date +%Y-%m)"
+          echo "delete e2e Retain backup"
+          kubectl get backup -n kubeblocks-cloud-ns --no-headers | (grep "e2e-" | grep -v "${backup_filter}" || true) | awk '{print $1}' | xargs kubectl delete backup -n kubeblocks-cloud-ns &
+          
+          echo "patch e2e Deleting backup finalizers"
+          for i in $(seq 1 10); do
+              e2e_deleting_backup=$(kubectl get backup -n kubeblocks-cloud-ns --no-headers | (grep "e2e-" | grep "Deleting" || true) | awk '{print $1}')
+              if [[ -z "${e2e_deleting_backup}" ]]; then
+                  break
+              else
+                  kubectl get backup -n kubeblocks-cloud-ns --no-headers | (grep "e2e-" | grep "Deleting" || true) | awk '{print $1}' | xargs kubectl patch backup -p '{"metadata":{"finalizers":[]}}' --type=merge -n kubeblocks-cloud-ns
+              fi
+              sleep 1
+          done
+          
+
       - name: run e2e clear cluster
         run: |
           run_file_log="run_e2e_clear_result.log"
@@ -516,11 +534,6 @@ jobs:
               fi
               sleep 1
           done
-          
-          # delete e2e retain backup
-          kubectl get backup -n kubeblocks-cloud-ns -o name | (grep "e2e-" || true) | xargs -I {} kubectl delete -n kubeblocks-cloud-ns {} &
-          # patch e2e backup finalizers
-          kubectl get backup -n kubeblocks-cloud-ns -o name | (grep "e2e-" | grep "Deleting" || true) | xargs -I {} kubectl patch -p '{"metadata":{"finalizers":[]}}' --type=merge -n kubeblocks-cloud-ns &
           
           set -e
          
