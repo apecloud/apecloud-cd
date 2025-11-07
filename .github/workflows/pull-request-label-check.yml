@@ -97,10 +97,24 @@ jobs:
 
           for pr_label in $(echo "${PR_LABELS}"); do
               label_name_tmp=""
-              if [[ -n "${ADD_LABEL_NAME}" && "${pr_label}" == "chart-release-"* && *"${pr_label}"* != "${ADD_LABEL_NAME}" ]]; then
-                  label_name_tmp="${pr_label}"
-              elif [[ -z "${ADD_LABEL_NAME}" && "${pr_label}" == "chart-release-"*  ]]; then
-                  label_name_tmp="${pr_label}"
+              if [[ -n "${ADD_LABEL_NAME}" ]]; then
+                  if [[ "${pr_label}" == "chart-release-"* ]]; then
+                      add_label_exists=0
+                      for add_label_tmp in $(echo "${ADD_LABEL_NAME}" | sed 's/,/ /g'); do
+                         if [[ "${add_label_tmp}" == "${pr_label}" ]]; then
+                            add_label_exists=1
+                            break
+                        fi
+                      done
+          
+                      if [[ ${add_label_exists} -eq 0 ]]; then
+                         label_name_tmp="${pr_label}"
+                      fi
+                  fi
+              else
+                  if [[ "${pr_label}" == "chart-release-"*  ]]; then
+                      label_name_tmp="${pr_label}"
+                  fi
               fi
           
               if [[ -n "${label_name_tmp}" ]]; then
