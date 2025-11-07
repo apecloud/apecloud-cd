@@ -44,7 +44,7 @@ jobs:
           fi
 
       - name: Checkout apecloud-cd Code
-        if: ${{ inputs.EXTRA_LABEL != '' && inputs.EXTRA_LABEL == 'chart-release' }}
+        if: ${{ inputs.EXTRA_LABEL != '' && inputs.EXTRA_LABEL == 'chart-release' && github.event.pull_request.head.repo.full_name != github.repository }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/apecloud-cd
@@ -52,11 +52,13 @@ jobs:
 
       - name: extra label set
         continue-on-error: true
-        if: ${{ inputs.EXTRA_LABEL != '' && inputs.EXTRA_LABEL == 'chart-release' }}
+        if: ${{ inputs.EXTRA_LABEL != '' && inputs.EXTRA_LABEL == 'chart-release' && github.event.pull_request.head.repo.full_name != github.repository }}
         run: |
           PR_NUMBER="${{ github.event.pull_request.number }}"
           PR_LABELS=$(gh pr view ${PR_NUMBER} --repo ${{ github.repository }} --json labels | jq -r '.labels[].name')
+          echo "PR_LABELS: ${PR_LABELS}"
           ADD_LABEL_NAME=""
+          REAL_ADD_LABEL_NAME=""
           REMOVE_LABEL_NAME=""
           for pr_label in $(echo "${PR_LABELS}"); do
               label_name_tmp=""
@@ -70,10 +72,29 @@ jobs:
                   else
                       ADD_LABEL_NAME="${ADD_LABEL_NAME},${label_name_tmp}"
                   fi
+              else
+                  continue
+              fi
+          
+              # check exists label
+              for pr_label_tmp in $(echo "${PR_LABELS}"); do
+                  if [[ "${pr_label_tmp}" == "${label_name_tmp}" ]]; then
+                      label_name_tmp=""
+                      break
+                  fi
+              done
+          
+              if [[ -n "${label_name_tmp}" ]]; then
+                  if [[ -z "${REAL_ADD_LABEL_NAME}" ]]; then
+                      REAL_ADD_LABEL_NAME=${label_name_tmp}
+                  else
+                      REAL_ADD_LABEL_NAME="${REAL_ADD_LABEL_NAME},${label_name_tmp}"
+                  fi
               fi
           done
           echo "ADD_LABEL_NAME:${ADD_LABEL_NAME}"
-          
+          echo "REAL_ADD_LABEL_NAME:${REAL_ADD_LABEL_NAME}"
+
           for pr_label in $(echo "${PR_LABELS}"); do
               label_name_tmp=""
               if [[ -n "${ADD_LABEL_NAME}" && "${pr_label}" == "chart-release-"* && *"${pr_label}"* != "${ADD_LABEL_NAME}" ]]; then
@@ -91,6 +112,11 @@ jobs:
               fi
           done
           echo "REMOVE_LABEL_NAME:${REMOVE_LABEL_NAME}"
+          
+          if [[ "${REAL_ADD_LABEL_NAME}" == "${REMOVE_LABEL_NAME}" ]]; then
+              echo "$(tput -T xterm setaf 2)No need to add or remove labels! $(tput -T xterm sgr0)"
+              exit 1
+          fi
           
           if [[ -n "${REMOVE_LABEL_NAME}" ]]; then
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
@@ -121,12 +147,12 @@ jobs:
               done
           fi
           
-          if [[ -n "${ADD_LABEL_NAME}" ]]; then
+          if [[ -n "${REAL_ADD_LABEL_NAME}" ]]; then
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
                 --type 33 \
                 --github-repo "${{ github.repository }}" \
                 --github-token "${{ env.GH_TOKEN }}" \
                 --pr-number "${PR_NUMBER}" \
-                --label-name "${ADD_LABEL_NAME}" \
+                --label-name "${REAL_ADD_LABEL_NAME}" \
                 --label-ops "ADD"
           fi
