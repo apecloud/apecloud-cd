@@ -45,7 +45,7 @@ do
                 docker://docker.io/apecloud/$image_name)
         fi
         echo "return message:$ret_msg"
-        if [[ "$ret_msg" == *"Storing list signatures"* || "$ret_msg" == *"Skipping"* ]]; then
+        if [[ "$ret_msg" == *"Storing list signatures"* || "$ret_msg" == *"Skipping"* || "$ret_msg" == *"Writing manifest to image destination" ]]; then
             echo "$(tput -T xterm setaf 2)$skopeo_msg success$(tput -T xterm sgr0)"
             skopeo_flag=1
             break
