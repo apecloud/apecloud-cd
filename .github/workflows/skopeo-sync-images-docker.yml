@@ -10,7 +10,7 @@ on:
       registry:
         description: 'sync image src resource registry(e.g. docker.io)'
         required: false
-        default: 'docker.io'
+        default: 'apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com'
 
 run-name: sync to docker.io:${{ inputs.images_name }}
 
@@ -19,6 +19,7 @@ env:
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   ECR_PASSWORD: ${{ secrets.ECR_PASSWORD }}
+  ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
   ALIYUN_USERNAME: ${{ secrets.ALIYUN_REGISTRY_USER }}
   ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
 
