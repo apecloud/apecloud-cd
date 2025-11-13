@@ -128,7 +128,7 @@ jobs:
           
               KB_CLOUD_TEST_ENGINES_PRE="${{ vars.KB_CLOUD_TEST_ENGINES_PRE }}"
               if [[ -z "${KB_CLOUD_TEST_ENGINES_PRE}" ]]; then
-                  KB_CLOUD_TEST_ENGINES_PRE=4
+                  KB_CLOUD_TEST_ENGINES_PRE=5
               fi
               if [[ $(( engine_index % ${KB_CLOUD_TEST_ENGINES_PRE} )) == 0 ]]; then
                   test_job_index=$(( test_job_index + 1 ))
