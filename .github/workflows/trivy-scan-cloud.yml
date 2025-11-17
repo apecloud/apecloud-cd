@@ -2,6 +2,12 @@ name: Trivy Scan Cloud
 
 on:
   workflow_dispatch:
+    inputs:
+      CLOUD_TAG:
+        description: "cloud tag"
+        type: string
+        required: false
+        default: ''
   schedule:
     - cron: '0 0 * * 1-5' # Runs at 08:00 UTC on Mon to Friday
 
@@ -23,7 +29,10 @@ jobs:
       - name: get cloud tag
         id: get-cloud-tag
         run: |
-          CLOUD_TAG=$(gh release list --repo ${{ env.CLOUD_REPO }} | grep -v "alpha" | grep -v "beta" | awk 'NR==1{print $2}')
+          CLOUD_TAG="${{ inputs.CLOUD_TAG }}"
+          if [[ -z "${CLOUD_TAG}" ]]; then
+              CLOUD_TAG=$(gh release list --repo ${{ env.CLOUD_REPO }} | grep -v "alpha" | grep -v "beta" | awk 'NR==1{print $2}')
+          fi
           echo "cloud-tag=${CLOUD_TAG}" >> $GITHUB_OUTPUT
 
       - name: Checkout apecloud Code
@@ -33,14 +42,11 @@ jobs:
           token: ${{ env.GH_TOKEN }}
           ref: ${{ steps.get-cloud-tag.outputs.cloud-tag }}
 
-      - name: get cloud tag
+      - name: get images
         id: get-images
         run: |
           MANIFESTS_FILE=${{ env.MANIFESTS_FILE }}
           CLOUD_TAG="${{ steps.get-cloud-tag.outputs.cloud-tag }}"
-          
-          MANIFESTS_FILE="/Users/huangzhangshu/projects/apecloud/github/apecloud/manifests/deploy-manifests.yaml"
-          CLOUD_TAG="v2.0.155"
           
           # get cloud images
           cloud_images_list=$(yq e ".kubeblocks-cloud[].images" ${MANIFESTS_FILE} | (grep "${CLOUD_TAG}" || true) | awk '{print $2}' | sort -u)
@@ -148,8 +154,13 @@ jobs:
           date_ret=$(date +%Y-%m-%d-%T)
           test_title="[${CLOUD_TAG}] Trivy Scan Vulnerabilities [${date_ret}]"
           
+          send_message_url="${{ vars.SECURITY_WEBHOOK }}"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              send_message_url="${{ vars.CICD_WEBHOOK }}"
+          fi
+          
           python3 .github/utils/send_mesage.py \
               --send-type trivy \
-              --url "${{ vars.CICD_WEBHOOK }}" \
+              --url "${send_message_url}" \
               --title "$test_title" \
               --result "$TEST_RESULT"
