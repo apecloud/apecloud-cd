@@ -42,7 +42,7 @@ jobs:
           token: ${{ env.GH_TOKEN }}
           ref: ${{ steps.get-cloud-tag.outputs.cloud-tag }}
 
-      - name: get cloud tag
+      - name: get images
         id: get-images
         run: |
           MANIFESTS_FILE=${{ env.MANIFESTS_FILE }}
