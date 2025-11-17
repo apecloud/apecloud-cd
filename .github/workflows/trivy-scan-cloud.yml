@@ -69,6 +69,7 @@ jobs:
           
           echo "CLOUD_IMAGES:${CLOUD_IMAGES}"
           echo "cloud-images=${CLOUD_IMAGES}" >> $GITHUB_OUTPUT
+          echo ""
           
           # get gemini images
           gemini_versions_list=$(yq e ".gemini[].version" ${MANIFESTS_FILE} | tr '\n' '|' | sed 's/|$//')
@@ -94,6 +95,7 @@ jobs:
           
           echo "GEMINI_IMAGES:${GEMINI_IMAGES}"
           echo "gemini-images=${GEMINI_IMAGES}" >> $GITHUB_OUTPUT
+          echo ""
           
           # get kubeblocks images
           kubeblocks_versions_list=$(yq e ".kubeblocks[].version" ${MANIFESTS_FILE} | tr '\n' '|' | sed 's/|$//')
