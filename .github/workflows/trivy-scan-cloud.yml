@@ -2,6 +2,12 @@ name: Trivy Scan Cloud
 
 on:
   workflow_dispatch:
+    inputs:
+      CLOUD_TAG:
+        description: "cloud tag"
+        type: string
+        required: false
+        default: ''
   schedule:
     - cron: '0 0 * * 1-5' # Runs at 08:00 UTC on Mon to Friday
 
@@ -23,7 +29,10 @@ jobs:
       - name: get cloud tag
         id: get-cloud-tag
         run: |
-          CLOUD_TAG=$(gh release list --repo ${{ env.CLOUD_REPO }} | grep -v "alpha" | grep -v "beta" | awk 'NR==1{print $2}')
+          CLOUD_TAG="${{ inputs.CLOUD_TAG }}"
+          if [[ -z "${CLOUD_TAG}" ]]; then
+              CLOUD_TAG=$(gh release list --repo ${{ env.CLOUD_REPO }} | grep -v "alpha" | grep -v "beta" | awk 'NR==1{print $2}')
+          fi
           echo "cloud-tag=${CLOUD_TAG}" >> $GITHUB_OUTPUT
 
       - name: Checkout apecloud Code
@@ -38,9 +47,6 @@ jobs:
         run: |
           MANIFESTS_FILE=${{ env.MANIFESTS_FILE }}
           CLOUD_TAG="${{ steps.get-cloud-tag.outputs.cloud-tag }}"
-          
-          MANIFESTS_FILE="/Users/huangzhangshu/projects/apecloud/github/apecloud/manifests/deploy-manifests.yaml"
-          CLOUD_TAG="v2.0.155"
           
           # get cloud images
           cloud_images_list=$(yq e ".kubeblocks-cloud[].images" ${MANIFESTS_FILE} | (grep "${CLOUD_TAG}" || true) | awk '{print $2}' | sort -u)
