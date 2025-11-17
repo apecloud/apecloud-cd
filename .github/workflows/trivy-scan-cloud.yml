@@ -49,7 +49,9 @@ jobs:
           CLOUD_TAG="${{ steps.get-cloud-tag.outputs.cloud-tag }}"
           
           # get cloud images
-          cloud_images_list=$(yq e ".kubeblocks-cloud[].images" ${MANIFESTS_FILE} | (grep "${CLOUD_TAG}" || true) | awk '{print $2}' | sort -u)
+          cloud_images_filter="${CLOUD_TAG}|apecloud/dms|apecloud/servicemirror|apecloud/cubetran"
+          cloud_images_list=$(yq e ".kubeblocks-cloud[].images" ${MANIFESTS_FILE} \
+              | (egrep "${cloud_images_filter}" || true) | awk '{print $2}' | sort -u)
           CLOUD_IMAGES=""
           for cloud_image in $(echo "${cloud_images_list}"); do
               if [[ -z "${CLOUD_IMAGES}" ]]; then
@@ -67,11 +69,14 @@ jobs:
           
           echo "CLOUD_IMAGES:${CLOUD_IMAGES}"
           echo "cloud-images=${CLOUD_IMAGES}" >> $GITHUB_OUTPUT
+          echo ""
           
           # get gemini images
           gemini_versions_list=$(yq e ".gemini[].version" ${MANIFESTS_FILE} | tr '\n' '|' | sed 's/|$//')
           
-          gemini_images_list=$(yq e ".gemini[].images" ${MANIFESTS_FILE} | (egrep "${gemini_versions_list}" || true) | awk '{print $2}' | sort -u)
+          gemini_images_filter="${gemini_versions_list}|apecloud/servicemirror|apecloud/cubetran|apecloud/ape-dts"
+          gemini_images_list=$(yq e ".gemini[].images" ${MANIFESTS_FILE} \
+              | (egrep "${gemini_images_filter}" || true) | awk '{print $2}' | sort -u)
           GEMINI_IMAGES=""
           for gemini_image in $(echo "${gemini_images_list}"); do
               if [[ -z "${GEMINI_IMAGES}" ]]; then
@@ -90,6 +95,7 @@ jobs:
           
           echo "GEMINI_IMAGES:${GEMINI_IMAGES}"
           echo "gemini-images=${GEMINI_IMAGES}" >> $GITHUB_OUTPUT
+          echo ""
           
           # get kubeblocks images
           kubeblocks_versions_list=$(yq e ".kubeblocks[].version" ${MANIFESTS_FILE} | tr '\n' '|' | sed 's/|$//')
