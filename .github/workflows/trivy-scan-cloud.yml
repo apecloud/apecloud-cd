@@ -154,8 +154,13 @@ jobs:
           date_ret=$(date +%Y-%m-%d-%T)
           test_title="[${CLOUD_TAG}] Trivy Scan Vulnerabilities [${date_ret}]"
           
+          send_message_url="${{ vars.SECURITY_WEBHOOK }}"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              send_message_url="${{ vars.CICD_WEBHOOK }}"
+          fi
+          
           python3 .github/utils/send_mesage.py \
               --send-type trivy \
-              --url "${{ vars.SECURITY_WEBHOOK }}" \
+              --url "${send_message_url}" \
               --title "$test_title" \
               --result "$TEST_RESULT"
