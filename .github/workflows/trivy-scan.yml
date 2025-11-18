@@ -200,7 +200,7 @@ jobs:
                       total_total=$((high_total + critical_total))
                       vulnerabilities_total="Total: $total_total (HIGH: $high_total, CRITICAL: $critical_total)"
                       echo "${vulnerabilities_total}"
-                  z
+                  else
                       echo "✅ $(tput -T xterm setaf 2)${image} has no CRITICAL or HIGH vulnerabilities$(tput -T xterm sgr0)"
                   fi
                   image_tmp="${image/docker.io\//}"
