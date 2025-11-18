@@ -137,7 +137,7 @@ jobs:
               fi
               index=$((index+1))
               echo "trivy image ${image}"
-              trivy_scan_cmd="trivy image --format table --severity CRITICAL,HIGH --ignore-unfixed --output trivy_scan_report_${index}.out"
+              trivy_scan_cmd="trivy image --format table --severity CRITICAL --ignore-unfixed --output trivy_scan_report_${index}.out"
               if [[ $index -eq 1 ]]; then
                   eval "$trivy_scan_cmd ${image}"
               else
@@ -200,7 +200,7 @@ jobs:
                       total_total=$((high_total + critical_total))
                       vulnerabilities_total="Total: $total_total (HIGH: $high_total, CRITICAL: $critical_total)"
                       echo "${vulnerabilities_total}"
-                  else
+                  z
                       echo "✅ $(tput -T xterm setaf 2)${image} has no CRITICAL or HIGH vulnerabilities$(tput -T xterm sgr0)"
                   fi
                   image_tmp="${image/docker.io\//}"

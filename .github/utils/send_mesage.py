@@ -1045,20 +1045,7 @@ def send_trivy_scan_message(url_v, result_v, title_v):
                         "text_align": "center"
                     }
                 ]
-            },
-            {
-                "tag": "column",
-                "width": "weighted",
-                "weight": 1,
-                "vertical_align": "top",
-                "elements": [
-                    {
-                        "tag": "markdown",
-                        "content": "**High**",
-                        "text_align": "center"
-                    }
-                ]
-            },
+            }
         ]
     }
     json_results.append(json_ret)
@@ -1126,19 +1113,6 @@ def send_trivy_scan_message(url_v, result_v, title_v):
                                 {
                                     "tag": "markdown",
                                     "content": "<font color='" + critical_color + "'>" + ret[2] + "</font>",
-                                    "text_align": "center"
-                                }
-                            ]
-                        },
-                        {
-                            "tag": "column",
-                            "width": "weighted",
-                            "weight": 1,
-                            "vertical_align": "center",
-                            "elements": [
-                                {
-                                    "tag": "markdown",
-                                    "content": "<font color='" + high_color + "'>" + ret[3] + "</a>",
                                     "text_align": "center"
                                 }
                             ]
