@@ -16,6 +16,7 @@ env:
   CLOUD_REPO: "apecloud/apecloud"
   MANIFESTS_FILE: "manifests/deploy-manifests.yaml"
 
+run-name: Trivy Scan Cloud ${{ inputs.CLOUD_TAG }}
 
 jobs:
   get-images:
