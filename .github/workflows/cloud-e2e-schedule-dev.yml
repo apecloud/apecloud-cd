@@ -19,14 +19,32 @@ jobs:
       CONTEXT: "./e2e"
       DOCKERFILE_PATH: "./e2e/Dockerfile"
       VERSION: "${{ matrix.branch-name }}"
-      GO_VERSION: "1.23.1"
+      GO_VERSION: "1.24.9"
       REMOVE_PREFIX: false
       BUILDX_ARGS: |
         ALPINE_IMAGE=apecloud/alpine:3.16
     secrets: inherit
 
+  release-e2e-ginkgo-image:
+    strategy:
+      fail-fast: false
+      matrix:
+        branch-name: [ "main" ]
+    uses: ./.github/workflows/release-image-sync2.yml
+    with:
+      GITHUB_REPO: "apecloud/apecloud"
+      GITHUB_REF: "${{ matrix.branch-name }}"
+      MAKE_OPS: "build"
+      VERSION: "${{ matrix.branch-name }}"
+      GO_VERSION: "1.24.9"
+      BUILDX_ENABLED: true
+      GIT_CONFIG: true
+      REMOVE_PREFIX: false
+      MAKE_ARGS: "TARGETS=docker/e2e-ginkgo "
+    secrets: inherit
+
   e2e-api-test:
-    needs: [ release-e2e-image ]
+    needs: [ release-e2e-image, release-e2e-ginkgo-image ]
     uses: ./.github/workflows/trigger-workflow.yml
     with:
       GITHUB_REPO: "apecloud/apecloud-cd"
