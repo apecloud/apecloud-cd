@@ -53,16 +53,6 @@ on:
         type: string
         required: false
         default: ''
-      GOOGLE_IMG:
-        description: "The URL to use building/pushing gcr image targets (e.g. apecloud-prod/controller-manager/apecloud)"
-        type: string
-        required: false
-        default: ''
-      GOOGLE_REGISTRY_URL:
-        description: "The GOOGLE REGISTRY URL to use building/pushing image targets (e.g. us-east1-docker.pkg.dev)"
-        type: string
-        required: false
-        default: ''
       GIT_CONFIG:
         description: "InsteadOf git config global url (default: false)"
         type: boolean

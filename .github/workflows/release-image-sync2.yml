@@ -1,0 +1,312 @@
+name: Release Image Sync2
+
+on:
+  workflow_call:
+    inputs:
+      MAKE_OPS:
+        description: "The ops name of makefile (default: push-image)"
+        type: string
+        required: false
+        default: 'push-image'
+      MAKE_OPS_PRE:
+        description: "The pre ops name of makefile (e.g. generate)"
+        type: string
+        required: false
+        default: ''
+      IMG:
+        description: "The URL to use building/pushing image targets (e.g. apecloud/kubeblocks)"
+        type: string
+        required: false
+        default: ''
+      REPOSITORY:
+        description: "The REPOSITORY to use building/pushing image targets (e.g. apecloud)"
+        type: string
+        required: false
+        default: ''
+      VERSION:
+        description: "The tag name of image (default: latest)"
+        type: string
+        required: false
+        default: ''
+      BUILDX_PLATFORMS:
+        description: "buildx platforms (default: linux/amd64,linux/arm64)"
+        type: string
+        required: false
+        default: 'linux/amd64,linux/arm64'
+      BUILDX_ENABLED:
+        description: "buildx enable (default: true)"
+        type: string
+        required: false
+        default: 'true'
+      BUILDX_ARGS:
+        description: "buildx args (default: --sbom=false --provenance=false)"
+        type: string
+        required: false
+        default: ''
+      GO_VERSION:
+        description: "Install the specify version of GO"
+        type: string
+        required: false
+        default: ''
+      GIT_CONFIG:
+        description: "InsteadOf git config global url (default: false)"
+        type: boolean
+        required: false
+        default: false
+      REMOVE_PREFIX:
+        description: "Enable remove prefix v  (default: true)"
+        type: boolean
+        required: false
+        default: true
+      MAKE_ARGS:
+        description: "make args"
+        type: string
+        required: false
+        default: ''
+      EXTRA_BUILD_ARGS:
+        description: "extra build args"
+        type: string
+        required: false
+        default: ''
+      ENABLE_SUBMODULE:
+        description: "Enable checkout submodule  (default: false)"
+        type: boolean
+        required: false
+        default: false
+      ARGS_TOKEN:
+        description: "Enable set GITHUB_TOKEN to ARGS  (default: false)"
+        type: boolean
+        required: false
+        default: false
+      IMAGE_NAME:
+        description: "specify image name"
+        type: string
+        required: false
+        default: ""
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      GITHUB_REPO:
+        description: "The github repo to release image"
+        type: string
+        required: false
+        default: ''
+      GITHUB_REF:
+        description: "The github repo ref to release image"
+        type: string
+        required: false
+        default: 'main'
+      SYNC_ENABLE:
+        description: "Enable sync images"
+        type: boolean
+        required: false
+        default: true
+
+env:
+  DOCKER_REGISTRY_URL: docker.io
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+  ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
+  GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  DEFAULT_BUILDX_ARGS: '--sbom=false --provenance=false'
+
+jobs:
+  release-image:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-22.04
+    outputs:
+      tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
+    steps:
+      - name: Free disk space
+        continue-on-error: true
+        run: |
+          echo "Free space first:"
+          df -h
+          
+          mnt_storage=$(df -h | (grep "/mnt" | grep "100%" ||true))
+          if [[ -n "${mnt_storage}" ]]; then
+            echo "Disk is full, please rerun the workflow."
+            exit 1
+          fi
+          
+          sudo mkdir -p /mnt/new-storage
+          sudo touch /etc/docker/daemon.json
+          sudo tee /etc/docker/daemon.json <<EOF
+          {
+            "data-root": "/mnt/new-storage"
+          }
+          EOF
+          sudo systemctl restart docker
+          echo "Free space second:"
+          df -h
+
+      - name: Checkout Code
+        if: ${{ ! inputs.ENABLE_SUBMODULE && inputs.GITHUB_REPO == '' }}
+        uses: actions/checkout@v4
+
+      - name: Checkout Code With Submodule
+        if: ${{ inputs.ENABLE_SUBMODULE && inputs.GITHUB_REPO == '' }}
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: Checkout ${{ inputs.GITHUB_REPO }} Code
+        if: ${{ ! inputs.ENABLE_SUBMODULE && inputs.GITHUB_REPO != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.GITHUB_REPO }}
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.GITHUB_REF }}
+
+      - name: Checkout ${{ inputs.GITHUB_REPO }} Code With Submodule
+        if: ${{ inputs.ENABLE_SUBMODULE && inputs.GITHUB_REPO != '' }}
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          repository: ${{ inputs.GITHUB_REPO }}
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.GITHUB_REF }}
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: image=moby/buildkit:master
+
+      - name: Setup Go specify version
+        if: inputs.GO_VERSION
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ inputs.GO_VERSION }}
+
+      - name: git config
+        if: inputs.GIT_CONFIG
+        run: |
+          git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GITHUB_TOKEN }}@github.com".insteadof "https://github.com"
+
+      - name: make pre
+        if: inputs.MAKE_OPS_PRE
+        run: |
+          make ${{ inputs.MAKE_OPS_PRE }}
+
+      - name: Remove v prefix
+        id: get_tag_name
+        shell: bash
+        run: |
+          tag_name="${{ inputs.VERSION }}"
+          if [[ "$tag_name" == "v"*  && "${{ inputs.REMOVE_PREFIX }}" == "true" ]]; then
+              tag_name="${tag_name/v/}"
+          fi
+          echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
+
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY_URL }}
+          username: ${{ env.DOCKER_USER }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
+        name: Build and Push to Docker Hub
+        run: |
+          echo "Free space:"
+          df -h
+          cmd="make ${{ inputs.MAKE_OPS }} "
+          cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
+          cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
+          cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
+          
+          if [[ -n "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
+              if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
+                  cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
+              else
+                  cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }}\" "
+              fi
+          elif [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
+              cmd=$cmd"EXTRA_BUILD_ARGS=\"--build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
+          fi
+          
+          if [[ -n "${{ inputs.VERSION }}" ]]; then
+            cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
+          fi
+          
+          if [[ -n "${{ inputs.IMG }}" ]]; then
+            cmd=$cmd"IMG=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }} "
+          elif [[ -n "${{ inputs.REPOSITORY }}" ]]; then
+            cmd=$cmd"REPOSITORY=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.REPOSITORY }} "
+          fi
+          
+          if [[ -n "${{ inputs.MAKE_ARGS }}" ]]; then
+            cmd=$cmd" ${{ inputs.MAKE_ARGS }} "
+          fi
+          
+          if [[ -n "${{ inputs.IMAGE_NAME }}" ]]; then
+            cmd=$cmd"IMAGE_NAME=${{ inputs.IMAGE_NAME }} "
+          fi
+          
+          eval "$cmd"
+
+  sync-to-aliyun:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.SYNC_ENABLE }}
+    needs: [ release-image ]
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: generate image yaml
+        run: |
+          IMAGES_TAG="${{ needs.release-image.outputs.tag-name }}"
+          IMAGES_INPUT=""
+          if [[ -n "${{ inputs.IMG }}" ]]; then
+              IMAGES_INPUT="${{ inputs.IMG }}:${IMAGES_TAG}"
+          else
+              TARGETS="${{ inputs.MAKE_ARGS }}"
+              case $TARGETS in
+                  *TARGETS*)  
+                      for TARGET in $(echo "${TARGETS}"); do
+                          if [[ "$TARGET" == *"TARGETS="* ]]; then
+                              TARGETS_TMP=${TARGET#*=}
+                              TARGETS_TMP=${TARGETS_TMP##*/}
+                              TARGETS_TMP=$(echo "$TARGETS_TMP" | tr -d ' ')
+                              IMAGES_INPUT="apecloud/${TARGETS_TMP}:${IMAGES_TAG}"
+                              break
+                          fi
+                      done
+                  ;;
+              esac
+          fi
+          
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+             --type 32 \
+             --images "${IMAGES_INPUT}" \
+             --registry "${{ env.DOCKER_REGISTRY_URL }}"
+
+      - uses: hhyasdf/image-sync-action@v1.1
+        name: sync image to apecloud aliyun registry
+        if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
+        with:
+          auth_file: ${{ github.workspace }}/apecloud-cd/.github/actions/image-sync-auth-apecloud.yml
+          images_file: ./image_sync_yaml_apecloud.yml
+          proc: 6
+          retries: 5
+          version: v1.5.2
+        env:
+          DOCKER_USER: ${{ env.DOCKER_USER }}
+          DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
+          ALIYUN_USER: ${{ env.ALIYUN_USER }}
+          ALIYUN_PASSWORD: ${{ env.ALIYUN_PASSWORD }}
