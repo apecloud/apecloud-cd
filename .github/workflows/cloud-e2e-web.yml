@@ -303,7 +303,7 @@ jobs:
           
           cat ${test_file_log_path}
           test_ret="$( grep "PLAYWRIGHT TEST FAILED" ${test_file_log_path} || true )"
-          TEST_RESULT="$(cat${test_file_log_path} | grep -A 100 'PLAYWRIGHT-RESULT' || true)"
+          TEST_RESULT="$(cat ${test_file_log_path} | grep -A 100 'PLAYWRIGHT-RESULT' || true)"
           echo "test result total:${TEST_RESULT}"
           
           if [[ -z "$TEST_RESULT" ]]; then
