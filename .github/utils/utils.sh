@@ -450,18 +450,37 @@ parse_playwright_test_result() {
     local jobs_name=$1
     local jobs_url=$2
 
-    ret=$(echo "$TEST_RESULT" | awk -v jobs_name="$jobs_name" -v jobs_url="$jobs_url" '{
+    ret=$(echo "$TEST_RESULT" | awk -v jobs_name="$jobs_name" -v jobs_url="$jobs_url" '
+    {
+        FS="[[:space:]]+"
+
+        accumulated_specs = ""
+
         for (i = 1; i <= NF; i++) {
             if ($i == jobs_name) {
                 if (i + 2 <= NF) {
                     engine_type = $i
                     spec = $(i + 1)
                     result = $(i + 2)
-                    printf "##%s|%s|%s|%s", engine_type, spec, result, jobs_url
+
+                    current_pair = spec "|" result
+
+                    if (accumulated_specs == "") {
+                        accumulated_specs = current_pair
+                    } else {
+                        accumulated_specs = accumulated_specs "##" current_pair
+                    }
                 }
             }
         }
+    }
+
+    END {
+        if (accumulated_specs != "") {
+            printf "###%s###%s###%s", jobs_name, jobs_url, accumulated_specs
+        }
     }')
+
     TEST_RET+=$ret
 }
 
