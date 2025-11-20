@@ -446,6 +446,46 @@ get_ginkgo_test_result() {
     echo "$TEST_RET"
 }
 
+parse_playwright_test_result() {
+    local jobs_name=$1
+    local jobs_url=$2
+
+    ret=$(echo "$TEST_RESULT" | awk -v jobs_name="$jobs_name" -v jobs_url="$jobs_url" '{
+        for (i = 1; i <= NF; i++) {
+            if ($i == jobs_name) {
+                if (i + 2 <= NF) {
+                    engine_type = $i
+                    spec = $(i + 1)
+                    result = $(i + 2)
+                    printf "##%s|%s|%s|%s", engine_type, spec, result, jobs_url
+                }
+            }
+        }
+    }')
+    TEST_RET+=$ret
+}
+
+get_playwright_test_result() {
+    for i in {1..2}; do
+        jobs_url="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=$i"
+        jobs_list=$( gh_curl -s $jobs_url )
+        total_count=$( echo "$jobs_list" | jq '.total_count' )
+        if [[ "$total_count" == "null" || $(is_number "$total_count") == "false" ]]; then
+            echo "total_count:${total_count}"
+            break
+        fi
+        for i in $(seq 0 $total_count); do
+            if [[ "$i" == "$total_count" ]]; then
+                break
+            fi
+            jobs_name=$( echo "$jobs_list" | jq ".jobs[$i].name" --raw-output )
+            jobs_url=$( echo "$jobs_list" | jq ".jobs[$i].html_url" --raw-output )
+            parse_playwright_test_result "$jobs_name" "$jobs_url"
+        done
+    done
+    echo "$TEST_RET"
+}
+
 set_cloud_test_runs_jobs() {
     jobs_name=$1
     jobs_url=$2
@@ -1553,6 +1593,9 @@ main() {
         ;;
         45)
             set_engine_summary_result_url_2
+        ;;
+        46)
+            get_playwright_test_result
         ;;
     esac
 }
