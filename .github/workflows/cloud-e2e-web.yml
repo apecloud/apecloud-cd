@@ -573,7 +573,7 @@ jobs:
           TEST_TITLE="[${E2ETEST_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Web Test [${date_ret}]"
           
           python3 .github/utils/send_mesage.py \
-              --send-type ginkgo \
+              --send-type playwright \
               --url "${{ vars.CLOUD_E2E_WEB_BOT_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "${TEST_RESULT_ALL}"
