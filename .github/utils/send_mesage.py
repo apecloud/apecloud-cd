@@ -1514,121 +1514,89 @@ def send_kbcli_message(url_v, result_v, title_v):
 
 def send_playwright_message(url_v, result_v, title_v):
     print("send playwright message")
+
+    import json
+    import requests
+
     json_results = []
-    json_ret = {
+
+    header_ret = {
         "tag": "column_set",
         "flex_mode": "none",
         "background_style": "grey",
         "columns": [
-            {
-                "tag": "column",
-                "width": "weighted",
-                "weight": 1,
-                "vertical_align": "top",
-                "elements": [
-                    {
-                        "tag": "markdown",
-                        "content": "**Test Type**",
-                        "text_align": "center"
-                    }
-                ]
-            },
-            {
-                "tag": "column",
-                "width": "weighted",
-                "weight": 2,
-                "vertical_align": "top",
-                "elements": [
-                    {
-                        "tag": "markdown",
-                        "content": "**Test Spec**",
-                        "text_align": "center"
-                    }
-                ]
-            },
-            {
-                "tag": "column",
-                "width": "weighted",
-                "weight": 1,
-                "vertical_align": "top",
-                "elements": [
-                    {
-                        "tag": "markdown",
-                        "content": "**Test Result**",
-                        "text_align": "center"
-                    }
-                ]
-            },
+            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Test Type**", "text_align": "center"}]},
+            {"tag": "column", "width": "weighted", "weight": 2, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Test Spec**", "text_align": "center"}]},
+            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Test Result**", "text_align": "center"}]},
         ]
     }
-    json_results.append(json_ret)
+    json_results.append(header_ret)
+
     if result_v:
-        result_array = result_v.split("##")
-        for results in result_array:
-            if results:
-                ret = results.split("|")
-                test_type = ret[0]
-                test_spec = ret[1]
-                test_ret = ret[2]
-                ret_url = ret[-1]
-                if "ERROR" in results or "FAILED" in results:
-                    color = 'red'
-                else:
-                    color = 'green'
-                json_ret = {
-                    "tag": "column_set",
-                    "flex_mode": "none",
-                    "columns": [
-                        {
-                            "tag": "column",
-                            "width": "weighted",
-                            "weight": 1,
-                            "vertical_align": "top",
-                            "elements": [
-                                {
-                                    "tag": "markdown",
-                                    "content": "<a href='" + ret_url + "'>" + test_type + "</a>",
-                                    "text_align": "center"
-                                }
-                            ]
-                        },
-                        {
-                            "tag": "column",
-                            "width": "weighted",
-                            "weight": 2,
-                            "vertical_align": "top",
-                            "elements": [
-                                {
-                                    "tag": "markdown",
-                                    "content": f"<font color='{color}'>{test_spec}</font>",
-                                    "text_align": "center"
-                                }
-                            ]
-                        },
-                        {
-                            "tag": "column",
-                            "width": "weighted",
-                            "weight": 1,
-                            "vertical_align": "top",
-                            "elements": [
-                                {
-                                    "tag": "markdown",
-                                    "content": f"<font color='{color}'>{test_ret}</font>",
-                                    "text_align": "center"
-                                }
-                            ]
-                        }
-                    ]
-                 }
-                json_results.append(json_ret)
+        parts = result_v.split("###", 3)
+
+        if len(parts) >= 4:
+            engine_type = parts[1]
+            ret_url = parts[2]
+            specs_block = parts[3]
+
+            is_first_row = True
+
+            test_pairs = specs_block.split("##")
+
+            for pair in test_pairs:
+                if pair:
+                    ret = pair.split("|", 1)
+                    if len(ret) != 2:
+                        continue
+
+                    test_spec = ret[0]
+                    test_ret = ret[1]
+
+                    if "ERROR" in test_ret or "FAILED" in test_ret:
+                        color = 'red'
+                    else:
+                        color = 'green'
+
+                    if is_first_row:
+                        type_content = f"<a href='{ret_url}'>{engine_type}</a>"
+                        is_first_row = False
+                    else:
+                        type_content = ""
+
+                    test_type_element = {
+                        "tag": "markdown",
+                        "content": type_content,
+                        "text_align": "center"
+                    }
+
+                    test_spec_element = {
+                        "tag": "markdown",
+                        "content": f"<font color='{color}'>{test_spec}</font>",
+                        "text_align": "center"
+                    }
+
+                    test_ret_element = {
+                        "tag": "markdown",
+                        "content": f"<font color='{color}'>{test_ret}</font>",
+                        "text_align": "center"
+                    }
+
+                    json_ret = {
+                        "tag": "column_set",
+                        "flex_mode": "none",
+                        "columns": [
+                            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [test_type_element]},
+                            {"tag": "column", "width": "weighted", "weight": 2, "vertical_align": "top", "elements": [test_spec_element]},
+                            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [test_ret_element]},
+                        ]
+                    }
+                    json_results.append(json_ret)
 
     card = json.dumps({
         "header": {
             "template": "blue",
-            "title": {
-                "tag": "plain_text",
-                "content": title_v
-            }
+            "title": {"tag": "plain_text", "content": title_v}
         },
         "elements": json_results
     })
