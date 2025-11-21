@@ -303,7 +303,6 @@ jobs:
 
           cat ${test_file_log_path}
           TEST_RESULT="$(awk '/PLAYWRIGHT-RESULT/{found=1} found' "${test_file_log_path}" || true)"
-          test_ret="$( grep "PLAYWRIGHT TEST FAILED" "${test_file_log_path}" || true )"         
           echo "test result total:${TEST_RESULT}"
           
           if [[ -z "$TEST_RESULT" ]]; then
