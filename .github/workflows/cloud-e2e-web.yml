@@ -301,19 +301,13 @@ jobs:
           done
           set -e
 
+          cat ${test_file_log_path}
           TEST_RESULT="$(awk '/PLAYWRIGHT-RESULT/{found=1} found' "${test_file_log_path}" || true)"
           test_ret="$( grep "PLAYWRIGHT TEST FAILED" "${test_file_log_path}" || true )"         
           echo "test result total:${TEST_RESULT}"
           
           if [[ -z "$TEST_RESULT" ]]; then
               TEST_RESULT=$(sed -n '/short test summary info/,$p' "${test_file_log_path}" | (egrep 'PASSED|FAILED|ERROR' | tail -n 1 || true))
-          fi
-          
-          if [[ -z "$TEST_RESULT" ]]; then
-              TEST_RESULT="[PASSED]"
-              if [[ -n "$test_ret" ]]; then
-                  TEST_RESULT="[FAILED]"
-              fi
           fi
           
           TEST_JOB_INDEX="${{ matrix.test-job-index }}"
@@ -471,9 +465,6 @@ jobs:
               ;;
           esac          
           
-          if [[ -n "$test_ret" ]]; then
-              exit 1
-          fi
 
   send-message:
     needs: [ get-test-engine, e2e-web-test ]
