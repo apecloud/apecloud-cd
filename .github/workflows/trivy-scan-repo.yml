@@ -73,7 +73,7 @@ jobs:
         with:
           repository: apecloud/${{ inputs.ITEM }}
           path: ./${{ inputs.ITEM }}
-          ref: ${{ needs.get_item_ref.outputs.item-ref }}
+          ref: ${{ steps.get_item_ref.outputs.item-ref }}
 
       - name: Install Trivy
         uses: aquasecurity/setup-trivy@v0.2.3
@@ -86,7 +86,7 @@ jobs:
         shell: bash
         run: |
           ITEM=${{ inputs.ITEM }}
-          ITEM_REF=${{ needs.get_item_ref.outputs.item-ref }}
+          ITEM_REF=${{ steps.get_item_ref.outputs.item-ref }}
           ITEM_WITH_REF="${ITEM}:${ITEM_REF}"
           trivy_scan_report="trivy_scan_report.out"
           echo "trivy repo ${ITEM} ${ITEM_REF}"
