@@ -1,4 +1,4 @@
-name: Trivy Scan
+name: Trivy Scan Repo
 
 on:
   workflow_dispatch:
@@ -39,6 +39,8 @@ on:
       total-vulnerabilities:
         description: "trivy scan total vulnerabilities"
         value: ${{ jobs.trivy-scan.outputs.total-vulnerabilities }}
+
+run-name: Trivy Scan Repo ${{ inputs.ITEM }} ${{ inputs.ITEM_REF }}
 
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
