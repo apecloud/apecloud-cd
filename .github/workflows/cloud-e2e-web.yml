@@ -303,6 +303,8 @@ jobs:
 
           cat ${test_file_log_path}
           TEST_RESULT="$(awk '/PLAYWRIGHT-RESULT/{found=1} found' "${test_file_log_path}" || true)"
+          echo "TEST_RESULT:${TEST_RESULT}"
+          TEST_RESULT=$(bash .github/utils/utils.sh --type 47 --TEST_RESULT "$TEST_RESULT" )
           echo "test result total:${TEST_RESULT}"
           
           if [[ -z "$TEST_RESULT" ]]; then
