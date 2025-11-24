@@ -65,7 +65,8 @@ jobs:
               ITEM=${{ inputs.ITEM }}
               ITEM_REF=$(gh release list --repo apecloud/${ITEM} --limit 1 | awk '{print $1}')
           fi
-          echo "item-ref=${ITEM_REF}" >> $GITHUB_OUTPUT
+          echo "item-ref:${ITEM_REF}"
+          echo item-ref="${ITEM_REF}" >> $GITHUB_OUTPUT
 
       - name: Checkout ${{ inputs.ITEM }} Code
         uses: actions/checkout@v4
