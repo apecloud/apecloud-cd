@@ -1686,19 +1686,15 @@ def send_kbcli_message(url_v, result_v, title_v):
     res = requests.post(url=url_v, data=body, headers=headers)
     print(res.text)
 
-
 def send_playwright_message(url_v, result_v, title_v):
-    print("send playwright message")
-
+    print(f"--- Raw Input result_v ---\n{result_v}\n--------------------------")
     import json
     import requests
 
     json_results = []
 
     header_ret = {
-        "tag": "column_set",
-        "flex_mode": "none",
-        "background_style": "grey",
+        "tag": "column_set", "flex_mode": "none", "background_style": "grey",
         "columns": [
             {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Test Type**", "text_align": "center"}]},
             {"tag": "column", "width": "weighted", "weight": 2, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Test Spec**", "text_align": "center"}]},
@@ -1708,65 +1704,57 @@ def send_playwright_message(url_v, result_v, title_v):
     json_results.append(header_ret)
 
     if result_v:
-        parts = result_v.split("###", 3)
+        stripped_result = result_v.lstrip("###")
 
-        if len(parts) >= 4:
-            engine_type = parts[1]
-            ret_url = parts[2]
-            specs_block = parts[3]
+        parts_list = stripped_result.split("###")
 
-            is_first_row = True
+        if len(parts_list) % 3 == 0:
 
-            test_pairs = specs_block.split("##")
+            engine_blocks = zip(parts_list[0::3], parts_list[1::3], parts_list[2::3])
 
-            for pair in test_pairs:
-                if pair:
-                    ret = pair.split("|", 1)
-                    if len(ret) != 2:
-                        continue
+            for engine_type, ret_url, specs_block in engine_blocks:
 
-                    test_spec = ret[0]
-                    test_ret = ret[1]
-
-                    if "ERROR" in test_ret or "FAILED" in test_ret:
-                        color = 'red'
-                    else:
-                        color = 'green'
-
-                    if is_first_row:
-                        type_content = f"<a href='{ret_url}'>{engine_type}</a>"
-                        is_first_row = False
-                    else:
-                        type_content = ""
-
-                    test_type_element = {
+                if len(json_results) > 1 and json_results[-1].get("tag") != "markdown":
+                    json_results.append({
                         "tag": "markdown",
-                        "content": type_content,
-                        "text_align": "center"
-                    }
+                        "content": "---",
+                        "extra_config": {"padding": {"top": 8, "bottom": 8}}
+                    })
 
-                    test_spec_element = {
-                        "tag": "markdown",
-                        "content": f"<font color='{color}'>{test_spec}</font>",
-                        "text_align": "center"
-                    }
+                is_first_row = True
+                test_pairs = specs_block.split("##")
 
-                    test_ret_element = {
-                        "tag": "markdown",
-                        "content": f"<font color='{color}'>{test_ret}</font>",
-                        "text_align": "center"
-                    }
+                for pair in test_pairs:
+                    if pair:
+                        ret = pair.split("|", 1)
+                        if len(ret) != 2:
+                            continue
 
-                    json_ret = {
-                        "tag": "column_set",
-                        "flex_mode": "none",
-                        "columns": [
-                            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [test_type_element]},
-                            {"tag": "column", "width": "weighted", "weight": 2, "vertical_align": "top", "elements": [test_spec_element]},
-                            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [test_ret_element]},
-                        ]
-                    }
-                    json_results.append(json_ret)
+                        test_spec = ret[0]
+                        test_ret = ret[1]
+
+                        color = 'red' if "ERROR" in test_ret or "FAILED" in test_ret else 'green'
+
+                        if is_first_row:
+                            # 注意：这里使用 engine_type (parts[0]) 和 ret_url (parts[1])
+                            type_content = f"<a href='{ret_url}'>{engine_type}</a>"
+                            is_first_row = False
+                        else:
+                            type_content = ""
+
+                        test_type_element = {"tag": "markdown", "content": type_content, "text_align": "center"}
+                        test_spec_element = {"tag": "markdown", "content": f"<font color='{color}'>{test_spec}</font>", "text_align": "center"}
+                        test_ret_element = {"tag": "markdown", "content": f"<font color='{color}'>{test_ret}</font>", "text_align": "center"}
+
+                        json_ret = {
+                            "tag": "column_set", "flex_mode": "none",
+                            "columns": [
+                                {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [test_type_element]},
+                                {"tag": "column", "width": "weighted", "weight": 2, "vertical_align": "top", "elements": [test_spec_element]},
+                                {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [test_ret_element]},
+                            ]
+                        }
+                        json_results.append(json_ret)
 
     card = json.dumps({
         "header": {
@@ -1774,7 +1762,7 @@ def send_playwright_message(url_v, result_v, title_v):
             "title": {"tag": "plain_text", "content": title_v}
         },
         "elements": json_results
-    })
+    }, indent=2)
     body = json.dumps({"msg_type": "interactive", "card": card})
     headers = {"Content-Type": "application/json"}
     res = requests.post(url=url_v, data=body, headers=headers)
