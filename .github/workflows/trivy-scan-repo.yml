@@ -12,7 +12,7 @@ on:
         description: "The branch name of item"
         type: string
         required: false
-        default: 'main'
+        default: ''
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
@@ -29,7 +29,7 @@ on:
         description: "The branch name of item"
         type: string
         required: false
-        default: 'main'
+        default: ''
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
@@ -60,9 +60,12 @@ jobs:
       - name: get item ref
         id: get_item_ref
         run: |
-          ITEM=${{ inputs.ITEM }}
-          item_last_release=$(gh release list --repo apecloud/${ITEM} --limit 1 | awk '{print $1}')
-          echo "item-ref=${item_last_release}" >> $GITHUB_OUTPUT
+          ITEM_REF=${{ inputs.ITEM_REF }}
+          if [[ -z "${ITEM_REF}" ]]; then
+              ITEM=${{ inputs.ITEM }}
+              ITEM_REF=$(gh release list --repo apecloud/${ITEM} --limit 1 | awk '{print $1}')
+          fi
+          echo "item-ref=${ITEM_REF}" >> $GITHUB_OUTPUT
 
       - name: Checkout ${{ inputs.ITEM }} Code
         uses: actions/checkout@v4
