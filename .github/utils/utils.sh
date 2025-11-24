@@ -450,7 +450,7 @@ parse_playwright_test_result() {
     local jobs_name=$1
     local jobs_url=$2
 
-    ret=$(echo "$TEST_RESULT" | awk -v jobs_name="$jobs_name" -v jobs_url="$jobs_url" '
+    ret=$(printf "%s" "$TEST_RESULT" | awk -v jobs_name="$jobs_name" -v jobs_url="$jobs_url" '
     {
         FS="[[:space:]]+"
 
@@ -499,7 +499,10 @@ get_playwright_test_result() {
             fi
             jobs_name=$( echo "$jobs_list" | jq ".jobs[$i].name" --raw-output )
             jobs_url=$( echo "$jobs_list" | jq ".jobs[$i].html_url" --raw-output )
-            parse_playwright_test_result "$jobs_name" "$jobs_url"
+
+            if [[ "$TEST_RESULT" == *"$jobs_name|"* ]]; then
+                parse_playwright_test_result "$jobs_name" "$jobs_url"
+            fi
         done
     done
     echo "$TEST_RET"
