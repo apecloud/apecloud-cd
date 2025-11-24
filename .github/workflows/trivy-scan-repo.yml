@@ -7,7 +7,7 @@ on:
         description: "The item of trivy scan (e.g. kbcli)"
         type: string
         required: true
-        default: ''
+        default: 'kbcli'
       ITEM_REF:
         description: "The branch name of item"
         type: string
