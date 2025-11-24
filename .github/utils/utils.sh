@@ -450,7 +450,9 @@ parse_playwright_test_result() {
     local jobs_name=$1
     local jobs_url=$2
 
-    ret=$(echo "$TEST_RESULT" | awk -v jobs_name="$jobs_name" -v jobs_url="$jobs_url" '
+    # 【核心修复点】: 使用 printf "%s" 确保 $TEST_RESULT 中的所有换行符
+    # 被正确地保留并作为多行输入传递给 awk。
+    ret=$(printf "%s" "$TEST_RESULT" | awk -v jobs_name="$jobs_name" -v jobs_url="$jobs_url" '
     {
         FS="[[:space:]]+"
 
@@ -481,6 +483,7 @@ parse_playwright_test_result() {
         }
     }')
 
+    # 累加到全局变量 TEST_RET
     TEST_RET+=$ret
 }
 
@@ -497,11 +500,17 @@ get_playwright_test_result() {
             if [[ "$i" == "$total_count" ]]; then
                 break
             fi
+            # 从 jobs_list 中获取 Job Name，根据您的示例，它已经是简化的名称 (如 "mysql")
             jobs_name=$( echo "$jobs_list" | jq ".jobs[$i].name" --raw-output )
             jobs_url=$( echo "$jobs_list" | jq ".jobs[$i].html_url" --raw-output )
-            parse_playwright_test_result "$jobs_name" "$jobs_url"
+
+            # 检查 Job Name 是否为有效的数据库类型（在 TEST_RESULT 中有对应的测试块）
+            if [[ "$TEST_RESULT" == *"$jobs_name|"* ]]; then
+                parse_playwright_test_result "$jobs_name" "$jobs_url"
+            fi
         done
     done
+    # 将累加的结果输出到标准输出
     echo "$TEST_RET"
 }
 
