@@ -1,6 +1,7 @@
 #!/bin/bash
 MANIFESTS_FILE=${1:-""}
 ADD_CHART=${2:-"true"}
+CHECK_ENGINE_FILE=${3:-"./fountain/hack/check-engine-images.py"}
 
 
 add_chart_repo() {
@@ -11,6 +12,58 @@ add_chart_repo() {
     echo "helm repo add ${KB_ENT_REPO_NAME} --username *** --password *** ${KB_ENT_REPO_URL}"
     helm repo add ${KB_ENT_REPO_NAME} --username ${CHART_ACCESS_USER} --password ${CHART_ACCESS_TOKEN} ${KB_ENT_REPO_URL}
     helm repo update ${KB_ENT_REPO_NAME}
+}
+
+check_service_version_images() {
+    service_versions_tmp=${1:-""}
+    chart_version_tmp=${2:-""}
+    chart_name_tmp=${3:-""}
+    chart_images_tmp=${4:-""}
+
+    if [[ ! -f "${CHECK_ENGINE_FILE}" ]]; then
+        return
+    fi
+
+    for j in {1..10}; do
+        python3 ${CHECK_ENGINE_FILE} -m ${MANIFESTS_FILE} -e ${chart_name_tmp} --addonVersion ${chart_version_tmp} --serviceVersion "${service_versions_tmp}" 2>/dev/null
+        ret_tmp=$?
+        check_engine_result_file="images-${chart_name_tmp}-${chart_version_tmp}.yaml"
+        images=""
+        if [[ -f "${check_engine_result_file}" ]]; then
+            images=$(yq e '.'${chart_name_tmp}'[0].images[]' ${check_engine_result_file})
+            rm -rf ${check_engine_result_file}
+        fi
+        repository=""
+        for repository in $( echo "$images" ); do
+            if [[ "${repository}" == "null" ]]; then
+                continue
+            fi
+            echo "check engine image: $repository"
+            check_flag=0
+            for chart_image in $( echo "$chart_images_tmp" ); do
+                if [[ "$chart_image" == "$repository" ]]; then
+                    check_flag=1
+                    break
+                fi
+            done
+
+            if [[ $check_flag -eq 0 ]]; then
+                check_result_tmp="$(tput -T xterm setaf 1)Not found ${chart_name_tmp} ${chart_version_tmp} image:${repository} in manifests file:${MANIFESTS_FILE}$(tput -T xterm sgr0)"
+                echo "${check_result_tmp}"
+                CHECK_RESULTS="$(cat check_manifest_result)"
+                if [[ "${CHECK_RESULTS}" != *"${check_result_tmp}"* ]]; then
+                    echo "${check_result_tmp}" >> check_manifest_result
+                fi
+                echo 1 > exit_result
+            fi
+            repository=""
+        done
+        if [[ $ret_tmp -eq 0 && -n "$images" ]]; then
+            echo "$(tput -T xterm setaf 2)Check chart ${chart_name_tmp} ${chart_version_tmp} success$(tput -T xterm sgr0)"
+            break
+        fi
+        sleep 1
+    done
 }
 
 check_images() {
@@ -185,46 +238,55 @@ check_charts_images() {
         for chart_version in $(echo "$chart_versions" | sed 's/|/ /g'); do
             is_enterprise=$(yq e "."${chart_name}"[${chart_index}].isEnterprise"  ${MANIFESTS_FILE})
             chart_images=$(yq e "."${chart_name}"[${chart_index}].images[]"  ${MANIFESTS_FILE})
-            case $chart_name in
-                kubeblocks-cloud)
-                    set_values="${set_values} --set images.apiserver.tag=${chart_version} "
-                    set_values="${set_values} --set images.sentry.tag=${chart_version} "
-                    set_values="${set_values} --set images.sentryInit.tag=${chart_version} "
-                    set_values="${set_values} --set images.relay.tag=${chart_version} "
-                    set_values="${set_values} --set images.cr4w.tag=${chart_version} "
-                    set_values="${set_values} --set images.openconsole.tag=${chart_version} "
-                    set_values="${set_values} --set images.openconsoleAdmin.tag=${chart_version} "
-                    set_values="${set_values} --set images.taskManager.tag=${chart_version} "
-                ;;
-                kb-cloud-installer)
-                    set_values="${set_values} --set version=${chart_version} "
-                ;;
-                ingress-nginx)
-                    set_values="${set_values} --set controller.image.image=apecloud/controller "
-                    set_values="${set_values} --set controller.image.digest= "
-                    set_values="${set_values} --set controller.admissionWebhooks.patch.image.image=apecloud/kube-webhook-certgen "
-                    set_values="${set_values} --set controller.admissionWebhooks.patch.image.digest= "
-                ;;
-                gemini)
-                    set_values="${set_values} --set victoria-metrics-cluster.enabled=false "
-                    set_values="${set_values} --set loki.enabled=false "
-                    set_values="${set_values} --set kubeviewer.enabled=false "
-                    set_values="${set_values} --set cr-exporter.enabled=false "
-                ;;
-                kubebench)
-                    set_values="${set_values} --set image.tag=0.0.12 "
-                    set_values="${set_values} --set kubebenchImages.exporter=apecloud/kubebench:0.0.12"
-                    set_values="${set_values} --set kubebenchImages.tools=apecloud/kubebench:0.0.12"
-                    set_values="${set_values} --set kubebenchImages.tpcc=apecloud/benchmarksql:1.0"
-                ;;
-                dbdrag)
-                    continue
-                ;;
-            esac
-            if [[ "$chart_name" == "kubeblocks-cloud" ]]; then
-                check_addon_charts_images "$chart_version" "$chart_name" "$chart_images" &
+            service_versions=""
+            if yq e '.'${chart_name}'['${chart_index}'] | has("serviceVersions")' "${MANIFESTS_FILE}" >/dev/null 2>&1; then
+                service_versions=$(yq e '[.'${chart_name}'['${chart_index}'].serviceVersions[]] | join(",")' ${MANIFESTS_FILE})
             fi
-            check_images "$is_enterprise" "$chart_version" "$chart_name" "$chart_images" "$set_values" &
+
+            if [[ -n "${service_versions}" ]]; then
+                check_service_version_images "${service_versions}" "$chart_version" "$chart_name" "$chart_images" &
+            else
+                case $chart_name in
+                    kubeblocks-cloud)
+                        set_values="${set_values} --set images.apiserver.tag=${chart_version} "
+                        set_values="${set_values} --set images.sentry.tag=${chart_version} "
+                        set_values="${set_values} --set images.sentryInit.tag=${chart_version} "
+                        set_values="${set_values} --set images.relay.tag=${chart_version} "
+                        set_values="${set_values} --set images.cr4w.tag=${chart_version} "
+                        set_values="${set_values} --set images.openconsole.tag=${chart_version} "
+                        set_values="${set_values} --set images.openconsoleAdmin.tag=${chart_version} "
+                        set_values="${set_values} --set images.taskManager.tag=${chart_version} "
+                    ;;
+                    kb-cloud-installer)
+                        set_values="${set_values} --set version=${chart_version} "
+                    ;;
+                    ingress-nginx)
+                        set_values="${set_values} --set controller.image.image=apecloud/controller "
+                        set_values="${set_values} --set controller.image.digest= "
+                        set_values="${set_values} --set controller.admissionWebhooks.patch.image.image=apecloud/kube-webhook-certgen "
+                        set_values="${set_values} --set controller.admissionWebhooks.patch.image.digest= "
+                    ;;
+                    gemini)
+                        set_values="${set_values} --set victoria-metrics-cluster.enabled=false "
+                        set_values="${set_values} --set loki.enabled=false "
+                        set_values="${set_values} --set kubeviewer.enabled=false "
+                        set_values="${set_values} --set cr-exporter.enabled=false "
+                    ;;
+                    kubebench)
+                        set_values="${set_values} --set image.tag=0.0.12 "
+                        set_values="${set_values} --set kubebenchImages.exporter=apecloud/kubebench:0.0.12"
+                        set_values="${set_values} --set kubebenchImages.tools=apecloud/kubebench:0.0.12"
+                        set_values="${set_values} --set kubebenchImages.tpcc=apecloud/benchmarksql:1.0"
+                    ;;
+                    dbdrag)
+                        continue
+                    ;;
+                esac
+                if [[ "$chart_name" == "kubeblocks-cloud" ]]; then
+                    check_addon_charts_images "$chart_version" "$chart_name" "$chart_images" &
+                fi
+                check_images "$is_enterprise" "$chart_version" "$chart_name" "$chart_images" "$set_values" &
+            fi
             chart_index=$(( $chart_index + 1 ))
         done
     done

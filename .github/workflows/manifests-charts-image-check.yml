@@ -23,6 +23,11 @@ on:
         type: string
         required: false
         default: 'main'
+      CHECK_ENGINE_FILE:
+        description: "The file path of check engine image script"
+        type: string
+        required: false
+        default: ''
   workflow_call:
     inputs:
       MANIFESTS_FILE:
@@ -45,6 +50,11 @@ on:
         type: string
         required: false
         default: 'main'
+      CHECK_ENGINE_FILE:
+        description: "The file path of check engine image script"
+        type: string
+        required: false
+        default: ''
 
 
 run-name: check charts images
@@ -89,4 +99,9 @@ jobs:
       - name: manifests images check
         run: |
           MANIFESTS_FILE="${{ inputs.MANIFESTS_FILE }}"
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_charts_image_check.sh "${MANIFESTS_FILE}"
+          CHECK_ENGINE_FILE="${{ inputs.CHECK_ENGINE_FILE }}"
+          if [[ -n "${CHECK_ENGINE_FILE}" && -f "${CHECK_ENGINE_FILE}" ]]; then
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_charts_image_check.sh "${MANIFESTS_FILE}" "true" "${CHECK_ENGINE_FILE}" 
+          else
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_charts_image_check.sh "${MANIFESTS_FILE}"
+          fi
