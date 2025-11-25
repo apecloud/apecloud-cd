@@ -61,7 +61,7 @@ jobs:
                   CLOUD_IMAGES="${CLOUD_IMAGES}|docker.io/${cloud_image}"
               fi
           done
-          kb_cloud_installer_image="docker.io/apecloud/kb-cloud-installer:v2.0.155"
+          kb_cloud_installer_image="docker.io/apecloud/kb-cloud-installer:${CLOUD_TAG}"
           if [[ -z "${CLOUD_IMAGES}" ]]; then
               CLOUD_IMAGES="${kb_cloud_installer_image}"
           else
