@@ -132,9 +132,6 @@ jobs:
           
           index=0
           for image in $(echo "${IMAGES}" | sed 's/|/ /g'); do
-              if [[ "$image" != *"apecloud/"* ]]; then
-                  continue
-              fi
               index=$((index+1))
               echo "trivy image ${image}"
               trivy_scan_cmd="trivy image --format table --severity CRITICAL --ignore-unfixed --output trivy_scan_report_${index}.out"
