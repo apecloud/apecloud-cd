@@ -52,7 +52,7 @@ jobs:
           # get cloud images
           cloud_images_filter="${CLOUD_TAG}|apecloud/dms|apecloud/servicemirror|apecloud/cubetran"
           cloud_images_list=$(yq e ".kubeblocks-cloud[].images" ${MANIFESTS_FILE} \
-              | (egrep "${cloud_images_filter}" || true) | awk '{print $2}' | sort -u)
+              | (egrep "${cloud_images_filter}" | grep -v "apecloud/cubetran-core" || true) | awk '{print $2}' | sort -u)
           CLOUD_IMAGES=""
           for cloud_image in $(echo "${cloud_images_list}"); do
               if [[ -z "${CLOUD_IMAGES}" ]]; then
