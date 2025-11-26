@@ -60,6 +60,8 @@ on:
         description: "trivy scan total vulnerabilities"
         value: ${{ jobs.trivy-scan.outputs.total-vulnerabilities }}
 
+run-name: Trivy Scan ${{ inputs.IMAGES }}
+
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   DOCKER_REGISTRY_URL: docker.io
