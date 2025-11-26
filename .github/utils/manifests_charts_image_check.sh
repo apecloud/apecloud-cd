@@ -32,6 +32,7 @@ check_service_version_images() {
         if [[ -f "${check_engine_result_file}" ]]; then
             images=$(yq e '.'${chart_name_tmp}'[0].images[]' ${check_engine_result_file})
             rm -rf ${check_engine_result_file}
+            rm -rf charts/${chart_name_tmp}-${chart_version_tmp}.tgz
         fi
         repository=""
         for repository in $( echo "$images" ); do
