@@ -14,10 +14,16 @@ jobs:
       ADDON: false
     secrets: inherit
 
+  kbcli:
+    uses: ./.github/workflows/trivy-scan-repo.yml
+    with:
+      ITEM: "kbcli"
+    secrets: inherit
+
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: [ kubeblocks ]
+    needs: [ kubeblocks, kbcli ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,6 +33,7 @@ jobs:
       - name: send message
         run: |
           TEST_RESULT="${{ needs.kubeblocks.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.kbcli.outputs.total-vulnerabilities }}"
        
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)

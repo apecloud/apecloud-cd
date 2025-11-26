@@ -446,6 +446,101 @@ get_ginkgo_test_result() {
     echo "$TEST_RET"
 }
 
+get_playwright_test_result() {
+    local FINAL_RESULT="$TEST_RESULT"
+    local jobs_url
+
+    for i in {1..2}; do
+        jobs_url_api="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=$i"
+        jobs_list=$( gh_curl -s "$jobs_url_api" )
+        total_count=$( echo "$jobs_list" | jq '.total_count' )
+        if [[ "$total_count" == "null" || $(is_number "$total_count") == "false" ]]; then
+            echo "total_count:${total_count}"
+            break
+        fi
+
+        for j in $(seq 0 $total_count); do
+            if [[ "$j" == "$total_count" ]]; then
+                break
+            fi
+
+            local jobs_name
+            jobs_name=$( echo "$jobs_list" | jq ".jobs[$j].name" --raw-output )
+            jobs_url=$( echo "$jobs_list" | jq ".jobs[$j].html_url" --raw-output )
+
+            local job_keys=("$jobs_name")
+            if [[ ${#jobs_name} -gt 3 ]]; then
+                job_keys+=("${jobs_name:1}")
+            fi
+
+            local key_found=false
+
+            for search_key in "${job_keys[@]}"; do
+
+                local search_pattern="###${search_key}###"
+                local replacement_pattern="###${search_key}####${jobs_url}###"
+
+                if [[ "$FINAL_RESULT" == *"$search_pattern"* ]]; then
+                    FINAL_RESULT=$(echo "$FINAL_RESULT" | sed "s|${search_pattern}|${replacement_pattern}|g")
+                    key_found=true
+                    break
+                fi
+            done
+
+        done
+    done
+
+    echo "$FINAL_RESULT"
+}
+
+get_playwright_test_result_total() {
+    local cleaned_data_block
+    cleaned_data_block=$(printf "%s" "$TEST_RESULT" | \
+        tr '\n' ' ' | tr -s ' ' | xargs | \
+        sed -E 's/.*RESULT[[:space:]]*//' | \
+        sed -E 's/[[:space:]]+[0-9]+$//' | \
+        xargs
+    )
+
+    if [[ -z "$cleaned_data_block" ]]; then
+        return 0
+    fi
+
+    local engine_type
+    engine_type=$(echo "$cleaned_data_block" | awk '{print $1}')
+
+    local accumulated_specs
+    accumulated_specs=$(echo "$cleaned_data_block" | awk -v expected_engine="$engine_type" '
+    {
+        FS="[[:space:]]+"
+        accumulated_specs = ""
+
+        for (i = 1; i <= NF; i += 3) {
+            if (i + 2 <= NF && $i == expected_engine) {
+
+                spec = $(i + 1)
+                result = $(i + 2)
+
+                current_pair = spec "|" result
+
+                if (accumulated_specs == "") {
+                    accumulated_specs = current_pair
+                } else {
+                    accumulated_specs = accumulated_specs "##" current_pair
+                }
+            }
+        }
+    }
+
+    END {
+        printf "%s", accumulated_specs
+    }')
+
+    if [[ -n "$accumulated_specs" ]]; then
+        echo "###${engine_type}###${accumulated_specs}"
+    fi
+}
+
 set_cloud_test_runs_jobs() {
     jobs_name=$1
     jobs_url=$2
@@ -1553,6 +1648,12 @@ main() {
         ;;
         45)
             set_engine_summary_result_url_2
+        ;;
+        46)
+            get_playwright_test_result
+        ;;
+        47)
+            get_playwright_test_result_total
         ;;
     esac
 }

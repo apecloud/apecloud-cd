@@ -1,0 +1,155 @@
+name: Trivy Scan Repo
+
+on:
+  workflow_dispatch:
+    inputs:
+      ITEM:
+        description: "The item of trivy scan (e.g. kbcli)"
+        type: string
+        required: true
+        default: 'kbcli'
+      ITEM_REF:
+        description: "The branch name of item"
+        type: string
+        required: false
+        default: ''
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+  workflow_call:
+    inputs:
+      ITEM:
+        description: "The item of trivy scan (e.g. kbcli)"
+        type: string
+        required: true
+        default: ''
+      ITEM_REF:
+        description: "The branch name of item"
+        type: string
+        required: false
+        default: ''
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+    outputs:
+      total-vulnerabilities:
+        description: "trivy scan total vulnerabilities"
+        value: ${{ jobs.trivy-scan.outputs.total-vulnerabilities }}
+
+run-name: Trivy Scan Repo ${{ inputs.ITEM }} ${{ inputs.ITEM_REF }}
+
+env:
+  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  trivy-scan:
+    name: trivy-scan-${{ inputs.ITEM }}
+    runs-on: ubuntu-latest
+    outputs:
+      total-vulnerabilities: ${{ steps.trivy-scan.outputs.total_vulnerabilities }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: get item ref
+        id: get_item_ref
+        run: |
+          ITEM_REF=${{ inputs.ITEM_REF }}
+          if [[ -z "${ITEM_REF}" ]]; then
+              ITEM=${{ inputs.ITEM }}
+              ITEM_REF=$(gh release list --repo apecloud/${ITEM} --limit 1 | awk '{print $1}')
+          fi
+          echo "item-ref:${ITEM_REF}"
+          echo item-ref="${ITEM_REF}" >> $GITHUB_OUTPUT
+
+      - name: Checkout ${{ inputs.ITEM }} Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/${{ inputs.ITEM }}
+          path: ./${{ inputs.ITEM }}
+          ref: ${{ steps.get_item_ref.outputs.item-ref }}
+
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@v0.2.3
+        with:
+          version: v0.63.0
+          cache: true
+
+      - name: Run Trivy vulnerability scanner
+        id: trivy-scan
+        shell: bash
+        run: |
+          ITEM=${{ inputs.ITEM }}
+          ITEM_REF=${{ steps.get_item_ref.outputs.item-ref }}
+          ITEM_WITH_REF="${ITEM}:${ITEM_REF}"
+          trivy_scan_report="trivy_scan_report.out"
+          echo "trivy repo ${ITEM} ${ITEM_REF}"
+          trivy repo --format table --severity CRITICAL,HIGH --ignorefile ${{ github.workspace }}/apecloud-cd/.trivyignore --ignore-unfixed --output ${trivy_scan_report} ./${ITEM}
+          check_vulnerabilities=$(cat "${trivy_scan_report}" | (grep "Total:" |egrep "CRITICAL|HIGH" || true) )
+          high_total=0
+          critical_total=0
+          if [[ -n "${check_vulnerabilities}" ]]; then
+              echo "❌ $(tput -T xterm setaf 1)${ITEM_WITH_REF} has CRITICAL or HIGH vulnerabilities$(tput -T xterm sgr0)"
+              high_index=0
+              critical_index=0
+              for vulnerabilities in $(cat "${trivy_scan_report}" | (grep "Total:" | egrep "CRITICAL|HIGH" || true) ); do
+                  if [[ "$high_index" == "1" ]]; then
+                      high=$(echo "$vulnerabilities" |( grep -o '[0-9]\+' || true))
+                      high_total=$((high_total + high))
+                  elif [[ "$critical_index" == "1" ]]; then
+                      critical=$(echo "$vulnerabilities" |( grep -o '[0-9]\+' || true))
+                      critical_total=$((critical_total + critical))
+                  fi
+                          
+                  if [[ "$vulnerabilities" == *"HIGH:"* ]]; then
+                      high_index=1
+                      continue  
+                  elif [[ "$vulnerabilities" == *"CRITICAL:"* ]]; then
+                      critical_index=1
+                      continue
+                  else
+                      high_index=0
+                      critical_index=0
+                  fi
+              done
+              total_total=$((high_total + critical_total))
+              vulnerabilities_total="Total: $total_total (HIGH: $high_total, CRITICAL: $critical_total)"
+              echo "${vulnerabilities_total}"
+          else
+              echo "✅ $(tput -T xterm setaf 2)${ITEM_WITH_REF} has no CRITICAL or HIGH vulnerabilities$(tput -T xterm sgr0)"
+          fi
+          
+          CI_JOB_URL=$(bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+              --type 44 \
+              --github-repo "${{ github.repository }}" \
+              --github-token "${{ env.GH_TOKEN }}" \
+              --run-id "$GITHUB_RUN_ID" \
+              --test-result "trivy-scan-${ITEM}")
+          
+          TOTAL_VULNERABILITIES="${ITEM}|${ITEM_WITH_REF}|${critical_total}|${high_total}|${CI_JOB_URL}"
+          
+          echo "${TOTAL_VULNERABILITIES}"
+          echo "total_vulnerabilities=${TOTAL_VULNERABILITIES}" >> $GITHUB_OUTPUT
+
+      - name: view trivy scan report
+        shell: bash
+        run: |
+          trivy_scan_report="trivy_scan_report.out"
+          if [[ -f "${trivy_scan_report}" ]]; then
+              cat "${trivy_scan_report}" | (grep --color=always -E 'CRITICAL|HIGH|^' || true)
+              check_vulnerabilities=$(cat "${trivy_scan_report}" | (grep "Total:" |egrep "CRITICAL|HIGH" || true))
+              if [[ -n "${check_vulnerabilities}" ]]; then
+                  echo "❌ $(tput -T xterm setaf 1)Images found with CRITICAL or HIGH vulnerabilities!$(tput -T xterm sgr0)"
+                  exit 1
+              else
+                  echo "✅ $(tput -T xterm setaf 2)Images not found with CRITICAL or HIGH vulnerabilities!$(tput -T xterm sgr0)"
+              fi
+          fi

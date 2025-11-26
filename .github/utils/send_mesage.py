@@ -999,6 +999,181 @@ def send_engine_summary_message(url_v, result_v, title_v):
     print(res.text)
 
 
+def send_engine_summary_message2(url_v, result_v, title_v):
+    print("send report message")
+    json_results = []
+    json_ret = {
+        "tag": "column_set",
+        "flex_mode": "none",
+        "background_style": "grey",
+        "columns": [
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 1,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Engine**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 1,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Mode**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 1,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Version**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 1,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Operations**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 1,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Fail Ops**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+        ]
+    }
+    json_results.append(json_ret)
+    if result_v:
+        result_array = result_v.split("##")
+        for results in result_array:
+            if results:
+                summary_color = "red"
+                if "(100.0%)" in results:
+                    summary_color = "green"
+
+                ret = results.split("|")
+                json_ret = {
+                    "tag": "column_set",
+                    "flex_mode": "none",
+                    "background_style": "default",
+                    "columns": [
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 1,
+                            "vertical_align": "center",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<a href='" + ret[6] + "'>" + ret[0] + "</a>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 1,
+                            "vertical_align": "center",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<font color='" + summary_color + "'>" + ret[1] + "</font>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 1,
+                            "vertical_align": "center",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<font color='" + summary_color + "'>" + ret[2] + "</font>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 1,
+                            "vertical_align": "center",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<a href='" + ret[6] + "'>" + ret[3] + "</a>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 1,
+                            "vertical_align": "center",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<font color='red'>" + ret[4] + "</font>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        },
+                    ],
+                }
+                json_results.append(json_ret)
+
+    card = json.dumps({
+        "header": {
+            "template": "orange",
+            "title": {
+                "tag": "plain_text",
+                "content": title_v
+            }
+        },
+        "elements": json_results
+    })
+    body = json.dumps({"msg_type": "interactive", "card": card})
+    headers = {"Content-Type": "application/json"}
+    res = requests.post(url=url_v, data=body, headers=headers)
+    print(res.text)
+
+
 def send_trivy_scan_message(url_v, result_v, title_v):
     print("send report message")
     json_results = []
@@ -1045,7 +1220,20 @@ def send_trivy_scan_message(url_v, result_v, title_v):
                         "text_align": "center"
                     }
                 ]
-            }
+            },
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 1,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**High**",
+                        "text_align": "center"
+                    }
+                ]
+            },
         ]
     }
     json_results.append(json_ret)
@@ -1113,6 +1301,19 @@ def send_trivy_scan_message(url_v, result_v, title_v):
                                 {
                                     "tag": "markdown",
                                     "content": "<font color='" + critical_color + "'>" + ret[2] + "</font>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 1,
+                            "vertical_align": "center",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<font color='" + high_color + "'>" + ret[3] + "</a>",
                                     "text_align": "center"
                                 }
                             ]
@@ -1485,6 +1686,87 @@ def send_kbcli_message(url_v, result_v, title_v):
     res = requests.post(url=url_v, data=body, headers=headers)
     print(res.text)
 
+def send_playwright_message(url_v, result_v, title_v):
+    print(f"--- Raw Input result_v ---\n{result_v}\n--------------------------")
+    import json
+    import requests
+
+    json_results = []
+
+    header_ret = {
+        "tag": "column_set", "flex_mode": "none", "background_style": "grey",
+        "columns": [
+            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Test Type**", "text_align": "center"}]},
+            {"tag": "column", "width": "weighted", "weight": 2, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Test Spec**", "text_align": "center"}]},
+            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Test Result**", "text_align": "center"}]},
+        ]
+    }
+    json_results.append(header_ret)
+
+    if result_v:
+        stripped_result = result_v.lstrip("###")
+
+        parts_list = stripped_result.split("###")
+
+        if len(parts_list) % 3 == 0:
+
+            engine_blocks = zip(parts_list[0::3], parts_list[1::3], parts_list[2::3])
+
+            for engine_type, ret_url, specs_block in engine_blocks:
+
+                if len(json_results) > 1 and json_results[-1].get("tag") != "markdown":
+                    json_results.append({
+                        "tag": "markdown",
+                        "content": "---",
+                        "extra_config": {"padding": {"top": 8, "bottom": 8}}
+                    })
+
+                is_first_row = True
+                test_pairs = specs_block.split("##")
+
+                for pair in test_pairs:
+                    if pair:
+                        ret = pair.split("|", 1)
+                        if len(ret) != 2:
+                            continue
+
+                        test_spec = ret[0]
+                        test_ret = ret[1]
+
+                        color = 'red' if "ERROR" in test_ret or "FAILED" in test_ret else 'green'
+
+                        if is_first_row:
+                            # 注意：这里使用 engine_type (parts[0]) 和 ret_url (parts[1])
+                            type_content = f"<a href='{ret_url}'>{engine_type}</a>"
+                            is_first_row = False
+                        else:
+                            type_content = ""
+
+                        test_type_element = {"tag": "markdown", "content": type_content, "text_align": "center"}
+                        test_spec_element = {"tag": "markdown", "content": f"<font color='{color}'>{test_spec}</font>", "text_align": "center"}
+                        test_ret_element = {"tag": "markdown", "content": f"<font color='{color}'>{test_ret}</font>", "text_align": "center"}
+
+                        json_ret = {
+                            "tag": "column_set", "flex_mode": "none",
+                            "columns": [
+                                {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [test_type_element]},
+                                {"tag": "column", "width": "weighted", "weight": 2, "vertical_align": "top", "elements": [test_spec_element]},
+                                {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [test_ret_element]},
+                            ]
+                        }
+                        json_results.append(json_ret)
+
+    card = json.dumps({
+        "header": {
+            "template": "blue",
+            "title": {"tag": "plain_text", "content": title_v}
+        },
+        "elements": json_results
+    }, indent=2)
+    body = json.dumps({"msg_type": "interactive", "card": card})
+    headers = {"Content-Type": "application/json"}
+    res = requests.post(url=url_v, data=body, headers=headers)
+    print(res.text)
 
 def parse_result(result_v):
     print(result_v)
@@ -1512,11 +1794,16 @@ if __name__ == '__main__':
         send_summary_message(url, result, title)
     elif send_type == "engine-summary":
         send_engine_summary_message(url, result, title)
+    elif send_type == "engine-summary2":
+        send_engine_summary_message2(url, result, title)
     elif send_type == "trivy":
         send_trivy_scan_message(url, result, title)
     elif send_type == "check-addon-version":
         send_check_addon_version_message(url, result, title)
     elif send_type == "kbcli":
         send_kbcli_message(url, result, title)
+    elif send_type == "playwright":
+        send_playwright_message(url, result, title)
     else:
         send_message(url, result, title)
+

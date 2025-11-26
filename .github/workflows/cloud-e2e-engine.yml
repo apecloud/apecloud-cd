@@ -565,7 +565,7 @@ jobs:
           E2E_TEST_RESULT_LOG=$(python3 ${{ github.workspace }}/apecloud-cd/.github/utils/remove_ansi_file.py ${test_file_log_path}) 
           echo "${E2E_TEST_RESULT_LOG}" > ${test_file_log_tmp_path}
           
-          ENGINE_SUMMARY=$(python3 test/report/parse_ginkgo.py summary ${test_file_log_tmp_path})
+          ENGINE_SUMMARY=$(python3 test/report/parse_ginkgo.py summary2 ${test_file_log_tmp_path})
           TEST_JOB_INDEX="${{ matrix.test-job-index }}"
           case "${TEST_JOB_INDEX}" in
               01)
@@ -743,7 +743,7 @@ jobs:
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
           
                           python3 .github/utils/send_mesage.py \
-                              --send-type "engine-summary" \
+                              --send-type "engine-summary2" \
                               --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
@@ -762,7 +762,7 @@ jobs:
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
           
                           python3 .github/utils/send_mesage.py \
-                              --send-type "engine-summary" \
+                              --send-type "engine-summary2" \
                               --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
@@ -781,7 +781,7 @@ jobs:
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
           
                           python3 .github/utils/send_mesage.py \
-                              --send-type "engine-summary" \
+                              --send-type "engine-summary2" \
                               --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
@@ -800,7 +800,7 @@ jobs:
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
           
                           python3 .github/utils/send_mesage.py \
-                              --send-type "engine-summary" \
+                              --send-type "engine-summary2" \
                               --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
@@ -819,7 +819,7 @@ jobs:
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
           
                           python3 .github/utils/send_mesage.py \
-                              --send-type "engine-summary" \
+                              --send-type "engine-summary2" \
                               --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
@@ -838,7 +838,7 @@ jobs:
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
           
                           python3 .github/utils/send_mesage.py \
-                              --send-type "engine-summary" \
+                              --send-type "engine-summary2" \
                               --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
@@ -857,7 +857,7 @@ jobs:
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
           
                           python3 .github/utils/send_mesage.py \
-                              --send-type "engine-summary" \
+                              --send-type "engine-summary2" \
                               --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
@@ -876,7 +876,7 @@ jobs:
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
           
                           python3 .github/utils/send_mesage.py \
-                              --send-type "engine-summary" \
+                              --send-type "engine-summary2" \
                               --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
@@ -895,7 +895,7 @@ jobs:
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
           
                           python3 .github/utils/send_mesage.py \
-                              --send-type "engine-summary" \
+                              --send-type "engine-summary2" \
                               --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
@@ -914,7 +914,7 @@ jobs:
                           echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
           
                           python3 .github/utils/send_mesage.py \
-                              --send-type "engine-summary" \
+                              --send-type "engine-summary2" \
                               --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"

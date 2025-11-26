@@ -300,122 +300,172 @@ jobs:
               sleep 1
           done
           set -e
-          
+
           cat ${test_file_log_path}
-          test_ret="$( grep "Test Suite Failed" ${test_file_log_path} || true )"
-          TEST_RESULT_ALL="$(cat ${test_file_log_path} | (egrep 'SUCCESS!|FAIL!' | grep -- '--' || true))"
-          echo "test result all:${TEST_RESULT_ALL}"
-          TEST_RESULT=$(bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 41 --test-result "${TEST_RESULT_ALL}")
+          TEST_RESULT="$(awk '/PLAYWRIGHT-RESULT/{found=1} found' "${test_file_log_path}" || true)"
+          echo "TEST_RESULT:${TEST_RESULT}"
+          TEST_RESULT=$(bash .github/utils/utils.sh --type 47 --test-result "$TEST_RESULT" )
           echo "test result total:${TEST_RESULT}"
           
           if [[ -z "$TEST_RESULT" ]]; then
-              TEST_RESULT="$(cat ${test_file_log_path} | (egrep 'SUCCESS!|FAIL!' | grep -- '--' || true) | tail -n 1)"
-          fi
-          
-          if [[ -z "$TEST_RESULT" ]]; then
-              TEST_RESULT="[PASSED]"
-              if [[ -n "$test_ret" || -z "${TEST_RESULT_ALL}" ]]; then
-                  TEST_RESULT="[FAILED]"
-              fi
+              TEST_RESULT=$(sed -n '/short test summary info/,$p' "${test_file_log_path}" | (egrep 'PASSED|FAILED|ERROR' | tail -n 1 || true))
           fi
           
           TEST_JOB_INDEX="${{ matrix.test-job-index }}"
+          delimiter="EOF_VAR_${TEST_JOB_INDEX}"
           case "${TEST_JOB_INDEX}" in
               01)
-                  echo test-result-1="${TEST_RESULT}" >> $GITHUB_OUTPUT
-              ;; 
+                  echo "test-result-1<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
+              ;;
               02)
-                  echo test-result-2="${TEST_RESULT}" >> $GITHUB_OUTPUT
-              ;; 
+                  echo "test-result-2<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
+              ;;
               03)
-                  echo test-result-3="${TEST_RESULT}" >> $GITHUB_OUTPUT
-              ;; 
+                  echo "test-result-3<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
+              ;;
               04)
-                  echo test-result-4="${TEST_RESULT}" >> $GITHUB_OUTPUT
-              ;; 
+                  echo "test-result-4<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
+              ;;
               05)
-                  echo test-result-5="${TEST_RESULT}" >> $GITHUB_OUTPUT
-              ;; 
+                  echo "test-result-5<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
+              ;;
               06)
-                  echo test-result-6="${TEST_RESULT}" >> $GITHUB_OUTPUT
-              ;; 
+                  echo "test-result-6<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
+              ;;
               07)
-                  echo test-result-7="${TEST_RESULT}" >> $GITHUB_OUTPUT
-              ;; 
+                  echo "test-result-7<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
+              ;;
               08)
-                  echo test-result-8="${TEST_RESULT}" >> $GITHUB_OUTPUT
-              ;;  
+                  echo "test-result-8<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
+              ;;
               09)
-                  echo test-result-9="${TEST_RESULT}" >> $GITHUB_OUTPUT
-              ;;  
+                  echo "test-result-9<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
+              ;;
               10)
-                  echo test-result-10="${TEST_RESULT}" >> $GITHUB_OUTPUT
-              ;; 
+                  echo "test-result-10<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
+              ;;
               11)
-                  echo test-result-11="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-11<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               12)
-                  echo test-result-12="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-12<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               13)
-                  echo test-result-13="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-13<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               14)
-                  echo test-result-14="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-14<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               15)
-                  echo test-result-15="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-15<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               16)
-                  echo test-result-16="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-16<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               17)
-                  echo test-result-17="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-17<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               18)
-                  echo test-result-18="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-18<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               19)
-                  echo test-result-19="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-19<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               20)
-                  echo test-result-20="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-20<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               21)
-                  echo test-result-21="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-21<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               22)
-                  echo test-result-22="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-22<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               23)
-                  echo test-result-23="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-23<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               24)
-                  echo test-result-24="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-24<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               25)
-                  echo test-result-25="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-25<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               26)
-                  echo test-result-26="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-26<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               27)
-                  echo test-result-27="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-27<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               28)
-                  echo test-result-28="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-28<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               29)
-                  echo test-result-29="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-29<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               30)
-                  echo test-result-30="${TEST_RESULT}" >> $GITHUB_OUTPUT
+                  echo "test-result-30<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
-          esac
+          esac          
           
-          if [[ -n "$test_ret" ]]; then
-              exit 1
-          fi
 
   send-message:
     needs: [ get-test-engine, e2e-web-test ]
@@ -565,7 +615,7 @@ jobs:
           done
           
           echo "TEST_RESULT_ALL:${TEST_RESULT_ALL}"
-          TEST_RESULT_ALL=$( bash .github/utils/utils.sh --type 40 \
+          TEST_RESULT_ALL=$( bash .github/utils/utils.sh --type 46 \
               --github-repo "${{ github.repository }}" \
               --github-token "${{ env.GH_TOKEN }}" \
               --test-result "${TEST_RESULT_ALL}" \
@@ -575,7 +625,7 @@ jobs:
           TEST_TITLE="[${E2ETEST_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Web Test [${date_ret}]"
           
           python3 .github/utils/send_mesage.py \
-              --send-type ginkgo \
+              --send-type playwright \
               --url "${{ vars.CLOUD_E2E_WEB_BOT_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "${TEST_RESULT_ALL}"

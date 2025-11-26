@@ -31,6 +31,24 @@ jobs:
         ALPINE_IMAGE=apecloud/alpine:3.16
     secrets: inherit
 
+  release-e2e-ginkgo-image:
+    strategy:
+      fail-fast: false
+      matrix:
+        branch-name: [ "release-1.1", "release-2.0" ]
+    uses: ./.github/workflows/release-image-sync2.yml
+    with:
+      GITHUB_REPO: "apecloud/apecloud"
+      GITHUB_REF: "${{ matrix.branch-name }}"
+      MAKE_OPS: "build"
+      VERSION: "${{ matrix.branch-name }}"
+      GO_VERSION: "1.24.9"
+      BUILDX_ENABLED: true
+      GIT_CONFIG: true
+      REMOVE_PREFIX: false
+      MAKE_ARGS: "TARGETS=docker/e2e-ginkgo "
+    secrets: inherit
+
   schedule-cron:
     runs-on: ubuntu-latest
     outputs:
@@ -51,19 +69,19 @@ jobs:
           echo "DAY_OF_WEEK2:${DAY_OF_WEEK}"
           echo day-of-week="${DAY_OF_WEEK}" >> $GITHUB_OUTPUT
 
-  e2e-engine-test-10:
-    needs: [ release-e2e-image, schedule-cron ]
-    uses: ./.github/workflows/trigger-workflow.yml
-    with:
-      GITHUB_REPO: "apecloud/apecloud-cd"
-      BRANCH_NAME: "main"
-      WORKFLOW_ID: "cloud-e2e-engine.yml"
-      APECD_REF: "main"
-      EXTRA_ARGS: "CLOUD_ENV_NAME=idc2#TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_IDC2 }}#CLOUD_BRANCH=release-1.1#CURRENT_VERSION=v1.1#TEST_INDEX=${{ needs.schedule-cron.outputs.day-of-week }}"
-    secrets: inherit
+#  e2e-engine-test-10:
+#    needs: [ release-e2e-image, release-e2e-ginkgo-image, schedule-cron ]
+#    uses: ./.github/workflows/trigger-workflow.yml
+#    with:
+#      GITHUB_REPO: "apecloud/apecloud-cd"
+#      BRANCH_NAME: "main"
+#      WORKFLOW_ID: "cloud-e2e-engine.yml"
+#      APECD_REF: "main"
+#      EXTRA_ARGS: "CLOUD_ENV_NAME=idc2#TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_IDC2 }}#CLOUD_BRANCH=release-1.1#CURRENT_VERSION=v1.1#TEST_INDEX=${{ needs.schedule-cron.outputs.day-of-week }}"
+#    secrets: inherit
 
   e2e-engine-test-20-10:
-    needs: [ release-e2e-image, schedule-cron ]
+    needs: [ release-e2e-image, release-e2e-ginkgo-image, schedule-cron ]
     uses: ./.github/workflows/trigger-workflow.yml
     with:
       GITHUB_REPO: "apecloud/apecloud-cd"
@@ -74,7 +92,7 @@ jobs:
     secrets: inherit
 
   e2e-engine-test-20-09:
-    needs: [ release-e2e-image, schedule-cron ]
+    needs: [ release-e2e-image, release-e2e-ginkgo-image, schedule-cron ]
     uses: ./.github/workflows/trigger-workflow.yml
     with:
       GITHUB_REPO: "apecloud/apecloud-cd"

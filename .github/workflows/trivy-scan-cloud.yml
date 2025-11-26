@@ -9,13 +9,14 @@ on:
         required: false
         default: ''
   schedule:
-    - cron: '0 0 * * 1-5' # Runs at 08:00 UTC on Mon to Friday
+    - cron: '0 1 * * 1' # Runs at 08:00 UTC on Mon to Friday
 
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   CLOUD_REPO: "apecloud/apecloud"
   MANIFESTS_FILE: "manifests/deploy-manifests.yaml"
 
+run-name: Trivy Scan Cloud ${{ inputs.CLOUD_TAG }}
 
 jobs:
   get-images:
@@ -31,7 +32,7 @@ jobs:
         run: |
           CLOUD_TAG="${{ inputs.CLOUD_TAG }}"
           if [[ -z "${CLOUD_TAG}" ]]; then
-              CLOUD_TAG=$(gh release list --repo ${{ env.CLOUD_REPO }} | grep -v "alpha" | grep -v "beta" | awk 'NR==1{print $2}')
+              CLOUD_TAG=$(gh release list --repo ${{ env.CLOUD_REPO }} | (grep "alpha" || true) | awk 'NR==1{print $2}')
           fi
           echo "cloud-tag=${CLOUD_TAG}" >> $GITHUB_OUTPUT
 
@@ -60,7 +61,7 @@ jobs:
                   CLOUD_IMAGES="${CLOUD_IMAGES}|docker.io/${cloud_image}"
               fi
           done
-          kb_cloud_installer_image="docker.io/apecloud/kb-cloud-installer:v2.0.155"
+          kb_cloud_installer_image="docker.io/apecloud/kb-cloud-installer:${CLOUD_TAG}"
           if [[ -z "${CLOUD_IMAGES}" ]]; then
               CLOUD_IMAGES="${kb_cloud_installer_image}"
           else
