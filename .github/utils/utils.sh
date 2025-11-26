@@ -478,7 +478,7 @@ get_playwright_test_result() {
             for search_key in "${job_keys[@]}"; do
 
                 local search_pattern="###${search_key}###"
-                local replacement_pattern="###${search_key}####${jobs_url}###"
+                local replacement_pattern="###${search_key}###${jobs_url}###"
 
                 if [[ "$FINAL_RESULT" == *"$search_pattern"* ]]; then
                     FINAL_RESULT=$(echo "$FINAL_RESULT" | sed "s|${search_pattern}|${replacement_pattern}|g")
@@ -495,10 +495,15 @@ get_playwright_test_result() {
 
 get_playwright_test_result_total() {
     local cleaned_data_block
-    cleaned_data_block=$(printf "%s" "$TEST_RESULT" | \
-        tr '\n' ' ' | tr -s ' ' | xargs | \
+    local TEST_RESULT_SAFE="$TEST_RESULT"
+    echo "TEST_RESULT: $TEST_RESULT"
+
+    cleaned_data_block=$(printf "%s" "$TEST_RESULT_SAFE" | \
+        tr -d '\r\t\xa0' | \
+        tr '\n' ' ' | \
+        tr -s ' ' | \
         sed -E 's/.*RESULT[[:space:]]*//' | \
-        sed -E 's/[[:space:]]+[0-9]+$//' | \
+        sed -E 's/[[:space:]]*PLAYWRIGHT TEST (SUCCESS!|FAILED, CODE: [0-9]+)$//' | \
         xargs
     )
 
@@ -507,21 +512,25 @@ get_playwright_test_result_total() {
     fi
 
     local engine_type
-    engine_type=$(echo "$cleaned_data_block" | awk '{print $1}')
+    engine_type=$(printf "%s" "$cleaned_data_block" | awk '{print $1}')
+
+    if [[ -z "$engine_type" ]]; then
+        return 0
+    fi
 
     local accumulated_specs
-    accumulated_specs=$(echo "$cleaned_data_block" | awk -v expected_engine="$engine_type" '
+    accumulated_specs=$(printf "%s" "$cleaned_data_block" | awk -v expected_engine="$engine_type" '
     {
         FS="[[:space:]]+"
         accumulated_specs = ""
 
         for (i = 1; i <= NF; i += 3) {
-            if (i + 2 <= NF && $i == expected_engine) {
 
+            if (i + 2 <= NF && $i == expected_engine) {
                 spec = $(i + 1)
                 result = $(i + 2)
 
-                current_pair = spec "|" result
+                current_pair = spec "##" result
 
                 if (accumulated_specs == "") {
                     accumulated_specs = current_pair
@@ -537,8 +546,9 @@ get_playwright_test_result_total() {
     }')
 
     if [[ -n "$accumulated_specs" ]]; then
-        echo "###${engine_type}###${accumulated_specs}"
+        echo "###$engine_type###$accumulated_specs"
     fi
+
 }
 
 set_cloud_test_runs_jobs() {
