@@ -301,6 +301,7 @@ jobs:
           done
           set -e
 
+          cat ${test_file_log_path}
           TEST_RESULT_ALL="$(awk '/PLAYWRIGHT-RESULT/{found=1} found' "${test_file_log_path}" || true)"          
           
           cleaned_data_block=$(printf "%s" "$TEST_RESULT_ALL" | \
