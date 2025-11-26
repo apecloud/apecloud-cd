@@ -134,7 +134,7 @@ jobs:
           for image in $(echo "${IMAGES}" | sed 's/|/ /g'); do
               index=$((index+1))
               echo "trivy image ${image}"
-              trivy_scan_cmd="trivy image --format table --severity CRITICAL --ignore-unfixed --output trivy_scan_report_${index}.out"
+              trivy_scan_cmd="trivy image --format table --severity CRITICAL,HIGH --ignore-unfixed --output trivy_scan_report_${index}.out"
               if [[ $index -eq 1 ]]; then
                   eval "$trivy_scan_cmd ${image}"
               else
@@ -171,7 +171,6 @@ jobs:
                   high_total=0
                   critical_total=0
                   if [[ -n "${check_vulnerabilities}" ]]; then
-                      continue
                       echo "❌ $(tput -T xterm setaf 1)${image} has CRITICAL or HIGH vulnerabilities$(tput -T xterm sgr0)"
                       high_index=0
                       critical_index=0
