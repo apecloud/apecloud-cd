@@ -1687,7 +1687,6 @@ def send_kbcli_message(url_v, result_v, title_v):
     print(res.text)
 
 def send_playwright_message(url_v, result_v, title_v):
-    print(f"--- Raw Input result_v ---\n{result_v}\n--------------------------")
     import json
     import requests
 
@@ -1736,7 +1735,6 @@ def send_playwright_message(url_v, result_v, title_v):
                         color = 'red' if "ERROR" in test_ret or "FAILED" in test_ret else 'green'
 
                         if is_first_row:
-                            # 注意：这里使用 engine_type (parts[0]) 和 ret_url (parts[1])
                             type_content = f"<a href='{ret_url}'>{engine_type}</a>"
                             is_first_row = False
                         else:
