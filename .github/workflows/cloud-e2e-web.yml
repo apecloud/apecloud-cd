@@ -260,20 +260,19 @@ jobs:
           set -o nounset
           sleep 10
           while true; do
-              if kubectl get pods -n default | (grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" || true) ; then
+              if kubectl get pods -n default | (grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" || true) | grep -q .; then
                   echo "Cloud E2E Web Test is Done"
                   break
               fi
-              if kubectl get pods -n default | (grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Running|Error" || true) ; then
-                  kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=5
+          
+              if kubectl get pods -n default | (grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Running|Error" || true) | grep -q .; then
+                  kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} -f
+                  break
               else
                   echo "Waiting for Cloud E2E Web to be Running..."
               fi
               sleep 1
           done
-
-      - name: Setup Debug Session
-        uses: csexton/debugger-action@master
 
       - name: Get Test Result
         if: ${{ always() }}
