@@ -28,7 +28,7 @@ get_latest_versions() {
             break
         fi
         # Filter Version
-        filtered=$(echo "$names" | grep -E "${pattern}")
+        filtered=$(echo "$names" | (grep -E "${pattern}" || true))
         if [ "$image" == "rabbitmq" ]; then
             filtered=$(echo "$filtered" | sed 's/-management$//')
         fi

@@ -627,7 +627,7 @@ set_delete_release(){
 }
 
 get_delete_release() {
-    release_list=$( gh release list --repo $GITHUB_REPO --limit 100 | grep "Pre-release" )
+    release_list=$( gh release list --repo $GITHUB_REPO --limit 100 | (grep "Pre-release" || true) )
     for tag in $( echo "$release_list" ) ;do
         delete_flag=0
 
@@ -1054,7 +1054,7 @@ parse_test_result() {
                 if [[ $test_ret_index -eq 3 || "$test_ret_tmp" == *"ServiceVersion="* || "$test_ret_tmp" == *"Topology="* || "$test_ret_tmp" == *"ClusterVersion="* ]]; then
                     for test_ret_detail in `echo "$test_ret_tmp" | sed 's/;/ /g'`; do
                         if [[ ("$test_ret_detail" == *"ServiceVersion="*) || (-z "${TEST_VERSION}" && "$test_ret_detail" == *"ClusterVersion=") ]]; then
-                            TEST_VERSION=$(echo "${test_ret_detail}" | grep -o '[0-9].*')
+                            TEST_VERSION=$(echo "${test_ret_detail}" | (grep -o '[0-9].*' || true))
                         elif [[ "$test_ret_detail" == *"Topology="* ]]; then
                             test_ret_detail_tmp=${test_ret_detail/[/}
                             test_ret_detail_tmp=${test_ret_detail_tmp/Topology=/}

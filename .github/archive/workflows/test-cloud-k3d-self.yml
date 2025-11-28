@@ -124,7 +124,7 @@ jobs:
           sleep 10
           check_status=0
           for i in {1..200}; do
-              if kubectl get pods -n kb-cloud | grep "kb-cloud-installer" | grep Completed ; then
+              if kubectl get pods -n kb-cloud | (grep "kb-cloud-installer" | grep Completed || true) ; then
                   echo "KB Cloud is ready"
                   check_status=1
                   break
@@ -141,7 +141,7 @@ jobs:
               installer_result="[FAILED]"
               echo installer-result="${installer_result}" >> $GITHUB_OUTPUT
           
-              installer_pods=$(kubectl get pods -n kb-cloud | grep "kb-cloud-installer" )
+              installer_pods=$(kubectl get pods -n kb-cloud | (grep "kb-cloud-installer" || true) )
               echo "installer pod: $installer_pods"
               installer_pod_names="$(echo "${installer_pods}" | awk '{print $1}')"
               for installer_pod_name in $(echo "${installer_pod_names}"); do
@@ -150,7 +150,7 @@ jobs:
               done 
           
               # logs kb-cloud error pod 
-              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" | awk '{print $1}')
+              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" || true) | awk '{print $1}')
               echo "kb-cloud error pod: $kb_cloud_error_pods"
               for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
                   echo "==================== pod ${kb_cloud_error_pod} logs ===================="
@@ -196,7 +196,7 @@ jobs:
           sleep 10
           check_status=0
           for i in {1..200}; do
-              if kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" | grep Completed ; then
+              if kubectl get pods -n kb-system | (grep "kb-cloud-bootstrapper" | grep Completed || true) ; then
                   echo "KB Cloud Env is ready"
                   check_status=1
                   break
@@ -213,7 +213,7 @@ jobs:
               bootstrapper_result="[FAILED]"
               echo bootstrapper-result="${bootstrapper_result}" >> $GITHUB_OUTPUT
           
-              bootstrapper_pods=$(kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" )
+              bootstrapper_pods=$(kubectl get pods -n kb-system | (grep "kb-cloud-bootstrapper" || true) )
               echo "bootstrapper pod: $bootstrapper_pods"
               bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | grep -v "ImagePull" | awk '{print $1}')"
               for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
@@ -229,7 +229,7 @@ jobs:
               done 
           
               # logs kb-system error pod 
-              kb_system_error_pods=$(kubectl get pods -n kb-system | grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" | awk '{print $1}')
+              kb_system_error_pods=$(kubectl get pods -n kb-system | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" || true) | awk '{print $1}')
               echo "kb-system error pod: $kb_system_error_pods"
               for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
                   echo "==================== pod ${kb_system_error_pod} logs ===================="
@@ -238,7 +238,7 @@ jobs:
               done
           
               # describe image pull error kb-system pod
-              kb_system_error_pods=$(kubectl get pods -n kb-system | grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | (egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')
+              kb_system_error_pods=$(kubectl get pods -n kb-system | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')
               echo "kb-system image pull error pod: $kb_system_error_pods"
               for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
                   echo "==================== pod ${kb_system_error_pod} describe ===================="
