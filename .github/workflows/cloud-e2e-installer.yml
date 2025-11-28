@@ -575,13 +575,6 @@ jobs:
         id: upgrade_kb_cloud
         run: |
           upgrade_result="[PASSED]"
-          if [[ "${UPGRADE_RESULT}" != "1" ]]; then
-              echo "upgrade KB Cloud failed"
-              upgrade_result="[FAILED]"
-              echo upgrade-result="${upgrade_result}" >> $GITHUB_OUTPUT
-              exit 1
-          fi
-          
           sleep 10
           check_status=0
           for i in {1..200}; do
@@ -615,6 +608,13 @@ jobs:
               exit 1
           else
               echo upgrade-result="${upgrade_result}" >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ "${UPGRADE_RESULT}" != "1" ]]; then
+              echo "upgrade KB Cloud failed"
+              upgrade_result="[FAILED]"
+              echo upgrade-result="${upgrade_result}" >> $GITHUB_OUTPUT
+              exit 1
           fi
 
   send-message:
