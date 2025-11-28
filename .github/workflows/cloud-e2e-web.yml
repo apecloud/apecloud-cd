@@ -272,6 +272,9 @@ jobs:
               sleep 1
           done
 
+      - name: Setup Debug Session
+        uses: csexton/debugger-action@master
+
       - name: Get Test Result
         if: ${{ always() }}
         id: get_test_result
