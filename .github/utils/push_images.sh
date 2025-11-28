@@ -80,7 +80,7 @@ push_images() {
 
     for image in ${images_list}; do
         new_image=""
-        count=$(echo "${image}" | grep -o "/" | wc -l | tr -cd '0-9')
+        count=$(echo "${image}" | (grep -o "/" || true) | wc -l | tr -cd '0-9')
         case $count in
             0|1)
                 new_image="${REGISTRY_ADDRESS}/${image}"

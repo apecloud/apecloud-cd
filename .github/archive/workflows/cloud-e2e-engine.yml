@@ -319,7 +319,7 @@ jobs:
               --pod-index "${TEST_JOB_INDEX}" \
               --release-version "${{ needs.get-test-engine.outputs.cloud-branch }}" | tee -a ${run_file_log}
           
-          CLOUD_E2E_TEST_POD_NAME="$(cat ${run_file_log} | grep '\[CLOUD-E2E-TEST-POD-NAME\]' || true )"
+          CLOUD_E2E_TEST_POD_NAME="$(cat ${run_file_log} | (grep '\[CLOUD-E2E-TEST-POD-NAME\]' || true) )"
           if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" && "$CLOUD_E2E_TEST_POD_NAME" == "[CLOUD-E2E-TEST-POD-NAME]"* ]]; then
               CLOUD_E2E_TEST_POD_NAME=${CLOUD_E2E_TEST_POD_NAME#*"[CLOUD-E2E-TEST-POD-NAME]"}      
           fi
@@ -331,11 +331,11 @@ jobs:
           set -o nounset
           sleep 10
           while true; do
-              if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" ; then
+              if kubectl get pods -n default | (grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" || true) ; then
                   echo "Cloud E2E Test is Done"
                   break
               fi
-              if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Running|Error" ; then
+              if kubectl get pods -n default | (grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Running|Error" || true) ; then
                   kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=5
               else
                   echo "Waiting for Cloud E2E to be Running..."

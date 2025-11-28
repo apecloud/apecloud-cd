@@ -12,7 +12,7 @@ main() {
         if [[ "$chart" == *"loadbalancer"* || "$chart" == *"kblib-"*".tgz"* ]]; then
             continue
         fi
-        images=$( helm template $chart | egrep 'image:|repository:|tag:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/|infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/|ghcr.io/|quay.io/' | grep -v '[A-Z]' | awk '{print $2}' | sed 's/"//g' )
+        images=$( helm template $chart | egrep 'image:|repository:|tag:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/|infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/|ghcr.io/|quay.io/' | (grep -v '[A-Z]' || true) | awk '{print $2}' | sed 's/"//g' )
         repository=""
         for image in $( echo "$images" ); do
             skip_flag=0
@@ -130,13 +130,13 @@ check_image_exists() {
     for i in {1..5}; do
         case $tag in
             *arm64*|*amd64*|*arm*|*amd*)
-                architecture=$( docker buildx imagetools inspect "$image" |  grep Digest )
+                architecture=$( docker buildx imagetools inspect "$image" | (grep Digest || true) )
             ;;
             *)
                 if [[ $skipArm -eq 1 ]]; then
-                    architecture=$( docker buildx imagetools inspect "$image" |  grep Digest )
+                    architecture=$( docker buildx imagetools inspect "$image" | (grep Digest || true) )
                 else
-                    architecture=$( docker buildx imagetools inspect "$image" | grep Platform )
+                    architecture=$( docker buildx imagetools inspect "$image" | (grep Platform || true) )
                 fi
             ;;
         esac

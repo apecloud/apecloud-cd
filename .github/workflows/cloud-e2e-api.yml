@@ -222,7 +222,7 @@ jobs:
               --test-type "${TEST_TYPE}" \
               --release-version "${{ needs.get-test-type.outputs.cloud-branch }}" | tee -a ${run_file_log}
           
-          CLOUD_E2E_TEST_POD_NAME="$(cat ${run_file_log} | grep '\[CLOUD-E2E-TEST-POD-NAME\]' || true )"
+          CLOUD_E2E_TEST_POD_NAME="$(cat ${run_file_log} | (grep '\[CLOUD-E2E-TEST-POD-NAME\]' || true) )"
           if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" && "$CLOUD_E2E_TEST_POD_NAME" == "[CLOUD-E2E-TEST-POD-NAME]"* ]]; then
               CLOUD_E2E_TEST_POD_NAME=${CLOUD_E2E_TEST_POD_NAME#*"[CLOUD-E2E-TEST-POD-NAME]"}      
           fi
@@ -232,11 +232,11 @@ jobs:
         run: |
           sleep 10
           while true; do
-              if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" ; then
+              if kubectl get pods -n default | (grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" || true) ; then
                   echo "Cloud E2E Test is Done"
                   break
               fi
-              if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Running|Error" ; then
+              if kubectl get pods -n default | (grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Running|Error" || true) ; then
                   kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=5
               else
                   echo "Waiting for Cloud E2E to be Running..."
@@ -296,15 +296,15 @@ jobs:
                   bash ./api-coverage.sh --type ${API_TYPE} --log ${test_file_log_path} > ${coverage_file_log_path}
                   API_COVERAGE_SUMMARY=$(cat ${coverage_file_log_path})
           
-                  TOTAL_APIS=$(echo "${API_COVERAGE_SUMMARY}" | grep "Total APIs: ")
-                  COVERED_APIS=$(echo "${API_COVERAGE_SUMMARY}" | grep "Covered APIs: ")
-                  COVERAGE=$(echo "${API_COVERAGE_SUMMARY}" | grep "Coverage: ")
-                  DEPRECATED_APIS=$(echo "${API_COVERAGE_SUMMARY}" | grep "Deprecated APIs: ")
+                  TOTAL_APIS=$(echo "${API_COVERAGE_SUMMARY}" | (grep "Total APIs: " || true))
+                  COVERED_APIS=$(echo "${API_COVERAGE_SUMMARY}" | (grep "Covered APIs: " || true))
+                  COVERAGE=$(echo "${API_COVERAGE_SUMMARY}" | (grep "Coverage: " || true))
+                  DEPRECATED_APIS=$(echo "${API_COVERAGE_SUMMARY}" | (grep "Deprecated APIs: " || true))
           
-                  TOTAL_APIS=$(echo "$TOTAL_APIS" | grep -oE '[0-9]+')
-                  COVERED_APIS=$(echo "$COVERED_APIS" | grep -oE '[0-9]+')
-                  COVERAGE=$(echo "$COVERAGE" | grep -oE '[0-9]+%')
-                  DEPRECATED_APIS=$(echo "$DEPRECATED_APIS" | grep -oE '[0-9]+')
+                  TOTAL_APIS=$(echo "$TOTAL_APIS" | | (grep -oE '[0-9]+' || true))
+                  COVERED_APIS=$(echo "$COVERED_APIS" | | (grep -oE '[0-9]+' || true))
+                  COVERAGE=$(echo "$COVERAGE" | (grep -oE '[0-9]+%' || true))
+                  DEPRECATED_APIS=$(echo "$DEPRECATED_APIS" | | (grep -oE '[0-9]+' || true))
           
                   echo "Total APIs: $TOTAL_APIS"
                   echo "Covered APIs: $COVERED_APIS"
