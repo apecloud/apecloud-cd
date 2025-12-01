@@ -260,11 +260,11 @@ jobs:
           set -o nounset
           sleep 10
           while true; do
-              if kubectl get pods -n default | (grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" || true) ; then
+              if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" ; then
                   echo "Cloud E2E Web Test is Done"
                   break
               fi
-              if kubectl get pods -n default | (grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Running|Error" || true) ; then
+              if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Running|Error" ; then
                   kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=5
               else
                   echo "Waiting for Cloud E2E Web to be Running..."

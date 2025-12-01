@@ -173,7 +173,7 @@ jobs:
           sleep 10
           check_status=0
           for i in {1..200}; do
-              if kubectl get pods -n kb-cloud | (grep "kb-cloud-installer" | grep Completed || true) ; then
+              if kubectl get pods -n kb-cloud | grep "kb-cloud-installer" | grep Completed ; then
                   echo "KB Cloud is ready"
                   check_status=1
                   break
@@ -233,7 +233,7 @@ jobs:
           sleep 10
           check_status=0
           for i in {1..200}; do
-              if kubectl get pods -n kb-cloud | (grep "kb-cloud-installer" | grep Completed || true) ; then
+              if kubectl get pods -n kb-cloud | grep "kb-cloud-installer" | grep Completed ; then
                   echo "KB Cloud is ready"
                   check_status=1
                   break
