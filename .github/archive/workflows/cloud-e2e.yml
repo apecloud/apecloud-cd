@@ -424,10 +424,10 @@ jobs:
                   COVERAGE=$(echo "${API_COVERAGE_SUMMARY}" | (grep "Coverage: " || true))
                   DEPRECATED_APIS=$(echo "${API_COVERAGE_SUMMARY}" | (grep "Deprecated APIs: " || true))
                   
-                  TOTAL_APIS=$(echo "$TOTAL_APIS" | | (grep -oE '[0-9]+' || true))
-                  COVERED_APIS=$(echo "$COVERED_APIS" | | (grep -oE '[0-9]+' || true))
+                  TOTAL_APIS=$(echo "$TOTAL_APIS" | (grep -oE '[0-9]+' || true))
+                  COVERED_APIS=$(echo "$COVERED_APIS" | (grep -oE '[0-9]+' || true))
                   COVERAGE=$(echo "$COVERAGE" | (grep -oE '[0-9]+%' || true))
-                  DEPRECATED_APIS=$(echo "$DEPRECATED_APIS" | | (grep -oE '[0-9]+' || true))
+                  DEPRECATED_APIS=$(echo "$DEPRECATED_APIS" | (grep -oE '[0-9]+' || true))
                   
                   echo "Total APIs: $TOTAL_APIS"
                   echo "Covered APIs: $COVERED_APIS"
