@@ -254,6 +254,7 @@ jobs:
           echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
 
       - name: clear e2e backup
+        continue-on-error: true
         run: |
           backup_filter="$(date +%Y-%m)"
           echo "delete e2e Retain backup"
