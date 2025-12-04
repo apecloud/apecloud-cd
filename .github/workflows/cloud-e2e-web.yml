@@ -313,14 +313,13 @@ jobs:
           ')
           
           body=$(printf "%s\n" "$TEST_RESULT_ALL" | awk -v et="$engine_type" '
-            /PLAYWRIGHT-RESULT/ {start=1; next}
-            start && $1 == et {
-              printf "%s|%s##", $2, $3
-            }
+              /PLAYWRIGHT-RESULT/ {start=1; next}
+              start && $1 == et {
+                  if (i++ > 0) printf "##"
+                      printf "%s|%s", $2, $3
+              }
           ')
-          
-          body=${body%##}
-           
+                     
           TEST_RESULT=$(printf "###%s###%s\n" "$engine_type" "$body")
 
           if [[ -z "$TEST_RESULT" ]]; then
