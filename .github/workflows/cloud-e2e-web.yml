@@ -318,6 +318,8 @@ jobs:
               printf "%s|%s##", $2, $3
             }
           ')
+          
+          body=${body%##}
            
           TEST_RESULT=$(printf "###%s###%s\n" "$engine_type" "$body")
 
