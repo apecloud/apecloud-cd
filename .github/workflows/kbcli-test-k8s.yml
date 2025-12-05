@@ -1425,7 +1425,7 @@ jobs:
             fi
             if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"etcd|"* || "$TEST_TYPE" == *"etcd") && "$TEST_TYPE" != *"-etcd"* ) ]]; then
               TEST_RESULT+="##etcd|${{ needs.test-etcd.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-outputs.outputs.test-result-report }}\" "
+              cmd="${cmd_head} \"${{ needs.test-etcd.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase|"* || "$TEST_TYPE" == *"oceanbase" ]]; then
