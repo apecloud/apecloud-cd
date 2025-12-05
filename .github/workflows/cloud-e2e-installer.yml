@@ -555,15 +555,29 @@ jobs:
           
           echo "upgrade kubeblocks cloud"
           CLOUD_VERSION="${{ needs.get-cloud-branch.outputs.cloud-branch }}"
-          helm upgrade --install kb-cloud kubeblocks-enterprise/kubeblocks-cloud \
-            --version ${CLOUD_VERSION} --namespace kb-cloud \
-            --set images.apiserver.tag=${CLOUD_VERSION} \
-            --set images.cr4w.tag=${CLOUD_VERSION} \
-            --set images.openconsole.tag=${CLOUD_VERSION} \
-            --set images.openconsoleAdmin.tag=${CLOUD_VERSION} \
-            --set images.hook.tag=${CLOUD_VERSION} \
-            --set images.cubetranFront.tag=${CLOUD_VERSION} \
-            --reset-then-reuse-values
+          if [[ "${CLOUD_VERSION}" == "v2.1."* ]]; then
+              helm upgrade --install kb-cloud kubeblocks-enterprise/kubeblocks-cloud \
+                --version ${CLOUD_VERSION} --namespace kb-cloud \
+                --set images.apiserver.tag=${CLOUD_VERSION} \
+                --set images.cr4w.tag=${CLOUD_VERSION} \
+                --set images.openconsole.tag=${CLOUD_VERSION} \
+                --set images.openconsoleAdmin.tag=${CLOUD_VERSION} \
+                --set images.hook.tag=${CLOUD_VERSION} \
+                --set images.cubetranFront.tag=${CLOUD_VERSION} \
+                --set grafana.global.imageRegistry='' \
+                --set grafana.image.repository='apecloud/grafana' \
+                --reset-then-reuse-values
+          else
+              helm upgrade --install kb-cloud kubeblocks-enterprise/kubeblocks-cloud \
+                --version ${CLOUD_VERSION} --namespace kb-cloud \
+                --set images.apiserver.tag=${CLOUD_VERSION} \
+                --set images.cr4w.tag=${CLOUD_VERSION} \
+                --set images.openconsole.tag=${CLOUD_VERSION} \
+                --set images.openconsoleAdmin.tag=${CLOUD_VERSION} \
+                --set images.hook.tag=${CLOUD_VERSION} \
+                --set images.cubetranFront.tag=${CLOUD_VERSION} \
+                --reset-then-reuse-values
+          fi
           
           upgrade_ret=$?
           if [[ $upgrade_ret -eq 0 ]]; then
