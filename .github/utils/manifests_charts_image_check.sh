@@ -304,7 +304,11 @@ main() {
     local KB_ENT_REPO_URL="https://jihulab.com/api/v4/projects/${CHART_PROJECT_ID}/packages/helm/stable"
     if [[ "${ADD_CHART}" == "true" ]]; then
         add_chart_repo
+    else
+        KB_REPO_NAME="kubeblocks-addons"
+        KB_REPO_URL="https://jihulab.com/api/v4/projects/150246/packages/helm/stable"
     fi
+
     check_charts_images
 }
 

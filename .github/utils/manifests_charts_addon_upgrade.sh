@@ -1,5 +1,6 @@
 #!/bin/bash
 MANIFESTS_FILE=${1:-""}
+ADD_CHART=${2:-"true"}
 
 
 add_chart_repo() {
@@ -148,7 +149,12 @@ main() {
     local KB_REPO_URL="https://apecloud.github.io/helm-charts"
     local KB_ENT_REPO_NAME="kb-ent-charts"
     local KB_ENT_REPO_URL="https://jihulab.com/api/v4/projects/${CHART_PROJECT_ID}/packages/helm/stable"
-    add_chart_repo
+    if [[ "${ADD_CHART}" == "true" ]]; then
+        add_chart_repo
+    else
+        KB_REPO_NAME="kubeblocks-addons"
+        KB_REPO_URL="https://jihulab.com/api/v4/projects/150246/packages/helm/stable"
+    fi
 
     upgrade_charts_addon
 }
