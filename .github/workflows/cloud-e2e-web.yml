@@ -28,6 +28,11 @@ on:
         type: string
         required: false
         default: 'main'
+      DEBUG:
+        description: "Debug session"
+        type: boolean
+        default: false
+        required: false
   workflow_call:
     inputs:
       TEST_ENGINES:
@@ -273,6 +278,7 @@ jobs:
           done
 
       - name: Setup Debug Session
+        if: ${{ inputs.DEBUG }}
         uses: csexton/debugger-action@master
 
       - name: Get Test Result
