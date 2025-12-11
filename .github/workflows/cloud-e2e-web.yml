@@ -259,6 +259,10 @@ jobs:
           fi
           echo CLOUD_E2E_TEST_POD_NAME="$CLOUD_E2E_TEST_POD_NAME" >> $GITHUB_ENV
 
+      - name: Setup Debug Session
+        if: ${{ inputs.DEBUG }}
+        uses: csexton/debugger-action@master
+
       - name: Waiting for Cloud E2E Web to be Completed
         run: |
           set +e
@@ -276,10 +280,6 @@ jobs:
               fi
               sleep 1
           done
-
-      - name: Setup Debug Session
-        if: ${{ inputs.DEBUG }}
-        uses: csexton/debugger-action@master
 
       - name: Get Test Result
         if: ${{ always() }}
