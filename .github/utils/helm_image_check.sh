@@ -55,7 +55,7 @@ main() {
                 continue
             fi
 
-            if [[ "$repository" == "busybox:busybox"* || "$repository" == "docker.io/library/busybox:busybox"* || "$repository" == "docker.io/elasticsearch:7.10.2" ]]; then
+            if [[ "$repository" == "busybox:busybox"* || "$repository" == "docker.io/library/busybox:busybox"* || "$repository" == "docker.io/elasticsearch:7.10.2" || "$repository" == "docker.io/kibana:7.10.2" ]]; then
                 repository=""
                 continue
             fi
