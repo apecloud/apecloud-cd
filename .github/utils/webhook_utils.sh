@@ -174,6 +174,9 @@ send_message() {
     if [[ "$CONTENT_TMP" == *"success"* ]]; then
         curl -H "Content-Type: application/json" -X POST $BOT_WEBHOOK \
             -d '{"msg_type":"post","content":{"post":{"zh_cn":{"title":"Success:","content":[[{"tag":"text","text":"'$CONTENT'"}]]}}}}'
+    elif [[ -n "${PR_AUTHOR}" ]]; then
+        curl -H "Content-Type: application/json" -X POST $BOT_WEBHOOK \
+            -d '{"msg_type":"post","content":{"post":{"zh_cn":{"title":"Error:","content":[[{"tag":"text","text":" Author:'${PR_AUTHOR}' "},{"tag":"a","text":"'$CONTENT'","href":"'$RUN_URL'"}]]}}}}'
     else
         curl -H "Content-Type: application/json" -X POST $BOT_WEBHOOK \
             -d '{"msg_type":"post","content":{"post":{"zh_cn":{"title":"Error:","content":[[{"tag":"a","text":"'$CONTENT'","href":"'$RUN_URL'"}]]}}}}'
