@@ -111,11 +111,16 @@ jobs:
           if [[ -n "${{ inputs.PR_NUMBER }}" ]]; then
               cmd="${cmd} --pr-number '${{ inputs.PR_NUMBER }}' "
           fi
+          
           if [[ "${{ inputs.TYPE }}" == "5" ]]; then
               if [[ -n "${{ inputs.PR_AUTHOR }}" ]]; then
                   cmd="${cmd} --pr-author '${{ inputs.PR_AUTHOR }}' "
               else
                   cmd="${cmd} --pr-author '${{ github.event.issue.user.login }}' "
+              fi
+          else
+              if [[ -n "${{ inputs.PR_AUTHOR }}" ]]; then
+                  cmd="${cmd} --pr-author '${{ inputs.PR_AUTHOR }}' "
               fi
           fi
           
