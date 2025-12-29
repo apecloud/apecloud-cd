@@ -2,6 +2,7 @@
 MANIFESTS_FILE=${1:-""}
 ADD_CHART=${2:-"true"}
 CHECK_ENGINE_FILE=${3:-"./fountain/hack/check-engine-images.py"}
+SKIP_DELETE_FILE=${4:-""}
 
 
 add_chart_repo() {
@@ -31,8 +32,10 @@ check_service_version_images() {
         images=""
         if [[ -f "${check_engine_result_file}" ]]; then
             images=$(yq e '.'${chart_name_tmp}'[0].images[]' ${check_engine_result_file})
-            rm -rf ${check_engine_result_file}
-            rm -rf charts/${chart_name_tmp}-${chart_version_tmp}.tgz
+            if [[ -z "${SKIP_DELETE_FILE}" || "${check_engine_result_file}" != *"${SKIP_DELETE_FILE}"* ]]; then
+                rm -rf ${check_engine_result_file}
+                rm -rf charts/${chart_name_tmp}-${chart_version_tmp}.tgz
+            fi
         fi
         repository=""
         for repository in $( echo "$images" ); do
