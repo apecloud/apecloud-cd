@@ -81,6 +81,7 @@ jobs:
       ITEM: "kubeblocks-cloud"
       IMAGES: "${{ needs.get-images.outputs.kubeblocks-cloud-images }}"
       ADDON: false
+      LOGIN_DOCKER: true
     secrets: inherit
 
   kbcloud-installer:
