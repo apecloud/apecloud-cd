@@ -8,6 +8,11 @@ on:
         type: string
         required: false
         default: ''
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
   schedule:
     - cron: '0 1 * * 1' # Runs at 08:00 UTC on Mon to Friday
 
@@ -23,9 +28,21 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       cloud-tag: ${{ steps.get-cloud-tag.outputs.cloud-tag }}
-      cloud-images: ${{ steps.get-images.outputs.cloud-images }}
-      gemini-images: ${{ steps.get-images.outputs.gemini-images }}
+      kubeblocks-cloud-images: ${{ steps.get-images.outputs.kubeblocks-cloud-images }}
+      kbcloud-installer-images: ${{ steps.get-images.outputs.kb-cloud-installer-images }}
+      postgres-operator-images: ${{ steps.get-images.outputs.postgres-operator-images }}
+      casdoor-images: ${{ steps.get-images.outputs.casdoor-helm-charts-images }}
       kubeblocks-images: ${{ steps.get-images.outputs.kubeblocks-images }}
+      gemini-images: ${{ steps.get-images.outputs.gemini-images }}
+      gemini-monitor-images: ${{ steps.get-images.outputs.gemini-monitor-images }}
+      ape-local-images: ${{ steps.get-images.outputs.ape-local-csi-driver-images }}
+      kubebench-images: ${{ steps.get-images.outputs.kubebench-images }}
+      ingress-nginx-images: ${{ steps.get-images.outputs.ingress-nginx-images }}
+      metrics-server-images: ${{ steps.get-images.outputs.metrics-server-images }}
+      loki-images: ${{ steps.get-images.outputs.loki-images }}
+      victoria-metrics-images: ${{ steps.get-images.outputs.victoria-metrics-images }}
+      minio-images: ${{ steps.get-images.outputs.minio-images }}
+      postgresql-images: ${{ steps.get-images.outputs.postgresql-images }}
     steps:
       - name: get cloud tag
         id: get-cloud-tag
@@ -43,91 +60,53 @@ jobs:
           token: ${{ env.GH_TOKEN }}
           ref: ${{ steps.get-cloud-tag.outputs.cloud-tag }}
 
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
       - name: get images
         id: get-images
         run: |
           MANIFESTS_FILE=${{ env.MANIFESTS_FILE }}
           CLOUD_TAG="${{ steps.get-cloud-tag.outputs.cloud-tag }}"
-          
-          # get cloud images
-          cloud_images_filter="${CLOUD_TAG}|apecloud/dms|apecloud/servicemirror|apecloud/cubetran"
-          cloud_images_list=$(yq e ".kubeblocks-cloud[].images" ${MANIFESTS_FILE} \
-              | (egrep "${cloud_images_filter}" || true) | awk '{print $2}' | sort -u)
-          CLOUD_IMAGES=""
-          for cloud_image in $(echo "${cloud_images_list}"); do
-              if [[ -z "${CLOUD_IMAGES}" ]]; then
-                  CLOUD_IMAGES="docker.io/${cloud_image}"
-              else
-                  CLOUD_IMAGES="${CLOUD_IMAGES}|docker.io/${cloud_image}"
-              fi
-          done
-          kb_cloud_installer_image="docker.io/apecloud/kb-cloud-installer:${CLOUD_TAG}"
-          if [[ -z "${CLOUD_IMAGES}" ]]; then
-              CLOUD_IMAGES="${kb_cloud_installer_image}"
-          else
-              CLOUD_IMAGES="${CLOUD_IMAGES}|${kb_cloud_installer_image}"
-          fi
-          
-          echo "CLOUD_IMAGES:${CLOUD_IMAGES}"
-          echo "cloud-images=${CLOUD_IMAGES}" >> $GITHUB_OUTPUT
-          echo ""
-          
-          # get gemini images
-          gemini_versions_list=$(yq e ".gemini[].version" ${MANIFESTS_FILE} | tr '\n' '|' | sed 's/|$//')
-          
-          gemini_images_filter="${gemini_versions_list}|apecloud/servicemirror|apecloud/cubetran|apecloud/ape-dts"
-          gemini_images_list=$(yq e ".gemini[].images" ${MANIFESTS_FILE} \
-              | (egrep "${gemini_images_filter}" || true) | awk '{print $2}' | sort -u)
-          GEMINI_IMAGES=""
-          for gemini_image in $(echo "${gemini_images_list}"); do
-              if [[ -z "${GEMINI_IMAGES}" ]]; then
-                  GEMINI_IMAGES="docker.io/${gemini_image}"
-              else
-                  GEMINI_IMAGES="${GEMINI_IMAGES}|docker.io/${gemini_image}"
-              fi
-          done
-          
-          oteld_image=$(yq e ".gemini-monitor[].images" ${MANIFESTS_FILE} | awk 'NR==1{print $2}')
-          if [[ -z "${GEMINI_IMAGES}" ]]; then
-              GEMINI_IMAGES="docker.io/${oteld_image}"
-          else
-              GEMINI_IMAGES="${GEMINI_IMAGES}|docker.io/${oteld_image}"
-          fi
-          
-          echo "GEMINI_IMAGES:${GEMINI_IMAGES}"
-          echo "gemini-images=${GEMINI_IMAGES}" >> $GITHUB_OUTPUT
-          echo ""
-          
-          # get kubeblocks images
-          kubeblocks_versions_list=$(yq e ".kubeblocks[].version" ${MANIFESTS_FILE} | tr '\n' '|' | sed 's/|$//')
-          kubeblocks_images_list=$(yq e ".kubeblocks[].images" ${MANIFESTS_FILE} | (egrep "${kubeblocks_versions_list}|datasafed" || true) | awk '{print $2}' | sort -u)
-          KUBEBLOCKS_IMAGES=""
-          for kubeblocks_image in $(echo "${kubeblocks_images_list}"); do
-              if [[ -z "${KUBEBLOCKS_IMAGES}" ]]; then
-                  KUBEBLOCKS_IMAGES="docker.io/${kubeblocks_image}"
-              else
-                  KUBEBLOCKS_IMAGES="${KUBEBLOCKS_IMAGES}|docker.io/${kubeblocks_image}"
-              fi
-          done
-          
-          echo "KUBEBLOCKS_IMAGES:${KUBEBLOCKS_IMAGES}"
-          echo "kubeblocks-images=${KUBEBLOCKS_IMAGES}" >> $GITHUB_OUTPUT
+          bash apecloud-cd/.github/utils/get_scan_images.sh "${MANIFESTS_FILE}" "${CLOUD_TAG}"
 
-  cloud:
+  kubeblocks-cloud:
     uses: ./.github/workflows/trivy-scan.yml
     needs: [ get-images ]
     with:
-      ITEM: "cloud"
-      IMAGES: "${{ needs.get-images.outputs.cloud-images }}"
+      ITEM: "kubeblocks-cloud"
+      IMAGES: "${{ needs.get-images.outputs.kubeblocks-cloud-images }}"
       ADDON: false
     secrets: inherit
 
-  gemini:
+  kbcloud-installer:
     uses: ./.github/workflows/trivy-scan.yml
     needs: [ get-images ]
     with:
-      ITEM: "gemini"
-      IMAGES: "${{ needs.get-images.outputs.gemini-images }}"
+      ITEM: "kbcloud-installer"
+      IMAGES: "${{ needs.get-images.outputs.kbcloud-installer-images }}"
+      ADDON: false
+    secrets: inherit
+
+  postgres-operator:
+    uses: ./.github/workflows/trivy-scan.yml
+    needs: [ get-images ]
+    with:
+      ITEM: "postgres-operator"
+      IMAGES: "${{ needs.get-images.outputs.postgres-operator-images }}"
+      ADDON: false
+    secrets: inherit
+
+  casdoor:
+    uses: ./.github/workflows/trivy-scan.yml
+    needs: [ get-images ]
+    with:
+      ITEM: "casdoor"
+      IMAGES: "${{ needs.get-images.outputs.casdoor-images }}"
       ADDON: false
     secrets: inherit
 
@@ -140,10 +119,100 @@ jobs:
       ADDON: false
     secrets: inherit
 
+  gemini:
+    uses: ./.github/workflows/trivy-scan.yml
+    needs: [ get-images ]
+    with:
+      ITEM: "gemini"
+      IMAGES: "${{ needs.get-images.outputs.gemini-images }}"
+      ADDON: false
+    secrets: inherit
+
+  gemini-monitor:
+    uses: ./.github/workflows/trivy-scan.yml
+    needs: [ get-images ]
+    with:
+      ITEM: "gemini-monitor"
+      IMAGES: "${{ needs.get-images.outputs.gemini-monitor-images }}"
+      ADDON: false
+    secrets: inherit
+
+  ape-local:
+    uses: ./.github/workflows/trivy-scan.yml
+    needs: [ get-images ]
+    with:
+      ITEM: "ape-local"
+      IMAGES: "${{ needs.get-images.outputs.ape-local-images }}"
+      ADDON: false
+    secrets: inherit
+
+  kubebench:
+    uses: ./.github/workflows/trivy-scan.yml
+    needs: [ get-images ]
+    with:
+      ITEM: "kubebench"
+      IMAGES: "${{ needs.get-images.outputs.kubebench-images }}"
+      ADDON: false
+    secrets: inherit
+
+  ingress-nginx:
+    uses: ./.github/workflows/trivy-scan.yml
+    needs: [ get-images ]
+    with:
+      ITEM: "ingress-nginx"
+      IMAGES: "${{ needs.get-images.outputs.ingress-nginx-images }}"
+      ADDON: false
+    secrets: inherit
+
+  metrics-server:
+    uses: ./.github/workflows/trivy-scan.yml
+    needs: [ get-images ]
+    with:
+      ITEM: "metrics-server"
+      IMAGES: "${{ needs.get-images.outputs.metrics-server-images }}"
+      ADDON: false
+    secrets: inherit
+
+  loki:
+    uses: ./.github/workflows/trivy-scan.yml
+    needs: [ get-images ]
+    with:
+      ITEM: "loki"
+      IMAGES: "${{ needs.get-images.outputs.loki-images }}"
+      ADDON: false
+    secrets: inherit
+
+  victoria-metrics:
+    uses: ./.github/workflows/trivy-scan.yml
+    needs: [ get-images ]
+    with:
+      ITEM: "victoria-metrics"
+      IMAGES: "${{ needs.get-images.outputs.victoria-metrics-images }}"
+      ADDON: false
+    secrets: inherit
+
+  minio:
+    uses: ./.github/workflows/trivy-scan.yml
+    needs: [ get-images ]
+    with:
+      ITEM: "minio"
+      IMAGES: "${{ needs.get-images.outputs.minio-images }}"
+      ADDON: false
+    secrets: inherit
+
+  postgresql:
+    uses: ./.github/workflows/trivy-scan.yml
+    needs: [ get-images ]
+    with:
+      ITEM: "postgresql"
+      IMAGES: "${{ needs.get-images.outputs.postgresql-images }}"
+      ADDON: false
+    secrets: inherit
+
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: [ get-images, cloud, gemini, kubeblocks ]
+    needs: [ get-images, kubeblocks-cloud, gemini, kubeblocks ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -153,9 +222,22 @@ jobs:
       - name: send message
         run: |
           CLOUD_TAG="${{ needs.get-images.outputs.cloud-tag }}"
-          TEST_RESULT="${{ needs.cloud.outputs.total-vulnerabilities }}"
-          TEST_RESULT="${TEST_RESULT}##${{ needs.gemini.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${{ needs.kubeblocks-cloud.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.kbcloud-installer.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.postgres-operator.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.casdoor.outputs.total-vulnerabilities }}"
           TEST_RESULT="${TEST_RESULT}##${{ needs.kubeblocks.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.gemini.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.gemini-monitor.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.ape-local.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.kubebench.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.ingress-nginx.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.metrics-server.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.metrics-server.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.loki.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.victoria-metrics.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.minio.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.postgresql.outputs.total-vulnerabilities }}"
           
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
