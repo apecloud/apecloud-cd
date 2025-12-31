@@ -1,0 +1,173 @@
+name: Trivy Scan Cloud
+
+on:
+  workflow_dispatch:
+    inputs:
+      CLOUD_TAG:
+        description: "cloud tag"
+        type: string
+        required: false
+        default: ''
+  schedule:
+    - cron: '0 1 * * 1' # Runs at 08:00 UTC on Mon to Friday
+
+env:
+  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  CLOUD_REPO: "apecloud/apecloud"
+  MANIFESTS_FILE: "manifests/deploy-manifests.yaml"
+
+run-name: Trivy Scan Cloud ${{ inputs.CLOUD_TAG }}
+
+jobs:
+  get-images:
+    runs-on: ubuntu-latest
+    outputs:
+      cloud-tag: ${{ steps.get-cloud-tag.outputs.cloud-tag }}
+      cloud-images: ${{ steps.get-images.outputs.cloud-images }}
+      gemini-images: ${{ steps.get-images.outputs.gemini-images }}
+      kubeblocks-images: ${{ steps.get-images.outputs.kubeblocks-images }}
+    steps:
+      - name: get cloud tag
+        id: get-cloud-tag
+        run: |
+          CLOUD_TAG="${{ inputs.CLOUD_TAG }}"
+          if [[ -z "${CLOUD_TAG}" ]]; then
+              CLOUD_TAG=$(gh release list --repo ${{ env.CLOUD_REPO }} | (grep "alpha" || true) | awk 'NR==1{print $2}')
+          fi
+          echo "cloud-tag=${CLOUD_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Checkout apecloud Code
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.CLOUD_REPO }}
+          token: ${{ env.GH_TOKEN }}
+          ref: ${{ steps.get-cloud-tag.outputs.cloud-tag }}
+
+      - name: get images
+        id: get-images
+        run: |
+          MANIFESTS_FILE=${{ env.MANIFESTS_FILE }}
+          CLOUD_TAG="${{ steps.get-cloud-tag.outputs.cloud-tag }}"
+          
+          # get cloud images
+          cloud_images_filter="${CLOUD_TAG}|apecloud/dms|apecloud/servicemirror|apecloud/cubetran"
+          cloud_images_list=$(yq e ".kubeblocks-cloud[].images" ${MANIFESTS_FILE} \
+              | (egrep "${cloud_images_filter}" || true) | awk '{print $2}' | sort -u)
+          CLOUD_IMAGES=""
+          for cloud_image in $(echo "${cloud_images_list}"); do
+              if [[ -z "${CLOUD_IMAGES}" ]]; then
+                  CLOUD_IMAGES="docker.io/${cloud_image}"
+              else
+                  CLOUD_IMAGES="${CLOUD_IMAGES}|docker.io/${cloud_image}"
+              fi
+          done
+          kb_cloud_installer_image="docker.io/apecloud/kb-cloud-installer:${CLOUD_TAG}"
+          if [[ -z "${CLOUD_IMAGES}" ]]; then
+              CLOUD_IMAGES="${kb_cloud_installer_image}"
+          else
+              CLOUD_IMAGES="${CLOUD_IMAGES}|${kb_cloud_installer_image}"
+          fi
+          
+          echo "CLOUD_IMAGES:${CLOUD_IMAGES}"
+          echo "cloud-images=${CLOUD_IMAGES}" >> $GITHUB_OUTPUT
+          echo ""
+          
+          # get gemini images
+          gemini_versions_list=$(yq e ".gemini[].version" ${MANIFESTS_FILE} | tr '\n' '|' | sed 's/|$//')
+          
+          gemini_images_filter="${gemini_versions_list}|apecloud/servicemirror|apecloud/cubetran|apecloud/ape-dts"
+          gemini_images_list=$(yq e ".gemini[].images" ${MANIFESTS_FILE} \
+              | (egrep "${gemini_images_filter}" || true) | awk '{print $2}' | sort -u)
+          GEMINI_IMAGES=""
+          for gemini_image in $(echo "${gemini_images_list}"); do
+              if [[ -z "${GEMINI_IMAGES}" ]]; then
+                  GEMINI_IMAGES="docker.io/${gemini_image}"
+              else
+                  GEMINI_IMAGES="${GEMINI_IMAGES}|docker.io/${gemini_image}"
+              fi
+          done
+          
+          oteld_image=$(yq e ".gemini-monitor[].images" ${MANIFESTS_FILE} | awk 'NR==1{print $2}')
+          if [[ -z "${GEMINI_IMAGES}" ]]; then
+              GEMINI_IMAGES="docker.io/${oteld_image}"
+          else
+              GEMINI_IMAGES="${GEMINI_IMAGES}|docker.io/${oteld_image}"
+          fi
+          
+          echo "GEMINI_IMAGES:${GEMINI_IMAGES}"
+          echo "gemini-images=${GEMINI_IMAGES}" >> $GITHUB_OUTPUT
+          echo ""
+          
+          # get kubeblocks images
+          kubeblocks_versions_list=$(yq e ".kubeblocks[].version" ${MANIFESTS_FILE} | tr '\n' '|' | sed 's/|$//')
+          kubeblocks_images_list=$(yq e ".kubeblocks[].images" ${MANIFESTS_FILE} | (egrep "${kubeblocks_versions_list}|datasafed" || true) | awk '{print $2}' | sort -u)
+          KUBEBLOCKS_IMAGES=""
+          for kubeblocks_image in $(echo "${kubeblocks_images_list}"); do
+              if [[ -z "${KUBEBLOCKS_IMAGES}" ]]; then
+                  KUBEBLOCKS_IMAGES="docker.io/${kubeblocks_image}"
+              else
+                  KUBEBLOCKS_IMAGES="${KUBEBLOCKS_IMAGES}|docker.io/${kubeblocks_image}"
+              fi
+          done
+          
+          echo "KUBEBLOCKS_IMAGES:${KUBEBLOCKS_IMAGES}"
+          echo "kubeblocks-images=${KUBEBLOCKS_IMAGES}" >> $GITHUB_OUTPUT
+
+  cloud:
+    uses: ./.github/workflows/trivy-scan.yml
+    needs: [ get-images ]
+    with:
+      ITEM: "cloud"
+      IMAGES: "${{ needs.get-images.outputs.cloud-images }}"
+      ADDON: false
+    secrets: inherit
+
+  gemini:
+    uses: ./.github/workflows/trivy-scan.yml
+    needs: [ get-images ]
+    with:
+      ITEM: "gemini"
+      IMAGES: "${{ needs.get-images.outputs.gemini-images }}"
+      ADDON: false
+    secrets: inherit
+
+  kubeblocks:
+    uses: ./.github/workflows/trivy-scan.yml
+    needs: [ get-images ]
+    with:
+      ITEM: "kubeblocks"
+      IMAGES: "${{ needs.get-images.outputs.kubeblocks-images }}"
+      ADDON: false
+    secrets: inherit
+
+  send-message:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    needs: [ get-images, cloud, gemini, kubeblocks ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+
+      - name: send message
+        run: |
+          CLOUD_TAG="${{ needs.get-images.outputs.cloud-tag }}"
+          TEST_RESULT="${{ needs.cloud.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.gemini.outputs.total-vulnerabilities }}"
+          TEST_RESULT="${TEST_RESULT}##${{ needs.kubeblocks.outputs.total-vulnerabilities }}"
+          
+          export TZ='Asia/Shanghai'
+          date_ret=$(date +%Y-%m-%d-%T)
+          test_title="[${CLOUD_TAG}] Trivy Scan Vulnerabilities [${date_ret}]"
+          
+          send_message_url="${{ vars.SECURITY_WEBHOOK }}"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              send_message_url="${{ vars.CICD_WEBHOOK }}"
+          fi
+          
+          python3 .github/utils/send_mesage.py \
+              --send-type trivy \
+              --url "${send_message_url}" \
+              --title "$test_title" \
+              --result "$TEST_RESULT"
