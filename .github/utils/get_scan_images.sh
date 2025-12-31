@@ -24,6 +24,9 @@ get_scan_images() {
             continue
         fi
         SCAN_IMAGES=""
+        if [[ "${chart_name}" == "kubeblocks-cloud" ]]; then
+            SCAN_IMAGES="${SCAN_REGISTRY}/apecloud/apecloud-addon-charts:${CLOUD_TAG}"
+        fi
         chart_images=$(yq e "."${chart_name}"[].images[]"  "${MANIFESTS_FILE}" | sort -u)
         for image_tmp in $(echo "${chart_images}"); do
             # skip apecloud/apecloud-addon-charts

@@ -144,6 +144,7 @@ jobs:
       ITEM: "ape-local"
       IMAGES: "${{ needs.get-images.outputs.ape-local-images }}"
       ADDON: false
+      LOGIN_DOCKER: true
     secrets: inherit
 
   kubebench:
@@ -213,8 +214,7 @@ jobs:
     if: ${{ always() }}
     runs-on: ubuntu-latest
     needs: [ get-images, kubeblocks-cloud, kbcloud-installer, postgres-operator, casdoor,
-             kubeblocks, gemini, gemini-monitor, ape-local, kubebench, ingress-nginx, metrics-server,
-             loki, victoria-metrics, minio, postgresql ]
+             kubeblocks, gemini, gemini-monitor ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -231,10 +231,39 @@ jobs:
           TEST_RESULT="${TEST_RESULT}##${{ needs.kubeblocks.outputs.total-vulnerabilities }}"
           TEST_RESULT="${TEST_RESULT}##${{ needs.gemini.outputs.total-vulnerabilities }}"
           TEST_RESULT="${TEST_RESULT}##${{ needs.gemini-monitor.outputs.total-vulnerabilities }}"
-          TEST_RESULT="${TEST_RESULT}##${{ needs.ape-local.outputs.total-vulnerabilities }}"
+          
+          export TZ='Asia/Shanghai'
+          date_ret=$(date +%Y-%m-%d-%T)
+          test_title="[${CLOUD_TAG}] Trivy Scan Vulnerabilities [${date_ret}]"
+          
+          send_message_url="${{ vars.SECURITY_WEBHOOK }}"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              send_message_url="${{ vars.CICD_WEBHOOK }}"
+          fi
+          
+          python3 .github/utils/send_mesage.py \
+              --send-type trivy \
+              --url "${send_message_url}" \
+              --title "$test_title" \
+              --result "$TEST_RESULT"
+
+  send-message-addon:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    needs: [ get-images, ape-local, kubebench, ingress-nginx, metrics-server,
+             loki, victoria-metrics, minio, postgresql ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+
+      - name: send message
+        run: |
+          CLOUD_TAG="${{ needs.get-images.outputs.cloud-tag }}"
+          TEST_RESULT="${{ needs.ape-local.outputs.total-vulnerabilities }}"
           TEST_RESULT="${TEST_RESULT}##${{ needs.kubebench.outputs.total-vulnerabilities }}"
           TEST_RESULT="${TEST_RESULT}##${{ needs.ingress-nginx.outputs.total-vulnerabilities }}"
-          TEST_RESULT="${TEST_RESULT}##${{ needs.metrics-server.outputs.total-vulnerabilities }}"
           TEST_RESULT="${TEST_RESULT}##${{ needs.metrics-server.outputs.total-vulnerabilities }}"
           TEST_RESULT="${TEST_RESULT}##${{ needs.loki.outputs.total-vulnerabilities }}"
           TEST_RESULT="${TEST_RESULT}##${{ needs.victoria-metrics.outputs.total-vulnerabilities }}"

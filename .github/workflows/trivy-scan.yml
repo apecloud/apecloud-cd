@@ -28,6 +28,11 @@ on:
         type: string
         required: false
         default: 'main'
+      LOGIN_DOCKER:
+        description: "enable login docker hub"
+        type: boolean
+        required: false
+        default: false
   workflow_call:
     inputs:
       ITEM:
@@ -55,6 +60,11 @@ on:
         type: string
         required: false
         default: 'main'
+      LOGIN_DOCKER:
+        description: "enable login docker hub"
+        type: boolean
+        required: false
+        default: false
     outputs:
       total-vulnerabilities:
         description: "trivy scan total vulnerabilities"
@@ -65,6 +75,8 @@ run-name: Trivy Scan ${{ inputs.IMAGES }}
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   DOCKER_REGISTRY_URL: docker.io
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   HELM_VERSION: "v3.16.3"
 
 jobs:
@@ -122,6 +134,14 @@ jobs:
               ADDON_IMAGES="${ADDON_IMAGES}|${image}"
           done
           echo "addon-images=${ADDON_IMAGES}" >> $GITHUB_OUTPUT
+
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && inputs.LOGIN_DOCKER }}
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY_URL }}
+          username: ${{ env.DOCKER_USER }}
+          password: ${{ env.DOCKER_PASSWORD }}
 
       - name: Run Trivy vulnerability scanner
         id: trivy-scan
