@@ -236,6 +236,11 @@ check_charts_images() {
         if [[ -z "$chart_name" || "$chart_name" == "#"* || "$chart_name" == "kata" ]]; then
             continue
         fi
+
+        if [[ -n "${SKIP_DELETE_FILE}" && "${chart_name}" != "${SKIP_DELETE_FILE}" ]]; then
+            continue
+        fi
+
         set_values=""
         chart_versions=$(yq e '[.'${chart_name}'[].version] | join("|")' ${MANIFESTS_FILE})
         chart_index=0
