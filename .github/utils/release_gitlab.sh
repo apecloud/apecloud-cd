@@ -10,6 +10,7 @@ DEFAULT_HELM_CHARTS_PROJECT_ID=85949 # helm-charts
 DEFAULT_ADDONS_PROJECT_ID=150246 # addons
 DEFAULT_APPLICATIONS_PROJECT_ID=152630 # applications
 DEFAULT_ENTERPRISE_PROJECT_ID=165897 # enterprise
+DEFAULT_CACHE_PROJECT_ID=315065 # cache
 DEFAULT_HELM_CHARTS_LIST="kubeblocks|kubeblocks-cloud"
 DEFAULT_ADDONS_LIST="[oceanbase]|[starrocks]"
 DEFAULT_CHARTS_DIR="../deploy"
@@ -55,6 +56,7 @@ main() {
     local ADDONS_PROJECT_ID=$DEFAULT_ADDONS_PROJECT_ID
     local APPLICATIONS_PROJECT_ID=$DEFAULT_APPLICATIONS_PROJECT_ID
     local ENTERPRISE_PROJECT_ID=$DEFAULT_ENTERPRISE_PROJECT_ID
+    local CACHE_PROJECT_ID=$DEFAULT_CACHE_PROJECT_ID
     local HELM_CHARTS_LIST=$DEFAULT_HELM_CHARTS_LIST
     local ADDONS_LIST=$DEFAULT_ADDONS_LIST
     local CHARTS_DIR=$DEFAULT_CHARTS_DIR
@@ -297,6 +299,9 @@ get_project_id() {
             *enterprise*)
                 PROJECT_ID_TMP=$ENTERPRISE_PROJECT_ID
             ;;
+            *cache*)
+                PROJECT_ID_TMP=$CACHE_PROJECT_ID
+            ;;
         esac
         return
     fi
@@ -309,6 +314,10 @@ get_project_id() {
     echo "chart name:$chart_name"
     if [[ "$chart_name" == "kblib" ]]; then
         echo "skip chart $chart_name"
+        return
+    elif [[ "$chart_name" == "kb-cloud-bootstrapper" ]]; then
+        echo "set PROJECT_ID ${CACHE_PROJECT_ID}"
+        PROJECT_ID_TMP=$CACHE_PROJECT_ID
         return
     fi
     # check kubeblocks charts
