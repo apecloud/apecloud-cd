@@ -17,12 +17,7 @@ on:
         required: false
         default: ''
       TEST_TYPE:
-        description: 'test type (e.g. apecloud-mysql|postgresql|postgresql-etcd|redis|mongodb|mongodb-shard|kafka|pulsar|weaviate|qdrant|
-        greptimedb|nebula|risingwave|starrocks|etcd|oceanbase|orioledb|vanilla-pg|asmysql|openldap|
-        polardbx|opensearch|elasticsearch|vllm|tdengine|milvus|clickhouse|ggml|zookeeper|mariadb|tidb|xinference|
-        oracle|opengauss|influxdb|flink|solr|doris|mogdb|oceanbase-ent|starrocks-ent|yashandb|
-        redis-cluster|dmdb|minio|orchestrator|rabbitmq|loki|victoria-metrics|gaussdb|damengdb|
-        kingbase|vastbase|mssql|rocketmq|goldendb|tdsql|greatsql|greatdb|hadoop|hive|oceanbase-proxy|nacos)'
+        description: 'test type (e.g. mysql|redis)'
         type: string
         required: false
         default: ''
