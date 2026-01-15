@@ -1,4 +1,4 @@
-name: E2E Test ApeRAG
+name: Check Release Version
 
 on:
   workflow_call:

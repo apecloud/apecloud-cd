@@ -1,4 +1,4 @@
-name: Enable Self-Runner
+name: Enable Self Runner
 
 on:
   workflow_call:

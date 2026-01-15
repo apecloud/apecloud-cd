@@ -1,4 +1,4 @@
-name: Kbcli Test on K8S
+name: KubeBlocks E2E Test on K8S
 
 on:
   workflow_dispatch:

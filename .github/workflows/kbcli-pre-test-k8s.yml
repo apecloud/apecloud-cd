@@ -1,4 +1,4 @@
-name: Kbcli Pre Test on K8S
+name: KubeBlocks E2E Test Pre on K8S
 
 on:
   workflow_call:

@@ -1,4 +1,4 @@
-name: Test Kbcli
+name: KubeBlocks E2E Test
 
 on:
   workflow_call:
