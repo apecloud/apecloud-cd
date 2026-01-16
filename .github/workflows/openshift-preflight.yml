@@ -19,7 +19,7 @@ run-name: Preflight ${{ inputs.IMAGE }} ${{ inputs.SUBMIT }}
 env:
   PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_KEY }}
   PFLT_CERTIFICATION_COMPONENT_ID: ${{ secrets.REDHAT_COMPONENT_PID }}
-  PFLT_VERSION: "1.14.1"
+  PFLT_VERSION: "1.16.0"
   DOCKER_REGISTRY_URL: docker.io
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
