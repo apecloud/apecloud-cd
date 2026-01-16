@@ -20,6 +20,9 @@ env:
   PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_KEY }}
   PFLT_CERTIFICATION_COMPONENT_ID: ${{ secrets.REDHAT_COMPONENT_PID }}
   PFLT_VERSION: "1.14.1"
+  DOCKER_REGISTRY_URL: docker.io
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
 
 jobs:
   preflight:
@@ -33,10 +36,24 @@ jobs:
           mv preflight-linux-amd64 /usr/local/bin/preflight
           preflight version
 
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: image=moby/buildkit:master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY_URL }}
+          username: ${{ env.DOCKER_USER }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
       - name: preflight check
         id: preflight_check
         run: |
           IMAGE="${{ inputs.IMAGE }}"
+          echo "docker pull ${IMAGE}"
+          docker pull ${IMAGE}
           preflight_log="preflight_check_container_log.log"
           touch ${preflight_log}
           preflight check container ${IMAGE} | tee -a ${preflight_log}
