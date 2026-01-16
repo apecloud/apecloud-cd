@@ -36,11 +36,6 @@ jobs:
           mv preflight-linux-amd64 /usr/local/bin/preflight
           preflight version
 
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: image=moby/buildkit:master
-
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -52,11 +47,9 @@ jobs:
         id: preflight_check
         run: |
           IMAGE="${{ inputs.IMAGE }}"
-          echo "docker pull ${IMAGE}"
-          docker pull ${IMAGE}
           preflight_log="preflight_check_container_log.log"
           touch ${preflight_log}
-          preflight check container ${IMAGE} | tee -a ${preflight_log}
+          preflight check container ${IMAGE} --docker-config=/home/runner/.docker/config.json | tee -a ${preflight_log}
           preflight_ret="$( grep "\"passed\": false," ${preflight_log} || true )"
           if [[ -n "$preflight_ret" ]]; then
               echo "$(tput -T xterm setaf 1)Preflight result: FAILED$(tput -T xterm sgr0)"
