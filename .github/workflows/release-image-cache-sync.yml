@@ -101,7 +101,8 @@ env:
   ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  BUILDX_SECRETS: ${{ inputs.ENABLE_SECRETS && format('redhat_username={0}\nredhat_password={1}', secrets.REDHAT_USERNAME, secrets.REDHAT_PASSWORD) || '' }}
+  REDHAT_USERNAME: ${{ inputs.ENABLE_SECRETS && format('redhat_username={0}', secrets.REDHAT_USERNAME) || '' }}
+  REDHAT_PASSWORD: ${{ inputs.ENABLE_SECRETS && format('redhat_password={0}', secrets.REDHAT_PASSWORD) || '' }}
 
 jobs:
   release-image:
@@ -216,7 +217,8 @@ jobs:
             GITHUB_TOKEN=${{ env.GITHUB_TOKEN }}
             ${{ inputs.BUILDX_ARGS }}
           secrets: |
-            ${{ env.BUILDX_SECRETS }}
+            ${{ env.REDHAT_USERNAME }}
+            ${{ env.REDHAT_PASSWORD }}
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -234,7 +236,8 @@ jobs:
           build-args: |
             ${{ inputs.BUILDX_ARGS }}
           secrets: |
-            ${{ env.BUILDX_SECRETS }}
+            ${{ env.REDHAT_USERNAME }}
+            ${{ env.REDHAT_PASSWORD }}
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
