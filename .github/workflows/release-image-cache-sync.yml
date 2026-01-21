@@ -83,6 +83,11 @@ on:
         type: boolean
         required: false
         default: false
+      ENABLE_SECRETS:
+        description: "Enable docker build with secrets"
+        type: boolean
+        required: false
+        default: false
 
 env:
   DOCKER_REGISTRY_URL: docker.io
@@ -96,6 +101,8 @@ env:
   ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  REDHAT_USERNAME: ${{ inputs.ENABLE_SECRETS && secrets.REDHAT_USERNAME || '' }}
+  REDHAT_PASSWORD: ${{ inputs.ENABLE_SECRETS && secrets.REDHAT_PASSWORD || '' }}
 
 jobs:
   release-image:
@@ -198,7 +205,7 @@ jobs:
           username: ${{ env.DOCKER_USER }}
           password: ${{ env.DOCKER_PASSWORD }}
 
-      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && inputs.ARGS_TOKEN }}
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && inputs.ARGS_TOKEN && ! inputs.ENABLE_SECRETS }}
         name: Build and Push to Docker Hub
         uses: docker/build-push-action@v5
         with:
@@ -215,7 +222,7 @@ jobs:
           provenance: false
           sbom: false
 
-      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && ! inputs.ARGS_TOKEN }}
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && ! inputs.ARGS_TOKEN && ! inputs.ENABLE_SECRETS }}
         name: Build and Push to Docker Hub
         uses: docker/build-push-action@v5
         with:
@@ -223,6 +230,25 @@ jobs:
           file: ${{ inputs.DOCKERFILE_PATH }}
           tags: ${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
+          build-args: |
+            ${{ inputs.BUILDX_ARGS }}
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+          sbom: false
+
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && ! inputs.ARGS_TOKEN && inputs.ENABLE_SECRETS }}
+        name: Build and Push to Docker Hub
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ inputs.CONTEXT }}
+          file: ${{ inputs.DOCKERFILE_PATH }}
+          tags: ${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.TAG-NAME }}
+          platforms: ${{ inputs.BUILDX_PLATFORMS }}
+          secrets: |
+            redhat_username=${{ env.REDHAT_USERNAME }}
+            redhat_password=${{ env.REDHAT_PASSWORD }}
           build-args: |
             ${{ inputs.BUILDX_ARGS }}
           push: true
