@@ -98,15 +98,12 @@ env:
   DOCKER_REGISTRY_URL: docker.io
   ALIYUN_REGISTRY_URL: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
   ALIYUN_REGISTRY_URL_NEW: infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com
-  GOOGLE_REGISTRY_URL: us-east1-docker.pkg.dev
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
   ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
   ALIYUN_USER_NEW: ${{ secrets.ALIYUN_USER_NEW }}
   ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
-  GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-  GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
@@ -216,12 +213,10 @@ jobs:
           DOCKER_REGISTRY_URL="${{ env.DOCKER_REGISTRY_URL }}"
           ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
           ALIYUN_REGISTRY_URL_NEW="${{ env.ALIYUN_REGISTRY_URL_NEW }}"
-          GOOGLE_REGISTRY_URL="${{ env.GOOGLE_REGISTRY_URL }}"
           
           DOCKERHUB_PUSH_TAGS="${DOCKER_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
           ALIYUN_PUSH_TAGS="${ALIYUN_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
           ALIYUN_NEW_PUSH_TAGS="${ALIYUN_REGISTRY_URL_NEW}/${IMAGE_PUSH_TAG}"
-          GOOGLE_PUSH_TAGS="${GOOGLE_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
           
           if [[ "${IMAGE_TAG_NAME}" == "v"*"."*"."* && "${IMAGE_NAME}" == "apecloud/apecloud-addon-charts" && -d "addons" ]]; then
               add_addons="${{ inputs.ADD_ADDONS }}"
@@ -229,7 +224,6 @@ jobs:
                   DOCKERHUB_PUSH_TAGS=""
                   ALIYUN_PUSH_TAGS=""
                   ALIYUN_NEW_PUSH_TAGS=""
-                  GOOGLE_PUSH_TAGS=""
               fi
               for addon_dir in $(ls addons); do
                   if [[ -n "${add_addons}" && "${{ github.repository }}" == "apecloud/kubeblocks-addons" ]]; then
@@ -287,12 +281,6 @@ jobs:
                       else
                           ALIYUN_NEW_PUSH_TAGS="${ALIYUN_NEW_PUSH_TAGS},${ALIYUN_REGISTRY_URL_NEW}/${IMAGE_PUSH_TAG}"
                       fi
-          
-                      if [[ -z "{GOOGLE_PUSH_TAGS}" ]]; then
-                          GOOGLE_PUSH_TAGS="${GOOGLE_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
-                      else
-                          GOOGLE_PUSH_TAGS="${GOOGLE_PUSH_TAGS},${GOOGLE_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
-                      fi
                   fi
               done
           elif [[ "${IMAGE_NAME}" == "apecloud/apecloud-addon-charts" && -d "addons" ]]; then
@@ -319,8 +307,7 @@ jobs:
           echo dockerhub-push-tags="${DOCKERHUB_PUSH_TAGS}" >> $GITHUB_OUTPUT
           echo aliyun-push-tags="${ALIYUN_PUSH_TAGS}" >> $GITHUB_OUTPUT
           echo aliyun-new-push-tags="${ALIYUN_NEW_PUSH_TAGS}" >> $GITHUB_OUTPUT
-          echo google-push-tags="${GOOGLE_PUSH_TAGS}" >> $GITHUB_OUTPUT
-          
+
 
       - name: bump image chart version
         if: ${{ (inputs.IMG == 'apecloud/apecloud-charts' || inputs.IMG == 'apecloud/apecloud-addon-charts') }}
@@ -432,39 +419,6 @@ jobs:
           context: ${{ inputs.CONTEXT }}
           file: ${{ inputs.DOCKERFILE_PATH }}
           tags: ${{ steps.get_image_push_tags.outputs.aliyun-new-push-tags }}
-          platforms: ${{ inputs.BUILDX_PLATFORMS }}
-          build-args: ${{ inputs.BUILDX_ARGS }}
-          push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          provenance: false
-          sbom: false
-
-      - if: ${{ env.GOOGLE_CREDENTIALS != '' }}
-        id: 'auth'
-        name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v2.1.8'
-        with:
-          credentials_json: '${{ env.GOOGLE_CREDENTIALS }}'
-
-      - if: ${{ env.GOOGLE_CREDENTIALS != '' && env.GOOGLE_SERVICE_ACCOUNT != ''  }}
-        name: Build and Push to Google Registry
-        run: |
-          GOOGLE_REGISTRY_URL=${{ env.GOOGLE_REGISTRY_URL }}
-          
-          gcloud auth activate-service-account \
-             ${{ env.GOOGLE_SERVICE_ACCOUNT }} \
-             --key-file=${{ steps.auth.outputs.credentials_file_path }}
-          
-          gcloud auth configure-docker $GOOGLE_REGISTRY_URL
-
-      - if: ${{ env.GOOGLE_CREDENTIALS != '' && env.GOOGLE_SERVICE_ACCOUNT != ''  }}
-        name: Build and Push to Google Registry
-        uses: docker/build-push-action@v5
-        with:
-          context: ${{ inputs.CONTEXT }}
-          file: ${{ inputs.DOCKERFILE_PATH }}
-          tags: ${{ steps.get_image_push_tags.outputs.google-push-tags }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
           push: true
