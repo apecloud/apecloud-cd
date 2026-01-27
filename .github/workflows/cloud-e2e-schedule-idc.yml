@@ -80,18 +80,7 @@ jobs:
 #      EXTRA_ARGS: "CLOUD_ENV_NAME=idc2#TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_IDC2 }}#CLOUD_BRANCH=release-1.1#CURRENT_VERSION=v1.1#TEST_INDEX=${{ needs.schedule-cron.outputs.day-of-week }}"
 #    secrets: inherit
 
-  e2e-engine-test-21-10:
-    needs: [ release-e2e-image, release-e2e-ginkgo-image, schedule-cron ]
-    uses: ./.github/workflows/trigger-workflow.yml
-    with:
-      GITHUB_REPO: "apecloud/apecloud-cd"
-      BRANCH_NAME: "main"
-      WORKFLOW_ID: "cloud-e2e-engine.yml"
-      APECD_REF: "main"
-      EXTRA_ARGS: "CLOUD_TEST_ENV=idc4#CLOUD_ENV_NAME=idc4#TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_IDC4 }}#CLOUD_TEST_KB_VERSION=1.0#CLOUD_BRANCH=release-2.1#CURRENT_VERSION=v2.1#TEST_INDEX=${{ needs.schedule-cron.outputs.day-of-week }}"
-    secrets: inherit
-
-#  e2e-engine-test-20-10:
+#  e2e-engine-test-21-10:
 #    needs: [ release-e2e-image, release-e2e-ginkgo-image, schedule-cron ]
 #    uses: ./.github/workflows/trigger-workflow.yml
 #    with:
@@ -99,8 +88,19 @@ jobs:
 #      BRANCH_NAME: "main"
 #      WORKFLOW_ID: "cloud-e2e-engine.yml"
 #      APECD_REF: "main"
-#      EXTRA_ARGS: "CLOUD_ENV_NAME=idc1#TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_IDC1 }}#CLOUD_TEST_KB_VERSION=1.0#CLOUD_BRANCH=release-2.0#CURRENT_VERSION=v2.0#TEST_INDEX=${{ needs.schedule-cron.outputs.day-of-week }}"
+#      EXTRA_ARGS: "CLOUD_TEST_ENV=idc4#CLOUD_ENV_NAME=idc4#TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_IDC4 }}#CLOUD_TEST_KB_VERSION=1.0#CLOUD_BRANCH=release-2.1#CURRENT_VERSION=v2.1#TEST_INDEX=${{ needs.schedule-cron.outputs.day-of-week }}"
 #    secrets: inherit
+
+  e2e-engine-test-20-10:
+    needs: [ release-e2e-image, release-e2e-ginkgo-image, schedule-cron ]
+    uses: ./.github/workflows/trigger-workflow.yml
+    with:
+      GITHUB_REPO: "apecloud/apecloud-cd"
+      BRANCH_NAME: "main"
+      WORKFLOW_ID: "cloud-e2e-engine.yml"
+      APECD_REF: "main"
+      EXTRA_ARGS: "CLOUD_ENV_NAME=idc1#TEST_ENGINES=${{ vars.KB_CLOUD_TEST_ENGINES_IDC1 }}#CLOUD_TEST_KB_VERSION=1.0#CLOUD_BRANCH=release-2.0#CURRENT_VERSION=v2.0#TEST_INDEX=${{ needs.schedule-cron.outputs.day-of-week }}"
+    secrets: inherit
 
   e2e-engine-test-20-09:
     needs: [ release-e2e-image, release-e2e-ginkgo-image, schedule-cron ]
