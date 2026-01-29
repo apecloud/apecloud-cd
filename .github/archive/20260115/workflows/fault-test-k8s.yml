@@ -113,7 +113,7 @@ jobs:
   install-kubeblocks:
     if: ${{ needs.terraform-init-k8s.result == 'success' }}
     needs: terraform-init-k8s
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -128,7 +128,7 @@ jobs:
   test-mysql:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mysql')) }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -145,7 +145,7 @@ jobs:
   test-postgresql:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgres')) }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -162,7 +162,7 @@ jobs:
   test-redis:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -179,7 +179,7 @@ jobs:
   test-mongodb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb')) }}
     needs: [ terraform-init-k8s, install-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
