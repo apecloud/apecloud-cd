@@ -67,7 +67,7 @@ permissions:
 jobs:
   install-kubeblocks-pre:
     if: ${{ inputs.previous-version }}
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -83,7 +83,7 @@ jobs:
   apecloud-mysql-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'apecloud-mysql')) }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -100,7 +100,7 @@ jobs:
   postgresql-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) && ! contains(inputs.TEST_TYPE, '-postgresql') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -117,7 +117,7 @@ jobs:
   postgresql-etcd-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'postgresql-etcd|') || endsWith(inputs.TEST_TYPE, 'postgresql-etcd')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -134,7 +134,7 @@ jobs:
   redis-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -151,7 +151,7 @@ jobs:
   mongodb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mongodb|') || endsWith(inputs.TEST_TYPE, 'mongodb')) }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -168,7 +168,7 @@ jobs:
   mongodb-shard-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mongodb-shard|') || endsWith(inputs.TEST_TYPE, 'mongodb-shard')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -185,7 +185,7 @@ jobs:
   kafka-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'kafka')) && ! contains(inputs.release-version, 'v0.5.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -202,7 +202,7 @@ jobs:
   pulsar-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'pulsar|') || endsWith(inputs.TEST_TYPE, 'pulsar')) && ! contains(inputs.release-version, 'v0.5.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -219,7 +219,7 @@ jobs:
   weaviate-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'weaviate')) && ! contains(inputs.release-version, 'v0.5.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -236,7 +236,7 @@ jobs:
   qdrant-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'qdrant')) && ! contains(inputs.release-version, 'v0.5.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -253,7 +253,7 @@ jobs:
   greptimedb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'greptimedb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -270,7 +270,7 @@ jobs:
   nebula-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'nebula')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -287,7 +287,7 @@ jobs:
   risingwave-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'risingwave')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -304,7 +304,7 @@ jobs:
   starrocks-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'starrocks|') || endsWith(inputs.TEST_TYPE, 'starrocks')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -321,7 +321,7 @@ jobs:
   etcd-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.TEST_TYPE, 'etcd|') || endsWith(inputs.TEST_TYPE, 'etcd')) && ! endsWith(inputs.TEST_TYPE, '-etcd') && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -338,7 +338,7 @@ jobs:
   oceanbase-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'oceanbase|') || endsWith(inputs.TEST_TYPE, 'oceanbase')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -355,7 +355,7 @@ jobs:
   orioledb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'orioledb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -372,7 +372,7 @@ jobs:
   vanilla-pg-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'vanilla-pg')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -389,7 +389,7 @@ jobs:
   asmysql-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'asmysql|') || endsWith(inputs.TEST_TYPE, 'asmysql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -406,7 +406,7 @@ jobs:
   asmysql-proxy-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'asmysql-proxy|') || endsWith(inputs.TEST_TYPE, 'asmysql-proxy')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -423,7 +423,7 @@ jobs:
   asmysql-orc-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'asmysql-orc|') || endsWith(inputs.TEST_TYPE, 'asmysql-orc')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -440,7 +440,7 @@ jobs:
   asmysql-orc-proxy-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'asmysql-orc-proxy|') || endsWith(inputs.TEST_TYPE, 'asmysql-orc-proxy')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -457,7 +457,7 @@ jobs:
   openldap-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'openldap')) && (contains(inputs.release-version, 'v0.7.') || contains(inputs.release-version, 'v0.8.') || contains(inputs.release-version, 'v0.9.')) }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -474,7 +474,7 @@ jobs:
   polardbx-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'polardbx')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -491,7 +491,7 @@ jobs:
   opensearch-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'opensearch')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -508,7 +508,7 @@ jobs:
   elasticsearch-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'elasticsearch')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -525,7 +525,7 @@ jobs:
   vllm-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'vllm')) && (contains(inputs.release-version, 'v0.7.') || contains(inputs.release-version, 'v0.8.') || contains(inputs.release-version, 'v0.9.')) }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -542,7 +542,7 @@ jobs:
   tdengine-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'tdengine')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -559,7 +559,7 @@ jobs:
   milvus-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'milvus')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -576,7 +576,7 @@ jobs:
   clickhouse-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'clickhouse')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -593,7 +593,7 @@ jobs:
   pika-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'pika')) && (contains(inputs.KB_VERSION, 'v0.7.') || contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -610,7 +610,7 @@ jobs:
   ggml-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'ggml')) && (contains(inputs.release-version, 'v0.7.') || contains(inputs.release-version, 'v0.8.') || contains(inputs.release-version, 'v0.9.')) }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -627,7 +627,7 @@ jobs:
   zookeeper-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'zookeeper')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -644,7 +644,7 @@ jobs:
   mariadb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mariadb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -661,7 +661,7 @@ jobs:
   tidb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'tidb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -678,7 +678,7 @@ jobs:
   xinference-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'xinference')) && (contains(inputs.release-version, 'v0.8.') || contains(inputs.release-version, 'v0.9.')) }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -695,7 +695,7 @@ jobs:
   oracle-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'oracle|') || endsWith(inputs.TEST_TYPE, 'oracle')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -712,7 +712,7 @@ jobs:
   opengauss-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'opengauss')) && (contains(inputs.release-version, 'v0.8.') || contains(inputs.release-version, 'v0.9.')) }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -729,7 +729,7 @@ jobs:
   influxdb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'influxdb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -746,7 +746,7 @@ jobs:
   flink-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'flink')) && (contains(inputs.release-version, 'v0.8.') || contains(inputs.release-version, 'v0.9.')) }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -763,7 +763,7 @@ jobs:
   solr-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'solr')) && contains(inputs.release-version, 'v0.9.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -780,7 +780,7 @@ jobs:
   doris-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'doris')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -797,7 +797,7 @@ jobs:
   mogdb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mogdb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -814,7 +814,7 @@ jobs:
   oceanbase-ent-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'oceanbase-ent')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -831,7 +831,7 @@ jobs:
   starrocks-ent-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'starrocks-ent')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -848,7 +848,7 @@ jobs:
   yashandb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'yashandb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -865,7 +865,7 @@ jobs:
   redis-cluster-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'redis-cluster')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -882,7 +882,7 @@ jobs:
   dmdb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'dmdb')) && contains(inputs.release-version, 'v0.9.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -899,7 +899,7 @@ jobs:
   minio-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'minio')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -916,7 +916,7 @@ jobs:
   orchestrator-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'orchestrator')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -933,7 +933,7 @@ jobs:
   rabbitmq-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'rabbitmq')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -950,7 +950,7 @@ jobs:
   loki-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'loki')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -967,7 +967,7 @@ jobs:
   victoria-metrics-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'victoria-metrics')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -984,7 +984,7 @@ jobs:
   gaussdb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'gaussdb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -1001,7 +1001,7 @@ jobs:
   damengdb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'damengdb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -1018,7 +1018,7 @@ jobs:
   kingbase-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'kingbase')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! (contains(inputs.KB_VERSION, 'v0.9.') && inputs.CLOUD_PROVIDER == 'aks') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -1035,7 +1035,7 @@ jobs:
   vastbase-pre:
     if: ${{ inputs.CLOUD_PROVIDER != 'eks' && inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'vastbase')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -1052,7 +1052,7 @@ jobs:
   mssql-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'mssql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -1069,7 +1069,7 @@ jobs:
   rocketmq-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'rocketmq')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -1086,7 +1086,7 @@ jobs:
   goldendb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'goldendb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -1103,7 +1103,7 @@ jobs:
   tdsql-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'tdsql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -1120,7 +1120,7 @@ jobs:
   greatsql-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'greatsql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -1137,7 +1137,7 @@ jobs:
   greatdb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'greatdb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/test-kbcli-pre.yml
+    uses: ./.github/workflows/kbcli-test-pre.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}
@@ -1453,7 +1453,7 @@ jobs:
   install-kubeblocks:
     if: ${{ always() }}
     needs: [ install-kubeblocks-pre, send-message ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.cloud-provider }}
       region: ${{ inputs.region }}

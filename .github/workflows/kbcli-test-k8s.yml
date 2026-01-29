@@ -115,7 +115,7 @@ permissions:
 jobs:
   test-playground:
     if: ${{ inputs.TEST_TYPE == '' && inputs.KB_PRE_VERSION == '' && inputs.CLOUD_PROVIDER != 'vke' && inputs.CLOUD_PROVIDER != 'aks' }}
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -157,7 +157,7 @@ jobs:
   test-apecloud-mysql:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'apecloud-mysql')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -175,7 +175,7 @@ jobs:
   test-postgresql:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) && ! contains(inputs.TEST_TYPE, '-postgresql') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -193,7 +193,7 @@ jobs:
   test-postgresql-etcd:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgresql-etcd|') || endsWith(inputs.TEST_TYPE, 'postgresql-etcd')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -211,7 +211,7 @@ jobs:
   test-redis:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -229,7 +229,7 @@ jobs:
   test-mongodb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb|') || endsWith(inputs.TEST_TYPE, 'mongodb')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -247,7 +247,7 @@ jobs:
   test-mongodb-shard:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb-shard|') || endsWith(inputs.TEST_TYPE, 'mongodb-shard')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -265,7 +265,7 @@ jobs:
   test-kafka:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'kafka')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -283,7 +283,7 @@ jobs:
   test-pulsar:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pulsar|') || endsWith(inputs.TEST_TYPE, 'pulsar')) && (contains(inputs.KB_VERSION, 'v0.6.') || contains(inputs.KB_VERSION, 'v0.7.') || contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -301,7 +301,7 @@ jobs:
   test-weaviate:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'weaviate')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -319,7 +319,7 @@ jobs:
   test-qdrant:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'qdrant')) && ! contains(inputs.KB_VERSION, 'v0.5.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -337,7 +337,7 @@ jobs:
   test-greptimedb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'greptimedb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -355,7 +355,7 @@ jobs:
   test-nebula:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'nebula')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -373,7 +373,7 @@ jobs:
   test-risingwave:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'risingwave')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -391,7 +391,7 @@ jobs:
   test-starrocks:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks|') || endsWith(inputs.TEST_TYPE, 'starrocks')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -409,7 +409,7 @@ jobs:
   test-etcd:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'etcd|') || endsWith(inputs.TEST_TYPE, 'etcd')) && ! endsWith(inputs.TEST_TYPE, '-etcd') && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -427,7 +427,7 @@ jobs:
   test-oceanbase:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oceanbase|') || endsWith(inputs.TEST_TYPE, 'oceanbase')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -445,7 +445,7 @@ jobs:
   test-orioledb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'orioledb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -463,7 +463,7 @@ jobs:
   test-vanilla-pg:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'vanilla-pg')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -481,7 +481,7 @@ jobs:
   test-asmysql:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'asmysql|') || endsWith(inputs.TEST_TYPE, 'asmysql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -499,7 +499,7 @@ jobs:
   test-asmysql-proxy:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'asmysql-proxy|') || endsWith(inputs.TEST_TYPE, 'asmysql-proxy')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -517,7 +517,7 @@ jobs:
   test-asmysql-orc:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'asmysql-orc|') || endsWith(inputs.TEST_TYPE, 'asmysql-orc')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -535,7 +535,7 @@ jobs:
   test-asmysql-orc-proxy:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'asmysql-orc-proxy|') || endsWith(inputs.TEST_TYPE, 'asmysql-orc-proxy')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -553,7 +553,7 @@ jobs:
   test-openldap:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'openldap')) && (contains(inputs.KB_VERSION, 'v0.7.') || contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -571,7 +571,7 @@ jobs:
   test-polardbx:
     if: ${{ ! (contains(inputs.KB_VERSION, 'v1.') && inputs.CLOUD_PROVIDER == 'aks') && needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'polardbx')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -589,7 +589,7 @@ jobs:
   test-opensearch:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'opensearch')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -607,7 +607,7 @@ jobs:
   test-elasticsearch:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'elasticsearch')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -625,7 +625,7 @@ jobs:
   test-vllm:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'vllm')) && (contains(inputs.KB_VERSION, 'v0.7.') || contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -643,7 +643,7 @@ jobs:
   test-tdengine:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tdengine')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -661,7 +661,7 @@ jobs:
   test-milvus:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'milvus')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -679,7 +679,7 @@ jobs:
   test-clickhouse:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'clickhouse')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -697,7 +697,7 @@ jobs:
   test-ggml:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'ggml')) && (contains(inputs.KB_VERSION, 'v0.7.') || contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -715,7 +715,7 @@ jobs:
   test-zookeeper:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'zookeeper')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -733,7 +733,7 @@ jobs:
   test-mariadb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mariadb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -751,7 +751,7 @@ jobs:
   test-tidb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tidb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -769,7 +769,7 @@ jobs:
   test-xinference:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'xinference')) && (contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -787,7 +787,7 @@ jobs:
   test-oracle:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oracle|') || endsWith(inputs.TEST_TYPE, 'oracle')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -805,7 +805,7 @@ jobs:
   test-opengauss:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'opengauss')) && (contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -823,7 +823,7 @@ jobs:
   test-influxdb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'influxdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -841,7 +841,7 @@ jobs:
   test-flink:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'flink')) && (contains(inputs.KB_VERSION, 'v0.8.') || contains(inputs.KB_VERSION, 'v0.9.')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -859,7 +859,7 @@ jobs:
   test-solr:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'solr')) && contains(inputs.KB_VERSION, 'v0.9.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -877,7 +877,7 @@ jobs:
   test-doris:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'doris')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -895,7 +895,7 @@ jobs:
   test-mogdb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mogdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -913,7 +913,7 @@ jobs:
   test-oceanbase-ent:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oceanbase-ent')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -931,7 +931,7 @@ jobs:
   test-starrocks-ent:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks-ent')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -949,7 +949,7 @@ jobs:
   test-yashandb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'yashandb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -967,7 +967,7 @@ jobs:
   test-redis-cluster:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -985,7 +985,7 @@ jobs:
   test-dmdb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'dmdb')) && contains(inputs.KB_VERSION, 'v0.9.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1003,7 +1003,7 @@ jobs:
   test-minio:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'minio')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1021,7 +1021,7 @@ jobs:
   test-orchestrator:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'orchestrator')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1039,7 +1039,7 @@ jobs:
   test-rabbitmq:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1057,7 +1057,7 @@ jobs:
   test-loki:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'loki')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1075,7 +1075,7 @@ jobs:
   test-victoria-metrics:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'victoria-metrics')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1093,7 +1093,7 @@ jobs:
   test-gaussdb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'gaussdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1111,7 +1111,7 @@ jobs:
   test-damengdb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'damengdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1129,7 +1129,7 @@ jobs:
   test-kingbase:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'kingbase')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! (contains(inputs.KB_VERSION, 'v0.9.') && inputs.CLOUD_PROVIDER == 'aks') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1147,7 +1147,7 @@ jobs:
   test-vastbase:
     if: ${{ inputs.CLOUD_PROVIDER != 'eks' && needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'vastbase')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1165,7 +1165,7 @@ jobs:
   test-mssql:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mssql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1183,7 +1183,7 @@ jobs:
   test-rocketmq:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rocketmq')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1201,7 +1201,7 @@ jobs:
   test-goldendb:
     if: ${{ ! (contains(inputs.KB_VERSION, 'v1.') && inputs.CLOUD_PROVIDER == 'aks') && needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'goldendb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1219,7 +1219,7 @@ jobs:
   test-tdsql:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tdsql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1237,7 +1237,7 @@ jobs:
   test-greatsql:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'greatsql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1253,9 +1253,9 @@ jobs:
     secrets: inherit
 
   test-greatdb:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'greatdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v1.0.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'greatdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1273,7 +1273,7 @@ jobs:
   test-hadoop:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'hadoop')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1291,7 +1291,7 @@ jobs:
   test-hive:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'hive')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1309,7 +1309,7 @@ jobs:
   test-oceanbase-proxy:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oceanbase-proxy')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
@@ -1327,7 +1327,7 @@ jobs:
   test-nacos:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'nacos')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
-    uses: ./.github/workflows/test-kbcli.yml
+    uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
       region: ${{ inputs.REGION }}
