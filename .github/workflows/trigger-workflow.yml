@@ -90,6 +90,10 @@ on:
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   trigger-workflow:
     permissions:
