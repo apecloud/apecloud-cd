@@ -1592,8 +1592,8 @@ jobs:
             TEST_RESULT+="##redis-cluster-7-2|${{ needs.test-redis-cluster-7-2.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-redis-cluster-7-2.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##redis-cluster-7.0|${{ needs.test-redis-cluster-7.0.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-redis-cluster-7.0.outputs.test-result-report }}\" "
+            TEST_RESULT+="##redis-cluster-7-0|${{ needs.test-redis-cluster-7-0.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-cluster-7-0.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
           fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"starrocks-ent"* ]]; then
