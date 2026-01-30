@@ -1377,15 +1377,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       test-date: ${{ steps.upload_test_result.outputs.test-date }}
-    needs: [ test-kubeblocks,
-             test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12,
-             test-redis-8-4, test-redis-8-2, test-redis-8-0, test-redis-7-4, test-redis-7-2,
-                test-redis-7-0, test-redis-6-2,
-             test-redis-cluster-8-4, test-redis-cluster-8-2, test-redis-cluster-8-0, test-redis-cluster-7-4,
-                test-redis-cluster-7-2, test-redis-cluster-7-0,
-             test-mongodb-8, test-mongodb-7, test-mongodb-6, test-mongodb-5, test-mongodb-4,
-             test-mongodb-shard-8, test-mongodb-shard-7, test-mongodb-shard-6, test-mongodb-shard-5,
-                test-mongodb-shard-4,
+    needs: [ test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12,
              test-kafka-combined, test-kafka-separated,
              test-nebula-3-8, test-nebula-3-5,
              test-etcd-3-6, test-etcd-3-5,
@@ -1398,8 +1390,7 @@ jobs:
              test-tidb-8, test-tidb-7, test-tidb-6,
              test-starrocks-ent-3-4, test-starrocks-ent-3-3, test-starrocks-ent-3-2,
              test-minio-2025, test-minio-2024,
-             test-rabbitmq-4-2, test-rabbitmq-4-1, test-rabbitmq-4-0, test-rabbitmq-3-13, test-rabbitmq-3-12,
-                test-rabbitmq-3-11, test-rabbitmq-3-10, test-rabbitmq-3-9, test-rabbitmq-3-8,
+             test-rabbitmq-4-2, test-rabbitmq-4-1, test-rabbitmq-4-0, test-rabbitmq-3-13, test-rabbitmq-3-12, test-rabbitmq-3-11, test-rabbitmq-3-10, test-rabbitmq-3-9, test-rabbitmq-3-8,
              test-kingbase-9, test-kingbase-8,
              test-hive-4-0, test-hive-3-1,
              test-nacos-3-1, test-nacos-2-4 ]
@@ -1414,7 +1405,7 @@ jobs:
         run: |
           TEST_TYPE="${{ inputs.TEST_TYPE }}"
           cmd_head="bash .github/utils/utils.sh --type 36 --test-result "
-          TEST_RESULT="install-kubeblocks|${{ needs.test-kubeblocks.outputs.test-result }}"
+          TEST_RESULT=""
           if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"postgresql|"* || "$TEST_TYPE" == *"postgresql") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
             TEST_RESULT+="##postgresql-17|${{ needs.test-postgresql-17.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-postgresql-17.outputs.test-result-report }}\" "
@@ -1430,46 +1421,6 @@ jobs:
             TEST_RESULT+=$(eval "$cmd")
             TEST_RESULT+="##postgresql-12|${{ needs.test-postgresql-12.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-postgresql-12.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-          fi
-          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"redis|"* || "$TEST_TYPE" == *"redis" ]]; then
-            TEST_RESULT+="##redis-8-4|${{ needs.test-redis-8-4.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-redis.outputs-8-4.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##redis-8-2|${{ needs.test-redis-8-2.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-redis-8-2.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##redis-8-0|${{ needs.test-redis-8-0.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-redis-8-0.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##redis-7-4|${{ needs.test-redis-7-4.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-redis-7-4.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##redis-7-2|${{ needs.test-redis-7-2.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-redis-7-2.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##redis-7-0|${{ needs.test-redis-7-0.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-redis-7-0.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##redis-6-2|${{ needs.test-redis-6-2.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-redis-6-2.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-          fi
-          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mongodb"* ]]; then
-            TEST_RESULT+="##mongodb-8|${{ needs.test-mongodb-8.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-mongodb-8.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##mongodb-7|${{ needs.test-mongodb-7.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-mongodb-7.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##mongodb-6|${{ needs.test-mongodb-6.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-mongodb-6.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##mongodb-5|${{ needs.test-mongodb-5.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-mongodb-5.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##mongodb-4|${{ needs.test-mongodb-4.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-mongodb-4.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
           fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"kafka"* ]]; then
@@ -1576,26 +1527,6 @@ jobs:
             cmd="${cmd_head} \"${{ needs.test-tidb-6.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
           fi
-          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"redis-cluster"* ]]; then
-            TEST_RESULT+="##redis-cluster-8-4|${{ needs.test-redis-cluster-8-4.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-redis-cluster-8-4.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##redis-cluster-8-2|${{ needs.test-redis-cluster-8-2.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-redis-cluster-8-2.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##redis-cluster-8-0|${{ needs.test-redis-cluster-8-0.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-redis-cluster-8-0.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##redis-cluster-7-4|${{ needs.test-redis-cluster-7-4.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-redis-cluster-7-4.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##redis-cluster-7-2|${{ needs.test-redis-cluster-7-2.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-redis-cluster-7-2.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##redis-cluster-7-0|${{ needs.test-redis-cluster-7-0.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-redis-cluster-7-0.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-          fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"starrocks-ent"* ]]; then
             TEST_RESULT+="##starrocks-ent-3-4|${{ needs.test-starrocks-ent-3-4.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-starrocks-ent-3-4.outputs.test-result-report }}\" "
@@ -1650,23 +1581,6 @@ jobs:
             TEST_RESULT+=$(eval "$cmd")
             TEST_RESULT+="##kingbase-8|${{ needs.test-kingbase-8.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-kingbase-8.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-          fi
-          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mongodb-shard"* ]]; then
-            TEST_RESULT+="##mongodb-shard-8|${{ needs.test-mongodb-shard-8.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-mongodb-shard-8.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##mongodb-shard-7|${{ needs.test-mongodb-shard-7.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-mongodb-shard-7.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##mongodb-shard-6|${{ needs.test-mongodb-shard-6.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-mongodb-shard-6.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##mongodb-shard-5|${{ needs.test-mongodb-shard-5.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-mongodb-shard-5.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##mongodb-shard-4|${{ needs.test-mongodb-shard-4.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-mongodb-shard-4.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
           fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"hive"* ]]; then
@@ -1772,9 +1686,298 @@ jobs:
               --result "$TEST_RESULT" \
               --send-type "report"
 
+  send-message-redis:
+    if: ${{ always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis') || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
+    runs-on: ubuntu-latest
+    outputs:
+      test-date: ${{ steps.upload_test_result.outputs.test-date }}
+    needs: [ test-redis-8-4, test-redis-8-2, test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2,
+             test-redis-cluster-8-4, test-redis-cluster-8-2, test-redis-cluster-8-0, test-redis-cluster-7-4, test-redis-cluster-7-2, test-redis-cluster-7-0 ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: send message
+        run: |
+          TEST_TYPE="${{ inputs.TEST_TYPE }}"
+          cmd_head="bash .github/utils/utils.sh --type 36 --test-result "
+          TEST_RESULT=""
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"redis|"* || "$TEST_TYPE" == *"redis" ]]; then
+            TEST_RESULT+="##redis-8-4|${{ needs.test-redis-8-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis.outputs-8-4.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-8-2|${{ needs.test-redis-8-2.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-8-2.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-8-0|${{ needs.test-redis-8-0.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-8-0.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-7-4|${{ needs.test-redis-7-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-7-4.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-7-2|${{ needs.test-redis-7-2.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-7-2.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-7-0|${{ needs.test-redis-7-0.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-7-0.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-6-2|${{ needs.test-redis-6-2.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-6-2.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"redis-cluster"* ]]; then
+            TEST_RESULT+="##redis-cluster-8-4|${{ needs.test-redis-cluster-8-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-cluster-8-4.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-cluster-8-2|${{ needs.test-redis-cluster-8-2.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-cluster-8-2.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-cluster-8-0|${{ needs.test-redis-cluster-8-0.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-cluster-8-0.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-cluster-7-4|${{ needs.test-redis-cluster-7-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-cluster-7-4.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-cluster-7-2|${{ needs.test-redis-cluster-7-2.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-cluster-7-2.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-cluster-7-0|${{ needs.test-redis-cluster-7-0.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-cluster-7-0.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          
+          TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
+            --github-repo "${{ github.repository }}" \
+            --github-token "${{ env.GITHUB_TOKEN }}" \
+            --test-result "${TEST_RESULT}" \
+            --run-id "$GITHUB_RUN_ID" )
+          
+          export TZ='Asia/Shanghai'
+          date_ret=$(date +%Y-%m-%d-%T)
+          test_title="[${{ inputs.KB_VERSION }}] KubeBlocks Test All Versions on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
+          
+          echo $TEST_RESULT
+          python3 .github/utils/send_mesage.py \
+            --send-type kbcli \
+            --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
+            --title "$test_title" \
+            --result "$TEST_RESULT"
+
+      - name: Setup ossutil
+        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
+        uses: manyuanrong/setup-ossutil@v2.0
+        with:
+          access-key-id: "${{ env.OSS_KEY_ID }}"
+          access-key-secret: "${{ env.OSS_KEY_SECRET }}"
+          endpoint: "${{ env.OSS_ENDPOINT }}"
+
+      - name: Upload test result log to oss
+        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
+        id: upload_test_result
+        run: |
+          export TZ='Asia/Shanghai'
+          TEST_DATE="$(date +%Y%m%d)"
+          echo test-date=${TEST_DATE} >> $GITHUB_OUTPUT
+          
+          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
+          OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}/${TEST_DATE}"
+          upload_file_name="TEST_RESULT_LOGS.txt"
+          
+          for i in $(seq 1 3); do
+              ossutil cp -rf "${OSS_DIR}/${upload_file_name}" ./
+              download_ret=$?
+              if [[ $download_ret -eq 0 ]]; then
+                  break
+              fi
+              sleep 1
+          done
+          
+          test_result_report_output_file_log="test-result-report-output.log"
+          if [[ -f ${test_result_report_output_file_log} ]]; then
+              cat ${test_result_report_output_file_log}
+              if [[ ! -f ${upload_file_name} ]]; then
+                  touch ${upload_file_name}
+              else
+                  echo "" >> ${upload_file_name}
+              fi
+              cat ${test_result_report_output_file_log} >> ${upload_file_name}
+          
+              for i in $(seq 1 3); do
+                  ossutil cp -rf "${upload_file_name}" "${OSS_DIR}/${upload_file_name}"
+                  upload_ret=$?
+                  if [[ $upload_ret -eq 0 ]]; then
+                      echo "$(tput -T xterm setaf 2)upload ${upload_file_name} to oss successfully$(tput -T xterm sgr0)"
+                      break
+                  else
+                      echo "$(tput -T xterm setaf 3)::warning title=upload ${upload_file_name} to oss failure$(tput -T xterm sgr0)"
+                  fi
+                  sleep 1
+              done
+          fi
+
+      - name: send message
+        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
+        run: |
+          TEST_DATE=${{ steps.upload_test_result.outputs.test-date }}
+          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
+          OSS_URL="https://${{ env.OSS_BUCKET }}.${{ env.OSS_ENDPOINT }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}/${TEST_DATE}"
+          test_result_file_name="TEST_RESULT_LOGS.txt"
+          TEST_RESULT="${test_result_file_name}|${OSS_URL}/${test_result_file_name}"
+          
+          REPORT_BOT_WEBHOOK="${{ vars.REPORT_BOT_WEBHOOK }}"
+          test_title="[${KUBEBLOCKS_VERSION}] KubeBlocks Test All Versions Report on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${TEST_DATE}]"
+          python3 .github/utils/send_mesage.py \
+              --url "${REPORT_BOT_WEBHOOK}" \
+              --title "$test_title" \
+              --result "$TEST_RESULT" \
+              --send-type "report"
+
+  send-message-mongodb:
+    if: ${{ always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb|') || endsWith(inputs.TEST_TYPE, 'mongodb') || contains(inputs.TEST_TYPE, 'mongodb-shard|') || endsWith(inputs.TEST_TYPE, 'mongodb-shard')) }}
+    runs-on: ubuntu-latest
+    outputs:
+      test-date: ${{ steps.upload_test_result.outputs.test-date }}
+    needs: [ test-mongodb-8, test-mongodb-7, test-mongodb-6, test-mongodb-5, test-mongodb-4,
+             test-mongodb-shard-8, test-mongodb-shard-7, test-mongodb-shard-6, test-mongodb-shard-5, test-mongodb-shard-4 ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: send message
+        run: |
+          TEST_TYPE="${{ inputs.TEST_TYPE }}"
+          cmd_head="bash .github/utils/utils.sh --type 36 --test-result "
+          TEST_RESULT=""
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mongodb"* ]]; then
+            TEST_RESULT+="##mongodb-8|${{ needs.test-mongodb-8.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-8.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mongodb-7|${{ needs.test-mongodb-7.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-7.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mongodb-6|${{ needs.test-mongodb-6.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-6.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mongodb-5|${{ needs.test-mongodb-5.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-5.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mongodb-4|${{ needs.test-mongodb-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-4.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mongodb-shard"* ]]; then
+            TEST_RESULT+="##mongodb-shard-8|${{ needs.test-mongodb-shard-8.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-shard-8.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mongodb-shard-7|${{ needs.test-mongodb-shard-7.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-shard-7.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mongodb-shard-6|${{ needs.test-mongodb-shard-6.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-shard-6.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mongodb-shard-5|${{ needs.test-mongodb-shard-5.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-shard-5.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mongodb-shard-4|${{ needs.test-mongodb-shard-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-shard-4.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          
+          TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
+            --github-repo "${{ github.repository }}" \
+            --github-token "${{ env.GITHUB_TOKEN }}" \
+            --test-result "${TEST_RESULT}" \
+            --run-id "$GITHUB_RUN_ID" )
+          
+          export TZ='Asia/Shanghai'
+          date_ret=$(date +%Y-%m-%d-%T)
+          test_title="[${{ inputs.KB_VERSION }}] KubeBlocks Test All Versions on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
+          
+          echo $TEST_RESULT
+          python3 .github/utils/send_mesage.py \
+            --send-type kbcli \
+            --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
+            --title "$test_title" \
+            --result "$TEST_RESULT"
+
+      - name: Setup ossutil
+        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
+        uses: manyuanrong/setup-ossutil@v2.0
+        with:
+          access-key-id: "${{ env.OSS_KEY_ID }}"
+          access-key-secret: "${{ env.OSS_KEY_SECRET }}"
+          endpoint: "${{ env.OSS_ENDPOINT }}"
+
+      - name: Upload test result log to oss
+        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
+        id: upload_test_result
+        run: |
+          export TZ='Asia/Shanghai'
+          TEST_DATE="$(date +%Y%m%d)"
+          echo test-date=${TEST_DATE} >> $GITHUB_OUTPUT
+          
+          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
+          OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}/${TEST_DATE}"
+          upload_file_name="TEST_RESULT_LOGS.txt"
+          
+          for i in $(seq 1 3); do
+              ossutil cp -rf "${OSS_DIR}/${upload_file_name}" ./
+              download_ret=$?
+              if [[ $download_ret -eq 0 ]]; then
+                  break
+              fi
+              sleep 1
+          done
+          
+          test_result_report_output_file_log="test-result-report-output.log"
+          if [[ -f ${test_result_report_output_file_log} ]]; then
+              cat ${test_result_report_output_file_log}
+              if [[ ! -f ${upload_file_name} ]]; then
+                  touch ${upload_file_name}
+              else
+                  echo "" >> ${upload_file_name}
+              fi
+              cat ${test_result_report_output_file_log} >> ${upload_file_name}
+          
+              for i in $(seq 1 3); do
+                  ossutil cp -rf "${upload_file_name}" "${OSS_DIR}/${upload_file_name}"
+                  upload_ret=$?
+                  if [[ $upload_ret -eq 0 ]]; then
+                      echo "$(tput -T xterm setaf 2)upload ${upload_file_name} to oss successfully$(tput -T xterm sgr0)"
+                      break
+                  else
+                      echo "$(tput -T xterm setaf 3)::warning title=upload ${upload_file_name} to oss failure$(tput -T xterm sgr0)"
+                  fi
+                  sleep 1
+              done
+          fi
+
+      - name: send message
+        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
+        run: |
+          TEST_DATE=${{ steps.upload_test_result.outputs.test-date }}
+          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
+          OSS_URL="https://${{ env.OSS_BUCKET }}.${{ env.OSS_ENDPOINT }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}/${TEST_DATE}"
+          test_result_file_name="TEST_RESULT_LOGS.txt"
+          TEST_RESULT="${test_result_file_name}|${OSS_URL}/${test_result_file_name}"
+          
+          REPORT_BOT_WEBHOOK="${{ vars.REPORT_BOT_WEBHOOK }}"
+          test_title="[${KUBEBLOCKS_VERSION}] KubeBlocks Test All Versions Report on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${TEST_DATE}]"
+          python3 .github/utils/send_mesage.py \
+              --url "${REPORT_BOT_WEBHOOK}" \
+              --title "$test_title" \
+              --result "$TEST_RESULT" \
+              --send-type "report"
+
   terraform-destroy-k8s:
     if: ${{ always() }}
-    needs: [ terraform-init-k8s, send-message ]
+    needs: [ terraform-init-k8s, send-message, send-message-redis, send-message-mongodb ]
     uses: ./.github/workflows/terraform-destroy.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
