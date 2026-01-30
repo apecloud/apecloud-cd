@@ -298,8 +298,7 @@ jobs:
           
           if [[ -z "${PREVIOUS_VERSION}" && "${{ inputs.test-args }}" != *"--ape-local"* && "${{ inputs.test-args }}" != *"--only-kubectl"* ]]; then
               # chaos mesh test
-              common_cmd=" --chaos-mesh true --drain-node true "
-              if [[ "${{ inputs.cloud-provider }}" == "aks" ]]; then
+              if [[ "${{ inputs.test-args }}" != *"--service-version"* ]]; then
                   common_cmd=" --chaos-mesh true "
               fi
           

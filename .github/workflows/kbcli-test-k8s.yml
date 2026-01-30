@@ -1723,7 +1723,7 @@ jobs:
           
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
-          test_title="[${{ inputs.KB_VERSION }}] Test KBCLI on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
+          test_title="[${{ inputs.KB_VERSION }}] KubeBlocks Test on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
           
           if [[ -n "${{ inputs.ARGS }}" && "${{ inputs.ARGS }}" == *"--only-kubectl true"* ]]; then
             test_title="[${{ inputs.KB_VERSION }}] Test KB-Addons Examples on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
@@ -1801,7 +1801,7 @@ jobs:
           TEST_RESULT="${test_result_file_name}|${OSS_URL}/${test_result_file_name}"
           
           REPORT_BOT_WEBHOOK="${{ vars.REPORT_BOT_WEBHOOK }}"
-          test_title="[${KUBEBLOCKS_VERSION}] Test Report on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${TEST_DATE}]"
+          test_title="[${KUBEBLOCKS_VERSION}] KubeBlocks Test Report on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${TEST_DATE}]"
           python3 .github/utils/send_mesage.py \
               --url "${REPORT_BOT_WEBHOOK}" \
               --title "$test_title" \
