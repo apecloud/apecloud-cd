@@ -1,4 +1,4 @@
-name: KubeBlocks E2E Test
+name: KubeBlocks E2E Test All Versions
 
 on:
   workflow_dispatch:
