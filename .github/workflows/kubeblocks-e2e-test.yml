@@ -1,0 +1,1986 @@
+name: KubeBlocks E2E Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      CLOUD_PROVIDER:
+        description: 'cloud k8s cluster provider (e.g. vke/eks/gke/aks)'
+        required: false
+        default: 'aks'
+      KB_VERSION:
+        description: 'kubeblocks release version'
+        required: false
+        default: 'latest'
+      TEST_TYPE:
+        description: 'test type (e.g. mysql|redis)'
+        type: string
+        required: false
+        default: ''
+      CLUSTER_VERSION:
+        description: 'k8s cluster version (e.g. 1.32)'
+        required: false
+        default: '1.32'
+      REGION:
+        description: 'k8s region name'
+        required: false
+        default: 'eastus'
+      INSTANCE_TYPE:
+        description: 'node instance types (e.g. amd64/arm64)'
+        required: false
+        default: 'amd64'
+      BRANCH_NAME:
+        description: 'testinfra branch name'
+        required: false
+        default: 'main'
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        required: false
+        default: 'main'
+      ARGS:
+        description: "Test args"
+        required: false
+        default: ''
+
+
+run-name: KB:${{ inputs.KB_VERSION }} ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} ${{ inputs.TEST_TYPE }}
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
+  OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
+  OSS_ENDPOINT: "oss-cn-zhangjiakou.aliyuncs.com"
+  OSS_BUCKET: "kubeblocks-oss"
+
+jobs:
+  terraform-init-k8s:
+    uses: ./.github/workflows/terraform-init.yml
+    with:
+      test-type: ${{ inputs.TEST_TYPE }}
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      cluster-version: ${{ inputs.CLUSTER_VERSION }}
+      instance-type: ${{ inputs.INSTANCE_TYPE }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      region: ${{ inputs.REGION }}
+      kb-version: "${{ inputs.KB_VERSION }}"
+    secrets: inherit
+
+  test-kubeblocks:
+    if: ${{ needs.terraform-init-k8s.result == 'success' }}
+    needs: [ terraform-init-k8s ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "0"
+      test-type-name: "install-kubeblocks"
+      test-args: "--config-s3 true --upgrade true ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+    secrets: inherit
+
+  test-postgresql-17:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) && ! contains(inputs.TEST_TYPE, '-postgresql') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "2"
+      test-type-name: "postgresql-17"
+      test-args: "--service-version 17 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-postgresql-16:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) && ! contains(inputs.TEST_TYPE, '-postgresql') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "2"
+      test-type-name: "postgresql-16"
+      test-args: "--service-version 16 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-postgresql-15:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) && ! contains(inputs.TEST_TYPE, '-postgresql') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "2"
+      test-type-name: "postgresql-15"
+      test-args: "--service-version 15 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-postgresql-14:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) && ! contains(inputs.TEST_TYPE, '-postgresql') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "2"
+      test-type-name: "postgresql-14"
+      test-args: "--service-version 14 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-postgresql-12:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) && ! contains(inputs.TEST_TYPE, '-postgresql') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "2"
+      test-type-name: "postgresql-12"
+      test-args: "--service-version 12 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-redis-8-4:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "5"
+      test-type-name: "redis-8-4"
+      test-args: "--service-version 8.4 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-redis-8-2:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "5"
+      test-type-name: "redis-8-2"
+      test-args: "--service-version 8.2 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-redis-8-0:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "5"
+      test-type-name: "redis-8-0"
+      test-args: "--service-version 8.0 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-redis-7-4:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "5"
+      test-type-name: "redis-7-4"
+      test-args: "--service-version 7.4 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-redis-7-2:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "5"
+      test-type-name: "redis-7-2"
+      test-args: "--service-version 7.2 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-redis-7-0:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "5"
+      test-type-name: "redis-7-0"
+      test-args: "--service-version 7.0 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-redis-6-2:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "5"
+      test-type-name: "redis-6-2"
+      test-args: "--service-version 6.2 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-redis-cluster-8-4:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "48"
+      test-type-name: "redis-cluster-8-4"
+      test-args: "--service-version 8.4 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-redis-cluster-8-2:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "48"
+      test-type-name: "redis-cluster-8-2"
+      test-args: "--service-version 8.2 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-redis-cluster-8-0:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "48"
+      test-type-name: "redis-cluster-8-0"
+      test-args: "--service-version 8.0 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-redis-cluster-7-4:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "48"
+      test-type-name: "redis-cluster-7-4"
+      test-args: "--service-version 7.4 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-redis-cluster-7-2:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "48"
+      test-type-name: "redis-cluster-7-2"
+      test-args: "--service-version 7.2 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-redis-cluster-7-0:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "48"
+      test-type-name: "redis-cluster-7-0"
+      test-args: "--service-version 7.0 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-mongodb-8:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb|') || endsWith(inputs.TEST_TYPE, 'mongodb')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "6"
+      test-type-name: "mongodb-8"
+      test-args: "--service-version 8 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-mongodb-7:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb|') || endsWith(inputs.TEST_TYPE, 'mongodb')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "6"
+      test-type-name: "mongodb-7"
+      test-args: "--service-version 7 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-mongodb-6:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb|') || endsWith(inputs.TEST_TYPE, 'mongodb')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "6"
+      test-type-name: "mongodb-6"
+      test-args: "--service-version 6 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-mongodb-5:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb|') || endsWith(inputs.TEST_TYPE, 'mongodb')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "6"
+      test-type-name: "mongodb-5"
+      test-args: "--service-version 5 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-mongodb-4:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb|') || endsWith(inputs.TEST_TYPE, 'mongodb')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "6"
+      test-type-name: "mongodb-4"
+      test-args: "--service-version 4 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-mongodb-shard-8:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb-shard|') || endsWith(inputs.TEST_TYPE, 'mongodb-shard')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "67"
+      test-type-name: "mongodb-shard-8"
+      test-args: "--service-version 8 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-mongodb-shard-7:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb-shard|') || endsWith(inputs.TEST_TYPE, 'mongodb-shard')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "67"
+      test-type-name: "mongodb-shard-7"
+      test-args: "--service-version 7 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-mongodb-shard-6:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb-shard|') || endsWith(inputs.TEST_TYPE, 'mongodb-shard')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "67"
+      test-type-name: "mongodb-shard-6"
+      test-args: "--service-version 6 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-mongodb-shard-5:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb-shard|') || endsWith(inputs.TEST_TYPE, 'mongodb-shard')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "67"
+      test-type-name: "mongodb-shard-5"
+      test-args: "--service-version 5 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-mongodb-shard-4:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb-shard|') || endsWith(inputs.TEST_TYPE, 'mongodb-shard')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "67"
+      test-type-name: "mongodb-shard-4"
+      test-args: "--service-version 4 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-kafka-combined:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'kafka')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "7"
+      test-type-name: "kafka-combined"
+      test-args: "--service-version 3 --topology combined_monitor ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-kafka-separated:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'kafka')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "7"
+      test-type-name: "kafka-separated"
+      test-args: "--service-version 3 --topology separated_monitor ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-nebula-3-8:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'nebula')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "12"
+      test-type-name: "nebula-3-8"
+      test-args: "--service-version v3.8 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-nebula-3-5:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'nebula')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "12"
+      test-type-name: "nebula-3-5"
+      test-args: "--service-version v3.5 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-etcd-3-6:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'etcd|') || endsWith(inputs.TEST_TYPE, 'etcd')) && ! endsWith(inputs.TEST_TYPE, '-etcd') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "15"
+      test-type-name: "etcd-3-6"
+      test-args: "--service-version 3.6 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-etcd-3-5:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'etcd|') || endsWith(inputs.TEST_TYPE, 'etcd')) && ! endsWith(inputs.TEST_TYPE, '-etcd') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "15"
+      test-type-name: "etcd-3-5"
+      test-args: "--service-version 3.5 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-asmysql-8-4:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'asmysql|') || endsWith(inputs.TEST_TYPE, 'asmysql')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "21"
+      test-type-name: "asmysql-8-4"
+      test-args: "--service-version 8.4 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-asmysql-8-0:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'asmysql|') || endsWith(inputs.TEST_TYPE, 'asmysql')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "21"
+      test-type-name: "asmysql-8-0"
+      test-args: "--service-version 8.0 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-asmysql-5-7:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'asmysql|') || endsWith(inputs.TEST_TYPE, 'asmysql')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "21"
+      test-type-name: "asmysql-5-7"
+      test-args: "--service-version 5.7 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-elasticsearch-8:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'elasticsearch')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "25"
+      test-type-name: "elasticsearch-8"
+      test-args: "--service-version 8 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-elasticsearch-7:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'elasticsearch')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "25"
+      test-type-name: "elasticsearch-7"
+      test-args: "--service-version 7 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-elasticsearch-6:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'elasticsearch')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "25"
+      test-type-name: "elasticsearch-6"
+      test-args: "--service-version 6 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-tdengine-3-3-8:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tdengine')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "27"
+      test-type-name: "tdengine-3-3-8"
+      test-args: "--service-version 3.3.8 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-tdengine-3-3-7:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tdengine')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "27"
+      test-type-name: "tdengine-3-3-7"
+      test-args: "--service-version 3.3.7 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-tdengine-3-3-6:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tdengine')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "27"
+      test-type-name: "tdengine-3-3-6"
+      test-args: "--service-version 3.3.6 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-milvus-2-5:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'milvus')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "28"
+      test-type-name: "milvus-2-5"
+      test-args: "--service-version 2.5 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-milvus-2-3:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'milvus')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "28"
+      test-type-name: "milvus-2-3"
+      test-args: "--service-version v2.3 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-clickhouse-25:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'clickhouse')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "29"
+      test-type-name: "clickhouse-25"
+      test-args: "--service-version 25 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-clickhouse-24:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'clickhouse')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "29"
+      test-type-name: "clickhouse-24"
+      test-args: "--service-version 24 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-clickhouse-22:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'clickhouse')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "29"
+      test-type-name: "clickhouse-22"
+      test-args: "--service-version 22 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-zookeeper-3-9:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'zookeeper')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "32"
+      test-type-name: "zookeeper-3-9"
+      test-args: "--service-version 3.9 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-zookeeper-3-8:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'zookeeper')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "32"
+      test-type-name: "zookeeper-3-8"
+      test-args: "--service-version 3.8 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-zookeeper-3-7:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'zookeeper')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "32"
+      test-type-name: "zookeeper-3-7"
+      test-args: "--service-version 3.7 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-zookeeper-3-6:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'zookeeper')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "32"
+      test-type-name: "zookeeper-3-6"
+      test-args: "--service-version 3.6 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-zookeeper-3-4:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'zookeeper')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "32"
+      test-type-name: "zookeeper-3-4"
+      test-args: "--service-version 3.4 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-tidb-8:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tidb')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "34"
+      test-type-name: "tidb-8"
+      test-args: "--service-version 8 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-tidb-7:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tidb')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "34"
+      test-type-name: "tidb-7"
+      test-args: "--service-version 7 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-tidb-6:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tidb')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "34"
+      test-type-name: "tidb-6"
+      test-args: "--service-version 6 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-starrocks-ent-3-4:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks-ent')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "45"
+      test-type-name: "starrocks-ent-3-4"
+      test-args: "--service-version 3.4 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-starrocks-ent-3-3:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks-ent')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "45"
+      test-type-name: "starrocks-ent-3-3"
+      test-args: "--service-version 3.3 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-starrocks-ent-3-2:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks-ent')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "45"
+      test-type-name: "starrocks-ent-3-2"
+      test-args: "--service-version 3.2 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-minio-2025:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'minio')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "51"
+      test-type-name: "minio-2025"
+      test-args: "--service-version 2025 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-minio-2024:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'minio')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "51"
+      test-type-name: "minio-2024"
+      test-args: "--service-version 2024 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-rabbitmq-4-2:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "53"
+      test-type-name: "rabbitmq-4-2"
+      test-args: "--service-version 4.2 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-rabbitmq-4-1:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "53"
+      test-type-name: "rabbitmq-4-1"
+      test-args: "--service-version 4.1 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-rabbitmq-4-0:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "53"
+      test-type-name: "rabbitmq-4-0"
+      test-args: "--service-version 4.0 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-rabbitmq-3-13:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "53"
+      test-type-name: "rabbitmq-3-13"
+      test-args: "--service-version 3.13 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-rabbitmq-3-12:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "53"
+      test-type-name: "rabbitmq-3-12"
+      test-args: "--service-version 3.12 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-rabbitmq-3-11:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "53"
+      test-type-name: "rabbitmq-3-11"
+      test-args: "--service-version 3.11 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-rabbitmq-3-10:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "53"
+      test-type-name: "rabbitmq-3-10"
+      test-args: "--service-version 3.10 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-rabbitmq-3-9:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "53"
+      test-type-name: "rabbitmq-3-9"
+      test-args: "--service-version 3.9 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-rabbitmq-3-8:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "53"
+      test-type-name: "rabbitmq-3-8"
+      test-args: "--service-version 3.8 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-kingbase-9:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'kingbase')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "58"
+      test-type-name: "kingbase-9"
+      test-args: "--service-version 9 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-kingbase-8:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'kingbase')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "58"
+      test-type-name: "kingbase-8"
+      test-args: "--service-version 8 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-hive-4-0:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'hive')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "69"
+      test-type-name: "hive-4-0"
+      test-args: "--service-version 4.0 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-hive-3-1:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'hive')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "69"
+      test-type-name: "hive-3-1"
+      test-args: "--service-version 3.1 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-nacos-3-1:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'nacos')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "71"
+      test-type-name: "nacos-3-1"
+      test-args: "--service-version 3.1 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-nacos-2-4:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'nacos')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "71"
+      test-type-name: "nacos-2-4"
+      test-args: "--service-version 2.4 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  send-message:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    outputs:
+      test-date: ${{ steps.upload_test_result.outputs.test-date }}
+    needs: [ test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12,
+             test-kafka-combined, test-kafka-separated,
+             test-nebula-3-8, test-nebula-3-5,
+             test-etcd-3-6, test-etcd-3-5,
+             test-asmysql-8-4, test-asmysql-8-0, test-asmysql-5-7,
+             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-tdengine-3-3-8, test-tdengine-3-3-7, test-tdengine-3-3-6,
+             test-milvus-2-5, test-milvus-2-3,
+             test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
+             test-zookeeper-3-9, test-zookeeper-3-8, test-zookeeper-3-7, test-zookeeper-3-6, test-zookeeper-3-4,
+             test-tidb-8, test-tidb-7, test-tidb-6,
+             test-starrocks-ent-3-4, test-starrocks-ent-3-3, test-starrocks-ent-3-2,
+             test-minio-2025, test-minio-2024,
+             test-rabbitmq-4-2, test-rabbitmq-4-1, test-rabbitmq-4-0, test-rabbitmq-3-13, test-rabbitmq-3-12, test-rabbitmq-3-11, test-rabbitmq-3-10, test-rabbitmq-3-9, test-rabbitmq-3-8,
+             test-kingbase-9, test-kingbase-8,
+             test-hive-4-0, test-hive-3-1,
+             test-nacos-3-1, test-nacos-2-4 ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: send message
+        run: |
+          TEST_TYPE="${{ inputs.TEST_TYPE }}"
+          cmd_head="bash .github/utils/utils.sh --type 36 --test-result "
+          TEST_RESULT=""
+          if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"postgresql|"* || "$TEST_TYPE" == *"postgresql") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
+            TEST_RESULT+="##postgresql-17|${{ needs.test-postgresql-17.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-postgresql-17.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##postgresql-16|${{ needs.test-postgresql-16.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-postgresql-16.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##postgresql-15|${{ needs.test-postgresql-15.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-postgresql-15.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##postgresql-14|${{ needs.test-postgresql-14.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-postgresql-14.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##postgresql-12|${{ needs.test-postgresql-12.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-postgresql-12.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"kafka"* ]]; then
+            TEST_RESULT+="##kafka-combined|${{ needs.test-kafka-combined.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-kafka-combined.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##kafka-separated|${{ needs.test-kafka-separated.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-kafka-separated.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"nebula"* ]]; then
+            TEST_RESULT+="##nebula-3-8|${{ needs.test-nebula-3-8.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-nebula-3-8.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##nebula-3-5|${{ needs.test-nebula-3-5.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-nebula-3-5.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"etcd|"* || "$TEST_TYPE" == *"etcd") && "$TEST_TYPE" != *"-etcd"* ) ]]; then
+            TEST_RESULT+="##etcd-3-6|${{ needs.test-etcd-3-6.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-etcd-3-6.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##etcd-3-5|${{ needs.test-etcd-3-5.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-etcd-3-5.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"asmysql|"* || "$TEST_TYPE" == *"asmysql" ]]; then
+            TEST_RESULT+="##asmysql-8-4|${{ needs.test-asmysql-8-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-asmysql-8-4.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##asmysql-8-0|${{ needs.test-asmysql-8-0.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-asmysql-8-0.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##asmysql-5-7|${{ needs.test-asmysql-5-7.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-asmysql-5-7.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"milvus"* ]]; then
+            TEST_RESULT+="##milvus-2-5|${{ needs.test-milvus-2-5.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-milvus-2-5.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##milvus-2-3|${{ needs.test-milvus-2-3.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-milvus-2-3.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"clickhouse"* ]]; then
+            TEST_RESULT+="##clickhouse-25|${{ needs.test-clickhouse-25.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-clickhouse-25.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##clickhouse-24|${{ needs.test-clickhouse-24.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-clickhouse-24.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##clickhouse-22|${{ needs.test-clickhouse-22.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-clickhouse-22.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"elasticsearch"* ]]; then
+            TEST_RESULT+="##elasticsearch-8|${{ needs.test-elasticsearch-8.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-elasticsearch-8.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##elasticsearch-7|${{ needs.test-elasticsearch-7.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-elasticsearch-7.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##elasticsearch-6|${{ needs.test-elasticsearch-6.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-elasticsearch-6.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"tdengine"* ]]; then
+            TEST_RESULT+="##tdengine-3-3-8|${{ needs.test-tdengine-3-3-8.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-tdengine-3-3-8.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##tdengine-3-3-7|${{ needs.test-tdengine-3-3-7.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-tdengine-3-3-7.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##tdengine-3-3-6|${{ needs.test-tdengine-3-3-6.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-tdengine-3-3-6.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"zookeeper"* ]]; then
+            TEST_RESULT+="##zookeeper-3-9|${{ needs.test-zookeeper-3-9.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-zookeeper-3-9.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##zookeeper-3-8|${{ needs.test-zookeeper-3-8.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-zookeeper-3-8.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##zookeeper-3-7|${{ needs.test-zookeeper-3-7.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-zookeeper-3-7.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##zookeeper-3-6|${{ needs.test-zookeeper-3-6.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-zookeeper-3-6.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##zookeeper-3-4|${{ needs.test-zookeeper-3-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-zookeeper-3-4.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"tidb"* ]]; then
+            TEST_RESULT+="##tidb-8|${{ needs.test-tidb-8.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-tidb-8.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##tidb-7|${{ needs.test-tidb-7.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-tidb-7.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##tidb-6|${{ needs.test-tidb-6.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-tidb-6.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"starrocks-ent"* ]]; then
+            TEST_RESULT+="##starrocks-ent-3-4|${{ needs.test-starrocks-ent-3-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-starrocks-ent-3-4.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##starrocks-ent-3-3|${{ needs.test-starrocks-ent-3-3.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-starrocks-ent-3-3.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##starrocks-ent-3-2|${{ needs.test-starrocks-ent-3-2.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-starrocks-ent-3-2.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"minio"* ]]; then
+            TEST_RESULT+="##minio-2025|${{ needs.test-minio-2025.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-minio-2025.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##minio-2024|${{ needs.test-minio-2024.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-minio-2024.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"rabbitmq"* ]]; then
+            TEST_RESULT+="##rabbitmq-4-2|${{ needs.test-rabbitmq-4-2.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-rabbitmq-4-2.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##rabbitmq-4-1|${{ needs.test-rabbitmq-4-1.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-rabbitmq-4-1.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##rabbitmq-4-0|${{ needs.test-rabbitmq-4-0.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-rabbitmq-4-0.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##rabbitmq-3-13|${{ needs.test-rabbitmq-3-13.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-rabbitmq-3-13.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##rabbitmq-3-12|${{ needs.test-rabbitmq-3-12.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-rabbitmq-3-12.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##rabbitmq-3-11|${{ needs.test-rabbitmq-3-11.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-rabbitmq-3-11.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##rabbitmq-3-10|${{ needs.test-rabbitmq-3-10.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-rabbitmq-3-10.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##rabbitmq-3-9|${{ needs.test-rabbitmq-3-9.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-rabbitmq-3-9.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##rabbitmq-3-8|${{ needs.test-rabbitmq-3-8.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-rabbitmq-3-8.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"kingbase"* ]]; then
+            TEST_RESULT+="##kingbase-9|${{ needs.test-kingbase-9.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-kingbase-9.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##kingbase-8|${{ needs.test-kingbase-8.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-kingbase-8.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"hive"* ]]; then
+            TEST_RESULT+="##hive-4-0|${{ needs.test-hive-4-0.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-hive-4-0.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##hive-3-1|${{ needs.test-hive-3-1.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-hive-3-1.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"nacos"* ]]; then
+            TEST_RESULT+="##nacos-3-1|${{ needs.test-nacos-3-1.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-nacos-3-1.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##nacos-2-4|${{ needs.test-nacos-2-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-nacos-2-4.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          
+          TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
+            --github-repo "${{ github.repository }}" \
+            --github-token "${{ env.GITHUB_TOKEN }}" \
+            --test-result "${TEST_RESULT}" \
+            --run-id "$GITHUB_RUN_ID" )
+          
+          export TZ='Asia/Shanghai'
+          date_ret=$(date +%Y-%m-%d-%T)
+          test_title="[${{ inputs.KB_VERSION }}] KubeBlocks Test All Versions on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
+         
+          echo $TEST_RESULT
+          python3 .github/utils/send_mesage.py \
+            --send-type kbcli \
+            --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
+            --title "$test_title" \
+            --result "$TEST_RESULT"
+
+      - name: Setup ossutil
+        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
+        uses: manyuanrong/setup-ossutil@v2.0
+        with:
+          access-key-id: "${{ env.OSS_KEY_ID }}"
+          access-key-secret: "${{ env.OSS_KEY_SECRET }}"
+          endpoint: "${{ env.OSS_ENDPOINT }}"
+
+      - name: Upload test result log to oss
+        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
+        id: upload_test_result
+        run: |
+          export TZ='Asia/Shanghai'
+          TEST_DATE="$(date +%Y%m%d)"
+          echo test-date=${TEST_DATE} >> $GITHUB_OUTPUT
+          
+          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
+          OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}/${TEST_DATE}"
+          upload_file_name="TEST_RESULT_LOGS.txt"
+          
+          for i in $(seq 1 3); do
+              ossutil cp -rf "${OSS_DIR}/${upload_file_name}" ./
+              download_ret=$?
+              if [[ $download_ret -eq 0 ]]; then
+                  break
+              fi
+              sleep 1
+          done
+          
+          test_result_report_output_file_log="test-result-report-output.log"
+          if [[ -f ${test_result_report_output_file_log} ]]; then
+              cat ${test_result_report_output_file_log}
+              if [[ ! -f ${upload_file_name} ]]; then
+                  touch ${upload_file_name}
+              else
+                  echo "" >> ${upload_file_name}
+              fi
+              cat ${test_result_report_output_file_log} >> ${upload_file_name}
+          
+              for i in $(seq 1 3); do
+                  ossutil cp -rf "${upload_file_name}" "${OSS_DIR}/${upload_file_name}"
+                  upload_ret=$?
+                  if [[ $upload_ret -eq 0 ]]; then
+                      echo "$(tput -T xterm setaf 2)upload ${upload_file_name} to oss successfully$(tput -T xterm sgr0)"
+                      break
+                  else
+                      echo "$(tput -T xterm setaf 3)::warning title=upload ${upload_file_name} to oss failure$(tput -T xterm sgr0)"
+                  fi
+                  sleep 1
+              done
+          fi
+
+      - name: send message
+        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
+        run: |
+          TEST_DATE=${{ steps.upload_test_result.outputs.test-date }}
+          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
+          OSS_URL="https://${{ env.OSS_BUCKET }}.${{ env.OSS_ENDPOINT }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}/${TEST_DATE}"
+          test_result_file_name="TEST_RESULT_LOGS.txt"
+          TEST_RESULT="${test_result_file_name}|${OSS_URL}/${test_result_file_name}"
+          
+          REPORT_BOT_WEBHOOK="${{ vars.REPORT_BOT_WEBHOOK }}"
+          test_title="[${KUBEBLOCKS_VERSION}] KubeBlocks Test All Versions Report on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${TEST_DATE}]"
+          python3 .github/utils/send_mesage.py \
+              --url "${REPORT_BOT_WEBHOOK}" \
+              --title "$test_title" \
+              --result "$TEST_RESULT" \
+              --send-type "report"
+
+  send-message-redis:
+    if: ${{ always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis') || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
+    runs-on: ubuntu-latest
+    outputs:
+      test-date: ${{ steps.upload_test_result.outputs.test-date }}
+    needs: [ test-redis-8-4, test-redis-8-2, test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2,
+             test-redis-cluster-8-4, test-redis-cluster-8-2, test-redis-cluster-8-0, test-redis-cluster-7-4, test-redis-cluster-7-2, test-redis-cluster-7-0 ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: send message
+        run: |
+          TEST_TYPE="${{ inputs.TEST_TYPE }}"
+          cmd_head="bash .github/utils/utils.sh --type 36 --test-result "
+          TEST_RESULT=""
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"redis|"* || "$TEST_TYPE" == *"redis" ]]; then
+            TEST_RESULT+="##redis-8-4|${{ needs.test-redis-8-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis.outputs-8-4.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-8-2|${{ needs.test-redis-8-2.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-8-2.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-8-0|${{ needs.test-redis-8-0.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-8-0.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-7-4|${{ needs.test-redis-7-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-7-4.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-7-2|${{ needs.test-redis-7-2.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-7-2.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-7-0|${{ needs.test-redis-7-0.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-7-0.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-6-2|${{ needs.test-redis-6-2.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-6-2.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"redis-cluster"* ]]; then
+            TEST_RESULT+="##redis-cluster-8-4|${{ needs.test-redis-cluster-8-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-cluster-8-4.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-cluster-8-2|${{ needs.test-redis-cluster-8-2.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-cluster-8-2.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-cluster-8-0|${{ needs.test-redis-cluster-8-0.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-cluster-8-0.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-cluster-7-4|${{ needs.test-redis-cluster-7-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-cluster-7-4.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-cluster-7-2|${{ needs.test-redis-cluster-7-2.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-cluster-7-2.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-cluster-7-0|${{ needs.test-redis-cluster-7-0.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-cluster-7-0.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          
+          TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
+            --github-repo "${{ github.repository }}" \
+            --github-token "${{ env.GITHUB_TOKEN }}" \
+            --test-result "${TEST_RESULT}" \
+            --run-id "$GITHUB_RUN_ID" )
+          
+          export TZ='Asia/Shanghai'
+          date_ret=$(date +%Y-%m-%d-%T)
+          test_title="[${{ inputs.KB_VERSION }}] KubeBlocks Test All Versions on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
+          
+          echo $TEST_RESULT
+          python3 .github/utils/send_mesage.py \
+            --send-type kbcli \
+            --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
+            --title "$test_title" \
+            --result "$TEST_RESULT"
+
+      - name: Setup ossutil
+        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
+        uses: manyuanrong/setup-ossutil@v2.0
+        with:
+          access-key-id: "${{ env.OSS_KEY_ID }}"
+          access-key-secret: "${{ env.OSS_KEY_SECRET }}"
+          endpoint: "${{ env.OSS_ENDPOINT }}"
+
+      - name: Upload test result log to oss
+        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
+        id: upload_test_result
+        run: |
+          export TZ='Asia/Shanghai'
+          TEST_DATE="$(date +%Y%m%d)"
+          echo test-date=${TEST_DATE} >> $GITHUB_OUTPUT
+          
+          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
+          OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}/${TEST_DATE}"
+          upload_file_name="TEST_RESULT_LOGS.txt"
+          
+          for i in $(seq 1 3); do
+              ossutil cp -rf "${OSS_DIR}/${upload_file_name}" ./
+              download_ret=$?
+              if [[ $download_ret -eq 0 ]]; then
+                  break
+              fi
+              sleep 1
+          done
+          
+          test_result_report_output_file_log="test-result-report-output.log"
+          if [[ -f ${test_result_report_output_file_log} ]]; then
+              cat ${test_result_report_output_file_log}
+              if [[ ! -f ${upload_file_name} ]]; then
+                  touch ${upload_file_name}
+              else
+                  echo "" >> ${upload_file_name}
+              fi
+              cat ${test_result_report_output_file_log} >> ${upload_file_name}
+          
+              for i in $(seq 1 3); do
+                  ossutil cp -rf "${upload_file_name}" "${OSS_DIR}/${upload_file_name}"
+                  upload_ret=$?
+                  if [[ $upload_ret -eq 0 ]]; then
+                      echo "$(tput -T xterm setaf 2)upload ${upload_file_name} to oss successfully$(tput -T xterm sgr0)"
+                      break
+                  else
+                      echo "$(tput -T xterm setaf 3)::warning title=upload ${upload_file_name} to oss failure$(tput -T xterm sgr0)"
+                  fi
+                  sleep 1
+              done
+          fi
+
+      - name: send message
+        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
+        run: |
+          TEST_DATE=${{ steps.upload_test_result.outputs.test-date }}
+          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
+          OSS_URL="https://${{ env.OSS_BUCKET }}.${{ env.OSS_ENDPOINT }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}/${TEST_DATE}"
+          test_result_file_name="TEST_RESULT_LOGS.txt"
+          TEST_RESULT="${test_result_file_name}|${OSS_URL}/${test_result_file_name}"
+          
+          REPORT_BOT_WEBHOOK="${{ vars.REPORT_BOT_WEBHOOK }}"
+          test_title="[${KUBEBLOCKS_VERSION}] KubeBlocks Test All Versions Report on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${TEST_DATE}]"
+          python3 .github/utils/send_mesage.py \
+              --url "${REPORT_BOT_WEBHOOK}" \
+              --title "$test_title" \
+              --result "$TEST_RESULT" \
+              --send-type "report"
+
+  send-message-mongodb:
+    if: ${{ always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb|') || endsWith(inputs.TEST_TYPE, 'mongodb') || contains(inputs.TEST_TYPE, 'mongodb-shard|') || endsWith(inputs.TEST_TYPE, 'mongodb-shard')) }}
+    runs-on: ubuntu-latest
+    outputs:
+      test-date: ${{ steps.upload_test_result.outputs.test-date }}
+    needs: [ test-mongodb-8, test-mongodb-7, test-mongodb-6, test-mongodb-5, test-mongodb-4,
+             test-mongodb-shard-8, test-mongodb-shard-7, test-mongodb-shard-6, test-mongodb-shard-5, test-mongodb-shard-4 ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: send message
+        run: |
+          TEST_TYPE="${{ inputs.TEST_TYPE }}"
+          cmd_head="bash .github/utils/utils.sh --type 36 --test-result "
+          TEST_RESULT=""
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mongodb"* ]]; then
+            TEST_RESULT+="##mongodb-8|${{ needs.test-mongodb-8.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-8.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mongodb-7|${{ needs.test-mongodb-7.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-7.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mongodb-6|${{ needs.test-mongodb-6.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-6.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mongodb-5|${{ needs.test-mongodb-5.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-5.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mongodb-4|${{ needs.test-mongodb-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-4.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mongodb-shard"* ]]; then
+            TEST_RESULT+="##mongodb-shard-8|${{ needs.test-mongodb-shard-8.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-shard-8.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mongodb-shard-7|${{ needs.test-mongodb-shard-7.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-shard-7.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mongodb-shard-6|${{ needs.test-mongodb-shard-6.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-shard-6.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mongodb-shard-5|${{ needs.test-mongodb-shard-5.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-shard-5.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mongodb-shard-4|${{ needs.test-mongodb-shard-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mongodb-shard-4.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          
+          TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
+            --github-repo "${{ github.repository }}" \
+            --github-token "${{ env.GITHUB_TOKEN }}" \
+            --test-result "${TEST_RESULT}" \
+            --run-id "$GITHUB_RUN_ID" )
+          
+          export TZ='Asia/Shanghai'
+          date_ret=$(date +%Y-%m-%d-%T)
+          test_title="[${{ inputs.KB_VERSION }}] KubeBlocks Test All Versions on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
+          
+          echo $TEST_RESULT
+          python3 .github/utils/send_mesage.py \
+            --send-type kbcli \
+            --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
+            --title "$test_title" \
+            --result "$TEST_RESULT"
+
+      - name: Setup ossutil
+        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
+        uses: manyuanrong/setup-ossutil@v2.0
+        with:
+          access-key-id: "${{ env.OSS_KEY_ID }}"
+          access-key-secret: "${{ env.OSS_KEY_SECRET }}"
+          endpoint: "${{ env.OSS_ENDPOINT }}"
+
+      - name: Upload test result log to oss
+        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
+        id: upload_test_result
+        run: |
+          export TZ='Asia/Shanghai'
+          TEST_DATE="$(date +%Y%m%d)"
+          echo test-date=${TEST_DATE} >> $GITHUB_OUTPUT
+          
+          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
+          OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}/${TEST_DATE}"
+          upload_file_name="TEST_RESULT_LOGS.txt"
+          
+          for i in $(seq 1 3); do
+              ossutil cp -rf "${OSS_DIR}/${upload_file_name}" ./
+              download_ret=$?
+              if [[ $download_ret -eq 0 ]]; then
+                  break
+              fi
+              sleep 1
+          done
+          
+          test_result_report_output_file_log="test-result-report-output.log"
+          if [[ -f ${test_result_report_output_file_log} ]]; then
+              cat ${test_result_report_output_file_log}
+              if [[ ! -f ${upload_file_name} ]]; then
+                  touch ${upload_file_name}
+              else
+                  echo "" >> ${upload_file_name}
+              fi
+              cat ${test_result_report_output_file_log} >> ${upload_file_name}
+          
+              for i in $(seq 1 3); do
+                  ossutil cp -rf "${upload_file_name}" "${OSS_DIR}/${upload_file_name}"
+                  upload_ret=$?
+                  if [[ $upload_ret -eq 0 ]]; then
+                      echo "$(tput -T xterm setaf 2)upload ${upload_file_name} to oss successfully$(tput -T xterm sgr0)"
+                      break
+                  else
+                      echo "$(tput -T xterm setaf 3)::warning title=upload ${upload_file_name} to oss failure$(tput -T xterm sgr0)"
+                  fi
+                  sleep 1
+              done
+          fi
+
+      - name: send message
+        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
+        run: |
+          TEST_DATE=${{ steps.upload_test_result.outputs.test-date }}
+          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
+          OSS_URL="https://${{ env.OSS_BUCKET }}.${{ env.OSS_ENDPOINT }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}/${TEST_DATE}"
+          test_result_file_name="TEST_RESULT_LOGS.txt"
+          TEST_RESULT="${test_result_file_name}|${OSS_URL}/${test_result_file_name}"
+          
+          REPORT_BOT_WEBHOOK="${{ vars.REPORT_BOT_WEBHOOK }}"
+          test_title="[${KUBEBLOCKS_VERSION}] KubeBlocks Test All Versions Report on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${TEST_DATE}]"
+          python3 .github/utils/send_mesage.py \
+              --url "${REPORT_BOT_WEBHOOK}" \
+              --title "$test_title" \
+              --result "$TEST_RESULT" \
+              --send-type "report"
+
+  terraform-destroy-k8s:
+    if: ${{ always() }}
+    needs: [ terraform-init-k8s, send-message, send-message-redis, send-message-mongodb ]
+    uses: ./.github/workflows/terraform-destroy.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      region: ${{ inputs.REGION }}
+    secrets: inherit
