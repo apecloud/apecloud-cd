@@ -12,7 +12,7 @@ on:
         required: false
         default: 'latest'
       TEST_TYPE:
-        description: 'test type (e.g. mysql|redis)'
+        description: 'test type (e.g. postgresql|redis|mongodb)'
         type: string
         required: false
         default: ''
