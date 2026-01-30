@@ -51,6 +51,10 @@ env:
   OSS_ENDPOINT: "oss-cn-zhangjiakou.aliyuncs.com"
   OSS_BUCKET: "kubeblocks-oss"
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   terraform-init-k8s:
     uses: ./.github/workflows/terraform-init.yml
