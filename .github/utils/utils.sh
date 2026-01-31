@@ -81,6 +81,7 @@ Usage: $(basename "$0") <options>
     -lb, --label-name         The pr label name
     -lo, --label-ops          The pr label ops (add/remove)
     -ru, --report-url         The test report url
+    -tt, --test-type          The test type for e2e
 EOF
 }
 
@@ -137,6 +138,9 @@ trigger_repo_workflow() {
         extra_args_json=""
         if [[ -n "$VERSION" ]]; then
             extra_args_json="\"VERSION\":\"$VERSION\""
+        fi
+        if [[ -n "$TEST_TYPE" ]]; then
+            extra_args_json="\"TEST_TYPE\":\"$TEST_TYPE\""
         fi
         for extra_arg in $(echo "$EXTRA_ARGS" | sed 's/#/ /g'); do
             extra_arg_key=${extra_arg%=*}
@@ -1464,6 +1468,10 @@ parse_command_line() {
             ;;
             -ru|--report-url)
                 REPORT_URL="$2"
+                shift
+            ;;
+            -tt|--test-type)
+                TEST_TYPE="$2"
                 shift
             ;;
             *)
