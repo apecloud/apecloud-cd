@@ -43,6 +43,11 @@ on:
         type: boolean
         required: false
         default: true
+      TEST_TYPE:
+        description: "The test type for e2e"
+        type: string
+        required: false
+        default: ''
   workflow_call:
     inputs:
       GITHUB_REPO:
@@ -85,6 +90,11 @@ on:
         type: boolean
         required: false
         default: true
+      TEST_TYPE:
+        description: "The test type for e2e"
+        type: string
+        required: false
+        default: ''
 
 
 env:
@@ -163,6 +173,10 @@ jobs:
 
           if [[ -n "${{ inputs.VERSION }}" ]]; then
               cmd=$cmd"--version \"${{ inputs.VERSION }}\" "
+          fi
+
+          if [[ -n "${{ inputs.TEST_TYPE }}" ]]; then
+              cmd=$cmd"--test-type \"${{ inputs.TEST_TYPE }}\" "
           fi
 
           if [[ -n "${{ inputs.EXTRA_ARGS }}" ]]; then
