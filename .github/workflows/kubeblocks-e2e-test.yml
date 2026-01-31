@@ -5,10 +5,12 @@ on:
     inputs:
       CLOUD_PROVIDER:
         description: 'cloud k8s cluster provider (e.g. vke/eks/gke/aks)'
+        type: string
         required: false
         default: 'aks'
       KB_VERSION:
         description: 'kubeblocks release version'
+        type: string
         required: false
         default: 'latest'
       TEST_TYPE:
@@ -18,26 +20,32 @@ on:
         default: ''
       CLUSTER_VERSION:
         description: 'k8s cluster version (e.g. 1.32)'
+        type: string
         required: false
         default: '1.32'
       REGION:
         description: 'k8s region name'
+        type: string
         required: false
         default: 'eastus'
       INSTANCE_TYPE:
         description: 'node instance types (e.g. amd64/arm64)'
+        type: string
         required: false
         default: 'amd64'
       BRANCH_NAME:
         description: 'testinfra branch name'
+        type: string
         required: false
         default: 'main'
       APECD_REF:
         description: "The branch name of apecloud-cd"
+        type: string
         required: false
         default: 'main'
       ARGS:
         description: "Test args"
+        type: string
         required: false
         default: ''
 
