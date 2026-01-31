@@ -1828,5 +1828,5 @@ jobs:
       WORKFLOW_ID: "kubeblocks-e2e-test.yml"
       APECD_REF: "main"
       TEST_TYPE: "${{ inputs.TEST_TYPE }}"
-      EXTRA_ARGS: "CLOUD_PROVIDER=${{ inputs.CLOUD_PROVIDER }}|KB_VERSION=${{ inputs.KB_VERSION }}|CLUSTER_VERSION=${{ inputs.CLUSTER_VERSION }}|REGION=${{ inputs.REGION }}|INSTANCE_TYPE=${{ inputs.INSTANCE_TYPE }}|BRANCH_NAME=${{ inputs.BRANCH_NAME }}|APECD_REF=${{ inputs.APECD_REF }}|ARGS=${{ inputs.ARGS }}"
+      EXTRA_ARGS: "CLOUD_PROVIDER=${{ inputs.CLOUD_PROVIDER }}#KB_VERSION=${{ inputs.KB_VERSION }}#CLUSTER_VERSION=${{ inputs.CLUSTER_VERSION }}#REGION=${{ inputs.REGION }}#INSTANCE_TYPE=${{ inputs.INSTANCE_TYPE }}#BRANCH_NAME=${{ inputs.BRANCH_NAME }}#APECD_REF=${{ inputs.APECD_REF }}#ARGS=${{ inputs.ARGS }}"
     secrets: inherit
