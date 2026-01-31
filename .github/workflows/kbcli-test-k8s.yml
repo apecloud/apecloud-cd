@@ -1819,8 +1819,8 @@ jobs:
     secrets: inherit
 
   kubeblocks-e2e-test:
-    if: ${{ always() && needs.terraform-init-k8s.result == 'success' && ! contains(inputs.KB_VERSION, 'v0.') }}
-    needs: [ terraform-init-k8s, send-message ]
+    if: ${{ always() && needs.terraform-init-k8s.result == 'success' && needs.terraform-destroy-k8s.result == 'success' && ! contains(inputs.KB_VERSION, 'v0.') }}
+    needs: [ terraform-init-k8s, terraform-destroy-k8s ]
     uses: ./.github/workflows/trigger-workflow.yml
     with:
       GITHUB_REPO: "apecloud/apecloud-cd"
