@@ -197,7 +197,7 @@ jobs:
   test-redis-8-4:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17 test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -215,7 +215,7 @@ jobs:
   test-redis-8-2:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17 test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -233,7 +233,7 @@ jobs:
   test-redis-8-0:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17 test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -251,7 +251,7 @@ jobs:
   test-redis-7-4:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17 test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -269,7 +269,7 @@ jobs:
   test-redis-7-2:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17 test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -287,7 +287,7 @@ jobs:
   test-redis-7-0:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17 test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -305,7 +305,7 @@ jobs:
   test-redis-6-2:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17 test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -323,7 +323,7 @@ jobs:
   test-redis-cluster-8-4:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17 test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -341,7 +341,7 @@ jobs:
   test-redis-cluster-8-2:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17 test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -359,7 +359,7 @@ jobs:
   test-redis-cluster-8-0:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17 test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -377,7 +377,7 @@ jobs:
   test-redis-cluster-7-4:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17 test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -395,7 +395,7 @@ jobs:
   test-redis-cluster-7-2:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17 test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -413,7 +413,7 @@ jobs:
   test-redis-cluster-7-0:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17 test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -1453,7 +1453,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       test-date: ${{ steps.upload_test_result.outputs.test-date }}
-    needs: [ test-postgresql-18, test-postgresql-17 test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12,
+    needs: [ test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12,
              test-kafka-combined, test-kafka-separated,
              test-nebula-3-8, test-nebula-3-5,
              test-etcd-3-6, test-etcd-3-5,
