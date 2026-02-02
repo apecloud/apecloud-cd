@@ -1644,7 +1644,7 @@ jobs:
           echo $TEST_RESULT
           python3 .github/utils/send_mesage.py \
             --send-type kbcli \
-            --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
+            --url "${{ vars.TEST_BOT_WEBHOOK }}" \
             --title "$test_title" \
             --result "$TEST_RESULT"
 
@@ -1793,7 +1793,7 @@ jobs:
           echo $TEST_RESULT
           python3 .github/utils/send_mesage.py \
             --send-type kbcli \
-            --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
+            --url "${{ vars.TEST_BOT_WEBHOOK }}" \
             --title "$test_title" \
             --result "$TEST_RESULT"
 
@@ -1933,7 +1933,7 @@ jobs:
           echo $TEST_RESULT
           python3 .github/utils/send_mesage.py \
             --send-type kbcli \
-            --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
+            --url "${{ vars.TEST_BOT_WEBHOOK }}" \
             --title "$test_title" \
             --result "$TEST_RESULT"
 
@@ -2086,7 +2086,7 @@ jobs:
           echo $TEST_RESULT
           python3 .github/utils/send_mesage.py \
             --send-type kbcli \
-            --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
+            --url "${{ vars.TEST_BOT_WEBHOOK }}" \
             --title "$test_title" \
             --result "$TEST_RESULT"
 
