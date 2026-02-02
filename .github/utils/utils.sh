@@ -1516,6 +1516,7 @@ main() {
     local LABEL_OPS=""
     local REPORT_URL=""
     local UNAME="$(uname -s)"
+    local TEST_TYPE=""
 
     parse_command_line "$@"
 
