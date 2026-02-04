@@ -1819,7 +1819,7 @@ jobs:
     secrets: inherit
 
   kubeblocks-e2e-test:
-    if: ${{ always() && needs.terraform-init-k8s.result == 'success' && needs.terraform-destroy-k8s.result == 'success' && ! contains(inputs.KB_VERSION, 'v0.') && ! contains(inputs.KB_VERSION, 'alpha') }}
+    if: ${{ always() && needs.terraform-init-k8s.result == 'success' && needs.terraform-destroy-k8s.result == 'success' && ! contains(inputs.KB_VERSION, 'v0.') && ! contains(inputs.KB_VERSION, 'alpha') && ! contains(inputs.TEST_TYPE, 'mariadb') }}
     needs: [ terraform-init-k8s, terraform-destroy-k8s ]
     uses: ./.github/workflows/trigger-workflow.yml
     with:
