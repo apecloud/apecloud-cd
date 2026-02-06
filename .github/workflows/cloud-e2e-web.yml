@@ -1,6 +1,10 @@
 name: Cloud E2E Web
 
 on:
+  schedule:
+    # 北京时间 20:00 (UTC 12:00)
+    # 执行时间：周日(0), 周一(1), 周二(2), 周三(3), 周四(4), 周五(5)
+    - cron: '0 12 * * 0-5'
   workflow_dispatch:
     inputs:
       TEST_ENGINES:
@@ -101,48 +105,91 @@ jobs:
           export TZ='Asia/Shanghai'
           echo "test-date=$(date +%Y%m%d)" >> $GITHUB_OUTPUT
           
-          # 定义全集
-          ALL_LIST="postgresql,mysql,oracle,oceanbase,damengdb,kingbase,goldendb,tdsql,vastbase,tidb,gaussdb,sqlserver,greatdb,clickhouse,starrocks,doris,redis,mongodb,etcd,rabbitmq,kafka,rocketmq,elasticsearch,minio,tdengine,influxdb,victoria_metrics,nebula,oceanbase_proxy,zookeeper,loki"
+          # 定义预设组
+          G1="postgresql,mysql,oracle,oceanbase,damengdb,kingbase,goldendb,tdsql,vastbase,tidb,gaussdb,sqlserver,greatdb"
+          G2="clickhouse,starrocks,doris"
+          G3="redis,mongodb,etcd"
+          G4="rabbitmq,kafka,rocketmq"
+          G5="elasticsearch"
+          G6="minio"
+          G7="tdengine,influxdb,victoria_metrics"
+          G8="nebula"
+          G9="oceanbase_proxy,zookeeper"
+          G10="loki"
+          ALL_LIST="${G1},${G2},${G3},${G4},${G5},${G6},${G7},${G8},${G9},${G10}"
           
-          RAW_INPUT="${{ inputs.TEST_ENGINES }}"
+          # 1. 处理触发源
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+              WEEKDAY=$(date +%w) # 0=Sun, 1=Mon, ..., 5=Fri
+              CLOUD_ENV="idc1"
+              VERSION="0.30"
+              BRANCH="main"
           
-          # 根据输入匹配预设或自定义
-          case "$RAW_INPUT" in
-            "1") ENGINES="postgresql,mysql,oracle,oceanbase,damengdb,kingbase,goldendb,tdsql,vastbase,tidb,gaussdb,sqlserver,greatdb" ;;
-            "2") ENGINES="clickhouse,starrocks,doris" ;;
-            "3") ENGINES="redis,mongodb,etcd" ;;
-            "4") ENGINES="rabbitmq,kafka,rocketmq" ;;
-            "5") ENGINES="elasticsearch" ;;
-            "6") ENGINES="minio" ;;
-            "7") ENGINES="tdengine,influxdb,victoria_metrics" ;;
-            "8") ENGINES="nebula" ;;
-            "9") ENGINES="oceanbase_proxy,zookeeper" ;;
-            "10") ENGINES="loki" ;;
-            "11" | "all") ENGINES="$ALL_LIST" ;;
-            *) ENGINES="$RAW_INPUT" ;; # 支持自定义输入，如 "mysql,redis"
-          esac
+              case $WEEKDAY in
+                0) RAW_INPUT="1,2" ;; # 周日执行 1,2
+                1) RAW_INPUT="3,4" ;; # 周一执行 3,4
+                2) RAW_INPUT="5,6" ;; # 周二执行 5,6
+                3) RAW_INPUT="7,8" ;; # 周三执行 7,8
+                4) RAW_INPUT="9,10" ;; # 周四执行 9,10
+                5) RAW_INPUT="all" ;; # 周五执行 ALL
+                *) RAW_INPUT="1,2" ;;
+              esac
+          else
+              RAW_INPUT="${{ inputs.TEST_ENGINES }}"
+              CLOUD_ENV="${{ inputs.CLOUD_ENV_NAME }}"
+              VERSION="${{ inputs.CURRENT_VERSION }}"
+              BRANCH="${{ inputs.E2ETEST_BRANCH }}"
+          fi
           
-          test_engines=""
-          test_engines_all=""
-          test_job_index=0
+          # 2. 将编号/关键字映射为实际引擎列表
+          FINAL_ENGINES=""
+          IFS=',' read -ra ADDR <<< "$RAW_INPUT"
+          for part in "${ADDR[@]}"; do
+              MAPPED=""
+              case "$part" in
+                "1") MAPPED=$G1 ;;
+                "2") MAPPED=$G2 ;;
+                "3") MAPPED=$G3 ;;
+                "4") MAPPED=$G4 ;;
+                "5") MAPPED=$G5 ;;
+                "6") MAPPED=$G6 ;;
+                "7") MAPPED=$G7 ;;
+                "8") MAPPED=$G8 ;;
+                "9") MAPPED=$G9 ;;
+                "10") MAPPED=$G10 ;;
+                "11" | "all" | "ALL") MAPPED=$ALL_LIST ;;
+                *) MAPPED=$part ;; 
+              esac
           
-          # 转换为 Matrix JSON
-          for engine_tmp in $(echo "${ENGINES}" | sed 's/,/ /g' ); do
-              test_job_index=$(( test_job_index + 1 ))
-              test_job_index_tmp=$(printf "%02d" $test_job_index)
-              if [[ -z "${test_engines}" ]]; then
-                  test_engines_all="${engine_tmp}|${test_job_index_tmp}"
-                  test_engines="{\"test-engine\":\"${engine_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+              if [[ -z "$FINAL_ENGINES" ]]; then
+                  FINAL_ENGINES="$MAPPED"
               else
-                  test_engines_all="${test_engines_all}##${engine_tmp}|${test_job_index_tmp}"
-                  test_engines="${test_engines},{\"test-engine\":\"${engine_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+                  FINAL_ENGINES="$FINAL_ENGINES,$MAPPED"
               fi
           done
           
-          echo "test-engines={\"include\":[${test_engines}]}" >> $GITHUB_OUTPUT
-          echo "test-engines-all=${test_engines_all}" >> $GITHUB_OUTPUT
-          echo "e2etest-branch=${{ inputs.E2ETEST_BRANCH }}" >> $GITHUB_OUTPUT
-          echo "cloud-env-name=${{ inputs.CLOUD_ENV_NAME }}" >> $GITHUB_OUTPUT
+          # 3. 转换为 Matrix 结构
+          test_engines=""
+          test_engines_all=""
+          idx=1
+          for engine in $(echo "${FINAL_ENGINES}" | sed 's/,/ /g' ); do
+              formatted_idx=$(printf "%02d" $idx)
+              item="{\"test-engine\":\"$engine\",\"test-job-index\":\"$formatted_idx\"}"
+              if [[ -z "$test_engines" ]]; then
+                  test_engines="$item"
+                  test_engines_all="$engine|$formatted_idx"
+              else
+                  test_engines="$test_engines,$item"
+                  test_engines_all="$test_engines_all##$engine|$formatted_idx"
+              fi
+              idx=$((idx+1))
+          done
+          
+          echo "test-engines={\"include\":[$test_engines]}" >> $GITHUB_OUTPUT
+          echo "test-engines-all=$test_engines_all" >> $GITHUB_OUTPUT
+          echo "cloud-env-name=$CLOUD_ENV" >> $GITHUB_OUTPUT
+          echo "current-version=$VERSION" >> $GITHUB_OUTPUT
+          echo "e2etest-branch=$BRANCH" >> $GITHUB_OUTPUT
   
 
   e2e-web-test:
