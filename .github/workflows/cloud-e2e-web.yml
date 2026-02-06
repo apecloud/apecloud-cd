@@ -1,18 +1,37 @@
 name: Cloud E2E Web
 
 on:
+  schedule:
+    # 北京时间 20:00 (UTC 12:00)
+    # 执行时间：周日(0), 周一(1), 周二(2), 周三(3), 周四(4), 周五(5)
+    - cron: '0 12 * * 0-5'
   workflow_dispatch:
     inputs:
       TEST_ENGINES:
-        description: "The specify version of GO (e.g. postgresql,mysql)"
+        description: >
+          Test engines:
+          1.postgresql,mysql,oracle,oceanbase,damengdb,kingbase,goldendb,tdsql,vastbase,tidb,gaussdb,sqlserver,greatdb
+          2.clickhouse,starrocks,doris
+          3.redis,mongodb,etcd
+          4.rabbitmq,kafka,rocketmq
+          5.elasticsearch
+          6.minio
+          7.tdengine,influxdb,victoriametrics
+          8.nebula
+          9.oceanbase_proxy,zookeeper
+          10.loki
+          11.ALL
         type: string
-        required: false
-        default: 'postgresql'
+        required: true
+        default: 'all'
       CLOUD_ENV_NAME:
         description: "The cloud env name of test (e.g. idc1) "
-        type: string
-        required: false
+        type: choice
+        required: true
         default: 'idc1'
+        options:
+          - idc1
+          - idc4
       E2ETEST_BRANCH:
         description: "The e2etest branch name (e.g. main) "
         type: string
@@ -20,9 +39,12 @@ on:
         default: 'main'
       CURRENT_VERSION:
         description: "The current release version (e.g. 0.30) "
-        type: string
+        type: choice
         required: true
-        default: ''
+        default: '0.30'
+        options:
+          - '0.30'
+          - '2.1'
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
@@ -81,51 +103,100 @@ jobs:
         id: get_test_engine
         run: |
           export TZ='Asia/Shanghai'
-          TEST_DATE="$(date +%Y%m%d)"
-          echo test-date=${TEST_DATE} >> $GITHUB_OUTPUT
+          echo "test-date=$(date +%Y%m%d)" >> $GITHUB_OUTPUT
           
-          TEST_ENGINES="${{ inputs.TEST_ENGINES }}"
-          if [[ -z "$TEST_ENGINES" ]]; then
-              TEST_ENGINES="sqlserver"
+          # 定义预设组
+          G1="postgresql,mysql,oracle,oceanbase,damengdb,kingbase,goldendb,tdsql,vastbase,tidb,gaussdb,sqlserver,greatdb"
+          G2="clickhouse,starrocks,doris"
+          G3="redis,mongodb,etcd"
+          G4="rabbitmq,kafka,rocketmq"
+          G5="elasticsearch"
+          G6="minio"
+          G7="tdengine,influxdb,victoriametrics"
+          G8="nebula"
+          G9="oceanbase_proxy,zookeeper"
+          G10="loki"
+          ALL_LIST="${G1},${G2},${G3},${G4},${G5},${G6},${G7},${G8},${G9},${G10}"
+          
+          # 1. 处理触发源
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+              WEEKDAY=$(date +%w) # 0=Sun, 1=Mon, ..., 5=Fri
+              CLOUD_ENV="idc1"
+              VERSION="0.30"
+              BRANCH="main"
+          
+              case $WEEKDAY in
+                0) RAW_INPUT="1,2" ;; # 周日执行 1,2
+                1) RAW_INPUT="3,4" ;; # 周一执行 3,4
+                2) RAW_INPUT="5,6" ;; # 周二执行 5,6
+                3) RAW_INPUT="7,8" ;; # 周三执行 7,8
+                4) RAW_INPUT="9,10" ;; # 周四执行 9,10
+                5) RAW_INPUT="all" ;; # 周五执行 ALL
+                *) RAW_INPUT="1,2" ;;
+              esac
+          else
+              RAW_INPUT="${{ inputs.TEST_ENGINES }}"
+              CLOUD_ENV="${{ inputs.CLOUD_ENV_NAME }}"
+              VERSION="${{ inputs.CURRENT_VERSION }}"
+              BRANCH="${{ inputs.E2ETEST_BRANCH }}"
           fi
-          test_engines=""
-          test_engines_all=""
-          test_job_index=0
-          for engine_tmp in $(echo "${TEST_ENGINES}" | sed 's/,/ /g' ); do
-              test_job_index=$(( test_job_index + 1 ))
-              test_job_index_tmp=$(printf "%02d" $test_job_index)
-              if [[ -z "${test_engines}" ]]; then
-                  test_engines_all="${engine_tmp}|${test_job_index_tmp}"
-                  test_engines="{\"test-engine\":\"${engine_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+          
+          # 2. 将编号/关键字映射为实际引擎列表
+          FINAL_ENGINES=""
+          IFS=',' read -ra ADDR <<< "$RAW_INPUT"
+          for part in "${ADDR[@]}"; do
+              MAPPED=""
+              case "$part" in
+                "1") MAPPED=$G1 ;;
+                "2") MAPPED=$G2 ;;
+                "3") MAPPED=$G3 ;;
+                "4") MAPPED=$G4 ;;
+                "5") MAPPED=$G5 ;;
+                "6") MAPPED=$G6 ;;
+                "7") MAPPED=$G7 ;;
+                "8") MAPPED=$G8 ;;
+                "9") MAPPED=$G9 ;;
+                "10") MAPPED=$G10 ;;
+                "11" | "all" | "ALL") MAPPED=$ALL_LIST ;;
+                *) MAPPED=$part ;; 
+              esac
+          
+              if [[ -z "$FINAL_ENGINES" ]]; then
+                  FINAL_ENGINES="$MAPPED"
               else
-                  test_engines_all="${test_engines_all}##${engine_tmp}|${test_job_index_tmp}"
-                  test_engines="${test_engines},{\"test-engine\":\"${engine_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+                  FINAL_ENGINES="$FINAL_ENGINES,$MAPPED"
               fi
           done
           
-          echo "${test_engines}"
-          echo "${test_engines_all}"
-          echo "test-engines={\"include\":[${test_engines}]}" >> $GITHUB_OUTPUT
-          echo test-engines-all="${test_engines_all}" >> $GITHUB_OUTPUT
+          # 3. 转换为 Matrix 结构
+          test_engines=""
+          test_engines_all=""
+          idx=1
+          for engine in $(echo "${FINAL_ENGINES}" | sed 's/,/ /g' ); do
+              formatted_idx=$(printf "%02d" $idx)
+              item="{\"test-engine\":\"$engine\",\"test-job-index\":\"$formatted_idx\"}"
+              if [[ -z "$test_engines" ]]; then
+                  test_engines="$item"
+                  test_engines_all="$engine|$formatted_idx"
+              else
+                  test_engines="$test_engines,$item"
+                  test_engines_all="$test_engines_all##$engine|$formatted_idx"
+              fi
+              idx=$((idx+1))
+          done
           
-          E2ETEST_BRANCH="${{ inputs.E2ETEST_BRANCH }}"
-          if [[ -z "$E2ETEST_BRANCH" ]]; then
-              E2ETEST_BRANCH="main"
-          fi
-          echo e2etest-branch="$E2ETEST_BRANCH" >> $GITHUB_OUTPUT
-          
-          CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
-          if [[ -z "$CLOUD_ENV_NAME" ]]; then
-              CLOUD_ENV_NAME="dev"
-          fi
-          echo cloud-env-name="$CLOUD_ENV_NAME" >> $GITHUB_OUTPUT
+          echo "test-engines={\"include\":[$test_engines]}" >> $GITHUB_OUTPUT
+          echo "test-engines-all=$test_engines_all" >> $GITHUB_OUTPUT
+          echo "cloud-env-name=$CLOUD_ENV" >> $GITHUB_OUTPUT
+          echo "current-version=$VERSION" >> $GITHUB_OUTPUT
+          echo "e2etest-branch=$BRANCH" >> $GITHUB_OUTPUT
   
 
   e2e-web-test:
     needs: [ get-test-engine ]
     name: ${{ matrix.test-engine }}
     strategy:
-      max-parallel: 2
+      max-parallel: 3
       fail-fast: false
       matrix: ${{ fromJSON(needs.get-test-engine.outputs.test-engines) }}
     outputs:
@@ -319,7 +390,7 @@ jobs:
                       printf "%s|%s", $2, $3
               }
           ')
-                     
+          
           TEST_RESULT=$(printf "###%s###%s\n" "$engine_type" "$body")
 
           if [[ -z "$TEST_RESULT" ]]; then
@@ -653,7 +724,7 @@ jobs:
           echo "TEST_RESULT_ALL:${TEST_RESULT_ALL}"
           
           TEST_TITLE="[${E2ETEST_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Web Test [${date_ret}]"
-          
+
           python3 .github/utils/send_mesage.py \
               --send-type playwright \
               --url "${{ vars.CLOUD_E2E_WEB_BOT_WEBHOOK }}" \
