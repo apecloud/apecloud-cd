@@ -5,7 +5,7 @@ on:
     inputs:
       TEST_ENGINES:
         description: >
-          Please enter or select an engine:
+          Test engines:
           1.postgresql,mysql,oracle,oceanbase,damengdb,kingbase,goldendb,tdsql,vastbase,tidb,gaussdb,sqlserver,greatdb
           2.clickhouse,starrocks,doris
           3.redis,mongodb,etcd
@@ -16,7 +16,7 @@ on:
           8.nebula
           9.oceanbase_proxy,zookeeper
           10.loki
-          11.all (执行上方所有项)
+          11.ALL
         type: string
         required: true
         default: 'all'
