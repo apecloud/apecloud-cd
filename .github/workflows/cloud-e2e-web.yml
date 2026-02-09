@@ -300,7 +300,6 @@ jobs:
           bash test/cloud/test_cloud_e2e_web.sh \
               --test-type smoke \
               --pod-index "${TEST_JOB_INDEX}" \
-              --cloud-version "${TEST_BRANCH}" \
               --release-version ${{ needs.get-test-engine.outputs.e2etest-branch }} | tee -a ${run_file_log}
           
           CLOUD_E2E_TEST_POD_NAME="$(cat ${run_file_log} | (grep '\[CLOUD-E2E-WEB-TEST-POD-NAME\]' || true) )"
