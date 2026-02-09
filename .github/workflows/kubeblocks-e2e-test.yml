@@ -1099,6 +1099,40 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-oceanbase-ent-distribution:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oceanbase-ent')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "44"
+      test-type-name: "oceanbase-ent-distribution"
+      test-args: "--service-version 4.2 --replicas 3 --topology distribution ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-oceanbase-ent-replication:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oceanbase-ent')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "44"
+      test-type-name: "oceanbase-ent-replication"
+      test-args: "--service-version 4.2 --replicas 2 --topology replication ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   test-starrocks-ent-3-4:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks-ent')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
@@ -1463,6 +1497,7 @@ jobs:
              test-milvus-2-5, test-milvus-2-3,
              test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
              test-tidb-8, test-tidb-7, test-tidb-6,
+             test-oceanbase-ent-distribution, test-oceanbase-ent-replication,
              test-starrocks-ent-3-4, test-starrocks-ent-3-3, test-starrocks-ent-3-2,
              test-minio-2025, test-minio-2024,
              test-kingbase-9, test-kingbase-8,
@@ -1585,6 +1620,14 @@ jobs:
             TEST_RESULT+=$(eval "$cmd")
             TEST_RESULT+="##tidb-6|${{ needs.test-tidb-6.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-tidb-6.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase-ent"* ]]; then
+            TEST_RESULT+="##oceanbase-ent-distribution|${{ needs.test-oceanbase-ent-distribution.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-oceanbase-ent-distribution.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##oceanbase-ent-replication|${{ needs.test-oceanbase-ent-replication.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-oceanbase-ent-replication.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
           fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"starrocks-ent"* ]]; then
