@@ -1829,7 +1829,7 @@ jobs:
         id: check_kubeblocks_e2e_test
         run: |
           CHECK_RESULT="0"
-          KUBEBLOCKS_VERSION="${{ ${{ inputs.KB_VERSION }} }}"
+          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
           KUBEBLOCKS_E2E_TEST_VERSION="${{ vars.KUBEBLOCKS_E2E_TEST_VERSION }}"
           KUBEBLOCKS_E2E_TEST_SKIP="${{ vars.KUBEBLOCKS_E2E_TEST_SKIP }}"
           if [[ -z "${{ inputs.INSTANCE_TYPE }}" || "${{ inputs.INSTANCE_TYPE }}" == "${KUBEBLOCKS_E2E_TEST_SKIP}"* || "${{ inputs.INSTANCE_TYPE }}" == *"|${KUBEBLOCKS_E2E_TEST_SKIP}"* ]]; then
