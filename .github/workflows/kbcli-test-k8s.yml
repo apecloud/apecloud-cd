@@ -1818,9 +1818,34 @@ jobs:
       region: ${{ inputs.REGION }}
     secrets: inherit
 
-  kubeblocks-e2e-test:
-    if: ${{ always() && needs.terraform-init-k8s.result == 'success' && needs.terraform-destroy-k8s.result == 'success' && contains(inputs.KB_VERSION, 'v1.0.') && ! contains(inputs.KB_VERSION, 'alpha') && ! contains(inputs.TEST_TYPE, 'mariadb') }}
+  check-kubeblocks-e2e-test:
+    if: ${{ always() && needs.terraform-init-k8s.result == 'success' && needs.terraform-destroy-k8s.result == 'success' && ! contains(inputs.KB_VERSION, 'alpha')}}
     needs: [ terraform-init-k8s, terraform-destroy-k8s ]
+    runs-on: ubuntu-latest
+    outputs:
+      check-result: ${{ steps.check_kubeblocks_e2e_test.outputs.check_result }}
+    steps:
+      - name: check kubeblocks e2e test
+        id: check_kubeblocks_e2e_test
+        run: |
+          CHECK_RESULT="0"
+          KUBEBLOCKS_VERSION="${{ ${{ inputs.KB_VERSION }} }}"
+          KUBEBLOCKS_E2E_TEST_VERSION="${{ vars.KUBEBLOCKS_E2E_TEST_VERSION }}"
+          KUBEBLOCKS_E2E_TEST_SKIP="${{ vars.KUBEBLOCKS_E2E_TEST_SKIP }}"
+          if [[ -z "${{ inputs.INSTANCE_TYPE }}" || "${{ inputs.INSTANCE_TYPE }}" == "${KUBEBLOCKS_E2E_TEST_SKIP}"* || "${{ inputs.INSTANCE_TYPE }}" == *"|${KUBEBLOCKS_E2E_TEST_SKIP}"* ]]; then
+              CHECK_RESULT="0"
+          elif [[ -n "${KUBEBLOCKS_E2E_TEST_VERSION}" && "${KUBEBLOCKS_VERSION}" == "${KUBEBLOCKS_E2E_TEST_VERSION}"* ]]; then 
+              CHECK_RESULT="1"
+          elif [[ -z "${KUBEBLOCKS_E2E_TEST_VERSION}" && "${KUBEBLOCKS_VERSION}" == "v1.0."* ]]; then 
+              CHECK_RESULT="1"
+          else
+              CHECK_RESULT="0"
+          fi
+          echo check_result="${CHECK_RESULT}" >> $GITHUB_OUTPUT
+
+  kubeblocks-e2e-test:
+    if: ${{ always() && needs.check-kubeblocks-e2e-test.result == 'success' && needs.check-kubeblocks-e2e-test.check-result == '1' }}
+    needs: [ check-kubeblocks-e2e-test ]
     uses: ./.github/workflows/trigger-workflow.yml
     with:
       GITHUB_REPO: "apecloud/apecloud-cd"
