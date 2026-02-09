@@ -2,9 +2,8 @@ name: Cloud E2E Web
 
 on:
   schedule:
-    # 北京时间 20:00 (UTC 12:00)
-    # 执行时间：周日(0), 周一(1), 周二(2), 周三(3), 周四(4), 周五(5)
-    - cron: '0 12 * * 0-5'
+    - cron: '0 12 * * 0-4' # Runs at 3:00 UTC on Mon to Friday
+    - cron: '0 12 * * 6' # Runs at 5:00 UTC on Sun
   workflow_dispatch:
     inputs:
       TEST_ENGINES:
