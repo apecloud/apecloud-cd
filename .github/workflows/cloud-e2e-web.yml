@@ -15,7 +15,7 @@ on:
           4.rabbitmq,kafka,rocketmq
           5.elasticsearch
           6.minio
-          7.tdengine,influxdb,victoriametrics
+          7.tdengine,influxdb,victoria_metrics
           8.nebula
           9.oceanbase_proxy,zookeeper
           10.loki
@@ -33,17 +33,12 @@ on:
           - idc4
       E2ETEST_BRANCH:
         description: "The e2etest branch name (e.g. main) "
-        type: string
-        required: false
-        default: 'main'
-      CURRENT_VERSION:
-        description: "The current release version (e.g. 0.30) "
         type: choice
         required: true
-        default: '0.30'
+        default: 'release-2.0'
         options:
-          - '0.30'
-          - '2.1'
+          - 'main'
+          - 'release-2.0'
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
@@ -66,11 +61,6 @@ on:
         type: string
         required: false
         default: 'main'
-      CURRENT_VERSION:
-        description: "The current release version (e.g. 0.30) "
-        type: string
-        required: false
-        default: ''
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
@@ -111,7 +101,7 @@ jobs:
           G4="rabbitmq,kafka,rocketmq"
           G5="elasticsearch"
           G6="minio"
-          G7="tdengine,influxdb,victoriametrics"
+          G7="tdengine,influxdb,victoria_metrics"
           G8="nebula"
           G9="oceanbase_proxy,zookeeper"
           G10="loki"
@@ -136,7 +126,6 @@ jobs:
           else
               RAW_INPUT="${{ inputs.TEST_ENGINES }}"
               CLOUD_ENV="${{ inputs.CLOUD_ENV_NAME }}"
-              VERSION="${{ inputs.CURRENT_VERSION }}"
               BRANCH="${{ inputs.E2ETEST_BRANCH }}"
           fi
           
@@ -187,7 +176,6 @@ jobs:
           echo "test-engines={\"include\":[$test_engines]}" >> $GITHUB_OUTPUT
           echo "test-engines-all=$test_engines_all" >> $GITHUB_OUTPUT
           echo "cloud-env-name=$CLOUD_ENV" >> $GITHUB_OUTPUT
-          echo "current-version=$VERSION" >> $GITHUB_OUTPUT
           echo "e2etest-branch=$BRANCH" >> $GITHUB_OUTPUT
   
 
@@ -195,7 +183,7 @@ jobs:
     needs: [ get-test-engine ]
     name: ${{ matrix.test-engine }}
     strategy:
-      max-parallel: 3
+      max-parallel: 2
       fail-fast: false
       matrix: ${{ fromJSON(needs.get-test-engine.outputs.test-engines) }}
     outputs:
@@ -306,16 +294,13 @@ jobs:
           echo "export TEST_ENGINES=${TEST_ENGINES}"
           export TEST_ENGINES=${TEST_ENGINES}
           
-          CLOUD_VERSION="${{ inputs.CURRENT_VERSION }}"
-          if [[ -n "${CLOUD_VERSION}" && "${CLOUD_VERSION}" == "v"* ]]; then
-              CLOUD_VERSION="${CLOUD_VERSION/v/}"
-          fi
-          
+          TEST_BRANCH="${{ inputs.E2ETEST_BRANCH }}"  
+
           # run cloud e2e web test
           bash test/cloud/test_cloud_e2e_web.sh \
               --test-type smoke \
               --pod-index "${TEST_JOB_INDEX}" \
-              --cloud-version "${CLOUD_VERSION}" \
+              --cloud-version "${TEST_BRANCH}" \
               --release-version ${{ needs.get-test-engine.outputs.e2etest-branch }} | tee -a ${run_file_log}
           
           CLOUD_E2E_TEST_POD_NAME="$(cat ${run_file_log} | (grep '\[CLOUD-E2E-WEB-TEST-POD-NAME\]' || true) )"
