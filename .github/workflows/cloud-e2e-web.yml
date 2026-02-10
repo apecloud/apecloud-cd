@@ -55,12 +55,12 @@ on:
         description: "The cloud env name of test (e.g. dev) "
         type: string
         required: false
-        default: 'dev'
+        default: 'idc1'
       E2ETEST_BRANCH:
         description: "The e2etest branch name (e.g. main) "
         type: string
         required: false
-        default: 'main'
+        default: 'release-2.0'
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
@@ -111,8 +111,7 @@ jobs:
           if [[ "${{ github.event_name }}" == "schedule" ]]; then
               WEEKDAY=$(date +%w) # 0=Sun, 1=Mon, ..., 5=Fri
               CLOUD_ENV="idc1"
-              VERSION="0.30"
-              BRANCH="main"
+              BRANCH="release-2.0"
           
               case $WEEKDAY in
                 0) RAW_INPUT="1,2" ;; # 周日执行 1,2
@@ -217,6 +216,11 @@ jobs:
       test-result-28: ${{ steps.get_test_result.outputs.test-result-28 }}
       test-result-29: ${{ steps.get_test_result.outputs.test-result-29 }}
       test-result-30: ${{ steps.get_test_result.outputs.test-result-30 }}
+      test-result-31: ${{ steps.get_test_result.outputs.test-result-31 }}
+      test-result-32: ${{ steps.get_test_result.outputs.test-result-32 }}
+      test-result-33: ${{ steps.get_test_result.outputs.test-result-33 }}
+      test-result-34: ${{ steps.get_test_result.outputs.test-result-34 }}
+      test-result-35: ${{ steps.get_test_result.outputs.test-result-35 }}
       test-date: ${{ steps.upload_test_result.outputs.test-date }}
     runs-on: ubuntu-latest
     steps:
@@ -234,12 +238,12 @@ jobs:
           path: ./apecloud-cd
           ref: ${{ inputs.APECD_REF }}
 
-      - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
+      - name: Configure ACK Context ${{ needs.get-test-engine.outputs.cloud-env-name }}
         id: cloud_env
         run: |
           mkdir -p $HOME/.kube
           touch $HOME/.kube/config
-          CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
+          CLOUD_ENV_NAME="${{ needs.get-test-engine.outputs.cloud-env-name }}"
           if [[ -z "$CLOUD_ENV_NAME" ]]; then
               CLOUD_ENV_NAME="dev"
           fi
@@ -294,13 +298,13 @@ jobs:
           echo "export TEST_ENGINES=${TEST_ENGINES}"
           export TEST_ENGINES=${TEST_ENGINES}
           
-          TEST_BRANCH="${{ inputs.E2ETEST_BRANCH }}"  
+          TEST_BRANCH="${{ needs.get-test-engine.outputs.e2etest-branch }}"  
 
           # run cloud e2e web test
           bash test/cloud/test_cloud_e2e_web.sh \
               --test-type smoke \
               --pod-index "${TEST_JOB_INDEX}" \
-              --release-version ${{ needs.get-test-engine.outputs.e2etest-branch }} | tee -a ${run_file_log}
+              --release-version "${TEST_BRANCH}" | tee -a ${run_file_log}
           
           CLOUD_E2E_TEST_POD_NAME="$(cat ${run_file_log} | (grep '\[CLOUD-E2E-WEB-TEST-POD-NAME\]' || true) )"
           if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" && "$CLOUD_E2E_TEST_POD_NAME" == "[CLOUD-E2E-WEB-TEST-POD-NAME]"* ]]; then
@@ -543,6 +547,31 @@ jobs:
                   echo "$TEST_RESULT" >> $GITHUB_OUTPUT
                   echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
+              31)
+                  echo "test-result-30<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
+              ;;
+              32)
+                  echo "test-result-30<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
+              ;;
+              33)
+                  echo "test-result-30<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
+              ;;
+              34)
+                  echo "test-result-30<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
+              ;;
+              35)
+                  echo "test-result-30<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "$TEST_RESULT" >> $GITHUB_OUTPUT
+                  echo "$delimiter" >> $GITHUB_OUTPUT
+              ;;
           esac  
           
           if [[ -n "$test_ret" ]]; then
@@ -693,6 +722,26 @@ jobs:
                   ;;
                   30)
                       TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-30 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}${TEST_RESULT}"
+                  ;;
+                  31)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-31 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}${TEST_RESULT}"
+                  ;;
+                  32)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-32 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}${TEST_RESULT}"
+                  ;;
+                  33)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-33 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}${TEST_RESULT}"
+                  ;;
+                  34)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-34 }}"
+                      TEST_RESULT_ALL="${TEST_RESULT_ALL}${TEST_RESULT}"
+                  ;;
+                  35)
+                      TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-35 }}"
                       TEST_RESULT_ALL="${TEST_RESULT_ALL}${TEST_RESULT}"
                   ;;
               esac
