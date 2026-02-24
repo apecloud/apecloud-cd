@@ -51,14 +51,15 @@ jobs:
               fi
           done
           echo "CHERRY_PICK_BRANCH:${CHERRY_PICK_BRANCH}"
-          
-          echo "matrix={\"include\":[$CHERRY_PICK_BRANCH]}" >> $GITHUB_OUTPUT
+          if [[ -n "${CHERRY_PICK_BRANCH}" ]]; then
+            echo "matrix={\"include\":[$CHERRY_PICK_BRANCH]}" >> $GITHUB_OUTPUT
+          fi
 
   comment:
     needs: [ pick-branch ]
+    if: ${{ needs.pick-branch.outputs.matrix != '' }}
     name: ${{ matrix.cherry-pick-branch }}
     runs-on: ubuntu-latest
-    if: ${{ needs.pick-branch.outputs.matrix != '' }}
     strategy:
       matrix: ${{ fromJSON(needs.pick-branch.outputs.matrix) }}
     steps:
