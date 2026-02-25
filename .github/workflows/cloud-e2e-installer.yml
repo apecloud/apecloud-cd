@@ -288,7 +288,7 @@ jobs:
               bash ${cloud_e2e_installer_script} &
           fi
           
-          for i in {1..200}; do
+          for i in {1..300}; do
               if kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" | grep Completed ; then
                   echo "KB Cloud Env is ready"
                   check_status=1
