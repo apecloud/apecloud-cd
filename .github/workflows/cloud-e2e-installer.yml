@@ -564,6 +564,7 @@ jobs:
                 --set images.cr4w.tag=${CLOUD_VERSION} \
                 --set images.openconsole.tag=${CLOUD_VERSION} \
                 --set images.openconsoleAdmin.tag=${CLOUD_VERSION} \
+                --set images.kubeblocksConsole.tag=${CLOUD_VERSION} \
                 --set images.hook.tag=${CLOUD_VERSION} \
                 --set images.cubetranFront.tag=${CLOUD_VERSION} \
                 --set grafana.global.imageRegistry='' \
@@ -576,6 +577,7 @@ jobs:
                 --set images.cr4w.tag=${CLOUD_VERSION} \
                 --set images.openconsole.tag=${CLOUD_VERSION} \
                 --set images.openconsoleAdmin.tag=${CLOUD_VERSION} \
+                --set images.kubeblocksConsole.tag=${CLOUD_VERSION} \
                 --set images.hook.tag=${CLOUD_VERSION} \
                 --set images.cubetranFront.tag=${CLOUD_VERSION} \
                 --reset-then-reuse-values
