@@ -1194,6 +1194,13 @@ get_cloud_pre_version() {
             break
         fi
     done
+    if [[ -z "$PRE_VERSION" ]]; then
+        case "$VERSION" in
+            v1.1.*)
+                PRE_VERSION="v1.0.101"
+            ;;
+        esac
+    fi
     echo "$PRE_VERSION"
 }
 
