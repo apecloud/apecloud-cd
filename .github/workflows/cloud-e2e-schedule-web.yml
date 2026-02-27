@@ -3,14 +3,38 @@ name: Cloud E2E Schedule Web
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 19 * * 0-4' # Runs at 3:00 UTC on Mon to Friday
+    - cron: '0 12 * * 0-4' # Runs at 3:00 UTC on Mon to Friday
+    - cron: '0 12 * * 6' # Runs at 5:00 UTC on Sun
 
 jobs:
+  get-test-engine:
+    runs-on: ubuntu-latest
+    outputs:
+      test-engines: ${{ steps.set_engines.outputs.test-engines }}
+    steps:
+      - name: Calculate Engines by Weekday
+        id: set_engines
+        run: |
+          export TZ='Asia/Shanghai'
+          WEEKDAY=$(date +%w) # 0=Sun, 1=Mon, ..., 6=Sat
+          
+          case $WEEKDAY in
+            0) RAW_INPUT="1,2" ;; # 周日执行 1,2
+            1) RAW_INPUT="3,4" ;; # 周一执行 3,4
+            2) RAW_INPUT="5,6" ;; # 周二执行 5,6
+            3) RAW_INPUT="7,8" ;; # 周三执行 7,8
+            4) RAW_INPUT="9,10" ;; # 周四执行 9,10
+            5) RAW_INPUT="all" ;; # 周五执行 ALL
+            *) RAW_INPUT="1,2" ;;
+          esac
+          
+          echo "test-engines=$RAW_INPUT" >> $GITHUB_OUTPUT
+
   release-e2e-image:
     strategy:
       fail-fast: false
       matrix:
-        branch-name: [ "main" ]
+        branch-name: [ "release-2.0", "release-2.1" ]
     uses: ./.github/workflows/release-image-cache.yml
     with:
       GITHUB_REPO: "apecloud/e2etest"
@@ -22,13 +46,20 @@ jobs:
       REMOVE_PREFIX: false
     secrets: inherit
 
-#  e2e-web-test-10:
-#    needs: [ release-e2e-image ]
-#    uses: ./.github/workflows/trigger-workflow.yml
-#    with:
-#      GITHUB_REPO: "apecloud/apecloud-cd"
-#      BRANCH_NAME: "main"
-#      WORKFLOW_ID: "cloud-e2e-web.yml"
-#      APECD_REF: "main"
-#      EXTRA_ARGS: "TEST_ENGINES=${{ vars.KB_CLOUD_WEB_TEST_ENGINES }}#CURRENT_VERSION=0.30#CLOUD_ENV_NAME=idc1#E2ETEST_BRANCH=main"
-#    secrets: inherit
+  e2e-web-test-10:
+    needs: [ get-test-engine, release-e2e-image ]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - branch-name: "release-2.0"
+            cloud-env: "idc1"
+          - branch-name: "release-2.1"
+            cloud-env: "idc4"
+    uses: ./.github/workflows/cloud-e2e-web.yml
+    with:
+      TEST_ENGINES: ${{ needs.get-test-engine.outputs.test-engines }}
+      CLOUD_ENV_NAME: ${{ matrix.cloud-env }}
+      E2ETEST_BRANCH: ${{ matrix.branch-name }}
+      APECD_REF: "main"
+    secrets: inherit
