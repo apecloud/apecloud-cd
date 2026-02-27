@@ -1,9 +1,6 @@
 name: Cloud E2E Web
 
 on:
-  schedule:
-    - cron: '0 12 * * 0-4' # Runs at 3:00 UTC on Mon to Friday
-    - cron: '0 12 * * 6' # Runs at 5:00 UTC on Sun
   workflow_dispatch:
     inputs:
       TEST_ENGINES:
@@ -37,7 +34,7 @@ on:
         required: true
         default: 'release-2.0'
         options:
-          - 'main'
+          - 'release-2.1'
           - 'release-2.0'
       APECD_REF:
         description: "The branch name of apecloud-cd"
@@ -67,7 +64,7 @@ on:
         required: false
         default: 'main'
 
-run-name: Cloud E2E Web Test on IDC:${{ inputs.CLOUD_ENV_NAME }} ${{ inputs.TEST_ENGINES }} Ref:${{ inputs.E2ETEST_BRANCH }}
+run-name: Cloud E2E Web Test on IDC:${{ inputs.E2ETEST_BRANCH }} ${{ inputs.TEST_ENGINES }} Ref:${{ inputs.E2ETEST_BRANCH }}
 
 env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
@@ -107,26 +104,10 @@ jobs:
           G10="loki"
           ALL_LIST="${G1},${G2},${G3},${G4},${G5},${G6},${G7},${G8},${G9},${G10}"
           
-          # 1. 处理触发源
-          if [[ "${{ github.event_name }}" == "schedule" ]]; then
-              WEEKDAY=$(date +%w) # 0=Sun, 1=Mon, ..., 5=Fri
-              CLOUD_ENV="idc1"
-              BRANCH="release-2.0"
-          
-              case $WEEKDAY in
-                0) RAW_INPUT="1,2" ;; # 周日执行 1,2
-                1) RAW_INPUT="3,4" ;; # 周一执行 3,4
-                2) RAW_INPUT="5,6" ;; # 周二执行 5,6
-                3) RAW_INPUT="7,8" ;; # 周三执行 7,8
-                4) RAW_INPUT="9,10" ;; # 周四执行 9,10
-                5) RAW_INPUT="all" ;; # 周五执行 ALL
-                *) RAW_INPUT="1,2" ;;
-              esac
-          else
-              RAW_INPUT="${{ inputs.TEST_ENGINES }}"
-              CLOUD_ENV="${{ inputs.CLOUD_ENV_NAME }}"
-              BRANCH="${{ inputs.E2ETEST_BRANCH }}"
-          fi
+          # 1. 获取输入参数
+          RAW_INPUT="${{ inputs.TEST_ENGINES }}"
+          CLOUD_ENV="${{ inputs.CLOUD_ENV_NAME }}"
+          BRANCH="${{ inputs.E2ETEST_BRANCH }}"
           
           # 2. 将编号/关键字映射为实际引擎列表
           FINAL_ENGINES=""
