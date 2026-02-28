@@ -1851,18 +1851,24 @@ jobs:
       - name: check kubeblocks e2e test
         id: check_kubeblocks_e2e_test
         run: |
+          TEST_TYPE="${{ inputs.TEST_TYPE }}"
           CHECK_RESULT="0"
           KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
           KUBEBLOCKS_E2E_TEST_VERSION="${{ vars.KUBEBLOCKS_E2E_TEST_VERSION }}"
           KUBEBLOCKS_E2E_TEST_SKIP="${{ vars.KUBEBLOCKS_E2E_TEST_SKIP }}"
-          if [[ -z "${{ inputs.INSTANCE_TYPE }}" || "${{ inputs.INSTANCE_TYPE }}" == "${KUBEBLOCKS_E2E_TEST_SKIP}"* || "${{ inputs.INSTANCE_TYPE }}" == *"|${KUBEBLOCKS_E2E_TEST_SKIP}"* ]]; then
+          if [[ -z "${TEST_TYPE}" || (-n "${KUBEBLOCKS_E2E_TEST_SKIP}" 
+              && ("${TEST_TYPE}" == "${KUBEBLOCKS_E2E_TEST_SKIP}"* || "${TEST_TYPE}" == *"|${KUBEBLOCKS_E2E_TEST_SKIP}"*)) ]]; then
               CHECK_RESULT="0"
+              echo "CHECK_RESULT1: ${CHECK_RESULT}"
           elif [[ -n "${KUBEBLOCKS_E2E_TEST_VERSION}" && "${KUBEBLOCKS_VERSION}" == "${KUBEBLOCKS_E2E_TEST_VERSION}"* ]]; then 
               CHECK_RESULT="1"
+              echo "CHECK_RESULT2: ${CHECK_RESULT}"
           elif [[ -z "${KUBEBLOCKS_E2E_TEST_VERSION}" && "${KUBEBLOCKS_VERSION}" == "v1.0."* ]]; then 
               CHECK_RESULT="1"
+              echo "CHECK_RESULT3: ${CHECK_RESULT}"
           else
               CHECK_RESULT="0"
+              echo "CHECK_RESULT4: ${CHECK_RESULT}"
           fi
           echo check_result="${CHECK_RESULT}" >> $GITHUB_OUTPUT
 
