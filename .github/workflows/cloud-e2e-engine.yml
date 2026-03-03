@@ -197,6 +197,11 @@ jobs:
   e2e-cluster-clear:
     needs: [ get-test-engine ]
     runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        kb-cloud-test-org: [ "e2e-test", "e2e-web" ]
     steps:
       - name: Checkout testinfra Code
         uses: actions/checkout@v4
@@ -282,6 +287,8 @@ jobs:
               echo "$eval_cmd"
               eval "$eval_cmd"
           done
+          echo "export KB_CLOUD_TEST_ORG=${{ matrix.kb-cloud-test-org }}"
+          export KB_CLOUD_TEST_ORG=${{ matrix.kb-cloud-test-org }}
           
           CLOUD_TEST_ENV="${{ inputs.CLOUD_TEST_ENV }}"
           if [[ -n "${CLOUD_TEST_ENV}" ]]; then
