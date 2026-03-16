@@ -28,14 +28,14 @@ on:
         options:
           - idc1
           - idc4
-      E2ETEST_BRANCH:
-        description: "The e2etest branch name (e.g. main) "
+      CLOUD_VERSION:
+        description: "The version of apecloud (e.g. 0.30) "
         type: choice
         required: true
-        default: 'release-2.0'
+        default: '0.30'
         options:
-          - 'release-2.1'
-          - 'release-2.0'
+          - '0.30'
+          - '2.1'
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
@@ -53,18 +53,18 @@ on:
         type: string
         required: false
         default: 'idc1'
-      E2ETEST_BRANCH:
-        description: "The e2etest branch name (e.g. main) "
+      CLOUD_VERSION:
+        description: "The version of apecloud (e.g. 0.30) "
         type: string
         required: false
-        default: 'release-2.0'
+        default: '0.30'
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
         required: false
         default: 'main'
 
-run-name: Cloud E2E Web Test on IDC:${{ inputs.E2ETEST_BRANCH }} ${{ inputs.TEST_ENGINES }} Ref:${{ inputs.E2ETEST_BRANCH }}
+run-name: Cloud E2E Web Test on:${{ inputs.CLOUD_VERSION }} ${{ inputs.TEST_ENGINES }} Ref:${{ inputs.APECD_REF }}
 
 env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
@@ -81,7 +81,7 @@ jobs:
     outputs:
       test-engines: ${{ steps.get_test_engine.outputs.test-engines }}
       test-engines-all: ${{ steps.get_test_engine.outputs.test-engines-all }}
-      e2etest-branch: ${{ steps.get_test_engine.outputs.e2etest-branch }}
+      cloud-version: ${{ steps.get_test_engine.outputs.cloud-version }}
       cloud-env-name: ${{ steps.get_test_engine.outputs.cloud-env-name }}
       test-date: ${{ steps.get_test_engine.outputs.test-date }}
     steps:
@@ -92,22 +92,22 @@ jobs:
           echo "test-date=$(date +%Y%m%d)" >> $GITHUB_OUTPUT
           
           # 定义预设组
-          G1="postgresql,mysql,oracle,oceanbase,damengdb,kingbase,goldendb,tdsql,vastbase,tidb,gaussdb,sqlserver,greatdb"
-          G2="clickhouse,starrocks,doris"
-          G3="redis,mongodb,etcd"
-          G4="rabbitmq,kafka,rocketmq"
-          G5="elasticsearch"
-          G6="minio"
-          G7="tdengine,influxdb,victoria_metrics"
-          G8="nebula"
-          G9="oceanbase_proxy,zookeeper"
-          G10="loki"
+          G1="postgresql,mysql,damengdb,kingbase"
+          G2="oracle,oceanbase,goldendb"
+          G3="tdsql,vastbase,tidb"
+          G4="gaussdb,sqlserver,greatdb"
+          G5="clickhouse,starrocks,doris"
+          G6="redis,mongodb,etcd"
+          G7="rabbitmq,kafka,rocketmq"
+          G8="elasticsearch,minio,tdengine"
+          G9=",influxdb,victoria_metrics,nebula"
+          G10="oceanbase_proxy,zookeeper,loki"
           ALL_LIST="${G1},${G2},${G3},${G4},${G5},${G6},${G7},${G8},${G9},${G10}"
           
           # 1. 获取输入参数
           RAW_INPUT="${{ inputs.TEST_ENGINES }}"
           CLOUD_ENV="${{ inputs.CLOUD_ENV_NAME }}"
-          BRANCH="${{ inputs.E2ETEST_BRANCH }}"
+          CLOUD_VERSION="${{ inputs.CLOUD_VERSION }}"
           
           # 2. 将编号/关键字映射为实际引擎列表
           FINAL_ENGINES=""
@@ -156,7 +156,7 @@ jobs:
           echo "test-engines={\"include\":[$test_engines]}" >> $GITHUB_OUTPUT
           echo "test-engines-all=$test_engines_all" >> $GITHUB_OUTPUT
           echo "cloud-env-name=$CLOUD_ENV" >> $GITHUB_OUTPUT
-          echo "e2etest-branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "cloud-version=$CLOUD_VERSION" >> $GITHUB_OUTPUT
   
 
   e2e-web-test:
@@ -279,13 +279,13 @@ jobs:
           echo "export TEST_ENGINES=${TEST_ENGINES}"
           export TEST_ENGINES=${TEST_ENGINES}
           
-          TEST_BRANCH="${{ needs.get-test-engine.outputs.e2etest-branch }}"  
+          CLOUD_VERSION="${{ needs.get-test-engine.outputs.cloud-version }}"  
 
           # run cloud e2e web test
           bash test/cloud/test_cloud_e2e_web.sh \
               --test-type smoke \
               --pod-index "${TEST_JOB_INDEX}" \
-              --release-version "${TEST_BRANCH}" | tee -a ${run_file_log}
+              --cloud-version "${CLOUD_VERSION}" | tee -a ${run_file_log}
           
           CLOUD_E2E_TEST_POD_NAME="$(cat ${run_file_log} | (grep '\[CLOUD-E2E-WEB-TEST-POD-NAME\]' || true) )"
           if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" && "$CLOUD_E2E_TEST_POD_NAME" == "[CLOUD-E2E-WEB-TEST-POD-NAME]"* ]]; then
@@ -575,7 +575,7 @@ jobs:
         run: |
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
-          E2ETEST_BRANCH="${{ needs.get-test-engine.outputs.e2etest-branch }}"
+          CLOUD_VERSION="${{ needs.get-test-engine.outputs.cloud-version }}"
           CLOUD_ENV_NAME="${{ needs.get-test-engine.outputs.cloud-env-name }}"
           TEST_ENGINES_ALL="${{ needs.get-test-engine.outputs.test-engines-all }}"
           TEST_DATE=${{ needs.get-test-engine.outputs.test-date }}
@@ -736,7 +736,7 @@ jobs:
               --run-id "$GITHUB_RUN_ID" )
           echo "TEST_RESULT_ALL:${TEST_RESULT_ALL}"
           
-          TEST_TITLE="[${E2ETEST_BRANCH}][${CLOUD_ENV_NAME}] Cloud E2E Web Test [${date_ret}]"
+          TEST_TITLE="[${CLOUD_VERSION}][${CLOUD_ENV_NAME}] Cloud E2E Web Test [${date_ret}]"
 
           python3 .github/utils/send_mesage.py \
               --send-type playwright \

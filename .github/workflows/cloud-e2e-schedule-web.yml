@@ -25,20 +25,15 @@ jobs:
             3) RAW_INPUT="7,8" ;; # 周三执行 7,8
             4) RAW_INPUT="9,10" ;; # 周四执行 9,10
             5) RAW_INPUT="all" ;; # 周五执行 ALL
-            *) RAW_INPUT="1,2" ;;
           esac
           
           echo "test-engines=$RAW_INPUT" >> $GITHUB_OUTPUT
 
   release-e2e-image:
-    strategy:
-      fail-fast: false
-      matrix:
-        branch-name: [ "release-2.0", "release-2.1" ]
     uses: ./.github/workflows/release-image-cache.yml
     with:
       GITHUB_REPO: "apecloud/e2etest"
-      GITHUB_REF: "${{ matrix.branch-name }}"
+      GITHUB_REF: "main"
       IMG: "apecloud/e2e-web"
       CONTEXT: "./web"
       DOCKERFILE_PATH: "./web/Dockerfile.code"
@@ -52,14 +47,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - branch-name: "release-2.0"
+          - cloud-version: "0.30"
             cloud-env: "idc1"
-          - branch-name: "release-2.1"
+          - cloud-version: "2.1"
             cloud-env: "idc4"
     uses: ./.github/workflows/cloud-e2e-web.yml
     with:
       TEST_ENGINES: ${{ needs.get-test-engine.outputs.test-engines }}
       CLOUD_ENV_NAME: ${{ matrix.cloud-env }}
-      E2ETEST_BRANCH: ${{ matrix.branch-name }}
+      CLOUD_VERSION: ${{ matrix.cloud-version }}
       APECD_REF: "main"
     secrets: inherit
