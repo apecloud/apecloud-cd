@@ -982,6 +982,24 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-camellia-redis-proxy:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'camellia-redis-proxy')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "49"
+      test-type-name: "camellia-redis-proxy"
+      test-args: "${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   test-dmdb:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'dmdb')) && contains(inputs.KB_VERSION, 'v0.9.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
@@ -1360,6 +1378,42 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-foundationdb:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'foundationdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "73"
+      test-type-name: "foundationdb"
+      test-args: "${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-selectdb:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'selectdb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "74"
+      test-type-name: "selectdb"
+      test-args: "${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
@@ -1375,11 +1429,11 @@ jobs:
              test-vanilla-pg, test-ggml, test-zookeeper, test-mariadb , test-tidb,
              test-xinference, test-oracle , test-opengauss, test-influxdb, test-flink,
              test-solr, test-doris, test-mogdb, test-oceanbase-ent, test-starrocks-ent,
-             test-yashandb, test-redis-cluster, test-dmdb, test-minio, test-orchestrator,
+             test-yashandb, test-redis-cluster, test-camellia-redis-proxy, test-dmdb, test-minio, test-orchestrator,
              test-rabbitmq, test-loki, test-victoria-metrics, test-gaussdb, test-damengdb,
              test-kingbase, test-vastbase, test-mssql, test-rocketmq, test-goldendb,
              test-tdsql, test-greatsql, test-greatdb, test-hadoop, test-hive,
-             test-oceanbase-proxy, test-nacos, test-vault ]
+             test-oceanbase-proxy, test-nacos, test-vault, test-foundationdb, test-selectdb ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1691,6 +1745,11 @@ jobs:
             fi
           fi
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* && "${{ inputs.KB_VERSION }}" != "v0.9."* ]]; then
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"camellia-redis-proxy"* ]]; then
+              TEST_RESULT+="##camellia-redis-proxy|${{ needs.test-camellia-redis-proxy.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-camellia-redis-proxy.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"doris"* ]]; then
               TEST_RESULT+="##doris|${{ needs.test-doris.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-doris.outputs.test-result-report }}\" "
@@ -1734,6 +1793,16 @@ jobs:
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"vault"* ]]; then
               TEST_RESULT+="##vault|${{ needs.test-vault.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-vault.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"foundationdb"* ]]; then
+              TEST_RESULT+="##foundationdb|${{ needs.test-foundationdb.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-foundationdb.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"selectdb"* ]]; then
+              TEST_RESULT+="##selectdb|${{ needs.test-selectdb.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-selectdb.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
           fi
@@ -1873,7 +1942,7 @@ jobs:
           echo check_result="${CHECK_RESULT}" >> $GITHUB_OUTPUT
 
   kubeblocks-e2e-test:
-    if: ${{ always() && needs.check-kubeblocks-e2e-test.result == 'success' && needs.check-kubeblocks-e2e-test.check-result == '1' }}
+    if: ${{ always() && needs.check-kubeblocks-e2e-test.result == 'success' && needs.check-kubeblocks-e2e-test.outputs.check-result == '1' }}
     needs: [ check-kubeblocks-e2e-test ]
     uses: ./.github/workflows/trigger-workflow.yml
     with:
