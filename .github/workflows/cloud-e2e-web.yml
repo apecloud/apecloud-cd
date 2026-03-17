@@ -738,8 +738,8 @@ jobs:
           
           TEST_TITLE="[${CLOUD_VERSION}][${CLOUD_ENV_NAME}] Cloud E2E Web Test [${date_ret}]"
 
-          python3 .github/utils/send_mesage.py \
-              --send-type playwright \
-              --url "${{ vars.CLOUD_E2E_WEB_BOT_WEBHOOK }}" \
-              --title "$TEST_TITLE" \
-              --result "${TEST_RESULT_ALL}"
+#          python3 .github/utils/send_mesage.py \
+#              --send-type playwright \
+#              --url "${{ vars.CLOUD_E2E_WEB_BOT_WEBHOOK }}" \
+#              --title "$TEST_TITLE" \
+#              --result "${TEST_RESULT_ALL}"
