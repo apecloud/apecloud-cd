@@ -128,6 +128,12 @@ on:
         type: boolean
         required: false
         default: true
+      TIMEOUT_MINUTES:
+        description: "The timeout minutes of workflow"
+        type: number
+        required: false
+        default: 360
+
 
 env:
   DOCKER_REGISTRY_URL: docker.io
@@ -178,6 +184,7 @@ jobs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
     steps:
       - name: Free disk space
+        timeout-minutes: ${{ inputs.TIMEOUT_MINUTES }}
         continue-on-error: true
         run: |
           TARGETS="${{ inputs.MAKE_ARGS }}"
