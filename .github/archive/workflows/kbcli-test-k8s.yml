@@ -113,6 +113,19 @@ permissions:
   contents: write
 
 jobs:
+  test-playground:
+    if: ${{ inputs.TEST_TYPE == '' && inputs.KB_PRE_VERSION == '' && inputs.CLOUD_PROVIDER != 'vke' && inputs.CLOUD_PROVIDER != 'aks' }}
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "4"
+      test-type-name: "playground"
+      test-args: "${{ inputs.ARGS }}"
+      branch-name: ${{ inputs.BRANCH_NAME }}
+    secrets: inherit
+
   terraform-init-k8s:
     uses: ./.github/workflows/terraform-init.yml
     with:
@@ -1401,32 +1414,26 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
-  get-result:
-    if: ${{ always() }}
-    runs-on: ubuntu-latest
-    outputs:
-      test-result: ${{ steps.get_result.outputs.test-result }}
-    needs: [ test-kubeblocks ]
-    steps:
-      - name: get result
-        id: get_result
-        run: |
-          TEST_RESULT="install-kubeblocks|${{ needs.test-kubeblocks.outputs.test-result }}"
-          echo test-result="${TEST_RESULT}" >> $GITHUB_OUTPUT
-
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
     outputs:
       test-date: ${{ steps.upload_test_result.outputs.test-date }}
-    needs: [ get-result, test-apecloud-mysql, test-postgresql, test-redis, test-mongodb, test-mongodb-shard,
-             test-kafka, test-pulsar, test-weaviate, test-qdrant, test-greptimedb, test-nebula, test-risingwave,
-             test-starrocks, test-etcd, test-oceanbase, test-asmysql, test-asmysql-proxy, test-asmysql-orc,
-             test-asmysql-orc-proxy, test-postgresql-etcd, test-openldap, test-polardbx, test-milvus,
-             test-clickhouse, test-opensearch, test-elasticsearch, test-vllm, test-orioledb, test-vanilla-pg,
-             test-ggml, test-zookeeper, test-mariadb , test-tidb, test-xinference, test-opengauss, test-influxdb,
-             test-flink, test-solr, test-mogdb, test-yashandb, test-redis-cluster,test-dmdb, test-minio,
-             test-orchestrator, test-rabbitmq, test-loki, test-victoria-metrics, test-rocketmq, test-greatsql ]
+    needs: [ test-playground, test-kubeblocks, test-apecloud-mysql, test-postgresql, test-redis,
+             test-mongodb, test-mongodb-shard, test-kafka, test-pulsar, test-weaviate, test-qdrant,
+             test-greptimedb, test-nebula, test-risingwave, test-starrocks,
+             test-etcd, test-oceanbase, test-asmysql, test-asmysql-proxy,
+             test-asmysql-orc, test-asmysql-orc-proxy, test-postgresql-etcd,
+             test-openldap, test-polardbx, test-tdengine, test-milvus, test-clickhouse,
+             test-opensearch, test-elasticsearch, test-vllm, test-orioledb,
+             test-vanilla-pg, test-ggml, test-zookeeper, test-mariadb , test-tidb,
+             test-xinference, test-oracle , test-opengauss, test-influxdb, test-flink,
+             test-solr, test-doris, test-mogdb, test-oceanbase-ent, test-starrocks-ent,
+             test-yashandb, test-redis-cluster, test-camellia-redis-proxy, test-dmdb, test-minio, test-orchestrator,
+             test-rabbitmq, test-loki, test-victoria-metrics, test-gaussdb, test-damengdb,
+             test-kingbase, test-vastbase, test-mssql, test-rocketmq, test-goldendb,
+             test-tdsql, test-greatsql, test-greatdb, test-hadoop, test-hive,
+             test-oceanbase-proxy, test-nacos, test-vault, test-foundationdb, test-selectdb ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1438,7 +1445,7 @@ jobs:
         run: |
           TEST_TYPE="${{ inputs.TEST_TYPE }}"
           cmd_head="bash .github/utils/utils.sh --type 36 --test-result "
-          TEST_RESULT="${{ needs.get-result.outputs.test-result }}"
+          TEST_RESULT="playground|${{ needs.test-playground.outputs.test-result }}##install-kubeblocks|${{ needs.test-kubeblocks.outputs.test-result }}"
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"apecloud-mysql"* ]]; then
             TEST_RESULT+="##apecloud-mysql|${{ needs.test-apecloud-mysql.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-apecloud-mysql.outputs.test-result-report }}\" "
@@ -1547,6 +1554,11 @@ jobs:
               cmd="${cmd_head} \"${{ needs.test-elasticsearch.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"tdengine"* ]]; then
+              TEST_RESULT+="##tdengine|${{ needs.test-tdengine.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-tdengine.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"vllm"* ]]; then
               TEST_RESULT+="##vllm|${{ needs.test-vllm.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-vllm.outputs.test-result-report }}\" "
@@ -1589,6 +1601,11 @@ jobs:
               cmd="${cmd_head} \"${{ needs.test-xinference.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oracle|"* || "$TEST_TYPE" == *"oracle" ]]; then
+              TEST_RESULT+="##oracle|${{ needs.test-oracle.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-oracle.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"opengauss"* ]]; then
               TEST_RESULT+="##opengauss|${{ needs.test-opengauss.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-opengauss.outputs.test-result-report }}\" "
@@ -1619,6 +1636,21 @@ jobs:
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"solr"* ]]; then
               TEST_RESULT+="##solr|${{ needs.test-solr.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-solr.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase-ent"* ]]; then
+              TEST_RESULT+="##oceanbase-ent|${{ needs.test-oceanbase-ent.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-oceanbase-ent.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase-proxy"* ]]; then
+              TEST_RESULT+="##oceanbase-proxy|${{ needs.test-oceanbase-proxy.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-oceanbase-proxy.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"starrocks-ent"* ]]; then
+              TEST_RESULT+="##starrocks-ent|${{ needs.test-starrocks-ent.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-starrocks-ent.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"yashandb"* ]]; then
@@ -1656,180 +1688,6 @@ jobs:
               cmd="${cmd_head} \"${{ needs.test-victoria-metrics.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
-            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"rocketmq"* ]]; then
-              TEST_RESULT+="##rocketmq|${{ needs.test-rocketmq.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-rocketmq.outputs.test-result-report }}\" "
-              TEST_RESULT+=$(eval "$cmd")
-            fi
-            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"greatsql"* ]]; then
-              TEST_RESULT+="##greatsql|${{ needs.test-greatsql.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-greatsql.outputs.test-result-report }}\" "
-              TEST_RESULT+=$(eval "$cmd")
-            fi
-            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mongodb-shard"* ]]; then
-              TEST_RESULT+="##mongodb-shard|${{ needs.test-mongodb-shard.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-mongodb-shard.outputs.test-result-report }}\" "
-              TEST_RESULT+=$(eval "$cmd")
-            fi
-          fi
-          if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* && "${{ inputs.KB_VERSION }}" != "v0.9."* ]]; then
-            if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"postgresql-etcd|"* || "$TEST_TYPE" == *"postgresql-etcd") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
-              TEST_RESULT+="##postgresql-etcd|${{ needs.test-postgresql-etcd.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-postgresql-etcd.outputs.test-result-report }}\" "
-              TEST_RESULT+=$(eval "$cmd")
-            fi
-            if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"asmysql-proxy|"* || "$TEST_TYPE" == *"asmysql-proxy") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
-              TEST_RESULT+="##asmysql-proxy|${{ needs.test-asmysql-proxy.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-asmysql-proxy.outputs.test-result-report }}\" "
-              TEST_RESULT+=$(eval "$cmd")
-            fi
-            if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"asmysql-orc|"* || "$TEST_TYPE" == *"asmysql-orc") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
-              TEST_RESULT+="##asmysql-orc|${{ needs.test-asmysql-orc.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-asmysql-orc.outputs.test-result-report }}\" "
-              TEST_RESULT+=$(eval "$cmd")
-            fi
-            if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"asmysql-orc-proxy|"* || "$TEST_TYPE" == *"asmysql-orc-proxy") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
-              TEST_RESULT+="##asmysql-orc-proxy|${{ needs.test-asmysql-orc-proxy.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-asmysql-orc-proxy.outputs.test-result-report }}\" "
-              TEST_RESULT+=$(eval "$cmd")
-            fi
-          fi
-          
-          TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
-            --github-repo "${{ github.repository }}" \
-            --github-token "${{ env.GITHUB_TOKEN }}" \
-            --test-result "${TEST_RESULT}" \
-            --run-id "$GITHUB_RUN_ID" )
-          
-          export TZ='Asia/Shanghai'
-          date_ret=$(date +%Y-%m-%d-%T)
-          test_title="[${{ inputs.KB_VERSION }}] KubeBlocks Test on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
-          
-          if [[ -n "${{ inputs.ARGS }}" && "${{ inputs.ARGS }}" == *"--only-kubectl true"* ]]; then
-            test_title="[${{ inputs.KB_VERSION }}] Test KB-Addons Examples on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${date_ret}]"
-          fi
-          
-          if [[ -n "${{ inputs.KB_PRE_VERSION }}" ]]; then
-            test_title="[${{ inputs.KB_PRE_VERSION }}] upgrade to "$test_title
-          fi
-          echo $TEST_RESULT
-          python3 .github/utils/send_mesage.py \
-            --send-type kbcli \
-            --url "${{ vars.TEST_BOT_WEBHOOK }}" \
-            --title "$test_title" \
-            --result "$TEST_RESULT"
-
-      - name: Setup ossutil
-        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
-        uses: manyuanrong/setup-ossutil@v2.0
-        with:
-          access-key-id: "${{ env.OSS_KEY_ID }}"
-          access-key-secret: "${{ env.OSS_KEY_SECRET }}"
-          endpoint: "${{ env.OSS_ENDPOINT }}"
-
-      - name: Upload test result log to oss
-        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
-        id: upload_test_result
-        run:
-          export TZ='Asia/Shanghai'
-          TEST_DATE="$(date +%Y%m%d)"
-          echo test-date=${TEST_DATE} >> $GITHUB_OUTPUT
-          
-          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
-          OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}/${TEST_DATE}"
-          upload_file_name="TEST_RESULT_LOGS.txt"
-          
-          for i in $(seq 1 3); do
-              ossutil cp -rf "${OSS_DIR}/${upload_file_name}" ./
-              download_ret=$?
-              if [[ $download_ret -eq 0 ]]; then
-                  break
-              fi
-              sleep 1
-          done
-          
-          test_result_report_output_file_log="test-result-report-output.log"
-          if [[ -f ${test_result_report_output_file_log} ]]; then
-              cat ${test_result_report_output_file_log}
-              if [[ ! -f ${upload_file_name} ]]; then
-                  touch ${upload_file_name}
-              else
-                  echo "" >> ${upload_file_name}
-              fi
-              cat ${test_result_report_output_file_log} >> ${upload_file_name}
-          
-              for i in $(seq 1 3); do
-                  ossutil cp -rf "${upload_file_name}" "${OSS_DIR}/${upload_file_name}"
-                  upload_ret=$?
-                  if [[ $upload_ret -eq 0 ]]; then
-                      echo "$(tput -T xterm setaf 2)upload ${upload_file_name} to oss successfully$(tput -T xterm sgr0)"
-                      break
-                  else
-                      echo "$(tput -T xterm setaf 3)::warning title=upload ${upload_file_name} to oss failure$(tput -T xterm sgr0)"
-                  fi
-                  sleep 1
-              done
-          fi
-
-      - name: send message
-        if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
-        run: |
-          TEST_DATE=${{ steps.upload_test_result.outputs.test-date }}
-          KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
-          OSS_URL="https://${{ env.OSS_BUCKET }}.${{ env.OSS_ENDPOINT }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}/${TEST_DATE}"
-          test_result_file_name="TEST_RESULT_LOGS.txt"
-          TEST_RESULT="${test_result_file_name}|${OSS_URL}/${test_result_file_name}"
-          
-          REPORT_BOT_WEBHOOK="${{ vars.REPORT_BOT_WEBHOOK }}"
-          test_title="[${KUBEBLOCKS_VERSION}] KubeBlocks Test Report on ${{ inputs.CLOUD_PROVIDER }}:${{ inputs.CLUSTER_VERSION }}:${{ inputs.INSTANCE_TYPE }} [${TEST_DATE}]"
-          python3 .github/utils/send_mesage.py \
-              --url "${REPORT_BOT_WEBHOOK}" \
-              --title "$test_title" \
-              --result "$TEST_RESULT" \
-              --send-type "report"
-
-  send-message-ent:
-    if: ${{ always() }}
-    runs-on: ubuntu-latest
-    outputs:
-      test-date: ${{ steps.upload_test_result.outputs.test-date }}
-    needs: [ get-result, test-tdengine, test-oracle, test-doris, test-oceanbase-ent, test-starrocks-ent,
-             test-camellia-redis-proxy, test-gaussdb, test-damengdb, test-kingbase, test-vastbase,
-             test-mssql, test-goldendb, test-tdsql, test-greatdb, test-hadoop, test-hive, test-oceanbase-proxy,
-             test-nacos, test-vault, test-foundationdb, test-selectdb ]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud-cd
-          path: ./
-          ref: ${{ inputs.APECD_REF }}
-
-      - name: send message
-        run: |
-          TEST_TYPE="${{ inputs.TEST_TYPE }}"
-          cmd_head="bash .github/utils/utils.sh --type 36 --test-result "
-          TEST_RESULT="${{ needs.get-result.outputs.test-result }}"
-          if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* ]]; then
-            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oracle|"* || "$TEST_TYPE" == *"oracle" ]]; then
-              TEST_RESULT+="##oracle|${{ needs.test-oracle.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-oracle.outputs.test-result-report }}\" "
-              TEST_RESULT+=$(eval "$cmd")
-            fi
-            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase-ent"* ]]; then
-              TEST_RESULT+="##oceanbase-ent|${{ needs.test-oceanbase-ent.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-oceanbase-ent.outputs.test-result-report }}\" "
-              TEST_RESULT+=$(eval "$cmd")
-            fi
-            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase-proxy"* ]]; then
-              TEST_RESULT+="##oceanbase-proxy|${{ needs.test-oceanbase-proxy.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-oceanbase-proxy.outputs.test-result-report }}\" "
-              TEST_RESULT+=$(eval "$cmd")
-            fi
-            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"starrocks-ent"* ]]; then
-              TEST_RESULT+="##starrocks-ent|${{ needs.test-starrocks-ent.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-starrocks-ent.outputs.test-result-report }}\" "
-              TEST_RESULT+=$(eval "$cmd")
-            fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"gaussdb"* ]]; then
               TEST_RESULT+="##gaussdb|${{ needs.test-gaussdb.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-gaussdb.outputs.test-result-report }}\" "
@@ -1855,6 +1713,11 @@ jobs:
               cmd="${cmd_head} \"${{ needs.test-mssql.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"rocketmq"* ]]; then
+              TEST_RESULT+="##rocketmq|${{ needs.test-rocketmq.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-rocketmq.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"goldendb"* ]]; then
               TEST_RESULT+="##goldendb|${{ needs.test-goldendb.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-goldendb.outputs.test-result-report }}\" "
@@ -1865,18 +1728,23 @@ jobs:
               cmd="${cmd_head} \"${{ needs.test-tdsql.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"greatsql"* ]]; then
+              TEST_RESULT+="##greatsql|${{ needs.test-greatsql.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-greatsql.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"greatdb"* ]]; then
               TEST_RESULT+="##greatdb|${{ needs.test-greatdb.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-greatdb.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
-          fi
-          if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* && "${{ inputs.KB_VERSION }}" != "v0.9."* ]]; then
-            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"tdengine"* ]]; then
-              TEST_RESULT+="##tdengine|${{ needs.test-tdengine.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-tdengine.outputs.test-result-report }}\" "
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mongodb-shard"* ]]; then
+              TEST_RESULT+="##mongodb-shard|${{ needs.test-mongodb-shard.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-mongodb-shard.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
+          fi
+          if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* && "${{ inputs.KB_VERSION }}" != "v0.9."* ]]; then
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"camellia-redis-proxy"* ]]; then
               TEST_RESULT+="##camellia-redis-proxy|${{ needs.test-camellia-redis-proxy.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-camellia-redis-proxy.outputs.test-result-report }}\" "
@@ -1885,6 +1753,26 @@ jobs:
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"doris"* ]]; then
               TEST_RESULT+="##doris|${{ needs.test-doris.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-doris.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
+            if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"postgresql-etcd|"* || "$TEST_TYPE" == *"postgresql-etcd") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
+              TEST_RESULT+="##postgresql-etcd|${{ needs.test-postgresql-etcd.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-postgresql-etcd.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
+            if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"asmysql-proxy|"* || "$TEST_TYPE" == *"asmysql-proxy") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
+              TEST_RESULT+="##asmysql-proxy|${{ needs.test-asmysql-proxy.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-asmysql-proxy.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
+            if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"asmysql-orc|"* || "$TEST_TYPE" == *"asmysql-orc") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
+              TEST_RESULT+="##asmysql-orc|${{ needs.test-asmysql-orc.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-asmysql-orc.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
+            if [[ "$TEST_TYPE" == '' || (("$TEST_TYPE" == *"asmysql-orc-proxy|"* || "$TEST_TYPE" == *"asmysql-orc-proxy") && "$TEST_TYPE" != *"-postgresql"* ) ]]; then
+              TEST_RESULT+="##asmysql-orc-proxy|${{ needs.test-asmysql-orc-proxy.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-asmysql-orc-proxy.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"hadoop"* ]]; then
@@ -2014,7 +1902,7 @@ jobs:
 
   terraform-destroy-k8s:
     if: ${{ always() }}
-    needs: [ terraform-init-k8s, send-message, send-message-ent ]
+    needs: [ terraform-init-k8s, send-message ]
     uses: ./.github/workflows/terraform-destroy.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
