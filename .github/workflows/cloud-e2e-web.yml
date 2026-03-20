@@ -343,8 +343,10 @@ jobs:
           cat ${test_file_log_path}
           test_ret="$( grep "PLAYWRIGHT TEST FAILED" ${test_file_log_path} || true )"
           TEST_RESULT_ALL="$(awk '/PLAYWRIGHT-RESULT/{found=1} found' "${test_file_log_path}" || true)"          
-          
-          engine_type=$(printf "%s\n" "$TEST_RESULT_ALL" | awk '
+
+          # 检查是否存在有效的 PLAYWRIGHT-RESULT 内容
+          if echo "$TEST_RESULT_ALL" | grep -q "ENGINE_TYPE"; then
+            engine_type=$(printf "%s\n" "$TEST_RESULT_ALL" | awk '
             /PLAYWRIGHT-RESULT/ {found=1; next}
             found && $1 != "" && $1 != "ENGINE_TYPE" {
               print $1; exit
@@ -352,28 +354,26 @@ jobs:
           ')
           
           body=$(printf "%s\n" "$TEST_RESULT_ALL" | awk -v et="$engine_type" '
-              /PLAYWRIGHT-RESULT/ {start=1; next}
-              start && $1 == et {
-                  if (i++ > 0) printf "##"
-                      printf "%s|%s", $2, $3
-              }
-          ')
+            /PLAYWRIGHT-RESULT/ {start=1; next}
+            start && $1 == et {
+              if (i++ > 0) printf "##"
+              printf "%s|%s", $2, $3
+          }
+            ')
           
-          TEST_RESULT=$(printf "###%s###%s\n" "$engine_type" "$body")
+              TEST_RESULT="###${engine_type}###${body}"
+          else
+              # 如果没有捕获到标准格式输出，将变量设为空，避免产生 "###unknown###" 这种脏数据
+              TEST_RESULT=""
+          fi
+          
+          # 只有在 TEST_RESULT 不为空时才执行后续逻辑
+          if [[ -n "$TEST_RESULT" ]]; then
+              echo "Successfully parsed result: $TEST_RESULT"
+          else
+              echo "No valid playwright results found, skipping summary."
+          fi
 
-          if [[ -z "$TEST_RESULT" ]]; then
-              TEST_RESULT="[PASSED]"
-              if [[ -n "$test_ret" || -z "${TEST_RESULT_ALL}" ]]; then
-                  TEST_RESULT="[FAILED]"
-              fi
-              echo "test result PASSED or FAILED:${TEST_RESULT}"
-          fi
-          
-          echo TEST_RESULT="$TEST_RESULT"
-          
-          if [[ -z "$TEST_RESULT" ]]; then
-              TEST_RESULT=$(sed -n '/short test summary info/,$p' "${test_file_log_path}" | (egrep 'PASSED|FAILED|ERROR' | tail -n 1 || true))
-          fi
           
           TEST_JOB_INDEX="${{ matrix.test-job-index }}"
           delimiter="EOF_VAR_${TEST_JOB_INDEX}"
