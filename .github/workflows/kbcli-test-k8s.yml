@@ -1204,7 +1204,7 @@ jobs:
     secrets: inherit
 
   test-goldendb:
-    if: ${{ ! (contains(inputs.KB_VERSION, 'v1.') && inputs.CLOUD_PROVIDER == 'aks') && needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'goldendb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    if: ${{ ! (inputs.CLOUD_PROVIDER == 'aks' || inputs.CLOUD_PROVIDER == 'eks') && needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'goldendb')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
@@ -1222,7 +1222,7 @@ jobs:
     secrets: inherit
 
   test-tdsql:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tdsql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
+    if: ${{ ! (inputs.CLOUD_PROVIDER == 'aks' || inputs.CLOUD_PROVIDER == 'eks') && needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tdsql')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
@@ -1438,6 +1438,7 @@ jobs:
         run: |
           TEST_TYPE="${{ inputs.TEST_TYPE }}"
           cmd_head="bash .github/utils/utils.sh --type 36 --test-result "
+          TEST_RESULT_TMP="${{ needs.get-result.outputs.test-result }}"
           TEST_RESULT="${{ needs.get-result.outputs.test-result }}"
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"apecloud-mysql"* ]]; then
             TEST_RESULT+="##apecloud-mysql|${{ needs.test-apecloud-mysql.outputs.test-result }}"
@@ -1695,6 +1696,10 @@ jobs:
             fi
           fi
           
+          if [[ "${TEST_RESULT_TMP}" == "${TEST_RESULT}" ]]; then
+              exit 0
+          fi
+          
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
             --github-repo "${{ github.repository }}" \
             --github-token "${{ env.GITHUB_TOKEN }}" \
@@ -1808,6 +1813,7 @@ jobs:
         run: |
           TEST_TYPE="${{ inputs.TEST_TYPE }}"
           cmd_head="bash .github/utils/utils.sh --type 36 --test-result "
+          TEST_RESULT_TMP="${{ needs.get-result.outputs.test-result }}"
           TEST_RESULT="${{ needs.get-result.outputs.test-result }}"
           if [[ "${{ inputs.KB_VERSION }}" != "v0.5."* && "${{ inputs.KB_VERSION }}" != "v0.6."* && "${{ inputs.KB_VERSION }}" != "v0.7."* && "${{ inputs.KB_VERSION }}" != "v0.8."* ]]; then
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oracle|"* || "$TEST_TYPE" == *"oracle" ]]; then
@@ -1917,6 +1923,10 @@ jobs:
               cmd="${cmd_head} \"${{ needs.test-selectdb.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
+          fi
+          
+          if [[ "${TEST_RESULT_TMP}" == "${TEST_RESULT}" ]]; then
+              exit 0
           fi
           
           TEST_RESULT=$( bash .github/utils/utils.sh --type 12 \
