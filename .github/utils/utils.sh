@@ -55,6 +55,9 @@ Usage: $(basename "$0") <options>
                                 42) set api coverage result url
                                 43) set engine summary result url
                                 44) get github actions job url
+                                45) set engine summary result url2
+                                46) get playwright test result
+                                47) get playwright test result total
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token

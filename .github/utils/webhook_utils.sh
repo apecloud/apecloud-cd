@@ -16,6 +16,7 @@ Usage: $(basename "$0") <options>
                                 4) get kbcli branch
                                 5) send cherry-pick message
                                 6) send message without link
+                                7) trigger release
     -gr, --github-repo        Github repo
     -gt, --github-token       Github token
     -v, --version             The release version
@@ -52,8 +53,9 @@ check_numeric() {
 
 get_next_available_tag() {
     tag_type="$1"
+    tag_limit="${2:-100}"
     index=""
-    release_list=$( gh release list --repo $GITHUB_REPO --limit 100 )
+    release_list=$( gh release list --repo $GITHUB_REPO --limit ${tag_limit} )
     for tag in $( echo "$release_list" | (grep "$tag_type" || true) ) ;do
         if [[ "$tag" != "$tag_type"* ]]; then
             continue
@@ -91,6 +93,32 @@ check_release_version(){
     fi
 }
 
+check_release_version_2(){
+    TMP_TAG_NAME=""
+    for content in $(echo "$CONTENT"); do
+        if [[ "$content" == "v"*"."* || "$content" == "release-"*"."* || "$content" == *"."* ]]; then
+            TMP_TAG_NAME=$content
+        fi
+        if [[ -n "$TMP_TAG_NAME" ]]; then
+            if [[ "$TMP_TAG_NAME" == "release-"*"."* ]]; then
+                TMP_BRANCH_NAME="${TMP_TAG_NAME}"
+                TMP_TAG_NAME="${TMP_TAG_NAME#release-}"
+            else
+                TMP_BRANCH_NAME="release-${TMP_TAG_NAME/v/}"
+            fi
+            branch_url=$GITHUB_API/repos/$GITHUB_REPO/branches/$TMP_BRANCH_NAME
+            branch_info=$( gh_curl -s $branch_url | (grep  $TMP_BRANCH_NAME || true) )
+            if [[ -n "$branch_info" ]]; then
+                BRANCH_NAME=$TMP_BRANCH_NAME
+                TAG_NAME=$TMP_TAG_NAME
+                echo "BRANCH_NAME:$BRANCH_NAME"
+                echo "TAG_NAME:$TAG_NAME"
+            fi
+            break
+        fi
+    done
+}
+
 release_next_available_tag() {
     check_release_version
     v_major_minor="$VERSION"
@@ -120,9 +148,55 @@ release_next_available_tag() {
     fi
 }
 
+release_next_available_tag_2() {
+    check_release_version_2
+    dispatches_url=$1
+    v_major_minor="$TAG_NAME"
+    if [[ "$TAG_NAME" != "v"* ]]; then
+        v_major_minor="v$TAG_NAME"
+    fi
+    release_limit=100
+    if [[ "${v_major_minor}" == "v2.1" ]]; then
+        release_limit=100
+    elif [[ "${v_major_minor}" == "v2.0" ]]; then
+        release_limit=200
+    elif [[ "${v_major_minor}" == "v1.1" ]]; then
+        release_limit=500
+    elif [[ "${v_major_minor}" == "v1.0" ]]; then
+        release_limit=2000
+    fi
+    echo "release_limit:${release_limit}"
+    stable_type="$v_major_minor."
+    get_next_available_tag "$stable_type" ${release_limit}
+    v_number=$RELEASE_VERSION
+    alpha_type="$v_number-alpha."
+    beta_type="$v_number-beta."
+    rc_type="$v_number-rc."
+    case "$CONTENT" in
+        *alpha*)
+            get_next_available_tag "$alpha_type" ${release_limit}
+        ;;
+        *beta*)
+            get_next_available_tag "$beta_type" ${release_limit}
+        ;;
+        *rc*)
+            get_next_available_tag "$rc_type" ${release_limit}
+        ;;
+    esac
+
+    if [[ -n "$RELEASE_VERSION" ]];then
+        gh_curl -X POST $dispatches_url -d '{"ref":"'$BRANCH_NAME'","inputs":{"release_version":"'$RELEASE_VERSION'"}}'
+    fi
+}
+
 usage_message() {
     curl -H "Content-Type: application/json" -X POST $BOT_WEBHOOK \
         -d '{"msg_type":"post","content":{"post":{"zh_cn":{"title":"Usage:","content":[[{"tag":"text","text":"please enter the correct format\n"},{"tag":"text","text":"1. do <alpha|beta|rc> release\n"},{"tag":"text","text":"2. {\"ref\":\"<ref_branch>\",\"inputs\":{\"release_version\":\"<release_version>\"}}"}]]}}}}'
+}
+
+usage_message_2() {
+    curl -H "Content-Type: application/json" -X POST $BOT_WEBHOOK \
+        -d '{"msg_type":"post","content":{"post":{"zh_cn":{"title":"Usage:","content":[[{"tag":"text","text":"please enter the correct format\n"},{"tag":"text","text":"do [v*.*|release-*.*] [alpha|beta|rc] release\n"}]]}}}}'
 }
 
 get_release_version() {
@@ -200,6 +274,17 @@ send_cherry_pick_message() {
     fi
 }
 
+trigger_release() {
+    echo "CONTENT:$CONTENT"
+    dispatches_url=$GITHUB_API/repos/$GITHUB_REPO/actions/workflows/release-version.yml/dispatches
+
+    if [[ "$CONTENT" == "do"*"release" ]]; then
+        release_next_available_tag_2 "$dispatches_url"
+    else
+        usage_message_2
+    fi
+}
+
 parse_command_line() {
     while :; do
         case "${1:-}" in
@@ -268,6 +353,18 @@ parse_command_line() {
                     shift
                 fi
             ;;
+            -bn|--branch-name)
+                if [[ -n "${2:-}" ]]; then
+                    BRANCH_NAME="$2"
+                    shift
+                fi
+            ;;
+            -tn|--tag-name)
+                if [[ -n "${2:-}" ]]; then
+                    TAG_NAME="$2"
+                    shift
+                fi
+            ;;
             *)
                 break
                 ;;
@@ -291,6 +388,8 @@ main() {
     local CUR_VERSION=""
     local PR_NUMBER=""
     local PR_AUTHOR=""
+    local BRANCH_NAME=""
+    local TAG_NAME=""
 
     parse_command_line "$@"
 
@@ -315,6 +414,9 @@ main() {
         6)
             cover_space
             send_message_without_link
+        ;;
+        7)
+            trigger_release
         ;;
     esac
 }

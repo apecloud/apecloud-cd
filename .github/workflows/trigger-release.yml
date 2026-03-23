@@ -1,0 +1,56 @@
+name: Trigger Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      TRIGGER_CONTENT:
+        description: 'the trigger request content'
+        required: false
+        default: ''
+        type: string
+      APECD_REF:
+        description: "The ref of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+  workflow_call:
+    inputs:
+      TRIGGER_CONTENT:
+        description: 'the trigger request content'
+        required: false
+        default: ''
+        type: string
+      APECD_REF:
+        description: "The ref of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+
+run-name: release:${{ inputs.trigger-content }}
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  RELEASE_BOT_WEBHOOK: ${{ secrets.RELEASE_BOT_WEBHOOK }}
+
+jobs:
+  trigger-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: trigger release
+        id: get_release_version
+        run: |
+          bash apecloud-cd/.github/utils/webhook_utils.sh \
+            --type 7 \
+            --github-repo "${{ github.repository }}" \
+            --tag-name "${{ vars.CURRENT_RELEASE_VERSION }}" \
+            --branch-name "${{ vars.CURRENT_RELEASE_BRANCH }}" \
+            --content '${{ inputs.TRIGGER_CONTENT }}' \
+            --bot-webhook "${{ env.RELEASE_BOT_WEBHOOK }}" \
+            --github-token "${{ env.GITHUB_TOKEN }}"
