@@ -156,13 +156,13 @@ release_next_available_tag_2() {
         v_major_minor="v$TAG_NAME"
     fi
     release_limit=100
-    if [[ "${v_major_minor}" == "v2.1" ]]; then
+    if [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.1" ]]; then
         release_limit=100
-    elif [[ "${v_major_minor}" == "v2.0" ]]; then
+    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.0" ]]; then
         release_limit=200
-    elif [[ "${v_major_minor}" == "v1.1" ]]; then
+    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v1.1" ]]; then
         release_limit=500
-    elif [[ "${v_major_minor}" == "v1.0" ]]; then
+    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v1.0" ]]; then
         release_limit=2000
     fi
     echo "release_limit:${release_limit}"
