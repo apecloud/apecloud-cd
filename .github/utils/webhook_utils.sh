@@ -196,7 +196,7 @@ usage_message() {
 
 usage_message_2() {
     curl -H "Content-Type: application/json" -X POST $BOT_WEBHOOK \
-        -d '{"msg_type":"post","content":{"post":{"zh_cn":{"title":"Usage:","content":[[{"tag":"text","text":"please enter the correct format\n"},{"tag":"text","text":"do [v*.*|release-*.*] [alpha|beta|rc] release\n"}]]}}}}'
+        -d '{"msg_type":"post","content":{"post":{"zh_cn":{"title":"Usage:","content":[[{"tag":"text","text":"do [v*.*|release-*.*] [alpha|beta|rc] release\n"}]]}}}}'
 }
 
 get_release_version() {
