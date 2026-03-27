@@ -354,6 +354,7 @@ jobs:
           done
 
   e2e-engine-test:
+    if: ${{ always() }}
     needs: [ get-test-engine, e2e-cluster-clear ]
     name: ${{ matrix.test-engine }}
     strategy:
