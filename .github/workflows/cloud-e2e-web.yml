@@ -743,3 +743,7 @@ jobs:
 #              --url "${{ vars.CLOUD_E2E_WEB_BOT_WEBHOOK }}" \
 #              --title "$TEST_TITLE" \
 #              --result "${TEST_RESULT_ALL}"
+
+      - name: Setup Debug Session
+        if: ${{ inputs.DEBUG }}
+        uses: csexton/debugger-action@master
