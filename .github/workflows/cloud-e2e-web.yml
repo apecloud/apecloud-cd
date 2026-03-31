@@ -311,6 +311,10 @@ jobs:
               sleep 1
           done
 
+      - name: Setup Debug Session
+        if: ${{ inputs.DEBUG }}
+        uses: csexton/debugger-action@master
+
       - name: Get Test Result
         if: ${{ always() }}
         id: get_test_result
@@ -558,10 +562,6 @@ jobs:
           if [[ -n "$test_ret" ]]; then
               exit 1
           fi
-
-      - name: Setup Debug Session
-        if: ${{ inputs.DEBUG }}
-        uses: csexton/debugger-action@master
   
 
   send-message:
