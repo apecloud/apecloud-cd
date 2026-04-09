@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch-name: [ "release-2.0", "release-2.1" ]
+        branch-name: [ "release-2.1" ]
     uses: ./.github/workflows/release-image-cache.yml
     with:
       GITHUB_REPO: "apecloud/apecloud"
@@ -35,7 +35,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch-name: [ "release-2.0", "release-2.1" ]
+        branch-name: [ "release-2.1" ]
     uses: ./.github/workflows/release-image-sync2.yml
     with:
       GITHUB_REPO: "apecloud/apecloud"
