@@ -521,7 +521,7 @@ jobs:
   test-mongodb-shard-8:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb-shard|') || endsWith(inputs.TEST_TYPE, 'mongodb-shard')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-redis-cluster-8-4, test-redis-cluster-8-2, test-redis-cluster-8-0, test-redis-cluster-7-4, test-redis-cluster-7-2, test-redis-cluster-7-0 ]
+             test-mongodb-8, test-mongodb-7, test-mongodb-6, test-mongodb-5, test-mongodb-4 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -539,7 +539,7 @@ jobs:
   test-mongodb-shard-7:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb-shard|') || endsWith(inputs.TEST_TYPE, 'mongodb-shard')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-redis-cluster-8-4, test-redis-cluster-8-2, test-redis-cluster-8-0, test-redis-cluster-7-4, test-redis-cluster-7-2, test-redis-cluster-7-0 ]
+             test-mongodb-8, test-mongodb-7, test-mongodb-6, test-mongodb-5, test-mongodb-4 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -557,7 +557,7 @@ jobs:
   test-mongodb-shard-6:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb-shard|') || endsWith(inputs.TEST_TYPE, 'mongodb-shard')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-redis-cluster-8-4, test-redis-cluster-8-2, test-redis-cluster-8-0, test-redis-cluster-7-4, test-redis-cluster-7-2, test-redis-cluster-7-0 ]
+             test-mongodb-8, test-mongodb-7, test-mongodb-6, test-mongodb-5, test-mongodb-4 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -575,7 +575,7 @@ jobs:
   test-mongodb-shard-5:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb-shard|') || endsWith(inputs.TEST_TYPE, 'mongodb-shard')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-redis-cluster-8-4, test-redis-cluster-8-2, test-redis-cluster-8-0, test-redis-cluster-7-4, test-redis-cluster-7-2, test-redis-cluster-7-0 ]
+             test-mongodb-8, test-mongodb-7, test-mongodb-6, test-mongodb-5, test-mongodb-4 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -593,7 +593,7 @@ jobs:
   test-mongodb-shard-4:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mongodb-shard|') || endsWith(inputs.TEST_TYPE, 'mongodb-shard')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-redis-cluster-8-4, test-redis-cluster-8-2, test-redis-cluster-8-0, test-redis-cluster-7-4, test-redis-cluster-7-2, test-redis-cluster-7-0 ]
+             test-mongodb-8, test-mongodb-7, test-mongodb-6, test-mongodb-5, test-mongodb-4 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
