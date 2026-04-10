@@ -567,8 +567,8 @@ jobs:
                 --set images.kubeblocksConsole.tag=${CLOUD_VERSION} \
                 --set images.hook.tag=${CLOUD_VERSION} \
                 --set images.cubetranFront.tag=${CLOUD_VERSION} \
-                --set grafana.global.imageRegistry='' \
-                --set grafana.image.repository='apecloud/grafana' \
+                --set grafana.global.imageRegistry='docker.io' \
+                --set grafana.image.repository='' \
                 --reset-then-reuse-values
           else
               helm upgrade --install kb-cloud kubeblocks-enterprise/kubeblocks-cloud \
