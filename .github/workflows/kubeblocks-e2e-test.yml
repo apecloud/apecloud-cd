@@ -2192,16 +2192,16 @@ jobs:
               --result "$TEST_RESULT" \
               --send-type "report"
 
-  terraform-destroy-k8s:
-    if: ${{ always() }}
-    needs: [ terraform-init-k8s,
-             send-message,
-             send-message-redis,
-             send-message-mongodb,
-             send-message-zookeeper-rabbitmq ]
-    uses: ./.github/workflows/terraform-destroy.yml
-    with:
-      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
-      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
-      region: ${{ inputs.REGION }}
-    secrets: inherit
+#  terraform-destroy-k8s:
+#    if: ${{ always() }}
+#    needs: [ terraform-init-k8s,
+#             send-message,
+#             send-message-redis,
+#             send-message-mongodb,
+#             send-message-zookeeper-rabbitmq ]
+#    uses: ./.github/workflows/terraform-destroy.yml
+#    with:
+#      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+#      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+#      region: ${{ inputs.REGION }}
+#    secrets: inherit
