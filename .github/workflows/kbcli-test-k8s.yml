@@ -1769,6 +1769,7 @@ jobs:
           endpoint: "${{ env.OSS_ENDPOINT }}"
 
       - name: Upload test result log to oss
+        continue-on-error: true
         if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
         id: upload_test_result
         run:
@@ -1998,6 +1999,7 @@ jobs:
           endpoint: "${{ env.OSS_ENDPOINT }}"
 
       - name: Upload test result log to oss
+        continue-on-error: true
         if: ${{ ! contains(inputs.ARGS, 'only-kubectl') }}
         id: upload_test_result
         run: |
