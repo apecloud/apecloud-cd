@@ -196,7 +196,6 @@ jobs:
 
   e2e-cluster-clear:
     needs: [ get-test-engine ]
-    timeout-minutes: 5
     strategy:
       fail-fast: false
       matrix:
