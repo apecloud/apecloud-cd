@@ -21,6 +21,11 @@ on:
         options:
           - e2e-test
           - e2e-web
+      cloud_version:
+        description: "The cloud release version"
+        type: string
+        required: true
+        default: ''
   workflow_call:
     inputs:
       cloud_env_name:
@@ -33,8 +38,13 @@ on:
         type: string
         required: true
         default: 'e2e-test'
+      cloud_version:
+        description: "The cloud release version"
+        type: string
+        required: true
+        default: ''
 
-run-name: Cloud Cluster Clear on Env:${{ inputs.cloud_env_name }} Org:${{ inputs.cloud_org_name }}
+run-name: Cloud Cluster Clear on Env:${{ inputs.cloud_env_name }} Org:${{ inputs.cloud_org_name }} ${{ inputs.cloud_version }}
 
 env:
   IDC_KUBECONFIG: ${{ secrets.IDC_KUBECONFIG }}
@@ -116,20 +126,17 @@ jobs:
           echo "export KB_CLOUD_TEST_ORG=${{ inputs.cloud_org_name }}"
           export KB_CLOUD_TEST_ORG=${{ inputs.cloud_org_name }}
           
-          CLOUD_TEST_ENV="${{ inputs.CLOUD_TEST_ENV }}"
+          CLOUD_TEST_ENV="${{ inputs.cloud_env_name }}"
           if [[ -n "${CLOUD_TEST_ENV}" ]]; then
               echo "export KB_CLOUD_TEST_ENVIRONMENT=${CLOUD_TEST_ENV}"
               export KB_CLOUD_TEST_ENVIRONMENT="${CLOUD_TEST_ENV}"
               echo "export KB_CLOUD_TEST_NODE=node3"
               export KB_CLOUD_TEST_NODE="node3"
           fi
-          CLOUD_TEST_KB_VERSION="${{ inputs.CLOUD_TEST_KB_VERSION }}"
-          echo "export KB_CLOUD_TEST_KUBEBLOCKS_VERSION=${CLOUD_TEST_KB_VERSION}"
-          export KB_CLOUD_TEST_KUBEBLOCKS_VERSION="${CLOUD_TEST_KB_VERSION}"
           
           # run e2e clear cluster
           bash test/cloud/test_cloud_e2e_clear.sh \
-              --release-version "${{ needs.get-test-engine.outputs.cloud-branch }}" \
+              --release-version "${{ inputs.cloud_version }}" \
               --env "${CLOUD_TEST_ENV}" | tee -a ${run_file_log}
           
           CLOUD_E2E_CLEAR_POD_NAME="$(cat ${run_file_log} | (grep '\[CLOUD-E2E-CLEAR-POD-NAME\]' || true) )"
