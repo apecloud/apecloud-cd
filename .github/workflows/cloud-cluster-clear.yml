@@ -24,7 +24,7 @@ on:
       cloud_version:
         description: "The cloud release version"
         type: string
-        required: true
+        required: false
         default: ''
   workflow_call:
     inputs:
@@ -41,7 +41,7 @@ on:
       cloud_version:
         description: "The cloud release version"
         type: string
-        required: true
+        required: false
         default: ''
 
 run-name: Cloud Cluster Clear on Env:${{ inputs.cloud_env_name }} Org:${{ inputs.cloud_org_name }} ${{ inputs.cloud_version }}
@@ -57,7 +57,8 @@ env:
 jobs:
   e2e-cluster-clear:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 5
+    continue-on-error: true
     steps:
       - name: Checkout testinfra Code
         uses: actions/checkout@v4
