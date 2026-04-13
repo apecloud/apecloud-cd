@@ -113,6 +113,42 @@ permissions:
   contents: write
 
 jobs:
+  check-send-message:
+    runs-on: ubuntu-latest
+    outputs:
+      send-message: ${{ steps.check_send_message.outputs.send-message }}
+      send-message-ent: ${{ steps.check_send_message.outputs.send-message-ent }}
+    steps:
+      - name: check send message
+        id: check_send_message
+        run: |
+          SEND_MESSAGE=0
+          SEND_MESSAGE_ENT=0
+          TEST_TYPE="${{ inputs.TEST_TYPE }}"
+          if [[ -n "${TEST_TYPE}" ]]; then
+              for test_type in $(echo "${TEST_TYPE}" | sed 's/|/ /g'); do
+                  echo "test_type: ${test_type}"
+                  if [[ $SEND_MESSAGE_ENT -eq 1 && $SEND_MESSAGE -eq 1 ]]; then
+                      break
+                  fi
+                  case "${test_type}" in
+                      damengdb|gaussdb|gbase|goldendb|greatdb|kingbase|mssql|oceanbase|oceanbase-proxy|oracle|\
+                      starrocks|tdsql|vastbase|hadoop|hive|doris|nacos|vault|foundationdb|selectdb|camellia-redis-proxy|\
+                      victoria-logs|mongodb|mysql)
+                          SEND_MESSAGE_ENT=1
+                      ;;
+                      *)
+                          SEND_MESSAGE=1
+                      ;;  
+                  esac
+              done
+          else
+              SEND_MESSAGE=0
+              SEND_MESSAGE_ENT=0
+          fi
+          echo send-message="${SEND_MESSAGE}" >> $GITHUB_OUTPUT
+          echo send-message-ent="${SEND_MESSAGE_ENT}" >> $GITHUB_OUTPUT
+
   terraform-init-k8s:
     uses: ./.github/workflows/terraform-init.yml
     with:
@@ -1415,11 +1451,11 @@ jobs:
           echo test-result="${TEST_RESULT}" >> $GITHUB_OUTPUT
 
   send-message:
-    if: ${{ always() }}
+    if: ${{ always() && needs.check-send-message.outputs.send-message == '1' }}
     runs-on: ubuntu-latest
     outputs:
       test-date: ${{ steps.upload_test_result.outputs.test-date }}
-    needs: [ get-result, test-apecloud-mysql, test-postgresql, test-redis, test-mongodb, test-mongodb-shard,
+    needs: [ check-send-message, get-result, test-apecloud-mysql, test-postgresql, test-redis, test-mongodb, test-mongodb-shard,
              test-kafka, test-pulsar, test-weaviate, test-qdrant, test-greptimedb, test-nebula, test-risingwave,
              test-starrocks, test-etcd, test-oceanbase, test-asmysql, test-asmysql-proxy, test-asmysql-orc,
              test-asmysql-orc-proxy, test-postgresql-etcd, test-openldap, test-polardbx, test-milvus,
@@ -1794,11 +1830,11 @@ jobs:
               --send-type "report"
 
   send-message-ent:
-    if: ${{ always() }}
+    if: ${{ always() && needs.check-send-message.outputs.send-message-ent == '1' }}
     runs-on: ubuntu-latest
     outputs:
       test-date: ${{ steps.upload_test_result.outputs.test-date }}
-    needs: [ get-result, test-tdengine, test-oracle, test-doris, test-oceanbase-ent, test-starrocks-ent,
+    needs: [ check-send-message, get-result, test-tdengine, test-oracle, test-doris, test-oceanbase-ent, test-starrocks-ent,
              test-camellia-redis-proxy, test-gaussdb, test-damengdb, test-kingbase, test-vastbase,
              test-mssql, test-goldendb, test-tdsql, test-greatdb, test-hadoop, test-hive, test-oceanbase-proxy,
              test-nacos, test-vault, test-foundationdb, test-selectdb ]
