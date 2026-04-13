@@ -200,8 +200,8 @@ jobs:
     continue-on-error: true
     uses: ./.github/workflows/cloud-cluster-clear.yml
     with:
-      CLOUD_ENV_NAME: "${{ inputs.CLOUD_ENV_NAME }}"
-      CLOUD_ORG_NAME: "e2e-test"
+      cloud_env_name: "${{ inputs.CLOUD_ENV_NAME }}"
+      cloud_org_name: "e2e-test"
     secrets: inherit
 
   e2e-web-cluster-clear:
@@ -210,8 +210,8 @@ jobs:
     continue-on-error: true
     uses: ./.github/workflows/cloud-cluster-clear.yml
     with:
-      CLOUD_ENV_NAME: "${{ inputs.CLOUD_ENV_NAME }}"
-      CLOUD_ORG_NAME: "e2e-web"
+      cloud_env_name: "${{ inputs.CLOUD_ENV_NAME }}"
+      cloud_org_name: "e2e-web"
     secrets: inherit
 
   e2e-engine-test:

@@ -3,7 +3,7 @@ name: Cloud Cluster Clear
 on:
   workflow_dispatch:
     inputs:
-      CLOUD_ENV_NAME:
+      cloud_env_name:
         description: "The cloud env name"
         type: choice
         required: true
@@ -13,7 +13,7 @@ on:
           - idc1
           - idc2
           - idc4
-      CLOUD_ORG_NAME:
+      cloud_org_name:
         description: "The cloud org name"
         type: choice
         required: true
@@ -23,19 +23,18 @@ on:
           - e2e-web
   workflow_call:
     inputs:
-      CLOUD_ENV_NAME:
+      cloud_env_name:
         description: "The cloud env name"
         type: string
         required: true
         default: 'idc1'
-      CLOUD_ORG_NAME:
+      cloud_org_name:
         description: "The cloud org name"
         type: string
         required: true
         default: 'e2e-test'
 
-
-run-name: Cloud Cluster Clear on Env:${{ inputs.CLOUD_ENV_NAME }} Org:${{ inputs.CLOUD_ORG_NAME }}
+run-name: Cloud Cluster Clear on Env:${{ inputs.cloud_env_name }} Org:${{ inputs.cloud_org_name }}
 
 env:
   IDC_KUBECONFIG: ${{ secrets.IDC_KUBECONFIG }}
@@ -57,12 +56,12 @@ jobs:
           path: ./
           token: ${{ env.GH_TOKEN }}
 
-      - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
+      - name: Configure ACK Context ${{ inputs.cloud_env_name }}
         id: cloud_env
         run: |
           mkdir -p $HOME/.kube
           touch $HOME/.kube/config
-          CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
+          CLOUD_ENV_NAME="${{ inputs.cloud_env_name }}"
           echo CLOUD_ENV_NAME="$CLOUD_ENV_NAME" >> $GITHUB_ENV
           
           E2E_ENV_VARS=""
@@ -114,8 +113,8 @@ jobs:
               echo "$eval_cmd"
               eval "$eval_cmd"
           done
-          echo "export KB_CLOUD_TEST_ORG=${{ inputs.CLOUD_ORG_NAME }}"
-          export KB_CLOUD_TEST_ORG=${{ inputs.CLOUD_ORG_NAME }}
+          echo "export KB_CLOUD_TEST_ORG=${{ inputs.cloud_org_name }}"
+          export KB_CLOUD_TEST_ORG=${{ inputs.cloud_org_name }}
           
           CLOUD_TEST_ENV="${{ inputs.CLOUD_TEST_ENV }}"
           if [[ -n "${CLOUD_TEST_ENV}" ]]; then
