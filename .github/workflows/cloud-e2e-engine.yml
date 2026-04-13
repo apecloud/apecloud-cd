@@ -196,7 +196,6 @@ jobs:
 
   e2e-test-cluster-clear:
     needs: [ get-test-engine ]
-    timeout-minutes: 5
     continue-on-error: true
     uses: ./.github/workflows/cloud-cluster-clear.yml
     with:
@@ -207,7 +206,6 @@ jobs:
 
   e2e-web-cluster-clear:
     needs: [ get-test-engine ]
-    timeout-minutes: 5
     continue-on-error: true
     uses: ./.github/workflows/cloud-cluster-clear.yml
     with:
