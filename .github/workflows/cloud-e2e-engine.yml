@@ -202,6 +202,7 @@ jobs:
     with:
       cloud_env_name: "${{ inputs.CLOUD_ENV_NAME }}"
       cloud_org_name: "e2e-test"
+      cloud_version: "${{ needs.get-test-engine.outputs.cloud-branch }}"
     secrets: inherit
 
   e2e-web-cluster-clear:
@@ -212,6 +213,7 @@ jobs:
     with:
       cloud_env_name: "${{ inputs.CLOUD_ENV_NAME }}"
       cloud_org_name: "e2e-web"
+      cloud_version: "${{ needs.get-test-engine.outputs.cloud-branch }}"
     secrets: inherit
 
   e2e-engine-test:
