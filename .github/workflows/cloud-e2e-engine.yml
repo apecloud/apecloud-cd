@@ -196,7 +196,6 @@ jobs:
 
   e2e-test-cluster-clear:
     needs: [ get-test-engine ]
-    continue-on-error: true
     uses: ./.github/workflows/cloud-cluster-clear.yml
     with:
       cloud_env_name: "${{ inputs.CLOUD_ENV_NAME }}"
@@ -206,7 +205,6 @@ jobs:
 
   e2e-web-cluster-clear:
     needs: [ get-test-engine ]
-    continue-on-error: true
     uses: ./.github/workflows/cloud-cluster-clear.yml
     with:
       cloud_env_name: "${{ inputs.CLOUD_ENV_NAME }}"

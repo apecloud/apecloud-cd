@@ -58,6 +58,7 @@ jobs:
   e2e-cluster-clear:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    continue-on-error: true
     steps:
       - name: Checkout testinfra Code
         uses: actions/checkout@v4
