@@ -21,6 +21,18 @@ on:
         options:
           - e2e-test
           - e2e-web
+  workflow_call:
+    inputs:
+      CLOUD_ENV_NAME:
+        description: "The cloud env name"
+        type: string
+        required: true
+        default: 'idc1'
+      CLOUD_ORG_NAME:
+        description: "The cloud org name"
+        type: string
+        required: true
+        default: 'e2e-test'
 
 
 run-name: Cloud Cluster Clear on Env:${{ inputs.CLOUD_ENV_NAME }} Org:${{ inputs.CLOUD_ORG_NAME }}
