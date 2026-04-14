@@ -677,7 +677,7 @@ jobs:
     secrets: inherit
 
   test-etcd-3-6:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'etcd|') || endsWith(inputs.TEST_TYPE, 'etcd')) && ! endsWith(inputs.TEST_TYPE, '-etcd') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'etcd|') || endsWith(inputs.TEST_TYPE, 'etcd')) && ! contains(inputs.TEST_TYPE, '-etcd') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
@@ -694,7 +694,7 @@ jobs:
     secrets: inherit
 
   test-etcd-3-5:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'etcd|') || endsWith(inputs.TEST_TYPE, 'etcd')) && ! endsWith(inputs.TEST_TYPE, '-etcd') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'etcd|') || endsWith(inputs.TEST_TYPE, 'etcd')) && ! contains(inputs.TEST_TYPE, '-etcd') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
