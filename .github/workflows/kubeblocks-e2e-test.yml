@@ -951,7 +951,13 @@ jobs:
   test-zookeeper-3-9:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'zookeeper')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-hive-4-0, test-hive-3-1 ]
+             test-nebula-3-8, test-nebula-3-5,
+             test-etcd-3-6, test-etcd-3-5,
+             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-5, test-milvus-2-3,
+             test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
+             test-tidb-8, test-tidb-7, test-tidb-6,
+             test-minio-2025, test-minio-2024 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -969,7 +975,13 @@ jobs:
   test-zookeeper-3-8:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'zookeeper')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-hive-4-0, test-hive-3-1 ]
+             test-nebula-3-8, test-nebula-3-5,
+             test-etcd-3-6, test-etcd-3-5,
+             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-5, test-milvus-2-3,
+             test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
+             test-tidb-8, test-tidb-7, test-tidb-6,
+             test-minio-2025, test-minio-2024 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -987,7 +999,13 @@ jobs:
   test-zookeeper-3-7:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'zookeeper')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-hive-4-0, test-hive-3-1 ]
+             test-nebula-3-8, test-nebula-3-5,
+             test-etcd-3-6, test-etcd-3-5,
+             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-5, test-milvus-2-3,
+             test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
+             test-tidb-8, test-tidb-7, test-tidb-6,
+             test-minio-2025, test-minio-2024 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -1005,7 +1023,13 @@ jobs:
   test-zookeeper-3-6:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'zookeeper')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-hive-4-0, test-hive-3-1 ]
+             test-nebula-3-8, test-nebula-3-5,
+             test-etcd-3-6, test-etcd-3-5,
+             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-5, test-milvus-2-3,
+             test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
+             test-tidb-8, test-tidb-7, test-tidb-6,
+             test-minio-2025, test-minio-2024 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -1023,7 +1047,13 @@ jobs:
   test-zookeeper-3-4:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'zookeeper')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-hive-4-0, test-hive-3-1 ]
+             test-nebula-3-8, test-nebula-3-5,
+             test-etcd-3-6, test-etcd-3-5,
+             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-5, test-milvus-2-3,
+             test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
+             test-tidb-8, test-tidb-7, test-tidb-6,
+             test-minio-2025, test-minio-2024 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -1211,7 +1241,13 @@ jobs:
   test-rabbitmq-4-2:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-hive-4-0, test-hive-3-1 ]
+             test-nebula-3-8, test-nebula-3-5,
+             test-etcd-3-6, test-etcd-3-5,
+             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-5, test-milvus-2-3,
+             test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
+             test-tidb-8, test-tidb-7, test-tidb-6,
+             test-minio-2025, test-minio-2024 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -1229,7 +1265,13 @@ jobs:
   test-rabbitmq-4-1:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-hive-4-0, test-hive-3-1 ]
+             test-nebula-3-8, test-nebula-3-5,
+             test-etcd-3-6, test-etcd-3-5,
+             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-5, test-milvus-2-3,
+             test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
+             test-tidb-8, test-tidb-7, test-tidb-6,
+             test-minio-2025, test-minio-2024 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -1247,7 +1289,13 @@ jobs:
   test-rabbitmq-4-0:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-hive-4-0, test-hive-3-1 ]
+             test-nebula-3-8, test-nebula-3-5,
+             test-etcd-3-6, test-etcd-3-5,
+             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-5, test-milvus-2-3,
+             test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
+             test-tidb-8, test-tidb-7, test-tidb-6,
+             test-minio-2025, test-minio-2024 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -1265,7 +1313,13 @@ jobs:
   test-rabbitmq-3-13:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-hive-4-0, test-hive-3-1 ]
+             test-nebula-3-8, test-nebula-3-5,
+             test-etcd-3-6, test-etcd-3-5,
+             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-5, test-milvus-2-3,
+             test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
+             test-tidb-8, test-tidb-7, test-tidb-6,
+             test-minio-2025, test-minio-2024 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -1283,7 +1337,13 @@ jobs:
   test-rabbitmq-3-12:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-hive-4-0, test-hive-3-1 ]
+             test-nebula-3-8, test-nebula-3-5,
+             test-etcd-3-6, test-etcd-3-5,
+             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-5, test-milvus-2-3,
+             test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
+             test-tidb-8, test-tidb-7, test-tidb-6,
+             test-minio-2025, test-minio-2024 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -1301,7 +1361,13 @@ jobs:
   test-rabbitmq-3-11:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-hive-4-0, test-hive-3-1 ]
+             test-nebula-3-8, test-nebula-3-5,
+             test-etcd-3-6, test-etcd-3-5,
+             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-5, test-milvus-2-3,
+             test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
+             test-tidb-8, test-tidb-7, test-tidb-6,
+             test-minio-2025, test-minio-2024 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -1319,7 +1385,13 @@ jobs:
   test-rabbitmq-3-10:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-hive-4-0, test-hive-3-1 ]
+             test-nebula-3-8, test-nebula-3-5,
+             test-etcd-3-6, test-etcd-3-5,
+             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-5, test-milvus-2-3,
+             test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
+             test-tidb-8, test-tidb-7, test-tidb-6,
+             test-minio-2025, test-minio-2024 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -1337,7 +1409,13 @@ jobs:
   test-rabbitmq-3-9:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-hive-4-0, test-hive-3-1 ]
+             test-nebula-3-8, test-nebula-3-5,
+             test-etcd-3-6, test-etcd-3-5,
+             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-5, test-milvus-2-3,
+             test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
+             test-tidb-8, test-tidb-7, test-tidb-6,
+             test-minio-2025, test-minio-2024 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -1355,7 +1433,13 @@ jobs:
   test-rabbitmq-3-8:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-hive-4-0, test-hive-3-1 ]
+             test-nebula-3-8, test-nebula-3-5,
+             test-etcd-3-6, test-etcd-3-5,
+             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-5, test-milvus-2-3,
+             test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
+             test-tidb-8, test-tidb-7, test-tidb-6,
+             test-minio-2025, test-minio-2024 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
