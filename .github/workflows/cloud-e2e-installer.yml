@@ -9,10 +9,10 @@ on:
         required: false
         default: 'main'
       K3S_VERSION:
-        description: 'k3s cluster version (e.g. 1.32)'
+        description: 'k3s cluster version (e.g. 1.33)'
         type: string
         required: false
-        default: '1.32'
+        default: '1.33'
       CURRENT_VERSION:
         description: "The current release version (e.g. v0.30) "
         type: string
@@ -31,10 +31,10 @@ on:
         required: false
         default: 'main'
       K3S_VERSION:
-        description: 'k3s cluster version (e.g. 1.32)'
+        description: 'k3s cluster version (e.g. 1.33)'
         type: string
         required: false
-        default: '1.32'
+        default: '1.33'
       CURRENT_VERSION:
         description: "The current release version (e.g. v0.30) "
         type: string
@@ -88,7 +88,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        k3s-version: [ v1.22, v1.32 ]
+        k3s-version: [ v1.22, v1.33 ]
     steps:
       - name: Free disk space
         continue-on-error: true
@@ -207,7 +207,7 @@ jobs:
                   v1.22)
                       echo installer-result-1-22="${installer_result}" >> $GITHUB_OUTPUT
                   ;;
-                  v1.32)
+                  v1.33)
                       echo installer-result-1-32="${installer_result}" >> $GITHUB_OUTPUT
                   ;;
               esac
@@ -235,7 +235,7 @@ jobs:
                   v1.22)
                       echo installer-result-1-22="${installer_result}" >> $GITHUB_OUTPUT
                   ;;
-                  v1.32)
+                  v1.33)
                       echo installer-result-1-32="${installer_result}" >> $GITHUB_OUTPUT
                   ;;
               esac
@@ -329,7 +329,7 @@ jobs:
                   v1.22)
                       echo bootstrapper-result-1-22="${bootstrapper_result}" >> $GITHUB_OUTPUT
                   ;;
-                  v1.32)
+                  v1.33)
                       echo bootstrapper-result-1-32="${bootstrapper_result}" >> $GITHUB_OUTPUT
                   ;;
               esac
@@ -375,7 +375,7 @@ jobs:
                   v1.22)
                       echo bootstrapper-result-1-22="${bootstrapper_result}" >> $GITHUB_OUTPUT
                   ;;
-                  v1.32)
+                  v1.33)
                       echo bootstrapper-result-1-32="${bootstrapper_result}" >> $GITHUB_OUTPUT
                   ;;
               esac
@@ -684,10 +684,10 @@ jobs:
           if [[ "${{ inputs.CURRENT_VERSION }}" != 'v0.28' && "${{ inputs.CURRENT_VERSION }}" != '0.28' ]]; then
               TEST_RESULT="${TEST_RESULT}##installer-test-v1.22|v1.22|bootstrapper-${CLOUD_BRANCH}|${BOOTSTRAPPER_RESULT_1_21}"
           
-              TEST_RESULT="${TEST_RESULT}##installer-test-v1.32|v1.32|installer-${CLOUD_BRANCH}|${INSTALLER_RESULT_1_32}"
-              TEST_RESULT="${TEST_RESULT}##installer-test-v1.32|v1.32|bootstrapper-${CLOUD_BRANCH}|${BOOTSTRAPPER_RESULT_1_32}"
+              TEST_RESULT="${TEST_RESULT}##installer-test-v1.33|v1.33|installer-${CLOUD_BRANCH}|${INSTALLER_RESULT_1_32}"
+              TEST_RESULT="${TEST_RESULT}##installer-test-v1.33|v1.33|bootstrapper-${CLOUD_BRANCH}|${BOOTSTRAPPER_RESULT_1_32}"
           else
-              TEST_RESULT="${TEST_RESULT}##installer-test-v1.32|v1.32|installer-${CLOUD_BRANCH}|${INSTALLER_RESULT_1_32}"
+              TEST_RESULT="${TEST_RESULT}##installer-test-v1.33|v1.33|installer-${CLOUD_BRANCH}|${INSTALLER_RESULT_1_32}"
           fi
           
           
