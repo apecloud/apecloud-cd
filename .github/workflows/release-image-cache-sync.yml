@@ -115,35 +115,35 @@ jobs:
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
     steps:
-      - name: Free disk space
+      - name: Pre Check
+        id: pre_check
         continue-on-error: true
         run: |
+          FREE_DISK_SPACE=0
           RELEASE_IMG="${{ inputs.IMG }}"
           case $RELEASE_IMG in
               apecloud/aperag|apecloud/doc-ray|apecloud/apiserver|apecloud/cr4w)
-                  echo "Initial disk usage:"
-                  df -h
-                  
-                  # Remove unnecessary software to free up space for Docker builds
-                  sudo rm -rf /usr/share/dotnet
-                  sudo rm -rf /usr/local/lib/android
-                  sudo rm -rf /opt/ghc
-                  sudo rm -rf /opt/hostedtoolcache/CodeQL
-                  sudo rm -rf /usr/local/share/boost
-                  sudo rm -rf /usr/lib/jvm
-                  sudo rm -rf /usr/share/swift
-                  
-                  # Clean up docker images and containers
-                  docker system prune -af --volumes
-                  
-                  # Clean apt cache
-                  sudo apt-get clean
-                  sudo apt-get autoremove -y
-                  
-                  echo "Disk usage after cleanup:"
-                  df -h
+                  FREE_DISK_SPACE=1
               ;;
           esac
+          echo FREE-DISK-SPACE=${FREE_DISK_SPACE} >> $GITHUB_OUTPUT
+
+      - name: Free Disk Space (Ubuntu)
+        if: ${{ steps.pre_check.outputs.FREE-DISK-SPACE == '1' }}
+        uses: jlumbroso/free-disk-space@main
+        continue-on-error: true
+        with:
+          # this might remove tools that are actually needed,
+          # if set to "true" but frees about 6 GB
+          tool-cache: false
+          # all of these default to true, but feel free to set to
+          # "false" if necessary for your workflow
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: true
 
       - name: Checkout Code
         if: ${{ ! inputs.ENABLE_SUBMODULE }}
