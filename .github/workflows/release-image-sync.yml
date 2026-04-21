@@ -184,18 +184,15 @@ jobs:
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
     steps:
-      - name: Free disk space
+      - name: Pre Check
+        id: pre_check
         continue-on-error: true
         run: |
+          FREE_DISK_SPACE=0
           TARGETS="${{ inputs.MAKE_ARGS }}"
           case $TARGETS in
               *TARGETS=apiserver*|*TARGETS=prompt*|*TARGETS=sentry*|*TARGETS=task-manager*|*TARGETS=cr4w*)
-                  sudo apt-get autoremove -y >/dev/null 2>&1
-                  sudo apt-get autoclean -y >/dev/null 2>&1
-                  sudo rm -rf /usr/local/lib/android >/dev/null 2>&1
-                  sudo swapoff -a
-                  sudo rm -f /swapfile
-                  df -h
+                  FREE_DISK_SPACE=1
               ;;
               *TARGETS=docker/kb-cloud-installer*)
                   sleep 5
@@ -215,6 +212,24 @@ jobs:
                   done
               ;;
           esac
+          echo FREE-DISK-SPACE=${FREE_DISK_SPACE} >> $GITHUB_OUTPUT
+
+      - name: Free Disk Space (Ubuntu)
+        if: ${{ steps.pre_check.outputs.FREE-DISK-SPACE == '1' }}
+        uses: jlumbroso/free-disk-space@main
+        continue-on-error: true
+        with:
+          # this might remove tools that are actually needed,
+          # if set to "true" but frees about 6 GB
+          tool-cache: false
+          # all of these default to true, but feel free to set to
+          # "false" if necessary for your workflow
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: true
 
       - name: Checkout Code
         if: ${{ ! inputs.ENABLE_SUBMODULE }}
