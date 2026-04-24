@@ -370,8 +370,6 @@ jobs:
               done
           
               # logs kb-cloud error pod 
-              set +e
-              set -o nounset
               kb_system_error_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Evicted" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" || true) | awk '{print $1}')
               echo "kb-cloud error pod: $kb_system_error_pods"
               for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
