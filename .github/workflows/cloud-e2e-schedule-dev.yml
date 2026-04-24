@@ -19,7 +19,7 @@ jobs:
       CONTEXT: "./e2e"
       DOCKERFILE_PATH: "./e2e/Dockerfile"
       VERSION: "${{ matrix.branch-name }}"
-      GO_VERSION: "1.25.8"
+      GO_VERSION: "1.25"
       REMOVE_PREFIX: false
       BUILDX_ARGS: |
         ALPINE_IMAGE=apecloud/alpine:3.20
@@ -36,7 +36,7 @@ jobs:
       GITHUB_REF: "${{ matrix.branch-name }}"
       MAKE_OPS: "build"
       VERSION: "${{ matrix.branch-name }}"
-      GO_VERSION: "1.25.8"
+      GO_VERSION: "1.25"
       BUILDX_ENABLED: true
       GIT_CONFIG: true
       REMOVE_PREFIX: false
