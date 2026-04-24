@@ -368,6 +368,27 @@ jobs:
                   kubectl describe pod -n kb-system ${kb_system_error_pod}
                   echo ""
               done
+          
+              # logs kb-cloud error pod 
+              set +e
+              set -o nounset
+              kb_system_error_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Evicted" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" || true) | awk '{print $1}')
+              echo "kb-cloud error pod: $kb_system_error_pods"
+              for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
+                  echo "==================== pod ${kb_system_error_pod} logs ===================="
+                  kubectl logs --tail 100 -n kb-cloud ${kb_system_error_pod}
+                  echo ""
+              done
+          
+              # describe image pull error kb-cloud pod
+              kb_system_error_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')
+              echo "kb-cloud image pull error pod: $kb_system_error_pods"
+              for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
+                  echo "==================== pod ${kb_system_error_pod} describe ===================="
+                  kubectl describe pod -n kb-cloud ${kb_system_error_pod}
+                  echo ""
+              done
+          
               set -e
               exit 1
           else
