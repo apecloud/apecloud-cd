@@ -6,7 +6,7 @@ on:
       TEST_ENGINES:
         description: >
           Test engines:
-          1.postgresql,mysql,oracle,oceanbase,damengdb,kingbase,goldendb,tdsql,vastbase,tidb,gaussdb,sqlserver,greatdb
+          1.postgresql,mysql,oracle,oceanbase,damengdb,kingbase,vastbase,tidb,gaussdb,sqlserver,greatdb
           2.clickhouse,starrocks,doris
           3.redis,mongodb,etcd
           4.rabbitmq,kafka,rocketmq
@@ -93,8 +93,8 @@ jobs:
           
           # 定义预设组
           G1="postgresql,mysql,damengdb,kingbase"
-          G2="oracle,oceanbase,goldendb"
-          G3="tdsql,vastbase,tidb"
+          G2="oracle,oceanbase"
+          G3="vastbase,tidb"
           G4="gaussdb,sqlserver,greatdb"
           G5="clickhouse,starrocks,doris"
           G6="redis,mongodb,etcd"
