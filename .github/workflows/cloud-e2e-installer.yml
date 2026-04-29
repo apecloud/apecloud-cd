@@ -9,10 +9,10 @@ on:
         required: false
         default: 'main'
       K3S_VERSION:
-        description: 'k3s cluster version (e.g. 1.32)'
+        description: 'k3s cluster version (e.g. 1.33)'
         type: string
         required: false
-        default: '1.32'
+        default: '1.33'
       CURRENT_VERSION:
         description: "The current release version (e.g. v0.30) "
         type: string
@@ -31,10 +31,10 @@ on:
         required: false
         default: 'main'
       K3S_VERSION:
-        description: 'k3s cluster version (e.g. 1.32)'
+        description: 'k3s cluster version (e.g. 1.33)'
         type: string
         required: false
-        default: '1.32'
+        default: '1.33'
       CURRENT_VERSION:
         description: "The current release version (e.g. v0.30) "
         type: string
@@ -88,7 +88,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        k3s-version: [ v1.22, v1.32 ]
+        k3s-version: [ v1.22, v1.33 ]
     steps:
       - name: Free disk space
         continue-on-error: true
@@ -207,7 +207,7 @@ jobs:
                   v1.22)
                       echo installer-result-1-22="${installer_result}" >> $GITHUB_OUTPUT
                   ;;
-                  v1.32)
+                  v1.33)
                       echo installer-result-1-32="${installer_result}" >> $GITHUB_OUTPUT
                   ;;
               esac
@@ -235,7 +235,7 @@ jobs:
                   v1.22)
                       echo installer-result-1-22="${installer_result}" >> $GITHUB_OUTPUT
                   ;;
-                  v1.32)
+                  v1.33)
                       echo installer-result-1-32="${installer_result}" >> $GITHUB_OUTPUT
                   ;;
               esac
@@ -329,7 +329,7 @@ jobs:
                   v1.22)
                       echo bootstrapper-result-1-22="${bootstrapper_result}" >> $GITHUB_OUTPUT
                   ;;
-                  v1.32)
+                  v1.33)
                       echo bootstrapper-result-1-32="${bootstrapper_result}" >> $GITHUB_OUTPUT
                   ;;
               esac
@@ -368,6 +368,25 @@ jobs:
                   kubectl describe pod -n kb-system ${kb_system_error_pod}
                   echo ""
               done
+          
+              # logs kb-cloud error pod 
+              kb_system_error_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Evicted" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" || true) | awk '{print $1}')
+              echo "kb-cloud error pod: $kb_system_error_pods"
+              for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
+                  echo "==================== pod ${kb_system_error_pod} logs ===================="
+                  kubectl logs --tail 100 -n kb-cloud ${kb_system_error_pod}
+                  echo ""
+              done
+          
+              # describe image pull error kb-cloud pod
+              kb_system_error_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')
+              echo "kb-cloud image pull error pod: $kb_system_error_pods"
+              for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
+                  echo "==================== pod ${kb_system_error_pod} describe ===================="
+                  kubectl describe pod -n kb-cloud ${kb_system_error_pod}
+                  echo ""
+              done
+          
               set -e
               exit 1
           else
@@ -375,7 +394,7 @@ jobs:
                   v1.22)
                       echo bootstrapper-result-1-22="${bootstrapper_result}" >> $GITHUB_OUTPUT
                   ;;
-                  v1.32)
+                  v1.33)
                       echo bootstrapper-result-1-32="${bootstrapper_result}" >> $GITHUB_OUTPUT
                   ;;
               esac
@@ -384,6 +403,7 @@ jobs:
   upgrade-test:
     needs: [ get-cloud-branch ]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       installer-result: ${{ steps.install_kb_cloud.outputs.installer-result }}
       upgrade-result: ${{ steps.upgrade_kb_cloud.outputs.upgrade-result }}
@@ -567,7 +587,7 @@ jobs:
                 --set images.kubeblocksConsole.tag=${CLOUD_VERSION} \
                 --set images.hook.tag=${CLOUD_VERSION} \
                 --set images.cubetranFront.tag=${CLOUD_VERSION} \
-                --set grafana.global.imageRegistry='' \
+                --set grafana.global.imageRegistry='docker.io' \
                 --set grafana.image.repository='apecloud/grafana' \
                 --reset-then-reuse-values
           else
@@ -684,10 +704,10 @@ jobs:
           if [[ "${{ inputs.CURRENT_VERSION }}" != 'v0.28' && "${{ inputs.CURRENT_VERSION }}" != '0.28' ]]; then
               TEST_RESULT="${TEST_RESULT}##installer-test-v1.22|v1.22|bootstrapper-${CLOUD_BRANCH}|${BOOTSTRAPPER_RESULT_1_21}"
           
-              TEST_RESULT="${TEST_RESULT}##installer-test-v1.32|v1.32|installer-${CLOUD_BRANCH}|${INSTALLER_RESULT_1_32}"
-              TEST_RESULT="${TEST_RESULT}##installer-test-v1.32|v1.32|bootstrapper-${CLOUD_BRANCH}|${BOOTSTRAPPER_RESULT_1_32}"
+              TEST_RESULT="${TEST_RESULT}##installer-test-v1.33|v1.33|installer-${CLOUD_BRANCH}|${INSTALLER_RESULT_1_32}"
+              TEST_RESULT="${TEST_RESULT}##installer-test-v1.33|v1.33|bootstrapper-${CLOUD_BRANCH}|${BOOTSTRAPPER_RESULT_1_32}"
           else
-              TEST_RESULT="${TEST_RESULT}##installer-test-v1.32|v1.32|installer-${CLOUD_BRANCH}|${INSTALLER_RESULT_1_32}"
+              TEST_RESULT="${TEST_RESULT}##installer-test-v1.33|v1.33|installer-${CLOUD_BRANCH}|${INSTALLER_RESULT_1_32}"
           fi
           
           
