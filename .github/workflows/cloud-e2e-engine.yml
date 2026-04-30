@@ -7,12 +7,12 @@ on:
         description: "The specify version of GO (e.g. mysql,postgresql,redis)"
         type: string
         required: false
-        default: 'mysql'
+        default: 'elasticsearch,qdrant,zookeeper,tdsql,rabbitmq,loki,victoria-metrics,rocketmq,postgresql,kafka,kingbase,gaussdb,redis,damengdb,starrocks,vastbase,mongodb,minio,tidb,oceanbase-proxy,mysql,clickhouse,mssql,oracle'
       CLOUD_ENV_NAME:
-        description: "The cloud env name of test (e.g. dev) "
+        description: "The cloud env name of test (e.g. idc) "
         type: string
         required: false
-        default: 'dev'
+        default: 'idc'
       CLOUD_BRANCH:
         description: "The cloud branch name (e.g. main) "
         type: string
@@ -24,10 +24,10 @@ on:
         required: false
         default: 'main'
       CURRENT_VERSION:
-        description: "The current release version (e.g. v0.30) "
+        description: "The current release version (e.g. v2.2) "
         type: string
         required: false
-        default: ''
+        default: 'v2.2'
       TEST_INDEX:
         description: "Test index"
         type: string
@@ -37,24 +37,24 @@ on:
         description: "The cloud test env"
         type: string
         required: false
-        default: ''
+        default: 'idc'
       CLOUD_TEST_KB_VERSION:
         description: "The cloud test kubeblocks version"
         type: string
         required: false
-        default: ''
+        default: '1.0'
   workflow_call:
     inputs:
       TEST_ENGINES:
         description: "The specify version of GO (e.g. mysql,postgresql,redis)"
         type: string
         required: false
-        default: 'mysql'
+        default: 'elasticsearch,qdrant,zookeeper,tdsql,rabbitmq,loki,victoria-metrics,rocketmq,postgresql,kafka,kingbase,gaussdb,redis,damengdb,starrocks,vastbase,mongodb,minio,tidb,oceanbase-proxy,mysql,clickhouse,mssql,oracle'
       CLOUD_ENV_NAME:
-        description: "The cloud env name of test (e.g. dev) "
+        description: "The cloud env name of test (e.g. v2.2) "
         type: string
         required: false
-        default: 'dev'
+        default: 'idc'
       CLOUD_BRANCH:
         description: "The cloud branch name (e.g. main) "
         type: string
@@ -66,10 +66,10 @@ on:
         required: false
         default: 'main'
       CURRENT_VERSION:
-        description: "The current release version (e.g. v0.30) "
+        description: "The current release version (e.g. v2.2) "
         type: string
         required: false
-        default: ''
+        default: 'v2.2'
       TEST_INDEX:
         description: "Test index"
         type: string
@@ -79,12 +79,12 @@ on:
         description: "The cloud test env"
         type: string
         required: false
-        default: ''
+        default: 'idc'
       CLOUD_TEST_KB_VERSION:
         description: "The cloud test kubeblocks version"
         type: string
         required: false
-        default: ''
+        default: '1.0'
 
 run-name: Cloud E2E Engine Test on Env:${{ inputs.CLOUD_ENV_NAME }}:${{ inputs.CLOUD_TEST_ENV }}:${{ inputs.CLOUD_TEST_KB_VERSION }} ${{ inputs.TEST_ENGINES }} Ref:${{ inputs.CLOUD_BRANCH }}
 
