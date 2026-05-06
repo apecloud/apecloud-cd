@@ -740,6 +740,6 @@ jobs:
 
           python3 .github/utils/send_mesage.py \
               --send-type playwright \
-              --url "${{ vars.CLOUD_E2E_WEB_BOT_WEBHOOK }}" \
+              --url "${{ vars.CICD_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "${TEST_RESULT_ALL}"
