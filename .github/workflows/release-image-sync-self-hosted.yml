@@ -88,6 +88,11 @@ on:
         type: string
         required: false
         default: ''
+      INSTALL_PG_CLIENT:
+        description: "Install PostgreSQL client tools (pg_dump, psql, etc.)"
+        type: boolean
+        required: false
+        default: false
       ARGS_TOKEN:
         description: "Enable set GITHUB_TOKEN to ARGS  (default: false)"
         type: boolean
@@ -291,6 +296,12 @@ jobs:
         uses: Gr1N/setup-poetry@v8
         with:
           poetry-version: "${{ inputs.POETRY_VERSION }}"
+
+      - name: Install PostgreSQL Client
+        if: inputs.INSTALL_PG_CLIENT
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
 
       - name: git config
         if: inputs.GIT_CONFIG
