@@ -237,6 +237,7 @@ jobs:
       test-summary-9: ${{ steps.get_test_result.outputs.test-summary-9 }}
       test-summary-10: ${{ steps.get_test_result.outputs.test-summary-10 }}
     runs-on: [ self-hosted ]
+    timeout-minutes: 360
     steps:
       - name: Checkout testinfra Code
         uses: actions/checkout@v4

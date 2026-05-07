@@ -123,6 +123,7 @@ jobs:
       api-summary: ${{ steps.get_test_result.outputs.api-summary }}
       test-date: ${{ steps.upload_test_result.outputs.test-date }}
     runs-on: [ self-hosted ]
+    timeout-minutes: 60
     steps:
       - name: Checkout testinfra Code
         uses: actions/checkout@v4
