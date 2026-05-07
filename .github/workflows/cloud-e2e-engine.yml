@@ -313,10 +313,6 @@ jobs:
           esac
           echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
 
-      - name: install python dateutil
-        run: |
-          pip3 install python-dateutil
-
       - name: run ${{ matrix.test-type }}
         run: |
           run_file_log="run_e2e_test_result.log"
