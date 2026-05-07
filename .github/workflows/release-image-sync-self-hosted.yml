@@ -187,6 +187,17 @@ jobs:
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
     steps:
+      - name: Install prerequisites
+        if: inputs.HELM_VERSION || inputs.INSTALL_PG_CLIENT
+        run: |
+          sudo apt-get update
+          if [[ "${{ inputs.HELM_VERSION }}" != "" ]]; then
+            sudo apt-get install -y unzip
+          fi
+          if [[ "${{ inputs.INSTALL_PG_CLIENT }}" == "true" ]]; then
+            sudo apt-get install -y postgresql-client
+          fi
+
       - name: Install Helm
         if: inputs.HELM_VERSION
         uses: azure/setup-helm@v3
@@ -309,12 +320,6 @@ jobs:
         uses: Gr1N/setup-poetry@v8
         with:
           poetry-version: "${{ inputs.POETRY_VERSION }}"
-
-      - name: Install PostgreSQL Client
-        if: inputs.INSTALL_PG_CLIENT
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
 
       - name: git config
         if: inputs.GIT_CONFIG
