@@ -236,7 +236,7 @@ jobs:
       test-summary-8: ${{ steps.get_test_result.outputs.test-summary-8 }}
       test-summary-9: ${{ steps.get_test_result.outputs.test-summary-9 }}
       test-summary-10: ${{ steps.get_test_result.outputs.test-summary-10 }}
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted ]
     steps:
       - name: Checkout testinfra Code
         uses: actions/checkout@v4
@@ -260,6 +260,10 @@ jobs:
           token: ${{ env.GH_TOKEN }}
           ref: "${{ needs.get-test-engine.outputs.cloud-branch }}"
           fetch-depth: 0
+
+      - uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.28.3"
 
       - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
         id: cloud_env

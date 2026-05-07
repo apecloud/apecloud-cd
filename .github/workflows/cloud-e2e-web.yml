@@ -203,7 +203,7 @@ jobs:
       test-result-34: ${{ steps.get_test_result.outputs.test-result-34 }}
       test-result-35: ${{ steps.get_test_result.outputs.test-result-35 }}
       test-date: ${{ steps.upload_test_result.outputs.test-date }}
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted ]
     steps:
       - name: Checkout testinfra Code
         uses: actions/checkout@v4
@@ -218,6 +218,10 @@ jobs:
           repository: apecloud/apecloud-cd
           path: ./apecloud-cd
           ref: ${{ inputs.APECD_REF }}
+
+      - uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.28.3"
 
       - name: Configure ACK Context ${{ needs.get-test-engine.outputs.cloud-env-name }}
         id: cloud_env
@@ -258,10 +262,6 @@ jobs:
               ;;
           esac
           echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
-
-      - name: install python dateutil
-        run: |
-          pip3 install python-dateutil
 
       - name: run ${{ matrix.test-type }}
         run: |
