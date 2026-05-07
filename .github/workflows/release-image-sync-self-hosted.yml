@@ -93,6 +93,11 @@ on:
         type: boolean
         required: false
         default: false
+      HELM_VERSION:
+        description: "Install the specify version of Helm (e.g., v3.16.3)"
+        type: string
+        required: false
+        default: ''
       ARGS_TOKEN:
         description: "Enable set GITHUB_TOKEN to ARGS  (default: false)"
         type: boolean
@@ -182,6 +187,12 @@ jobs:
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
     steps:
+      - name: Install Helm
+        if: inputs.HELM_VERSION
+        uses: azure/setup-helm@v3
+        with:
+          version: "v3.16.3"
+
       - name: Pre Check
         id: pre_check
         continue-on-error: true
