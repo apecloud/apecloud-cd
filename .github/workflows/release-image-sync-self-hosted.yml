@@ -191,7 +191,7 @@ jobs:
         if: inputs.HELM_VERSION
         uses: azure/setup-helm@v3
         with:
-          version: "v3.16.3"
+          version: "${{ inputs.HELM_VERSION }}"
 
       - name: Pre Check
         id: pre_check
