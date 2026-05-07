@@ -236,8 +236,7 @@ jobs:
       test-summary-8: ${{ steps.get_test_result.outputs.test-summary-8 }}
       test-summary-9: ${{ steps.get_test_result.outputs.test-summary-9 }}
       test-summary-10: ${{ steps.get_test_result.outputs.test-summary-10 }}
-    runs-on: [ self-hosted ]
-    timeout-minutes: 360
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout testinfra Code
         uses: actions/checkout@v4
@@ -261,10 +260,6 @@ jobs:
           token: ${{ env.GH_TOKEN }}
           ref: "${{ needs.get-test-engine.outputs.cloud-branch }}"
           fetch-depth: 0
-
-      - uses: azure/setup-kubectl@v3
-        with:
-          version: "v1.28.3"
 
       - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
         id: cloud_env
@@ -313,6 +308,10 @@ jobs:
               ;;
           esac
           echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
+
+      - name: install python dateutil
+        run: |
+          pip3 install python-dateutil
 
       - name: run ${{ matrix.test-type }}
         run: |
