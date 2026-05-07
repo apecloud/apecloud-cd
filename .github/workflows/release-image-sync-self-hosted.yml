@@ -1,0 +1,497 @@
+name: Release Image Sync Self Hosted
+
+on:
+  workflow_call:
+    inputs:
+      MAKE_OPS:
+        description: "The ops name of makefile (default: push-image)"
+        type: string
+        required: false
+        default: 'push-image'
+      MAKE_OPS_PRE:
+        description: "The pre ops name of makefile (e.g. generate)"
+        type: string
+        required: false
+        default: ''
+      IMG:
+        description: "The URL to use building/pushing image targets (e.g. apecloud/kubeblocks)"
+        type: string
+        required: false
+        default: ''
+      REPOSITORY:
+        description: "The REPOSITORY to use building/pushing image targets (e.g. apecloud)"
+        type: string
+        required: false
+        default: ''
+      VERSION:
+        description: "The tag name of image (default: latest)"
+        type: string
+        required: false
+        default: ''
+      BUILDX_PLATFORMS:
+        description: "buildx platforms (default: linux/amd64,linux/arm64)"
+        type: string
+        required: false
+        default: 'linux/amd64,linux/arm64'
+      BUILDX_ENABLED:
+        description: "buildx enable (default: true)"
+        type: string
+        required: false
+        default: 'true'
+      BUILDX_ARGS:
+        description: "buildx args (default: --sbom=false --provenance=false)"
+        type: string
+        required: false
+        default: ''
+      GO_VERSION:
+        description: "Install the specify version of GO"
+        type: string
+        required: false
+        default: ''
+      NODE_VERSION:
+        description: "Install the specify version of node"
+        type: string
+        required: false
+        default: ''
+      GIT_CONFIG:
+        description: "InsteadOf git config global url (default: false)"
+        type: boolean
+        required: false
+        default: false
+      REMOVE_PREFIX:
+        description: "Enable remove prefix v  (default: true)"
+        type: boolean
+        required: false
+        default: true
+      MAKE_ARGS:
+        description: "make args"
+        type: string
+        required: false
+        default: ''
+      EXTRA_BUILD_ARGS:
+        description: "extra build args"
+        type: string
+        required: false
+        default: ''
+      ENABLE_SUBMODULE:
+        description: "Enable checkout submodule  (default: false)"
+        type: boolean
+        required: false
+        default: false
+      PYTHON_VERSION:
+        description: "Install the specify version of Python"
+        type: string
+        required: false
+        default: ''
+      POETRY_VERSION:
+        description: "Install the specify version of Poetry"
+        type: string
+        required: false
+        default: ''
+      ARGS_TOKEN:
+        description: "Enable set GITHUB_TOKEN to ARGS  (default: false)"
+        type: boolean
+        required: false
+        default: false
+      IMAGE_NAME:
+        description: "specify image name"
+        type: string
+        required: false
+        default: ""
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      ADDITIONAL_REPO:
+        description: "The additional repos to checkout"
+        type: boolean
+        required: false
+        default: false
+      GITHUB_REPO:
+        description: "The github repo to release image"
+        type: string
+        required: false
+        default: ''
+      GITHUB_REF:
+        description: "The github repo ref to release image"
+        type: string
+        required: false
+        default: 'main'
+      GITHUB_PATH:
+        description: "The path to release image"
+        type: string
+        required: false
+        default: ''
+      SYNC_ENABLE:
+        description: "Enable sync images"
+        type: boolean
+        required: false
+        default: true
+      TIMEOUT_MINUTES:
+        description: "The timeout minutes of workflow"
+        type: number
+        required: false
+        default: 360
+
+
+env:
+  DOCKER_REGISTRY_URL: docker.io
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+  ALIYUN_USER_NEW: ${{ secrets.ALIYUN_USER_NEW }}
+  ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
+  ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
+  GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  DEFAULT_BUILDX_ARGS: '--sbom=false --provenance=false'
+  POSTGRESQL_DB_HOST_DEV: ${{ secrets.POSTGRESQL_DB_HOST_DEV }}
+  POSTGRESQL_DB_PASSWORD_DEV: ${{ secrets.POSTGRESQL_DB_PASSWORD_DEV }}
+  POSTGRESQL_DB_PORT_DEV: ${{ secrets.POSTGRESQL_DB_PORT_DEV }}
+  POSTGRESQL_DB_HOST_IDC: ${{ secrets.POSTGRESQL_DB_HOST_IDC }}
+  POSTGRESQL_DB_PASSWORD_IDC: ${{ secrets.POSTGRESQL_DB_PASSWORD_IDC }}
+  POSTGRESQL_DB_PORT_IDC: ${{ secrets.POSTGRESQL_DB_PORT_IDC }}
+  POSTGRESQL_DB_HOST_IDC1: ${{ secrets.POSTGRESQL_DB_HOST_IDC1 }}
+  POSTGRESQL_DB_PASSWORD_IDC1: ${{ secrets.POSTGRESQL_DB_PASSWORD_IDC1 }}
+  POSTGRESQL_DB_PORT_IDC1: ${{ secrets.POSTGRESQL_DB_PORT_IDC1 }}
+  POSTGRESQL_DB_HOST_IDC2: ${{ secrets.POSTGRESQL_DB_HOST_IDC2 }}
+  POSTGRESQL_DB_PASSWORD_IDC2: ${{ secrets.POSTGRESQL_DB_PASSWORD_IDC2 }}
+  POSTGRESQL_DB_PORT_IDC2: ${{ secrets.POSTGRESQL_DB_PORT_IDC2 }}
+  POSTGRESQL_DB_HOST_IDC4: ${{ secrets.POSTGRESQL_DB_HOST_IDC4 }}
+  POSTGRESQL_DB_PASSWORD_IDC4: ${{ secrets.POSTGRESQL_DB_PASSWORD_IDC4 }}
+  POSTGRESQL_DB_PORT_IDC4: ${{ secrets.POSTGRESQL_DB_PORT_IDC4 }}
+  POSTGRESQL_DB_DATABASE: ${{ secrets.POSTGRESQL_DB_DATABASE }}
+  POSTGRESQL_DB_USERNAME: ${{ secrets.POSTGRESQL_DB_USERNAME }}
+  JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
+  JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
+  PROJECT_ID: 165897
+
+jobs:
+  release-image:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: [ self-hosted ]
+    timeout-minutes: ${{ inputs.TIMEOUT_MINUTES }}
+    steps:
+      - name: Pre Check
+        id: pre_check
+        continue-on-error: true
+        run: |
+          TARGETS="${{ inputs.MAKE_ARGS }}"
+          case $TARGETS in
+              *TARGETS=docker/kb-cloud-installer*)
+                  sleep 5
+                  helm repo add kubeblocks-enterprise --username ${JIHULAB_ACCESS_USER} --password ${JIHULAB_ACCESS_TOKEN} https://jihulab.com/api/v4/projects/${PROJECT_ID}/packages/helm/stable
+                  HELM_CHART_PKG_NAME="kubeblocks-cloud-${{ inputs.VERSION }}.tgz"
+                  helm_pull_cmd="helm pull kubeblocks-enterprise/kubeblocks-cloud --version ${{ inputs.VERSION }}"
+                  for i in {1..120}; do
+                      eval "$helm_pull_cmd" || true
+                      # check helm chart package
+                      echo "helm chart package checking..."
+                      if [[ -f "${HELM_CHART_PKG_NAME}" ]]; then
+                          echo "found helm chart package ${HELM_CHART_PKG_NAME}"
+                          break
+                      fi
+                      sleep 1
+                      helm repo update kubeblocks-enterprise 
+                  done
+              ;;
+          esac
+
+      - name: Checkout Code
+        if: ${{ ! inputs.ENABLE_SUBMODULE }}
+        uses: actions/checkout@v4
+
+      - name: Checkout Code With Submodule
+        if: inputs.ENABLE_SUBMODULE
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: Checkout ${{ inputs.GITHUB_REPO }} Code
+        if: ${{ inputs.ADDITIONAL_REPO && inputs.GITHUB_REPO != '' && inputs.GITHUB_PATH != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.GITHUB_REPO }}
+          ref: ${{ inputs.GITHUB_REF }}
+          path: ./${{ inputs.GITHUB_PATH }}
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: set PG HOST Env
+        run: |
+          RELEASE_VERSION="${{ inputs.VERSION }}"
+          CURRENT_RELEASE_VERSION="v${{ vars.CURRENT_RELEASE_VERSION }}"
+          IDC_RELEASE_VERSION="${{ vars.IDC_RELEASE_VERSION }}"
+          IDC1_RELEASE_VERSION="${{ vars.IDC1_RELEASE_VERSION }}"
+          IDC2_RELEASE_VERSION="${{ vars.IDC2_RELEASE_VERSION }}"
+          IDC4_RELEASE_VERSION="${{ vars.IDC4_RELEASE_VERSION }}"
+          if [[ "${RELEASE_VERSION}" == "${CURRENT_RELEASE_VERSION}."* ]]; then
+              echo "set PG HOST Env DEV"
+              POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_DEV }}"
+              POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_DEV }}"
+              POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_DEV }}"
+          elif [[ "${RELEASE_VERSION}" == "${IDC_RELEASE_VERSION}."* ]]; then
+              echo "set PG HOST Env IDC"
+              POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_IDC }}"
+              POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_IDC }}"
+              POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_IDC }}"
+          elif [[ "${RELEASE_VERSION}" == "${IDC1_RELEASE_VERSION}."* ]]; then
+              echo "set PG HOST Env IDC1"
+              POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_IDC1 }}"
+              POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_IDC1 }}"
+              POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_IDC1 }}"
+          elif [[ "${RELEASE_VERSION}" == "${IDC4_RELEASE_VERSION}."* ]]; then
+              echo "set PG HOST Env IDC4"
+              POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_IDC4 }}"
+              POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_IDC4 }}"
+              POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_IDC4 }}"
+          elif [[ "${RELEASE_VERSION}" == "${IDC2_RELEASE_VERSION}."* ]]; then
+              echo "set PG HOST Env IDC2"
+              POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_IDC2 }}"
+              POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_IDC2 }}"
+              POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_IDC2 }}"
+          else
+              echo "set PG HOST Env DEV"
+              POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_DEV }}"
+              POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_DEV }}"
+              POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_DEV }}"
+          fi
+          echo "POSTGRESQL_DB_HOST=${POSTGRESQL_DB_HOST}" >> $GITHUB_ENV
+          echo "POSTGRESQL_DB_PASSWORD=${POSTGRESQL_DB_PASSWORD}" >> $GITHUB_ENV
+          echo "POSTGRESQL_DB_PORT=${POSTGRESQL_DB_PORT}" >> $GITHUB_ENV
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: image=moby/buildkit:master
+
+      - name: Setup Go specify version
+        if: inputs.GO_VERSION
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ inputs.GO_VERSION }}
+
+      - name: Setup Node.js
+        if: inputs.NODE_VERSION
+        uses: actions/setup-node@v3
+        with:
+          node-version: "${{ inputs.NODE_VERSION }}"
+
+      - name: Setup Python specify version
+        if: inputs.PYTHON_VERSION
+        uses: actions/setup-python@v4
+        with:
+          python-version: "${{ inputs.PYTHON_VERSION }}"
+
+      - name: Setup Poetry specify version
+        if: inputs.POETRY_VERSION
+        uses: Gr1N/setup-poetry@v8
+        with:
+          poetry-version: "${{ inputs.POETRY_VERSION }}"
+
+      - name: git config
+        if: inputs.GIT_CONFIG
+        run: |
+          git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GITHUB_TOKEN }}@github.com".insteadof "https://github.com"
+
+      - name: make pre
+        if: inputs.MAKE_OPS_PRE
+        run: |
+          make ${{ inputs.MAKE_OPS_PRE }}
+
+      - name: Remove v prefix
+        id: get_tag_name
+        shell: bash
+        run: |
+          tag_name="${{ inputs.VERSION }}"
+          if [[ "$tag_name" == "v"*  && "${{ inputs.REMOVE_PREFIX }}" == "true" ]]; then
+              tag_name="${tag_name/v/}"
+          fi
+          echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
+
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY_URL }}
+          username: ${{ env.DOCKER_USER }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
+        name: Build and Push to Docker Hub
+        run: |
+          echo "Free space:"
+          df -h
+          cmd="make ${{ inputs.MAKE_OPS }} "
+          cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
+          cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
+          cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
+          
+          if [[ -n "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
+              if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
+                  cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
+              else
+                  cmd=$cmd"EXTRA_BUILD_ARGS=\"${{ inputs.EXTRA_BUILD_ARGS }}\" "
+              fi
+          elif [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
+              cmd=$cmd"EXTRA_BUILD_ARGS=\"--build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }} \" "
+          fi
+          
+          if [[ -n "${{ inputs.VERSION }}" ]]; then
+            cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.TAG-NAME }} "
+          fi
+          
+          if [[ -n "${{ inputs.IMG }}" ]]; then
+            cmd=$cmd"IMG=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }} "
+          elif [[ -n "${{ inputs.REPOSITORY }}" ]]; then
+            cmd=$cmd"REPOSITORY=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.REPOSITORY }} "
+          fi
+          
+          if [[ -n "${{ inputs.MAKE_ARGS }}" ]]; then
+            cmd=$cmd" ${{ inputs.MAKE_ARGS }} "
+          
+            TARGETS="${{ inputs.MAKE_ARGS }}"
+            if [[ "${TARGETS}" == *"TARGETS=openconsole"* ]]; then
+              VERSION="${{ inputs.VERSION }}"
+              case "${VERSION}" in
+                *-console)
+                  echo "export BASE_PATH=/console"
+                  export BASE_PATH=/console
+                ;;
+                *-admin)
+                  echo "export BASE_PATH=/admin"
+                  export BASE_PATH=/admin
+                ;;
+              esac
+            fi
+          fi
+          
+          if [[ -n "${{ inputs.IMAGE_NAME }}" ]]; then
+            cmd=$cmd"IMAGE_NAME=${{ inputs.IMAGE_NAME }} "
+          fi
+          
+          eval "$cmd"
+
+  sync-to-aliyun:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.SYNC_ENABLE }}
+    needs: [ release-image ]
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: generate image yaml
+        run: |
+          IMAGES_TAG="${{ needs.release-image.outputs.tag-name }}"
+          IMAGES_INPUT=""
+          if [[ -n "${{ inputs.IMG }}" ]]; then
+              IMAGES_INPUT="${{ inputs.IMG }}:${IMAGES_TAG}"
+              if [[ "${{ inputs.IMG }}" == *"apecloud/sentry"* ]]; then
+                  IMAGES_INPUT="${IMAGES_INPUT}|${{ inputs.IMG }}-init:${IMAGES_TAG}"
+              fi
+          else
+              TARGETS="${{ inputs.MAKE_ARGS }}"
+              case $TARGETS in
+                  *TARGETS=apiserver*)
+                      if [[ "$TARGETS" == *"GOTAGS=jni"* ]]; then
+                          IMAGES_INPUT="apecloud/apiserver:${IMAGES_TAG}-jni"
+                      else
+                          IMAGES_INPUT="apecloud/apiserver:${IMAGES_TAG}"
+                      fi
+                  ;;
+                  *TARGETS=docs*)
+                      IMAGES_INPUT="apecloud/kb-cloud-docs:${IMAGES_TAG}"
+                  ;;
+                  *TARGETS=openconsole*)
+                      IMAGES_INPUT="apecloud/openconsole:${IMAGES_TAG}"
+                  ;;
+                  *TARGETS=prompt*)
+                      IMAGES_INPUT="apecloud/prompt:${IMAGES_TAG}"
+                  ;;
+                  *TARGETS=sentry*)
+                      IMAGES_INPUT="apecloud/sentry:${IMAGES_TAG}"
+                      IMAGES_INPUT="${IMAGES_INPUT}|apecloud/sentry-init:${IMAGES_TAG}"
+                  ;;
+                  *TARGETS=task-manager*)
+                      IMAGES_INPUT="apecloud/task-manager:${IMAGES_TAG}"
+                  ;;
+                  *TARGETS=*cloud-bootstrapper*)
+                      IMAGES_INPUT="apecloud/kb-cloud-bootstrapper:${IMAGES_TAG}"
+                  ;;
+                  *TARGETS=*cloud-installer*)
+                      IMAGES_INPUT="apecloud/kb-cloud-installer:${IMAGES_TAG}"
+                  ;;
+                  *TARGETS=*installer-offline*)
+                      IMAGES_INPUT="apecloud/kubeblocks-installer:${IMAGES_TAG}-offline"
+                  ;;
+                  *TARGETS=*installer*)
+                      IMAGES_INPUT="apecloud/kubeblocks-installer:${IMAGES_TAG}"
+                  ;;
+                  *TARGETS=terraform*)
+                      IMAGES_INPUT="apecloud/terraform-provision:${IMAGES_TAG}"
+                  ;;
+                  *TARGETS*)  
+                      for TARGET in $(echo "${TARGETS}"); do
+                          if [[ "$TARGET" == *"TARGETS="* ]]; then
+                              TARGETS_TMP=${TARGET#*=}
+                              TARGETS_TMP=${TARGETS_TMP##*/}
+                              TARGETS_TMP=$(echo "$TARGETS_TMP" | tr -d ' ')
+                              IMAGES_INPUT="apecloud/${TARGETS_TMP}:${IMAGES_TAG}"
+                              break
+                          fi
+                      done
+                  ;;
+              esac
+          fi
+          
+          if [[ -n "${{ env.ALIYUN_USER_NEW }}" && -n "${{ env.ALIYUN_PASSWORD_NEW }}" ]]; then
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+                --type 27 \
+                --images "${IMAGES_INPUT}" \
+                --registry "${{ env.DOCKER_REGISTRY_URL }}"
+          else
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+                --type 32 \
+                --images "${IMAGES_INPUT}" \
+                --registry "${{ env.DOCKER_REGISTRY_URL }}"
+          fi
+
+      - uses: hhyasdf/image-sync-action@v1.1
+        name: sync image to apecloud aliyun registry
+        if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && (env.ALIYUN_USER_NEW == '' || env.ALIYUN_PASSWORD_NEW == '') }}
+        with:
+          auth_file: ${{ github.workspace }}/apecloud-cd/.github/actions/image-sync-auth-apecloud.yml
+          images_file: ./image_sync_yaml_apecloud.yml
+          proc: 6
+          retries: 5
+          version: v1.5.2
+        env:
+          DOCKER_USER: ${{ env.DOCKER_USER }}
+          DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
+          ALIYUN_USER: ${{ env.ALIYUN_USER }}
+          ALIYUN_PASSWORD: ${{ env.ALIYUN_PASSWORD }}
+
+      - uses: hhyasdf/image-sync-action@v1.1
+        name: sync image to all aliyun registry
+        if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
+        with:
+          auth_file: ${{ github.workspace }}/apecloud-cd/.github/actions/image-sync-auth.yml
+          images_file: ./image_sync_yaml.yml
+          proc: 6
+          retries: 5
+          version: v1.5.2
+        env:
+          DOCKER_USER: ${{ env.DOCKER_USER }}
+          DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
+          ALIYUN_USER: ${{ env.ALIYUN_USER }}
+          ALIYUN_PASSWORD: ${{ env.ALIYUN_PASSWORD }}
+          ALIYUN_USER_NEW: ${{ env.ALIYUN_USER_NEW }}
+          ALIYUN_PASSWORD_NEW: ${{ env.ALIYUN_PASSWORD_NEW }}
