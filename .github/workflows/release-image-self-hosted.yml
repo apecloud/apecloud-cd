@@ -104,7 +104,7 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted ]
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.tag-name }}
     steps:
