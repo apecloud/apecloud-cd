@@ -1,0 +1,236 @@
+name: Release Image Self Hosted
+
+on:
+  workflow_call:
+    inputs:
+      GITHUB_REPO:
+        description: "The github repo to release image"
+        type: string
+        required: false
+        default: ''
+      GITHUB_REF:
+        description: "The github repo ref to release image"
+        type: string
+        required: false
+        default: 'main'
+      MAKE_OPS_PRE:
+        description: "The pre ops name of makefile (e.g. generate)"
+        type: string
+        required: false
+        default: ''
+      IMG:
+        description: "The URL to use building/pushing image targets (e.g. apecloud/kubeblocks)"
+        type: string
+        required: false
+        default: ''
+      VERSION:
+        description: "The tag name of image (default: latest)"
+        type: string
+        required: false
+        default: ''
+      BUILDX_PLATFORMS:
+        description: "buildx platforms (default: linux/amd64,linux/arm64)"
+        type: string
+        required: false
+        default: 'linux/amd64,linux/arm64'
+      BUILDX_ARGS:
+        description: "buildx args "
+        type: string
+        required: false
+        default: ''
+      GO_VERSION:
+        description: "Install the specify version of GO"
+        type: string
+        required: false
+        default: ''
+      GIT_CONFIG:
+        description: "InsteadOf git config global url (default: false)"
+        type: boolean
+        required: false
+        default: false
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      SYNC_ENABLE:
+        description: "Enable sync images"
+        type: boolean
+        required: false
+        default: true
+      CONTEXT:
+        description: "Build's context is the set of files located in the specified PATH or URL (default: .)"
+        type: string
+        required: false
+        default: '.'
+      DOCKERFILE_PATH:
+        description: "Path to the Dockerfile (default: ./Dockerfile)"
+        type: string
+        required: false
+        default: './Dockerfile'
+      REMOVE_PREFIX:
+        description: "Enable remove prefix v  (default: true)"
+        type: boolean
+        required: false
+        default: true
+      PYTHON_VERSION:
+        description: "Install the specify version of Python"
+        type: string
+        required: false
+        default: ''
+      POETRY_VERSION:
+        description: "Install the specify version of Poetry"
+        type: string
+        required: false
+        default: ''
+      ENABLE_SUBMODULE:
+        description: "Enable checkout submodule  (default: false)"
+        type: boolean
+        required: false
+        default: false
+
+env:
+  DOCKER_REGISTRY_URL: docker.io
+  ALIYUN_REGISTRY_URL: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+  ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
+  GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+jobs:
+  release-image:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-latest
+    outputs:
+      tag-name: ${{ steps.get_tag_name.outputs.tag-name }}
+    steps:
+      - name: Checkout Code
+        if: ${{ ! inputs.ENABLE_SUBMODULE && inputs.GITHUB_REPO == '' }}
+        uses: actions/checkout@v4
+
+      - name: Checkout ${{ inputs.GITHUB_REPO }} Code
+        if: ${{ ! inputs.ENABLE_SUBMODULE && inputs.GITHUB_REPO != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.GITHUB_REPO }}
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.GITHUB_REF }}
+
+      - name: Checkout Code With Submodule
+        if: ${{ inputs.ENABLE_SUBMODULE && inputs.GITHUB_REPO == '' }}
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: Checkout ${{ inputs.GITHUB_REPO }} Code With Submodule
+        if: ${{ inputs.ENABLE_SUBMODULE && inputs.GITHUB_REPO != '' }}
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          repository: ${{ inputs.GITHUB_REPO }}
+          path: ./
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.GITHUB_REF }}
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: image=moby/buildkit:master
+
+      - name: Setup Go specify version
+        if: inputs.GO_VERSION
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ inputs.GO_VERSION }}
+
+      - name: Setup Python specify version
+        if: inputs.PYTHON_VERSION
+        uses: actions/setup-python@v4
+        with:
+          python-version: "${{ inputs.PYTHON_VERSION }}"
+
+      - name: Setup Poetry specify version
+        if: inputs.POETRY_VERSION
+        uses: Gr1N/setup-poetry@v8
+        with:
+          poetry-version: "${{ inputs.POETRY_VERSION }}"
+
+      - name: Setup Python specify version
+        if: inputs.PYTHON_VERSION
+        uses: actions/setup-python@v4
+        with:
+          python-version: "${{ inputs.PYTHON_VERSION }}"
+
+      - name: Setup Poetry specify version
+        if: inputs.POETRY_VERSION
+        uses: Gr1N/setup-poetry@v8
+        with:
+          poetry-version: "${{ inputs.POETRY_VERSION }}"
+
+      - name: git config
+        if: inputs.GIT_CONFIG
+        run: |
+          git config --global url."https://${{ env.GITHUB_USER }}:${{ env.GITHUB_TOKEN }}@github.com".insteadof "https://github.com"
+
+      - name: make pre
+        if: inputs.MAKE_OPS_PRE
+        run: |
+          make ${{ inputs.MAKE_OPS_PRE }}
+
+      - name: remove v prefix
+        id: get_tag_name
+        shell: bash
+        run: |
+          tag_name="${{ inputs.VERSION }}"
+          if [[ "$tag_name" == "v"*  && "${{ inputs.REMOVE_PREFIX }}" == "true" ]]; then
+              tag_name="${tag_name/v/}"
+          fi
+          echo tag-name=$tag_name >> $GITHUB_OUTPUT
+
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY_URL }}
+          username: ${{ env.DOCKER_USER }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
+        name: Build and Push to Docker Hub
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ inputs.CONTEXT }}
+          file: ${{ inputs.DOCKERFILE_PATH }}
+          tags: ${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.tag-name }}
+          platforms: ${{ inputs.BUILDX_PLATFORMS }}
+          build-args: ${{ inputs.BUILDX_ARGS }}
+          push: true
+          provenance: false
+          sbom: false
+
+      - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
+        name: Login to Aliyun Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.ALIYUN_REGISTRY_URL }}
+          username: ${{ env.ALIYUN_USER }}
+          password: ${{ env.ALIYUN_PASSWORD }}
+
+      - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
+        name: Build and Push to Aliyun Registry
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ inputs.CONTEXT }}
+          file: ${{ inputs.DOCKERFILE_PATH }}
+          tags: ${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.tag-name }}
+          platforms: ${{ inputs.BUILDX_PLATFORMS }}
+          build-args: ${{ inputs.BUILDX_ARGS }}
+          push: true
+          provenance: false
+          sbom: false
