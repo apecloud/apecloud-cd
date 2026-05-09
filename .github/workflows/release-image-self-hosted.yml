@@ -88,6 +88,11 @@ on:
         type: boolean
         required: false
         default: false
+      TIMEOUT_MINUTES:
+        description: "The timeout minutes of workflow"
+        type: number
+        required: false
+        default: 20
 
 env:
   DOCKER_REGISTRY_URL: docker.io
@@ -105,6 +110,7 @@ jobs:
       contents: 'read'
       id-token: 'write'
     runs-on: [ self-hosted ]
+    timeout-minutes: ${{ inputs.TIMEOUT_MINUTES }}
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.tag-name }}
     steps:
