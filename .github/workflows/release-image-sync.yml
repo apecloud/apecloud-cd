@@ -132,7 +132,7 @@ on:
         description: "The timeout minutes of workflow"
         type: number
         required: false
-        default: 360
+        default: 20
 
 
 env:
