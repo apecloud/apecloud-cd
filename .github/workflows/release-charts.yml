@@ -131,6 +131,7 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Install Helm
         uses: azure/setup-helm@v3
