@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         branch-name: [ "main" ]
-    uses: ./.github/workflows/release-image-cache.yml
+    uses: ./.github/workflows/release-image-no-cache.yml
     with:
       GITHUB_REPO: "apecloud/apecloud"
       GITHUB_REF: "${{ matrix.branch-name }}"

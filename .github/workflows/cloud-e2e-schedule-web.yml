@@ -30,7 +30,7 @@ jobs:
           echo "test-engines=$RAW_INPUT" >> $GITHUB_OUTPUT
 
   release-e2e-image:
-    uses: ./.github/workflows/release-image-cache.yml
+    uses: ./.github/workflows/release-image-no-cache.yml
     with:
       GITHUB_REPO: "apecloud/e2etest"
       GITHUB_REF: "main"
