@@ -100,9 +100,22 @@ jobs:
     uses: ./.github/workflows/trigger-workflow.yml
     strategy:
       matrix:
-        repo-name: [ openconsole, apecloud-values, kubeblocks-console ]
+        repo-name: [ apecloud-values, kubeblocks-console ]
     with:
       GITHUB_REPO: "apecloud/${{ matrix.repo-name }}"
+      VERSION: "${{ needs.get-version.outputs.release-version }}"
+      BRANCH_NAME: "${{ needs.get-version.outputs.release-branch }}"
+      WORKFLOW_ID: "release-version.yml"
+      APECD_REF: "${{ inputs.APECD_REF }}"
+    secrets: inherit
+
+  release-openconsole-version:
+    needs: [ get-version ]
+    name: release openconsole version
+    if: ${{ needs.get-version.outputs.release-branch == 'release-2.2' || needs.get-version.outputs.release-branch == 'release-2.1' || needs.get-version.outputs.release-branch == 'release-2.0' || needs.get-version.outputs.release-branch == 'release-1.1' }}
+    uses: ./.github/workflows/trigger-workflow.yml
+    with:
+      GITHUB_REPO: "apecloud/openconsole"
       VERSION: "${{ needs.get-version.outputs.release-version }}"
       BRANCH_NAME: "${{ needs.get-version.outputs.release-branch }}"
       WORKFLOW_ID: "release-version.yml"
