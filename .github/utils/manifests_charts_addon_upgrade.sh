@@ -56,51 +56,63 @@ upgrade_charts_addon() {
         is_enterprise=$(yq e "."${chart_name}"[0].isEnterprise"  ${MANIFESTS_FILE})
         chart_version_list=$(yq e "."${chart_name}"[].version"  ${MANIFESTS_FILE})
         chart_version=""
+        chart_index=0
         # compare same version
         for chartVersion in $(echo "$chart_version_list"); do
             if [[ "$chartVersion" == "$deploy_chart_version" ]]; then
                 chart_version="$chartVersion"
+                is_enterprise=$(yq e "."${chart_name}"[${chart_index}].isEnterprise"  ${MANIFESTS_FILE})
                 break
             fi
+            chart_index=$(( $chart_index + 1 ))
         done
 
         # compare same head version
         if [[ -z "$chart_version" ]]; then
+            chart_index=0
             for chart_version_tmp in $(echo "$chart_version_list"); do
-                chart_version_tmp=${chartVersion%-*}
+                chart_version_compare=${chart_version_tmp%-*}
                 deploy_chart_version_tmp=${deploy_chart_version%-*}
-                if [[ "$chart_version_tmp" == "$deploy_chart_version_tmp" ]]; then
-                    chart_version="$chartVersion"
+                if [[ "$chart_version_compare" == "$deploy_chart_version_tmp" ]]; then
+                    chart_version="$chart_version_tmp"
+                    is_enterprise=$(yq e "."${chart_name}"[${chart_index}].isEnterprise"  ${MANIFESTS_FILE})
                     break
                 fi
+                chart_index=$(( $chart_index + 1 ))
             done
         fi
 
         # compare same head2 version
         if [[ -z "$chart_version" ]]; then
+            chart_index=0
             for chart_version_tmp in $(echo "$chart_version_list"); do
-                chart_version_tmp=${chartVersion%-*}
-                chart_version_tmp=${chart_version_tmp%.*}
+                chart_version_compare=${chart_version_tmp%-*}
+                chart_version_compare=${chart_version_compare%.*}
                 deploy_chart_version_tmp=${deploy_chart_version%-*}
                 deploy_chart_version_tmp=${deploy_chart_version_tmp%.*}
-                if [[ "$chart_version_tmp" == "$deploy_chart_version_tmp" ]]; then
-                    chart_version="$chartVersion"
+                if [[ "$chart_version_compare" == "$deploy_chart_version_tmp" ]]; then
+                    chart_version="$chart_version_tmp"
+                    is_enterprise=$(yq e "."${chart_name}"[${chart_index}].isEnterprise"  ${MANIFESTS_FILE})
                     break
                 fi
+                chart_index=$(( $chart_index + 1 ))
             done
         fi
 
         # compare with kubeblocks same head2 version
         if [[ -z "$chart_version" ]]; then
-            for chartVersion in $(echo "$chart_version_list"); do
-                chart_version_tmp=${chartVersion%-*}
-                chart_version_tmp=${chart_version_tmp%.*}
+            chart_index=0
+            for chart_version_tmp in $(echo "$chart_version_list"); do
+                chart_version_compare=${chart_version_tmp%-*}
+                chart_version_compare=${chart_version_compare%.*}
                 kubeblocks_version_tmp=${kubeblocks_version%-*}
                 kubeblocks_version_tmp=${kubeblocks_version_tmp%.*}
-                if [[ "$chart_version_tmp" == "$kubeblocks_version_tmp" ]]; then
-                    chart_version="$chartVersion"
+                if [[ "$chart_version_compare" == "$kubeblocks_version_tmp" ]]; then
+                    chart_version="$chart_version_tmp"
+                    is_enterprise=$(yq e "."${chart_name}"[${chart_index}].isEnterprise"  ${MANIFESTS_FILE})
                     break
                 fi
+                chart_index=$(( $chart_index + 1 ))
             done
         fi
 
