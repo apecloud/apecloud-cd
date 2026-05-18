@@ -147,6 +147,12 @@ upgrade_charts_addon() {
         return
     fi
 
+    case $chart_name in
+        damengdb|goldendb|kingbase|oceanbase|tdsql)
+            patch_cmpd_image_pull_secrets "$chart_name"
+        ;;
+    esac
+
     echo "annotate unavailable componentDefinition"
     unavailable_cmpds=$(kubectl get componentDefinition | (grep "Unavailable" || true) | awk '{print $1}')
     if [[ -n "${unavailable_cmpds}" ]]; then
@@ -155,6 +161,20 @@ upgrade_charts_addon() {
         done
     fi
 }
+
+patch_cmpd_image_pull_secrets() {
+    resource_cd_tmp=${1-""}
+    if [[ -z "${resource_cd_tmp}" ]]; then
+        return
+    fi
+    echo "patch ${resource_cd_tmp} componentDefinition imagePullSecrets"
+    get_cmpd_cmd="kubectl get componentDefinition  -l app.kubernetes.io/instance=kb-addon-${resource_cd_tmp} "
+    patch_resource_lists=$(eval "${get_cmpd_cmd}" | awk 'NR>1{print $1}')
+    for patch_resource in $(echo "${patch_resource_lists}"); do
+        kubectl patch --type json -p '[{"op": "replace", "path": "/spec/runtime/imagePullSecrets", "value": [{"name":"aliyun-cn"}]}]' componentDefinition ${patch_resource}
+    done
+}
+
 
 main() {
     local KB_REPO_NAME="kb-charts"
