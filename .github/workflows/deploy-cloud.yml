@@ -87,7 +87,7 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
-    runs-on: [ self-hosted ]
+    runs-on: [ self-hosted, kubeblocks ]
     timeout-minutes: 20
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.tag_name }}
@@ -229,7 +229,7 @@ jobs:
       contents: 'read'
       id-token: 'write'
     needs: [ deploy-cloud ]
-    runs-on: [ self-hosted ]
+    runs-on: [ self-hosted, kubeblocks ]
     timeout-minutes: 20
     steps:
       - name: Checkout Code
@@ -298,7 +298,7 @@ jobs:
       contents: 'read'
       id-token: 'write'
     needs: [ deploy-cloud ]
-    runs-on: [ self-hosted ]
+    runs-on: [ self-hosted, kubeblocks ]
     timeout-minutes: 20
     steps:
       - name: Checkout Code
