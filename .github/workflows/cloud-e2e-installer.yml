@@ -213,6 +213,8 @@ jobs:
                   ;;
               esac
           
+              set +e
+              set -o nounset
               installer_pods=$(kubectl get pods -n kb-cloud | (grep "kb-cloud-installer" || true) )
               echo "installer pod: $installer_pods"
               installer_pod_names="$(echo "${installer_pods}" | awk '{print $1}')"
@@ -239,6 +241,7 @@ jobs:
                   echo ""
               done
           
+              set -e
               exit 1
           else
               case $K3S_VERSION in
@@ -551,7 +554,9 @@ jobs:
               echo "KB Cloud is not ready"
               installer_result="[FAILED]"
               echo installer-result="${installer_result}" >> $GITHUB_OUTPUT
-          
+
+              set +e
+              set -o nounset
               installer_pods=$(kubectl get pods -n kb-cloud | (grep "kb-cloud-installer" || true) )
               echo "installer pod: $installer_pods"
               installer_pod_names="$(echo "${installer_pods}" | awk '{print $1}')"
@@ -578,6 +583,7 @@ jobs:
                   echo ""
               done
           
+              set -e
               exit 1
           else
               echo installer-result="${installer_result}" >> $GITHUB_OUTPUT
