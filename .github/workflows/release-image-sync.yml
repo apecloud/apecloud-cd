@@ -133,6 +133,11 @@ on:
         type: number
         required: false
         default: 20
+      BASE_PATH:
+        description: 'The next public base path'
+        type: string
+        required: false
+        default: ''
 
 
 env:
@@ -366,6 +371,12 @@ jobs:
           cmd=$cmd"BUILDX_PLATFORMS=${{ inputs.BUILDX_PLATFORMS }} "
           cmd=$cmd"BUILDX_ENABLED=${{ inputs.BUILDX_ENABLED }} "
           cmd=$cmd"BUILDX_ARGS=\"${{ env.DEFAULT_BUILDX_ARGS }} ${{ inputs.BUILDX_ARGS }}\" "
+          
+          BASE_PATH="${{ inputs.BASE_PATH }}"
+          if [[ -n "${BASE_PATH}" ]]; then
+              echo "export NEXT_PUBLIC_BASE_PATH=${BASE_PATH}"
+              export NEXT_PUBLIC_BASE_PATH="${BASE_PATH}"
+          fi
           
           if [[ -n "${{ inputs.EXTRA_BUILD_ARGS }}" ]]; then
               if [[ "${{ inputs.ARGS_TOKEN }}" == "true" ]]; then
