@@ -70,7 +70,7 @@ env:
 
 jobs:
   images-check:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, Docker]
     steps:
       - name: Checkout Code
         if: ${{ inputs.GITHUB_REPO == '' }}
