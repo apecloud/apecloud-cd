@@ -22,6 +22,7 @@ check_service_version_images() {
     chart_images_tmp=${4:-""}
 
     if [[ ! -f "${CHECK_ENGINE_FILE}" ]]; then
+        echo "$(tput -T xterm setaf 1)Check engine file not exist, please check$(tput -T xterm sgr0)"
         return
     fi
 
