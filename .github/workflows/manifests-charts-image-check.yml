@@ -104,6 +104,9 @@ jobs:
         with:
           python-version: "${{ env.PYTHON_VERSION }}"
 
+      - name: Install pyyaml
+        run: pip3 install pyyaml
+
       - name: manifests images check
         run: |
           MANIFESTS_FILE="${{ inputs.MANIFESTS_FILE }}"

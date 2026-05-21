@@ -31,8 +31,6 @@ check_service_version_images() {
         ret_tmp=$?
         check_engine_result_file="images-${chart_name_tmp}-${chart_version_tmp}.yaml"
         images=""
-        ls -l ${check_engine_result_file}
-        cat ${check_engine_result_file}
         if [[ -f "${check_engine_result_file}" ]]; then
             images=$(yq e '.'${chart_name_tmp}'[0].images[]' ${check_engine_result_file} | grep -v 'IMAGE_TAG')
             if [[ -z "${SKIP_DELETE_FILE}" || "${check_engine_result_file}" != *"${SKIP_DELETE_FILE}"* ]]; then
