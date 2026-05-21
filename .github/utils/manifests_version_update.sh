@@ -141,8 +141,10 @@ update_manifests_file_version() {
                         yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${RELEASE_VERSION}-console\"" "${MANIFESTS_FILE}"
                     elif [[ "${manifests_image}" == "apecloud/openconsole:"*"-admin" ]]; then
                         yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${RELEASE_VERSION}-admin\"" "${MANIFESTS_FILE}"
-                    elif [[ "${manifests_image}" == "apecloud/kubeblocks-console:"* ]]; then
+                    elif [[ "${manifests_image}" == "apecloud/kubeblocks-console:"* && "${manifests_image}" != "apecloud/kubeblocks-console:"*"-rds" ]]; then
                         yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${RELEASE_VERSION}\"" "${MANIFESTS_FILE}"
+                    elif [[ "${manifests_image}" == "apecloud/kubeblocks-console:"*"-rds" ]]; then
+                        yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${RELEASE_VERSION}-rds\"" "${MANIFESTS_FILE}"
                     elif [[ "${manifests_image}" == "apecloud/apiserver:"* && "${manifests_image}" != "apecloud/apiserver:"*"-jni" ]]; then
                         yq e -i ".${chart_name}[0].images[${image_num}]=\"apecloud/${update_image}:${RELEASE_VERSION}\"" "${MANIFESTS_FILE}"
                     elif [[ "${manifests_image}" == "apecloud/apiserver:"*"-jni" ]]; then
