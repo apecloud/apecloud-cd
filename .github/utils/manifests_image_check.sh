@@ -3,7 +3,7 @@ MANIFESTS_FILE=${1:-""}
 IMAGE_REGISTRY=${2:-""}
 
 main() {
-    touch exit_result
+    touch exit_result check_images_result
     checked_images_list=""
     echo 0 > exit_result
 
@@ -47,6 +47,7 @@ main() {
         repository=""
     done
     wait
+    cat check_images_result
     cat exit_result
     exit $(cat exit_result)
 }
@@ -65,11 +66,11 @@ check_image_exists() {
         else
             if [[ -n "$image_platform" ]]; then
                 if [[ "$image_platform" == *"amd64"* ]]; then
-                    echo "$(tput -T xterm setaf 3)$image found amd64 architecture$(tput -T xterm sgr0)"
+                    echo "$(tput -T xterm setaf 2)$image found amd64 architecture$(tput -T xterm sgr0)"
                 fi
 
                 if [[ "$image_platform" == *"arm64"* ]]; then
-                    echo "$(tput -T xterm setaf 3)$image found arm64 architecture$(tput -T xterm sgr0)"
+                    echo "$(tput -T xterm setaf 2)$image found arm64 architecture$(tput -T xterm sgr0)"
                 fi
             fi
             if [[ -n "$image_platform" || -n "$image_digest" ]]; then
@@ -77,7 +78,12 @@ check_image_exists() {
                 break
             fi
         fi
-        echo "$(tput -T xterm setaf 1)$image is not exists.$(tput -T xterm sgr0)"
+        check_result_tmp="$(tput -T xterm setaf 1)$image is not exists.$(tput -T xterm sgr0)"
+        echo "${check_result_tmp}"
+        CHECK_RESULTS="$(cat check_images_result)"
+        if [[ "${CHECK_RESULTS}" != *"${check_result_tmp}"* ]]; then
+            echo "${check_result_tmp}" >> check_images_result
+        fi
         echo 1 > exit_result
     done
 }
