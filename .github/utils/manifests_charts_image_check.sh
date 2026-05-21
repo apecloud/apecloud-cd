@@ -99,6 +99,14 @@ check_images() {
             fi
 
             case $chart_name_tmp in
+                kubeblocks-cloud)
+                    # skip check cloud release images
+                    case $repository in
+                        */openconsole:*|*/kubeblocks-console:*|*/apiserver:*|*/cr4w:*|*/kb-cloud-hook:*|*/kb-cloud-docs:*|*/kubeblocks-installer:*)
+                            repository=""
+                        ;;
+                    esac
+                ;;
                 kubeblocks)
                     case $repository in
                         */prometheus:*|*/grafana:*|*/k8s-sidecar:*|*/alertmanager:*|*/configmap-reload:*|*/configmap-reload:*|*/node-exporter:*)
@@ -258,17 +266,13 @@ check_charts_images() {
                 case $chart_name in
                     kubeblocks-cloud)
                         set_values="${set_values} --set images.apiserver.tag=${chart_version} "
-                        set_values="${set_values} --set images.sentry.tag=${chart_version} "
-                        set_values="${set_values} --set images.sentryInit.tag=${chart_version} "
-                        set_values="${set_values} --set images.relay.tag=${chart_version} "
                         set_values="${set_values} --set images.cr4w.tag=${chart_version} "
                         set_values="${set_values} --set images.openconsole.tag=${chart_version} "
                         set_values="${set_values} --set images.openconsoleAdmin.tag=${chart_version} "
-                        set_values="${set_values} --set images.kubeblocksConsole.tag=${chart_version} "
-                        set_values="${set_values} --set images.taskManager.tag=${chart_version} "
-                    ;;
-                    kb-cloud-installer)
-                        set_values="${set_values} --set version=${chart_version} "
+                        set_values="${set_values} --set images.console.tag=${chart_version} "
+                        set_values="${set_values} --set images.hook.tag=${chart_version} "
+                        set_values="${set_values} --set images.docs.tag=${chart_version} "
+                        set_values="${set_values} --set onlyNewConsole=true "
                     ;;
                     ingress-nginx)
                         set_values="${set_values} --set controller.image.image=apecloud/controller "
@@ -288,7 +292,7 @@ check_charts_images() {
                         set_values="${set_values} --set kubebenchImages.tools=apecloud/kubebench:0.0.12"
                         set_values="${set_values} --set kubebenchImages.tpcc=apecloud/benchmarksql:1.0"
                     ;;
-                    dbdrag)
+                    kb-cloud-installer|dbdrag)
                         continue
                     ;;
                 esac
