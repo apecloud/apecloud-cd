@@ -71,7 +71,7 @@ env:
 
 jobs:
   images-check:
-    runs-on: [self-hosted, Linux, Docker]
+    runs-on: [self-hosted, docker]
     steps:
       - name: Checkout Code
         if: ${{ inputs.GITHUB_REPO == '' }}

@@ -27,7 +27,7 @@ check_service_version_images() {
     fi
 
     for j in {1..10}; do
-        python3 ${CHECK_ENGINE_FILE} -m ${MANIFESTS_FILE} -e ${chart_name_tmp} --addonVersion ${chart_version_tmp} --serviceVersion "${service_versions_tmp}"
+        python3 ${CHECK_ENGINE_FILE} -m ${MANIFESTS_FILE} -e ${chart_name_tmp} --addonVersion ${chart_version_tmp} --serviceVersion "${service_versions_tmp}" 2>/dev/null
         ret_tmp=$?
         check_engine_result_file="images-${chart_name_tmp}-${chart_version_tmp}.yaml"
         images=""
