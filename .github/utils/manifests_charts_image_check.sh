@@ -288,9 +288,17 @@ check_charts_images() {
                         set_values="${set_values} --set cr-exporter.enabled=false "
                     ;;
                     kubebench)
-                        set_values="${set_values} --set image.tag=0.0.12 "
-                        set_values="${set_values} --set kubebenchImages.exporter=apecloud/kubebench:0.0.12"
-                        set_values="${set_values} --set kubebenchImages.tools=apecloud/kubebench:0.0.12"
+                        kubebench_tag="0.0.12"
+                        manifests_images=$(yq e ".${chart_name}[*].images[]" ${MANIFESTS_FILE})
+                        for manifests_image in $(echo "${manifests_images}"); do
+                            if [[ "${manifests_image}" == "apecloud/kubebench:"* ]]; then
+                                kubebench_tag="${manifests_image#*:}"
+                                break
+                            fi
+                        done
+                        set_values="${set_values} --set image.tag=${kubebench_tag} "
+                        set_values="${set_values} --set kubebenchImages.exporter=apecloud/kubebench:${kubebench_tag}"
+                        set_values="${set_values} --set kubebenchImages.tools=apecloud/kubebench:${kubebench_tag}"
                         set_values="${set_values} --set kubebenchImages.tpcc=apecloud/benchmarksql:1.0"
                     ;;
                     kb-cloud-installer|dbdrag)
