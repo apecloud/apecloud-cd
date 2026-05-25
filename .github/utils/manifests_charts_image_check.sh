@@ -289,7 +289,7 @@ check_charts_images() {
                     ;;
                     kubebench)
                         kubebench_tag="0.0.12"
-                        manifests_images=$(yq e ".${chart_name}[*].images[]" ${MANIFESTS_FILE})
+                        manifests_images=$(yq e ".${chart_name}[].images[]" ${MANIFESTS_FILE})
                         for manifests_image in $(echo "${manifests_images}"); do
                             if [[ "${manifests_image}" == "apecloud/kubebench:"* ]]; then
                                 kubebench_tag="${manifests_image#*:}"
