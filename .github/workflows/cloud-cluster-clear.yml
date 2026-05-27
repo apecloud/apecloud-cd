@@ -42,7 +42,7 @@ on:
         description: "The cloud env name"
         type: string
         required: true
-        default: 'idc1'
+        default: 'idc'
       cloud_org_name:
         description: "The cloud org name"
         type: string
@@ -55,14 +55,9 @@ on:
         default: ''
       delete_env_name:
         description: "The cloud env name"
-        type: choice
+        type: string
         required: false
         default: ''
-        options:
-          - idc
-          - idc1
-          - idc2
-          - idc4
 
 run-name: Cloud Cluster Clear on Env:${{ inputs.cloud_env_name }} ${{ inputs.delete_env_name }} Org:${{ inputs.cloud_org_name }} ${{ inputs.cloud_version }}
 
