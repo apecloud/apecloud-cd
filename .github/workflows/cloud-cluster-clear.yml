@@ -27,11 +27,12 @@ on:
         required: false
         default: ''
       delete_env_name:
-        description: "The cloud env name"
+        description: "The delete env name"
         type: choice
         required: false
         default: ''
         options:
+          -
           - idc
           - idc1
           - idc2
@@ -54,7 +55,7 @@ on:
         required: false
         default: ''
       delete_env_name:
-        description: "The cloud env name"
+        description: "The delete env name"
         type: string
         required: false
         default: ''
