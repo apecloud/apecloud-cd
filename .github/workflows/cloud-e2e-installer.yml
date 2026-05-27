@@ -274,6 +274,7 @@ jobs:
           CLOUD_LICENSE="${{ env.CLOUD_LICENSE }}"
           echo "deploy KB Cloud Env"
           
+          helm repo update kb-chart
           helm install bootstrapper kb-chart/kb-cloud-bootstrapper \
             --namespace kb-system \
             --create-namespace \
