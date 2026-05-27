@@ -202,9 +202,10 @@ jobs:
         kb-cloud-test-org: [ "e2e-test", "e2e-web" ]
     uses: ./.github/workflows/cloud-cluster-clear.yml
     with:
-      CLOUD_ENV_NAME: "${{ inputs.CLOUD_ENV_NAME }}"
-      CLOUD_ORG_NAME: "${{ matrix.kb-cloud-test-org }}"
+      cloud_env_name: "${{ inputs.CLOUD_ENV_NAME }}"
+      cloud_org_name: "${{ matrix.kb-cloud-test-org }}"
       cloud_version: "${{ needs.get-test-engine.outputs.cloud-branch }}"
+      delete_env_name: "${{ inputs.CLOUD_TEST_ENV }}"
     secrets: inherit
 
   e2e-engine-test:

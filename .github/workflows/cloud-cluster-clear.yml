@@ -26,6 +26,16 @@ on:
         type: string
         required: false
         default: ''
+      delete_env_name:
+        description: "The cloud env name"
+        type: choice
+        required: false
+        default: ''
+        options:
+          - idc
+          - idc1
+          - idc2
+          - idc4
   workflow_call:
     inputs:
       cloud_env_name:
@@ -43,8 +53,18 @@ on:
         type: string
         required: false
         default: ''
+      delete_env_name:
+        description: "The cloud env name"
+        type: choice
+        required: false
+        default: ''
+        options:
+          - idc
+          - idc1
+          - idc2
+          - idc4
 
-run-name: Cloud Cluster Clear on Env:${{ inputs.cloud_env_name }} Org:${{ inputs.cloud_org_name }} ${{ inputs.cloud_version }}
+run-name: Cloud Cluster Clear on Env:${{ inputs.cloud_env_name }} ${{ inputs.delete_env_name }} Org:${{ inputs.cloud_org_name }} ${{ inputs.cloud_version }}
 
 env:
   IDC_KUBECONFIG: ${{ secrets.IDC_KUBECONFIG }}
@@ -66,6 +86,45 @@ jobs:
           repository: apecloud/testinfra
           path: ./
           token: ${{ env.GH_TOKEN }}
+
+      - name: clear e2e backup
+        continue-on-error: true
+        run: |
+          mkdir -p $HOME/.kube
+          touch $HOME/.kube/config
+          DELETE_ENV_NAME="${{ inputs.delete_env_name }}"
+          if [[ -z "${DELETE_ENV_NAME}" ]]; then
+              DELETE_ENV_NAME="${{ inputs.cloud_env_name }}"
+          fi
+          case "${DELETE_ENV_NAME}" in
+              idc)
+                  echo '${{ env.IDC_KUBECONFIG }}' > $HOME/.kube/config
+              ;;
+              idc1)
+                  echo '${{ env.IDC_KUBECONFIG_1 }}' > $HOME/.kube/config
+              ;;
+              idc2)
+                  echo '${{ env.IDC_KUBECONFIG_2 }}' > $HOME/.kube/config
+              ;;
+              idc4)
+                  echo '${{ env.IDC_KUBECONFIG_4 }}' > $HOME/.kube/config
+              ;;
+          esac
+          
+          backup_filter="$(date +%Y-%m)"
+          echo "delete e2e Retain backup"
+          kubectl get backup -n kubeblocks-cloud-ns --no-headers | (grep "e2e-" | grep -v "${backup_filter}" || true) | awk '{print $1}' | xargs kubectl delete backup -n kubeblocks-cloud-ns &
+          
+          echo "patch e2e Deleting backup finalizers"
+          for i in $(seq 1 10); do
+              e2e_deleting_backup=$(kubectl get backup -n kubeblocks-cloud-ns --no-headers | (grep "e2e-" | grep "Deleting" || true) | awk '{print $1}')
+              if [[ -z "${e2e_deleting_backup}" ]]; then
+                  break
+              else
+                  kubectl get backup -n kubeblocks-cloud-ns --no-headers | (grep "e2e-" | grep "Deleting" || true) | awk '{print $1}' | xargs kubectl patch backup -p '{"metadata":{"finalizers":[]}}' --type=merge -n kubeblocks-cloud-ns
+              fi
+              sleep 1
+          done
 
       - name: Configure ACK Context ${{ inputs.cloud_env_name }}
         id: cloud_env
@@ -96,24 +155,6 @@ jobs:
           esac
           echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
 
-      - name: clear e2e backup
-        continue-on-error: true
-        run: |
-          backup_filter="$(date +%Y-%m)"
-          echo "delete e2e Retain backup"
-          kubectl get backup -n kubeblocks-cloud-ns --no-headers | (grep "e2e-" | grep -v "${backup_filter}" || true) | awk '{print $1}' | xargs kubectl delete backup -n kubeblocks-cloud-ns &
-          
-          echo "patch e2e Deleting backup finalizers"
-          for i in $(seq 1 10); do
-              e2e_deleting_backup=$(kubectl get backup -n kubeblocks-cloud-ns --no-headers | (grep "e2e-" | grep "Deleting" || true) | awk '{print $1}')
-              if [[ -z "${e2e_deleting_backup}" ]]; then
-                  break
-              else
-                  kubectl get backup -n kubeblocks-cloud-ns --no-headers | (grep "e2e-" | grep "Deleting" || true) | awk '{print $1}' | xargs kubectl patch backup -p '{"metadata":{"finalizers":[]}}' --type=merge -n kubeblocks-cloud-ns
-              fi
-              sleep 1
-          done
-
       - name: run e2e clear cluster
         run: |
           run_file_log="run_e2e_clear_result.log"
@@ -127,18 +168,21 @@ jobs:
           echo "export KB_CLOUD_TEST_ORG=${{ inputs.cloud_org_name }}"
           export KB_CLOUD_TEST_ORG=${{ inputs.cloud_org_name }}
           
-          CLOUD_TEST_ENV="${{ inputs.cloud_env_name }}"
-          if [[ -n "${CLOUD_TEST_ENV}" ]]; then
-              echo "export KB_CLOUD_TEST_ENVIRONMENT=${CLOUD_TEST_ENV}"
-              export KB_CLOUD_TEST_ENVIRONMENT="${CLOUD_TEST_ENV}"
-              echo "export KB_CLOUD_TEST_NODE=node3"
-              export KB_CLOUD_TEST_NODE="node3"
+          
+          DELETE_ENV_NAME="${{ inputs.delete_env_name }}"
+          if [[ -z "${DELETE_ENV_NAME}" ]]; then
+              DELETE_ENV_NAME="${{ inputs.cloud_env_name }}"
+          fi
+          
+          if [[ -n "${DELETE_ENV_NAME}" ]]; then
+              echo "export KB_CLOUD_TEST_ENVIRONMENT=${DELETE_ENV_NAME}"
+              export KB_CLOUD_TEST_ENVIRONMENT="${DELETE_ENV_NAME}"
           fi
           
           # run e2e clear cluster
           bash test/cloud/test_cloud_e2e_clear.sh \
               --release-version "${{ inputs.cloud_version }}" \
-              --env "${CLOUD_TEST_ENV}" | tee -a ${run_file_log}
+              --env "${DELETE_ENV_NAME}" | tee -a ${run_file_log}
           
           CLOUD_E2E_CLEAR_POD_NAME="$(cat ${run_file_log} | (grep '\[CLOUD-E2E-CLEAR-POD-NAME\]' || true) )"
           if [[ -n "${CLOUD_E2E_CLEAR_POD_NAME}" && "$CLOUD_E2E_CLEAR_POD_NAME" == "[CLOUD-E2E-CLEAR-POD-NAME]"* ]]; then
