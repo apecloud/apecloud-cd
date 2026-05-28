@@ -25,7 +25,7 @@ on:
         default: 'release'
     outputs:
       release-version:
-        description: "release" version
+        description: "release version"
         value: ${{ jobs.get-version.outputs.release-version }}
       release-version-2:
         description: "release version without prefix v"
