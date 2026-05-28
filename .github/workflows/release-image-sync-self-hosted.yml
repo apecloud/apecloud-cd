@@ -181,6 +181,7 @@ env:
   JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
   JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
   PROJECT_ID: 165897
+  NODE_AUTH_TOKEN: "placeholder"
 
 jobs:
   release-image:
