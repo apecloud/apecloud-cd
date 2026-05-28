@@ -42,6 +42,9 @@ on:
       release-version:
         description: "release version"
         value: "${{ jobs.get-version.outputs.release-version }}"
+      release-version-2:
+        description: "release version without prefix v"
+        value: "${{ jobs.get-version.outputs.release-version-2 }}"
       release-branch:
         description: "release branch"
         value: "${{ jobs.get-version.outputs.release-branch }}"
@@ -122,17 +125,21 @@ jobs:
       APECD_REF: "${{ inputs.APECD_REF }}"
     secrets: inherit
 
-#  release-kbcli-cloud-tag:
-#    needs: [ get-version ]
-#    if: ${{ github.repository == 'apecloud/apecloud' && contains(inputs.CONTENT, 'kbcli') }}
-#    uses: ./.github/workflows/trigger-workflow.yml
-#    with:
-#      VERSION: "${{ needs.get-version.outputs.release-version }}-cloud"
-#      APECD_REF: ${{ inputs.APECD_REF }}
-#      GITHUB_REPO: "apecloud/kbcli"
-#      BRANCH_NAME: "${{ needs.get-version.outputs.kbcli-branch }}"
-#      WORKFLOW_ID: "release-tag.yaml"
-#    secrets: inherit
+  release-kb-cloud-client-go-version:
+    needs: [ get-version ]
+    if: |
+      !contains(needs.get-version.outputs.release-version, 'alpha') &&
+      !contains(needs.get-version.outputs.release-version, 'beta') &&
+      !contains(needs.get-version.outputs.release-version, 'rc')
+    name: release kb-cloud-client-go version
+    uses: ./.github/workflows/trigger-workflow.yml
+    with:
+      GITHUB_REPO: "apecloud/kb-cloud-client-go"
+      VERSION: "${{ needs.get-version.outputs.release-version }}"
+      BRANCH_NAME: "${{ needs.get-version.outputs.release-branch }}"
+      WORKFLOW_ID: "release-version.yml"
+      APECD_REF: "${{ inputs.APECD_REF }}"
+    secrets: inherit
 
   release-message:
     if: ${{ needs.get-version.result == 'success' }}
