@@ -626,6 +626,10 @@ jobs:
                 --set images.kubeblocksConsole.tag=${CLOUD_VERSION} \
                 --set images.hook.tag=${CLOUD_VERSION} \
                 --set images.cubetranFront.tag=${CLOUD_VERSION} \
+                --set images.console.tag=${CLOUD_VERSION} \
+                --set images.hook.tag=${CLOUD_VERSION} \
+                --set images.docs.tag=${CLOUD_VERSION} \
+                --set onlyNewConsole=true \
                 --reset-then-reuse-values
           fi
           
