@@ -155,12 +155,12 @@ def get_commits_between_tags(old_tag, new_tag, cwd=None, author=None):
             parts = line.split('|', 2)
             if len(parts) < 3:
                 continue
-            full_hash, subject, author = parts
+            full_hash, subject, author_name = parts   # FIX: renamed variable
             full_hash = full_hash.strip()
             subject = subject.strip()
-            author = author.strip()
+            author_name = author_name.strip()
 
-            mapped_author = map_author(author, author)
+            mapped_author = map_author(author_name, author)  # use outer 'author' dict
             pr_nums = extract_pr_numbers(subject)
             clean_msg = clean_subject(subject)
             commit_url = f"{repo_base_url}/commit/{full_hash}"
@@ -298,6 +298,63 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
     if curr_yaml is None:
         sys.exit(f"Error: Could not read {manifest_path} from current HEAD")
 
+    # ---- list_only mode: exit early without any repo operations ----
+    if list_only:
+        # Get previous YAML for comparison
+        if not force:
+            prev_yaml = get_yaml_from_commit(manifest_path, "HEAD^")
+            if prev_yaml is None:
+                print("Warning: No previous version, assuming all components are new")
+                prev_comp_versions = {}
+                prev_yaml_full = None
+            else:
+                prev_comp_versions = extract_component_versions(prev_yaml)
+                prev_yaml_full = prev_yaml
+        else:
+            # For --force --list-changed, still compare with HEAD^ (no repo tag lookup)
+            prev_yaml = get_yaml_from_commit(manifest_path, "HEAD^")
+            if prev_yaml is None:
+                prev_comp_versions = {}
+                prev_yaml_full = None
+            else:
+                prev_comp_versions = extract_component_versions(prev_yaml)
+                prev_yaml_full = prev_yaml
+
+        curr_comp_versions = extract_component_versions(curr_yaml)
+
+        changed_names = set()
+        # Component changes
+        for (comp, idx), new_ver in curr_comp_versions.items():
+            old_ver = prev_comp_versions.get((comp, idx))
+            if old_ver is not None and str(old_ver) != str(new_ver):
+                changed_names.add(comp)
+
+        # Image changes
+        for image_name, parent_comp in MONITORED_IMAGES.items():
+            curr_ver, _ = extract_image_version(curr_yaml, parent_comp, image_name)
+            if curr_ver is None:
+                continue
+            if prev_yaml_full:
+                prev_ver, _ = extract_image_version(prev_yaml_full, parent_comp, image_name)
+                if prev_ver is not None and prev_ver != curr_ver:
+                    short_name = image_name.split('/')[-1]
+                    changed_names.add(short_name)
+            else:
+                # No previous YAML: assume changed
+                short_name = image_name.split('/')[-1]
+                changed_names.add(short_name)
+
+        # Version follow (no repo required)
+        VERSION_FOLLOW = {"kubeblocks-console": "kubeblocks-cloud"}
+        for child, parent in VERSION_FOLLOW.items():
+            if parent in changed_names and child not in changed_names:
+                changed_names.add(child)
+
+        output = ''.join(f'[{n}]' for n in sorted(changed_names))
+        print(output if output else "No changes")
+        return
+    # ---- end list_only early exit ----
+
     # For normal mode, get previous YAML
     if not force:
         prev_yaml = get_yaml_from_commit(manifest_path, "HEAD^")
@@ -306,6 +363,8 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
             return
     else:
         prev_yaml = None
+
+    # ... rest of original function unchanged ...
 
     # Collect changes for components
     curr_comp_versions = extract_component_versions(curr_yaml)
@@ -423,24 +482,7 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
     changed_entries.sort(key=sort_key)
 
     # ------------------------------------------------------------
-    # If --list-changed, output compact name list and exit
-    # ------------------------------------------------------------
-    if list_only:
-        names_set = set()
-        for etype, name, idx, old_tag, new_tag, _ in changed_entries:
-            if etype == 'component':
-                names_set.add(name)          # component name as-is
-            else:  # image
-                short_name = name.split('/')[-1]  # e.g. dms, oteld
-                names_set.add(short_name)
-        # Sort for deterministic output (optional, but convenient)
-        sorted_names = sorted(names_set)
-        output = ''.join(f'[{n}]' for n in sorted_names)
-        print(output if output else "No changes")
-        return
-
-    # ------------------------------------------------------------
-    # Otherwise, generate full release notes (original behavior)
+    # Generate full release notes (original behavior)
     # ------------------------------------------------------------
     print(f"Found {len(changed_entries)} version change(s):")
     for etype, name, idx, old, new, _ in changed_entries:
