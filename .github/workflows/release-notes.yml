@@ -73,7 +73,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: checkout kubeblocks
-        if: contains(env.LIST_CHANGED, '[kubeblocks]') || inputs.force }}
+        if: ${{ contains(env.LIST_CHANGED, '[kubeblocks]') || inputs.force }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/kubeblocks
@@ -82,7 +82,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: checkout gemini
-        if: contains(env.LIST_CHANGED, '[gemini]') || inputs.force }}
+        if: ${{ contains(env.LIST_CHANGED, '[gemini]') || inputs.force }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/gemini
@@ -91,7 +91,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: checkout ape-local
-        if: contains(env.LIST_CHANGED, '[ape-local-csi-driver]') || inputs.force }}
+        if: ${{ contains(env.LIST_CHANGED, '[ape-local-csi-driver]') || inputs.force }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/ape-local
@@ -100,7 +100,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: checkout oteld
-        if: contains(env.LIST_CHANGED, '[oteld]') || inputs.force }}
+        if: ${{ contains(env.LIST_CHANGED, '[oteld]') || inputs.force }}
         uses: actions/checkout@v4
         with:
             repository: apecloud/oteld
@@ -109,7 +109,7 @@ jobs:
             token: ${{ env.GITHUB_TOKEN }}
 
       - name: checkout dms
-        if: contains(env.LIST_CHANGED, '[dms]') || inputs.force }}
+        if: ${{ contains(env.LIST_CHANGED, '[dms]') || inputs.force }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/dms
@@ -118,7 +118,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: checkout servicemirror
-        if: contains(env.LIST_CHANGED, '[servicemirror]') || inputs.force }}
+        if: ${{ contains(env.LIST_CHANGED, '[servicemirror]') || inputs.force }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/servicemirror
@@ -127,7 +127,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: checkout ape-dts
-        if: contains(env.LIST_CHANGED, '[ape-dts]') || inputs.force }}
+        if: ${{ contains(env.LIST_CHANGED, '[ape-dts]') || inputs.force }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/ape-dts
@@ -136,7 +136,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: checkout apecloud-mcp
-        if: contains(env.LIST_CHANGED, '[apecloud-mcp]') || inputs.force }}
+        if: ${{ contains(env.LIST_CHANGED, '[apecloud-mcp]') || inputs.force }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/apecloud-mcp
