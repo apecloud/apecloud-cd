@@ -1,0 +1,173 @@
+name: Release Notes
+
+on:
+  workflow_call:
+    inputs:
+      release_version:
+        description: 'The version of release notes'
+        type: string
+        required: true
+        default: ''
+      force:
+        description: 'Force generate notes for all components'
+        type: boolean
+        default: false
+        required: false
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'The version of release notes'
+        type: string
+        required: true
+        default: ''
+      force:
+        description: 'Force generate notes for all components'
+        type: boolean
+        default: false
+        required: false
+
+env:
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  MANIFESTS_FILE: "./apecloud/manifests/deploy-manifests.yaml"
+  COMPONENTS_FILE: "./.github/actions/components.yaml"
+  MEMBERS_FILE: "./.github/actions/members.txt"
+  RELEASE_NOTES_KEY: "release-notes-${{ inputs.release_version }}"
+  RELEASE_NOTES_FILE: "release-notes-${{ inputs.release_version }}.md"
+
+run-name: Release Notes:${{ inputs.release_version }} ${{ inputs.force }}
+
+jobs:
+  release-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./
+
+      - name: checkout apecloud
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud
+          path: apecloud
+          fetch-depth: 0
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: "${{ inputs.release_version }}"
+
+      - name: check change components
+        run:
+          change_components=$( python3 .github/utils/generate_release_notes.py \
+            --manifest "${{ env.MANIFESTS_FILE }}" \
+            --component "${{ env.COMPONENTS_FILE }}" \
+            --author "${{ env.MEMBERS_FILE }}" \
+            --list-changed | (grep "[kubeblocks-cloud]" || true) )
+          echo "LIST_CHANGED=${change_components}" >> "$GITHUB_ENV"
+
+      - name: checkout kubeblocks-console
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/kubeblocks-console
+          path: kubeblocks-console
+          fetch-depth: 0
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: checkout kubeblocks
+        if: contains(env.LIST_CHANGED, '[kubeblocks]') || inputs.force }}
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/kubeblocks
+          path: kubeblocks
+          fetch-depth: 0
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: checkout gemini
+        if: contains(env.LIST_CHANGED, '[gemini]') || inputs.force }}
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/gemini
+          path: gemini
+          fetch-depth: 0
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: checkout ape-local
+        if: contains(env.LIST_CHANGED, '[ape-local-csi-driver]') || inputs.force }}
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/ape-local
+          path: ape-local
+          fetch-depth: 0
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: checkout oteld
+        if: contains(env.LIST_CHANGED, '[oteld]') || inputs.force }}
+        uses: actions/checkout@v4
+        with:
+            repository: apecloud/oteld
+            path: oteld
+            fetch-depth: 0
+            token: ${{ env.GITHUB_TOKEN }}
+
+      - name: checkout dms
+        if: contains(env.LIST_CHANGED, '[dms]') || inputs.force }}
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/dms
+          path: dms
+          fetch-depth: 0
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: checkout servicemirror
+        if: contains(env.LIST_CHANGED, '[servicemirror]') || inputs.force }}
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/servicemirror
+          path: servicemirror
+          fetch-depth: 0
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: checkout ape-dts
+        if: contains(env.LIST_CHANGED, '[ape-dts]') || inputs.force }}
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/ape-dts
+          path: ape-dts
+          fetch-depth: 0
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: checkout apecloud-mcp
+        if: contains(env.LIST_CHANGED, '[apecloud-mcp]') || inputs.force }}
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-mcp
+          path: apecloud-mcp
+          fetch-depth: 0
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: generate release notes
+        run:
+          gen_cmd="python3 .github/utils/generate_release_notes.py"
+          gen_cmd="${gen_cmd} --manifest ${{ env.MANIFESTS_FILE }}"
+          gen_cmd="${gen_cmd} --component ${{ env.COMPONENTS_FILE }}"
+          gen_cmd="${gen_cmd} --author ${{ env.MEMBERS_FILE }}"
+          gen_cmd="${gen_cmd} --summary ${{ env.RELEASE_NOTES_FILE }}"
+          if [[ "${{ inputs.force }}" == "true" ]]; then
+              gen_cmd="${gen_cmd} --force "
+          fi
+          echo "${gen_cmd}"
+          eval "${gen_cmd}"
+
+      - name: delete actions cache
+        continue-on-error: true
+        run: |
+          bash .github/utils/utils.sh --type 30 \
+            --github-repo "${{ github.repository }}" \
+            --tag-name "${{ env.RELEASE_NOTES_KEY }}"
+
+      - name: Save Artifact
+        id: cache-artifact-save
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ${{ env.RELEASE_NOTES_FILE }}
+          key: ${{ env.RELEASE_NOTES_KEY }}
