@@ -72,7 +72,7 @@ jobs:
             --manifest "${{ env.MANIFESTS_FILE }}" \
             --component "${{ env.COMPONENTS_FILE }}" \
             --author "${{ env.MEMBERS_FILE }}" \
-            --list-changed | (grep "[kubeblocks-cloud]" || true) )
+            --list-changed | (grep "\[kubeblocks-cloud\]" || true) )
           echo "LIST_CHANGED=${change_components}" >> "$GITHUB_ENV"
 
       - name: checkout kubeblocks-console
@@ -158,11 +158,12 @@ jobs:
       - name: generate release notes
         run:
           gen_cmd="python3 .github/utils/generate_release_notes.py"
-          gen_cmd="${gen_cmd} --manifest ${{ env.MANIFESTS_FILE }}"
-          gen_cmd="${gen_cmd} --component ${{ env.COMPONENTS_FILE }}"
-          gen_cmd="${gen_cmd} --author ${{ env.MEMBERS_FILE }}"
-          gen_cmd="${gen_cmd} --summary ${{ env.RELEASE_NOTES_FILE }}"
-          if [[ "${{ inputs.FRORCE }}" == "true" ]]; then
+          gen_cmd="${gen_cmd} --manifest \"${{ env.MANIFESTS_FILE }}\""
+          gen_cmd="${gen_cmd} --component \"${{ env.COMPONENTS_FILE }}\""
+          gen_cmd="${gen_cmd} --author \"${{ env.MEMBERS_FILE }}\""
+          gen_cmd="${gen_cmd} --summary \"${{ env.RELEASE_NOTES_FILE }}\""
+          FRORCE="${{ inputs.FRORCE }}"
+          if [[ "${FRORCE}" == "true" ]]; then
               gen_cmd="${gen_cmd} --force "
           fi
           echo "${gen_cmd}"
