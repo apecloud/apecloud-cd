@@ -15,8 +15,10 @@ on:
         default: 'release'
 
 env:
-  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   RELEASE_VERSION: ${{ github.ref_name }}
+  RELEASE_NOTES_KEY: "release-notes-${{ github.ref_name }}"
+  RELEASE_NOTES_FILE: "release-notes-${{ github.ref_name }}.md"
 
 jobs:
   create-release:
@@ -33,10 +35,32 @@ jobs:
           path: apecloud-cd
           ref: ${{ inputs.APECD_REF }}
 
+      - name: Restore apecloud Artifact
+        if: ${{ github.repository == 'apecloud/apecloud' }}
+        id: cache-artifact-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ${{ env.RELEASE_NOTES_FILE }}
+          key: ${{ env.RELEASE_NOTES_KEY }}
+
       - name: Parse release version and set REL_VERSION
         id: get_rel_version
         run: |
-          python ./apecloud-cd/.github/utils/is_rc_or_stable_release_version.py
+          RELEASE_NOTES_FILE="${{ env.RELEASE_NOTES_FILE }}"
+          if [[ "${GITHUB_REPOSITORY}" == "apecloud/apecloud" && -f "${RELEASE_NOTES_FILE}" ]]; then
+              echo WITH_RELEASE_NOTES=true >> $GITHUB_ENV
+              REL_VERSION="${{ env.RELEASE_VERSION }}"
+              if [[ "${REL_VERSION}" == "v"* ]]; then
+                  REL_VERSION="${REL_VERSION/v/}"
+              fi 
+              echo REL_VERSION="${REL_VERSION}" >> $GITHUB_ENV
+              mkdir -p ./docs/release_notes/v${REL_VERSION}
+              cp ${RELEASE_NOTES_FILE} ./docs/release_notes/v${REL_VERSION}/v${REL_VERSION}.md
+          else
+              python ./apecloud-cd/.github/utils/is_rc_or_stable_release_version.py
+          fi
+          
           echo rel_version=v${{ env.REL_VERSION }} >> $GITHUB_OUTPUT
           
           repo_name=${GITHUB_REPOSITORY#*/}
@@ -44,7 +68,7 @@ jobs:
 
       - name: release pre-release without release notes
         uses: softprops/action-gh-release@v2
-        if: not ${{ env.WITH_RELEASE_NOTES }}
+        if: ${{ env.WITH_RELEASE_NOTES != 'true' }}
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           name: ${{ env.REPO_NAME }} v${{ env.REL_VERSION }}
@@ -54,10 +78,10 @@ jobs:
 
       - name: release RC with release notes
         uses: softprops/action-gh-release@v2
-        if: ${{ env.WITH_RELEASE_NOTES }}
+        if: ${{ env.WITH_RELEASE_NOTES == 'true' }}
         with:
           body_path: ./docs/release_notes/v${{ env.REL_VERSION }}/v${{ env.REL_VERSION }}.md
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          token: ${{ env.GH_TOKEN }}
           name: ${{ env.REPO_NAME }} v${{ env.REL_VERSION }}
           tag_name: v${{ env.REL_VERSION }}
           prerelease: true
