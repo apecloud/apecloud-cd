@@ -3,38 +3,48 @@ name: Release Notes
 on:
   workflow_call:
     inputs:
-      release_version:
+      RELEASE_VERSION:
         description: 'The version of release notes'
         type: string
         required: true
         default: ''
-      force:
+      FRORCE:
         description: 'Force generate notes for all components'
         type: boolean
         default: false
         required: false
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
   workflow_dispatch:
     inputs:
-      release_version:
+      RELEASE_VERSION:
         description: 'The version of release notes'
         type: string
         required: true
         default: ''
-      force:
+      FRORCE:
         description: 'Force generate notes for all components'
         type: boolean
         default: false
         required: false
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   MANIFESTS_FILE: "./apecloud/manifests/deploy-manifests.yaml"
   COMPONENTS_FILE: "./.github/actions/components.yaml"
   MEMBERS_FILE: "./.github/actions/members.txt"
-  RELEASE_NOTES_KEY: "release-notes-${{ inputs.release_version }}"
-  RELEASE_NOTES_FILE: "release-notes-${{ inputs.release_version }}.md"
+  RELEASE_NOTES_KEY: "release-notes-${{ inputs.RELEASE_VERSION }}"
+  RELEASE_NOTES_FILE: "release-notes-${{ inputs.RELEASE_VERSION }}.md"
 
-run-name: Release Notes:${{ inputs.release_version }} ${{ inputs.force }}
+run-name: Release Notes:${{ inputs.RELEASE_VERSION }} ${{ inputs.FRORCE }}
 
 jobs:
   release-notes:
@@ -45,6 +55,7 @@ jobs:
         with:
           repository: apecloud/apecloud-cd
           path: ./
+          ref: "${{ inputs.APECD_REF }}"
 
       - name: checkout apecloud
         uses: actions/checkout@v4
@@ -53,7 +64,7 @@ jobs:
           path: apecloud
           fetch-depth: 0
           token: ${{ env.GITHUB_TOKEN }}
-          ref: "${{ inputs.release_version }}"
+          ref: "${{ inputs.RELEASE_VERSION }}"
 
       - name: check change components
         run:
@@ -73,7 +84,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: checkout kubeblocks
-        if: ${{ contains(env.LIST_CHANGED, '[kubeblocks]') || inputs.force }}
+        if: ${{ contains(env.LIST_CHANGED, '[kubeblocks]') || inputs.FRORCE }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/kubeblocks
@@ -82,7 +93,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: checkout gemini
-        if: ${{ contains(env.LIST_CHANGED, '[gemini]') || inputs.force }}
+        if: ${{ contains(env.LIST_CHANGED, '[gemini]') || inputs.FRORCE }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/gemini
@@ -91,7 +102,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: checkout ape-local
-        if: ${{ contains(env.LIST_CHANGED, '[ape-local-csi-driver]') || inputs.force }}
+        if: ${{ contains(env.LIST_CHANGED, '[ape-local-csi-driver]') || inputs.FRORCE }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/ape-local
@@ -100,7 +111,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: checkout oteld
-        if: ${{ contains(env.LIST_CHANGED, '[oteld]') || inputs.force }}
+        if: ${{ contains(env.LIST_CHANGED, '[oteld]') || inputs.FRORCE }}
         uses: actions/checkout@v4
         with:
             repository: apecloud/oteld
@@ -109,7 +120,7 @@ jobs:
             token: ${{ env.GITHUB_TOKEN }}
 
       - name: checkout dms
-        if: ${{ contains(env.LIST_CHANGED, '[dms]') || inputs.force }}
+        if: ${{ contains(env.LIST_CHANGED, '[dms]') || inputs.FRORCE }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/dms
@@ -118,7 +129,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: checkout servicemirror
-        if: ${{ contains(env.LIST_CHANGED, '[servicemirror]') || inputs.force }}
+        if: ${{ contains(env.LIST_CHANGED, '[servicemirror]') || inputs.FRORCE }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/servicemirror
@@ -127,7 +138,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: checkout ape-dts
-        if: ${{ contains(env.LIST_CHANGED, '[ape-dts]') || inputs.force }}
+        if: ${{ contains(env.LIST_CHANGED, '[ape-dts]') || inputs.FRORCE }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/ape-dts
@@ -136,7 +147,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: checkout apecloud-mcp
-        if: ${{ contains(env.LIST_CHANGED, '[apecloud-mcp]') || inputs.force }}
+        if: ${{ contains(env.LIST_CHANGED, '[apecloud-mcp]') || inputs.FRORCE }}
         uses: actions/checkout@v4
         with:
           repository: apecloud/apecloud-mcp
@@ -151,7 +162,7 @@ jobs:
           gen_cmd="${gen_cmd} --component ${{ env.COMPONENTS_FILE }}"
           gen_cmd="${gen_cmd} --author ${{ env.MEMBERS_FILE }}"
           gen_cmd="${gen_cmd} --summary ${{ env.RELEASE_NOTES_FILE }}"
-          if [[ "${{ inputs.force }}" == "true" ]]; then
+          if [[ "${{ inputs.FRORCE }}" == "true" ]]; then
               gen_cmd="${gen_cmd} --force "
           fi
           echo "${gen_cmd}"
