@@ -37,7 +37,7 @@ on:
         default: 'main'
 
 env:
-  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   MANIFESTS_FILE: "./apecloud/manifests/deploy-manifests.yaml"
   COMPONENTS_FILE: "./.github/actions/components.yaml"
   MEMBERS_FILE: "./.github/actions/members.txt"
@@ -63,7 +63,7 @@ jobs:
           repository: apecloud/apecloud
           path: apecloud
           fetch-depth: 0
-          token: ${{ env.GITHUB_TOKEN }}
+          token: ${{ env.GH_TOKEN }}
           ref: "${{ inputs.RELEASE_VERSION }}"
 
       - name: check change components
@@ -73,6 +73,7 @@ jobs:
             --component "${{ env.COMPONENTS_FILE }}" \
             --author "${{ env.MEMBERS_FILE }}" \
             --list-changed | (grep "\[kubeblocks-cloud\]" || true) )
+          echo "CHANGE_COMPONENTS=${change_components}"
           echo "LIST_CHANGED=${change_components}" >> "$GITHUB_ENV"
 
       - name: checkout kubeblocks-console
@@ -81,7 +82,7 @@ jobs:
           repository: apecloud/kubeblocks-console
           path: kubeblocks-console
           fetch-depth: 0
-          token: ${{ env.GITHUB_TOKEN }}
+          token: ${{ env.GH_TOKEN }}
 
       - name: checkout kubeblocks
         if: ${{ contains(env.LIST_CHANGED, '[kubeblocks]') || inputs.FRORCE }}
@@ -90,7 +91,7 @@ jobs:
           repository: apecloud/kubeblocks
           path: kubeblocks
           fetch-depth: 0
-          token: ${{ env.GITHUB_TOKEN }}
+          token: ${{ env.GH_TOKEN }}
 
       - name: checkout gemini
         if: ${{ contains(env.LIST_CHANGED, '[gemini]') || inputs.FRORCE }}
@@ -99,7 +100,7 @@ jobs:
           repository: apecloud/gemini
           path: gemini
           fetch-depth: 0
-          token: ${{ env.GITHUB_TOKEN }}
+          token: ${{ env.GH_TOKEN }}
 
       - name: checkout ape-local
         if: ${{ contains(env.LIST_CHANGED, '[ape-local-csi-driver]') || inputs.FRORCE }}
@@ -108,7 +109,7 @@ jobs:
           repository: apecloud/ape-local
           path: ape-local
           fetch-depth: 0
-          token: ${{ env.GITHUB_TOKEN }}
+          token: ${{ env.GH_TOKEN }}
 
       - name: checkout oteld
         if: ${{ contains(env.LIST_CHANGED, '[oteld]') || inputs.FRORCE }}
@@ -117,7 +118,7 @@ jobs:
             repository: apecloud/oteld
             path: oteld
             fetch-depth: 0
-            token: ${{ env.GITHUB_TOKEN }}
+            token: ${{ env.GH_TOKEN }}
 
       - name: checkout dms
         if: ${{ contains(env.LIST_CHANGED, '[dms]') || inputs.FRORCE }}
@@ -126,7 +127,7 @@ jobs:
           repository: apecloud/dms
           path: dms
           fetch-depth: 0
-          token: ${{ env.GITHUB_TOKEN }}
+          token: ${{ env.GH_TOKEN }}
 
       - name: checkout servicemirror
         if: ${{ contains(env.LIST_CHANGED, '[servicemirror]') || inputs.FRORCE }}
@@ -135,7 +136,7 @@ jobs:
           repository: apecloud/servicemirror
           path: servicemirror
           fetch-depth: 0
-          token: ${{ env.GITHUB_TOKEN }}
+          token: ${{ env.GH_TOKEN }}
 
       - name: checkout ape-dts
         if: ${{ contains(env.LIST_CHANGED, '[ape-dts]') || inputs.FRORCE }}
@@ -144,7 +145,7 @@ jobs:
           repository: apecloud/ape-dts
           path: ape-dts
           fetch-depth: 0
-          token: ${{ env.GITHUB_TOKEN }}
+          token: ${{ env.GH_TOKEN }}
 
       - name: checkout apecloud-mcp
         if: ${{ contains(env.LIST_CHANGED, '[apecloud-mcp]') || inputs.FRORCE }}
@@ -153,7 +154,7 @@ jobs:
           repository: apecloud/apecloud-mcp
           path: apecloud-mcp
           fetch-depth: 0
-          token: ${{ env.GITHUB_TOKEN }}
+          token: ${{ env.GH_TOKEN }}
 
       - name: generate release notes
         run: |
@@ -168,6 +169,7 @@ jobs:
           fi
           echo "${gen_cmd}"
           eval "${gen_cmd}"
+          cat "${{ env.RELEASE_NOTES_FILE }}"
 
       - name: delete actions cache
         continue-on-error: true
