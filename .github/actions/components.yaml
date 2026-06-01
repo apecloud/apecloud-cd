@@ -1,0 +1,10 @@
+kubeblocks-cloud: ../apecloud
+kubeblocks-console: ../kubeblocks-console
+kubeblocks: ../kubeblocks
+gemini: ../gemini
+ape-local-csi-driver: ../ape-local
+image:apecloud/oteld: ../oteld
+image:apecloud/dms: ../dms
+image:apecloud/servicemirror: ../servicemirror
+image:apecloud/ape-dts: ../ape-dts
+image:apecloud/apecloud-mcp: ../apecloud-mcp
