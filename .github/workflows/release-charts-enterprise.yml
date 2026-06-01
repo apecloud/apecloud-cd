@@ -147,6 +147,8 @@ jobs:
           ref: ${{ inputs.GITHUB_REF }}
 
       - uses: docker/setup-qemu-action@v3
+        with:
+          cache-image: false
 
       - name: Fetch History And Configure Git
         run: |

@@ -120,6 +120,8 @@ jobs:
           go-version: ${{ inputs.GO_VERSION }}
 
       - uses: docker/setup-qemu-action@v3
+        with:
+          cache-image: false
 
       - name: Checkout Code
         uses: actions/checkout@v4
