@@ -67,7 +67,7 @@ jobs:
           ref: "${{ inputs.RELEASE_VERSION }}"
 
       - name: check change components
-        run:
+        run: |
           change_components=$( python3 .github/utils/generate_release_notes.py \
             --manifest "${{ env.MANIFESTS_FILE }}" \
             --component "${{ env.COMPONENTS_FILE }}" \
@@ -156,7 +156,7 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: generate release notes
-        run:
+        run: |
           gen_cmd="python3 .github/utils/generate_release_notes.py"
           gen_cmd="${gen_cmd} --manifest \"${{ env.MANIFESTS_FILE }}\""
           gen_cmd="${gen_cmd} --component \"${{ env.COMPONENTS_FILE }}\""
