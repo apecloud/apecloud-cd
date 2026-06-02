@@ -246,9 +246,9 @@ def get_base_version(version):
 def get_old_tag_for_kubeblocks_cloud(old_ver, new_ver):
     """
     Determine the old tag for kubeblocks-cloud based on the new version:
-    - If new version is -alpha.0: old_tag = base version of old_ver (strip -alpha.x)
-    - If new version is -alpha.n (n>0): old_tag = base version of new_tag with alpha.(n-1)
-    - Otherwise: old_tag = old_ver (as-is)
+    - If new version is -alpha.0: old_tag = base version of old_ver (strip -alpha.x), with v prefix
+    - If new version is -alpha.n (n>0): old_tag = v{base}-alpha.{n-1}
+    - Otherwise: old_tag = old_ver with v prefix
     """
     new_tag = ensure_v_prefix(new_ver)
     match = re.match(r'v([\d.]+)-alpha\.(\d+)$', new_tag)
@@ -256,12 +256,12 @@ def get_old_tag_for_kubeblocks_cloud(old_ver, new_ver):
         base, num_str = match.groups()
         num = int(num_str)
         if num == 0:
-            # alpha.0: return base version of the manifest old version
+            # alpha.0: base version of the manifest old version
             return get_base_version(ensure_v_prefix(old_ver))
         else:
-            # alpha.n (n>0): return previous alpha version (alpha.(n-1))
-            return f"{base}-alpha.{num - 1}"
-    # For non-alpha (beta, stable, etc.), use the manifest old version
+            # alpha.n (n>0): previous alpha version
+            return f"v{base}-alpha.{num - 1}"
+    # For non-alpha (beta, stable, etc.), use the manifest old version with v prefix
     return ensure_v_prefix(old_ver)
 
 def format_compare_url(repo_base_url, old_tag, new_tag):
