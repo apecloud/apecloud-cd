@@ -233,22 +233,36 @@ def ensure_v_prefix(version):
         return 'v' + v
     return v
 
-def get_previous_tag_for_prerelease(version):
+def get_base_version(version):
     """
-    For version like v2.3.0-alpha.11 or v2.3.0-beta.2:
-      - If N == 0, return base version (e.g., v2.3.0-alpha.0 -> v2.3.0)
-      - If N > 0, return previous prerelease (e.g., v2.3.0-alpha.11 -> v2.3.0-alpha.10)
-    Returns None if version does not match pattern (alpha/beta).
+    Extract base version (remove -alpha.x suffix).
+    e.g., v2.2.0-alpha.88 -> v2.2.0
     """
-    match = re.match(r'(v[\d.]+)-(alpha|beta)\.(\d+)$', version)
+    match = re.match(r'(v[\d.]+)-alpha\.\d+$', version)
     if match:
-        base, prerelease_type, num_str = match.groups()
+        return match.group(1)
+    return version
+
+def get_old_tag_for_kubeblocks_cloud(old_ver, new_ver):
+    """
+    Determine the old tag for kubeblocks-cloud based on the new version:
+    - If new version is -alpha.0: old_tag = base version of old_ver (strip -alpha.x)
+    - If new version is -alpha.n (n>0): old_tag = base version of new_tag with alpha.(n-1)
+    - Otherwise: old_tag = old_ver (as-is)
+    """
+    new_tag = ensure_v_prefix(new_ver)
+    match = re.match(r'v([\d.]+)-alpha\.(\d+)$', new_tag)
+    if match:
+        base, num_str = match.groups()
         num = int(num_str)
         if num == 0:
-            return base
+            # alpha.0: return base version of the manifest old version
+            return get_base_version(ensure_v_prefix(old_ver))
         else:
-            return f"{base}-{prerelease_type}.{num - 1}"
-    return None
+            # alpha.n (n>0): return previous alpha version (alpha.(n-1))
+            return f"{base}-alpha.{num - 1}"
+    # For non-alpha (beta, stable, etc.), use the manifest old version
+    return ensure_v_prefix(old_ver)
 
 def format_compare_url(repo_base_url, old_tag, new_tag):
     """Format compare URL like https://github.com/owner/repo/compare/old...new"""
@@ -372,14 +386,16 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
         return
     # ---- end list_only early exit ----
 
-    # For normal mode, get previous YAML
-    if not force:
-        prev_yaml = get_yaml_from_commit(manifest_path, "HEAD^")
-        if prev_yaml is None:
+    # Always try to get previous YAML (needed for kubeblocks-cloud in --force mode as well)
+    prev_yaml = get_yaml_from_commit(manifest_path, "HEAD^")
+    if prev_yaml is None:
+        if not force:
+            # In normal mode, manifest history is mandatory
             print("Warning: No previous version of the manifest found in HEAD^. Assuming all components are new and skipping.")
             return
-    else:
-        prev_yaml = None
+        else:
+            # In force mode, only kubeblocks-cloud requires manifest history; other components can proceed without it
+            print("Warning: No previous manifest found; kubeblocks-cloud changes will be skipped.")
 
     # Collect changes for components
     curr_comp_versions = extract_component_versions(curr_yaml)
@@ -395,24 +411,29 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
                 print(f"Warning: No repository mapping for component '{comp}', skipping.")
                 continue
             repo_path = comp_repo_map[comp]
-            new_tag = ensure_v_prefix(new_ver)
-            # Special handling for kubeblocks-cloud prerelease versions (alpha/beta)
+            # For kubeblocks-cloud, always use manifest history (same as normal mode)
             if comp == "kubeblocks-cloud":
-                computed_old = get_previous_tag_for_prerelease(new_tag)
-                if computed_old is not None:
-                    old_tag = computed_old
-                    print(f"  Using computed previous tag: {old_tag} (from {new_tag})")
-                else:
-                    # Non-prerelease or pattern mismatch: fallback to git tag lookup
-                    old_tag = get_previous_tag_for_version(new_tag, repo_path)
-                    if old_tag is None:
-                        print(f"  Skipping {comp}[{idx}] (no previous tag found for {new_tag})")
-                        continue
-            else:
-                old_tag = get_previous_tag_for_version(new_tag, repo_path)
-                if old_tag is None:
-                    print(f"  Skipping {comp}[{idx}] (no previous tag found for {new_tag})")
+                if prev_yaml is None:
+                    print(f"  Skipping {comp}[{idx}] (no previous manifest found)")
                     continue
+                prev_comp_versions = extract_component_versions(prev_yaml)
+                old_ver = prev_comp_versions.get((comp, idx))
+                if old_ver is None:
+                    print(f"  Component '{comp}' entry {idx} is new (version {new_ver}), skipping.")
+                    continue
+                if str(old_ver) != str(new_ver):
+                    old_tag = get_old_tag_for_kubeblocks_cloud(old_ver, new_ver)
+                    new_tag = ensure_v_prefix(new_ver)
+                    repo_base_url = get_github_repo_base_url(cwd=repo_path)
+                    changed_entries.append(('component', comp, idx, old_tag, new_tag, repo_base_url))
+                continue  # skip the generic force logic
+
+            # For all other components, use git tag lookup
+            new_tag = ensure_v_prefix(new_ver)
+            old_tag = get_previous_tag_for_version(new_tag, repo_path)
+            if old_tag is None:
+                print(f"  Skipping {comp}[{idx}] (no previous tag found for {new_tag})")
+                continue
             repo_base_url = get_github_repo_base_url(cwd=repo_path)
             changed_entries.append(('component', comp, idx, old_tag, new_tag, repo_base_url))
     else:
@@ -426,12 +447,9 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
             if str(old_ver) != str(new_ver):
                 old_tag = ensure_v_prefix(old_ver)
                 new_tag = ensure_v_prefix(new_ver)
-                # Special handling for kubeblocks-cloud prerelease versions (alpha/beta)
+                # Use the unified function for kubeblocks-cloud
                 if comp == "kubeblocks-cloud":
-                    computed_old = get_previous_tag_for_prerelease(new_tag)
-                    if computed_old is not None:
-                        old_tag = computed_old
-                        print(f"  Using computed previous tag for {comp}: {old_tag} (manifest had {ensure_v_prefix(old_ver)})")
+                    old_tag = get_old_tag_for_kubeblocks_cloud(old_ver, new_ver)
                 if comp in comp_repo_map:
                     repo_path = comp_repo_map[comp]
                     repo_base_url = get_github_repo_base_url(cwd=repo_path)
