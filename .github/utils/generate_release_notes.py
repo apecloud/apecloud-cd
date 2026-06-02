@@ -7,6 +7,9 @@ Output order respects the order of components in --component YAML file.
 
 Also supports monitoring specific images (e.g., apecloud/dms) defined in --component
 with keys prefixed by "image:".
+
+Extended: When kubeblocks-cloud version changes, recursively compare its own manifest
+between tags to detect changes in other components/engines.
 """
 
 import subprocess
@@ -15,6 +18,7 @@ import argparse
 import re
 import os
 import yaml
+from collections import defaultdict
 
 # ------------------------------------------------------------
 # Configuration: images to monitor and their parent component
@@ -29,6 +33,9 @@ MONITORED_IMAGES = {
 
 # Excluded components from the Components list
 EXCLUDED_COMPONENTS = {"kubeblocks-cloud", "kb-cloud-installer"}
+
+# NEW: manifest file name (assumed same in all repos)
+MANIFEST_FILE = "deploy-manifests.yaml"
 
 # ------------------------------------------------------------
 # Git utility functions
@@ -48,6 +55,8 @@ def get_git_root(path):
         search_dir = os.path.dirname(os.path.abspath(path))
     else:
         search_dir = os.path.abspath(path)
+    if not os.path.exists(search_dir):
+        return None
     try:
         result = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, cwd=search_dir, check=True)
         return result.stdout.strip()
@@ -181,6 +190,149 @@ def generate_notes_for_project(project_path, old_tag, new_tag, author):
         print(f"  Error in {project_path}: {err}")
         return None
     return "\n".join(lines)
+
+# ------------------------------------------------------------
+# NEW: Functions for recursive manifest comparison
+# ------------------------------------------------------------
+def get_manifest_from_tag(repo_path, tag, manifest_rel_path):
+    """Retrieve manifest file content from a specific tag in the given repo."""
+    try:
+        content = run_git_command(["git", "show", f"{tag}:{manifest_rel_path}"], cwd=repo_path, check=False)
+        if content is None:
+            print(f"  Error: {manifest_rel_path} not found at tag {tag} in {repo_path}")
+            return None
+        return yaml.safe_load(content)
+    except Exception as e:
+        print(f"  Error reading {manifest_rel_path} at {tag} in {repo_path}: {e}")
+        return None
+
+def extract_component_versions_with_index(yaml_data):
+    """
+    Extract version info for each entry in each component.
+    Returns a dict: (component_name, entry_index) -> version_string
+    Also returns a dict for images: (image_name, parent_component, entry_index) -> version_string
+    """
+    versions = {}
+    image_versions = {}
+    if not yaml_data:
+        return versions, image_versions
+    for comp, entries in yaml_data.items():
+        if not isinstance(entries, list):
+            entries = [entries]
+        for idx, entry in enumerate(entries):
+            if not isinstance(entry, dict):
+                continue
+            if 'version' in entry:
+                versions[(comp, idx)] = str(entry['version'])
+            # Also extract images for monitored images
+            images = entry.get('images', [])
+            if isinstance(images, list):
+                for img in images:
+                    if not isinstance(img, str):
+                        continue
+                    if ':' not in img:
+                        continue
+                    img_name, tag = img.rsplit(':', 1)
+                    # Only care about monitored images? We'll record all but filter later
+                    image_versions[(img_name, comp, idx)] = tag
+    return versions, image_versions
+
+def compare_manifests(old_yaml, new_yaml, comp_repo_map, image_repo_map, author, processed_set, recursion_depth=0):
+    """
+    Compare two manifest YAMLs and return a list of (entry_type, name, idx, old_tag, new_tag, repo_url)
+    for all version changes found. Also writes release notes directly to a provided list? We'll collect and let caller handle.
+    Returns list of change entries (similar to changed_entries) and list of unmapped changes (comp -> list of (old,new)).
+    """
+    if recursion_depth > 1:  # prevent infinite recursion (only one level deep is needed)
+        return [], {}
+
+    old_versions, old_images = extract_component_versions_with_index(old_yaml) if old_yaml else ({}, {})
+    new_versions, new_images = extract_component_versions_with_index(new_yaml) if new_yaml else ({}, {})
+
+    changes = []  # list of (etype, name, idx, old_tag, new_tag, repo_url)
+    unmapped = defaultdict(list)
+
+    # Check component version changes
+    for (comp, idx), new_ver in new_versions.items():
+        # Skip kubeblocks-cloud itself to avoid infinite recursion
+        if comp == "kubeblocks-cloud":
+            continue
+        old_ver = old_versions.get((comp, idx))
+        if old_ver is not None and str(old_ver) != str(new_ver):
+            # Deduplicate using processed_set
+            key = (comp, idx, old_ver, new_ver)
+            if key in processed_set:
+                continue
+            processed_set.add(key)
+            # Check if we have repo mapping
+            if comp in comp_repo_map:
+                repo_path = comp_repo_map[comp]
+                if not os.path.isdir(repo_path):
+                    print(f"  Warning: Repository path for component '{comp}' does not exist: {repo_path}. Skipping detailed notes.")
+                    unmapped[comp].append((old_ver, new_ver))
+                    continue
+                git_dir = os.path.join(repo_path, '.git')
+                if not os.path.isdir(git_dir):
+                    print(f"  Warning: {repo_path} is not a Git repository. Skipping detailed notes for {comp}.")
+                    unmapped[comp].append((old_ver, new_ver))
+                    continue
+                try:
+                    repo_base_url = get_github_repo_base_url(cwd=repo_path)
+                except Exception as e:
+                    print(f"  Warning: Failed to get repo URL for {comp}: {e}. Using unmapped fallback.")
+                    unmapped[comp].append((old_ver, new_ver))
+                    continue
+                old_tag = ensure_v_prefix(old_ver)
+                new_tag = ensure_v_prefix(new_ver)
+                changes.append(('component', comp, idx, old_tag, new_tag, repo_base_url))
+            else:
+                unmapped[comp].append((old_ver, new_ver))
+
+    # Check monitored image changes (only those in MONITORED_IMAGES)
+    for (img_name, parent_comp, idx), new_tag in new_images.items():
+        if parent_comp != "kubeblocks-cloud":  # only interested in images from kubeblocks-cloud manifest
+            continue
+        # Check if this image is one we monitor
+        full_img_name = img_name if '/' in img_name else f"apecloud/{img_name}"
+        if full_img_name not in MONITORED_IMAGES and img_name not in MONITORED_IMAGES:
+            continue
+        # Normalize image name to match MONITORED_IMAGES keys
+        if full_img_name in MONITORED_IMAGES:
+            monitor_key = full_img_name
+        elif img_name in MONITORED_IMAGES:
+            monitor_key = img_name
+        else:
+            continue
+        old_tag_val = old_images.get((img_name, parent_comp, idx))
+        if old_tag_val is not None and old_tag_val != new_tag:
+            key = (monitor_key, idx, old_tag_val, new_tag)
+            if key in processed_set:
+                continue
+            processed_set.add(key)
+            # For images, we need repo mapping (image_repo_map)
+            if monitor_key in image_repo_map:
+                repo_path = image_repo_map[monitor_key]
+                if not os.path.isdir(repo_path):
+                    print(f"  Warning: Repository path for image '{monitor_key}' does not exist: {repo_path}. Skipping detailed notes.")
+                    continue
+                git_dir = os.path.join(repo_path, '.git')
+                if not os.path.isdir(git_dir):
+                    print(f"  Warning: {repo_path} is not a Git repository. Skipping detailed notes for image '{monitor_key}'.")
+                    continue
+                try:
+                    repo_base_url = get_github_repo_base_url(cwd=repo_path)
+                except Exception as e:
+                    print(f"  Warning: Failed to get repo URL for image '{monitor_key}': {e}. Skipping.")
+                    continue
+                old_tag = ensure_v_prefix(old_tag_val)
+                new_tag_ver = ensure_v_prefix(new_tag)
+                changes.append(('image', monitor_key, idx, old_tag, new_tag_ver, repo_base_url))
+            else:
+                # No repo mapping, just record as unmapped? But images are not typical "components"
+                # We'll skip because we can't generate notes.
+                pass
+
+    return changes, unmapped
 
 # ------------------------------------------------------------
 # Core diff logic for components
@@ -324,6 +476,16 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
                        summary_output="summary_release_notes.md", force=False, list_only=False):
     author = load_author(author_file) if author_file else {}
 
+    abs_manifest = os.path.abspath(manifest_path)
+    # Check if manifest file exists
+    if not os.path.exists(abs_manifest):
+        sys.exit(f"Error: Manifest file {abs_manifest} does not exist.")
+    git_root = get_git_root(abs_manifest)
+    if not git_root:
+        sys.exit(f"Error: {abs_manifest} is not inside a Git repository or the path does not exist.")
+    rel_manifest_path = os.path.relpath(abs_manifest, git_root)
+    print(f"Manifest relative path: {rel_manifest_path}")
+
     # Get current YAML from HEAD
     curr_yaml = get_yaml_from_commit(manifest_path, "HEAD")
     if curr_yaml is None:
@@ -422,11 +584,25 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
                     print(f"  Component '{comp}' entry {idx} is new (version {new_ver}), skipping.")
                     continue
                 if str(old_ver) != str(new_ver):
+                    if not os.path.isdir(repo_path):
+                        print(f"  Warning: Repository path for {comp} does not exist: {repo_path}. Skipping detailed notes.")
+                        all_unmapped[comp].append((old_ver, new_ver))
+                        continue
+                    git_dir = os.path.join(repo_path, '.git')
+                    if not os.path.isdir(git_dir):
+                        print(f"  Warning: {repo_path} is not a Git repository. Skipping detailed notes for {comp}.")
+                        all_unmapped[comp].append((old_ver, new_ver))
+                        continue
                     old_tag = get_old_tag_for_kubeblocks_cloud(old_ver, new_ver)
                     new_tag = ensure_v_prefix(new_ver)
-                    repo_base_url = get_github_repo_base_url(cwd=repo_path)
+                    try:
+                        repo_base_url = get_github_repo_base_url(cwd=repo_path)
+                    except Exception as e:
+                        print(f"  Warning: Failed to get repo URL for {comp}: {e}. Skipping detailed notes.")
+                        all_unmapped[comp].append((old_ver, new_ver))
+                        continue
                     changed_entries.append(('component', comp, idx, old_tag, new_tag, repo_base_url))
-                continue  # skip the generic force logic
+                continue
 
             # For all other components, use git tag lookup
             new_tag = ensure_v_prefix(new_ver)
@@ -452,7 +628,22 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
                     old_tag = get_old_tag_for_kubeblocks_cloud(old_ver, new_ver)
                 if comp in comp_repo_map:
                     repo_path = comp_repo_map[comp]
-                    repo_base_url = get_github_repo_base_url(cwd=repo_path)
+                    # Check path validity
+                    if not os.path.isdir(repo_path):
+                        print(f"  Warning: Repository path for {comp} does not exist: {repo_path}. Treating as unmapped.")
+                        all_unmapped[comp].append((old_ver, new_ver))
+                        continue
+                    git_dir = os.path.join(repo_path, '.git')
+                    if not os.path.isdir(git_dir):
+                        print(f"  Warning: {repo_path} is not a Git repository. Treating as unmapped for {comp}.")
+                        all_unmapped[comp].append((old_ver, new_ver))
+                        continue
+                    try:
+                        repo_base_url = get_github_repo_base_url(cwd=repo_path)
+                    except Exception as e:
+                        print(f"  Warning: Failed to get repo URL for {comp}: {e}. Treating as unmapped.")
+                        all_unmapped[comp].append((old_ver, new_ver))
+                        continue
                 else:
                     repo_base_url = None
                 changed_entries.append(('component', comp, idx, old_tag, new_tag, repo_base_url))
@@ -470,12 +661,23 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
                 print(f"Warning: No repository mapping for image '{image_name}', skipping.")
                 continue
             repo_path = image_repo_map[image_name]
+            if not os.path.isdir(repo_path):
+                print(f"  Warning: Repository path for image '{image_name}' does not exist: {repo_path}. Skipping.")
+                continue
+            git_dir = os.path.join(repo_path, '.git')
+            if not os.path.isdir(git_dir):
+                print(f"  Warning: {repo_path} is not a Git repository. Skipping detailed notes for image '{image_name}'.")
+                continue
             new_tag = ensure_v_prefix(curr_ver)
             old_tag = get_previous_tag_for_version(new_tag, repo_path)
             if old_tag is None:
                 print(f"  Skipping image '{image_name}' (no previous tag found for {new_tag})")
                 continue
-            repo_base_url = get_github_repo_base_url(cwd=repo_path)
+            try:
+                repo_base_url = get_github_repo_base_url(cwd=repo_path)
+            except Exception as e:
+                print(f"  Warning: Failed to get repo URL for image '{image_name}': {e}. Skipping.")
+                continue
             changed_entries.append(('image', image_name, curr_idx, old_tag, new_tag, repo_base_url))
         else:
             # Normal mode: compare with previous YAML
@@ -488,14 +690,24 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
                 new_tag = ensure_v_prefix(curr_ver)
                 if image_name in image_repo_map:
                     repo_path = image_repo_map[image_name]
-                    repo_base_url = get_github_repo_base_url(cwd=repo_path)
-                else:
-                    repo_base_url = None
-                changed_entries.append(('image', image_name, curr_idx, old_tag, new_tag, repo_base_url))
+                    if not os.path.isdir(repo_path):
+                        print(f"  Warning: Repository path for image '{image_name}' does not exist: {repo_path}. Skipping.")
+                        continue
+                    git_dir = os.path.join(repo_path, '.git')
+                    if not os.path.isdir(git_dir):
+                        print(f"  Warning: {repo_path} is not a Git repository. Skipping detailed notes for image '{image_name}'.")
+                        continue
+                    try:
+                        repo_base_url = get_github_repo_base_url(cwd=repo_path)
+                    except Exception as e:
+                        print(f"  Warning: Failed to get repo URL for image '{image_name}': {e}. Skipping.")
+                        continue
+                    changed_entries.append(('image', image_name, curr_idx, old_tag, new_tag, repo_base_url))
 
     # Version following for components
     VERSION_FOLLOW = {
         "kubeblocks-console": "kubeblocks-cloud",
+        "kb-cloud-installer": "kubeblocks-cloud",
     }
     additional = []
     for child, parent in VERSION_FOLLOW.items():
@@ -514,53 +726,73 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
             print(f"Auto-added component '{child}' with version {old_ver} -> {new_ver} (follows '{parent}')")
     changed_entries.extend(additional)
 
-    # Sort: first components in order of comp_repo_map keys, then images in order of MONITORED_IMAGES keys
-    ordered_components = list(comp_repo_map.keys())
-    ordered_images = list(MONITORED_IMAGES.keys())
-
-    def sort_key(entry):
-        etype, name, idx, _, _, _ = entry
-        if etype == 'component':
-            try:
-                return (0, ordered_components.index(name), idx)
-            except ValueError:
-                return (0, len(ordered_components), idx)
-        else:  # image
-            try:
-                return (1, ordered_images.index(name), 0)
-            except ValueError:
-                return (1, len(ordered_images), 0)
-
-    changed_entries.sort(key=sort_key)
-
     # ------------------------------------------------------------
-    # Collect unmapped component/engine version changes (no repo mapping)
+    # NEW: Recursive processing for kubeblocks-cloud manifest changes
     # ------------------------------------------------------------
-    unmapped_changes_by_name = {}  # name -> list of (old_ver, new_ver)
+    recursive_changes = []
+    recursive_unmapped = defaultdict(list)
+    processed_set = set()  # to avoid duplicates across recursion levels
 
-    # Determine which YAML to use for previous versions
-    if force:
-        prev_yaml_for_unmapped = get_yaml_from_commit(manifest_path, "HEAD^")
-    else:
-        prev_yaml_for_unmapped = prev_yaml
+    # Find kubeblocks-cloud entry in changed_entries
+    kb_cloud_entry = None
+    for entry in changed_entries:
+        if entry[0] == 'component' and entry[1] == 'kubeblocks-cloud':
+            kb_cloud_entry = entry
+            break
 
-    if prev_yaml_for_unmapped is not None:
-        prev_versions_unmapped = extract_component_versions(prev_yaml_for_unmapped)
+    if kb_cloud_entry:
+        _, comp_name, idx, old_tag, new_tag, repo_base_url = kb_cloud_entry
+        repo_path = comp_repo_map.get(comp_name)
+        if repo_path:
+            print(f"\nRecursively comparing manifests in {comp_name} from {old_tag} to {new_tag}...")
+            old_manifest = get_manifest_from_tag(repo_path, old_tag, rel_manifest_path)
+            new_manifest = get_manifest_from_tag(repo_path, new_tag, rel_manifest_path)
+            if old_manifest and new_manifest:
+                rec_changes, rec_unmapped = compare_manifests(
+                    old_manifest, new_manifest, comp_repo_map, image_repo_map, author, processed_set, recursion_depth=0
+                )
+                recursive_changes.extend(rec_changes)
+                # Merge unmapped
+                for comp, ver_list in rec_unmapped.items():
+                    recursive_unmapped[comp].extend(ver_list)
+                print(f"  Found {len(rec_changes)} component(s) changed in kubeblocks-cloud manifest")
+            else:
+                print(f"  Warning: Could not retrieve manifest from one of the tags ({old_tag}, {new_tag})")
+        else:
+            print(f"  Warning: No repo mapping for kubeblocks-cloud, cannot recursively process manifests")
+
+    # Merge recursive changes into the main changed_entries list
+    # But we need to avoid duplicates: if a component already appears in changed_entries (from top-level diff),
+    # we should not add it again. Use processed_set from compare_manifests already handles duplicates.
+    changed_entries.extend(recursive_changes)
+
+    # Merge recursive unmapped changes into the main unmapped dict (to be handled later)
+    # We'll collect all unmapped changes in a dict for final output
+    all_unmapped = defaultdict(list)
+
+    # Process top-level unmapped changes (from direct manifest diff)
+    if prev_yaml is not None:
+        prev_versions_unmapped = extract_component_versions(prev_yaml)
         curr_versions_unmapped = extract_component_versions(curr_yaml)
         for (comp, idx), new_ver in curr_versions_unmapped.items():
-            # Skip components that have a repo mapping or are excluded
             if comp in comp_repo_map or comp in EXCLUDED_COMPONENTS:
                 continue
             old_ver = prev_versions_unmapped.get((comp, idx))
             if old_ver is not None and str(old_ver) != str(new_ver):
-                if comp not in unmapped_changes_by_name:
-                    unmapped_changes_by_name[comp] = []
-                unmapped_changes_by_name[comp].append((old_ver, new_ver))
+                all_unmapped[comp].append((old_ver, new_ver))
+
+    # Add recursive unmapped
+    for comp, ver_list in recursive_unmapped.items():
+        all_unmapped[comp].extend(ver_list)
+
+    # Deduplicate unmapped version pairs (just in case)
+    for comp in all_unmapped:
+        all_unmapped[comp] = list(set(all_unmapped[comp]))
 
     # ------------------------------------------------------------
     # Generate full release notes
     # ------------------------------------------------------------
-    has_any_change = bool(changed_entries) or bool(unmapped_changes_by_name)
+    has_any_change = bool(changed_entries) or bool(all_unmapped)
     if not has_any_change:
         print("No valid release notes generated.")
         return
@@ -571,7 +803,7 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
 
     # Process detailed entries (components with repos and images)
     if changed_entries:
-        print(f"Found {len(changed_entries)} version change(s):")
+        print(f"Found {len(changed_entries)} version change(s) (including recursive):")
         for etype, name, idx, old, new, _ in changed_entries:
             if etype == 'component':
                 print(f"  Component {name}[{idx}]: {old} -> {new}")
@@ -616,12 +848,12 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
                 summary_lines.append("")
 
     # Process unmapped components/engines (short format)
-    if unmapped_changes_by_name:
+    if all_unmapped:
         summary_lines.append("### Other Components and Engines")
         summary_lines.append("")
-        for comp in sorted(unmapped_changes_by_name.keys()):
-            changes = unmapped_changes_by_name[comp]
-            change_strs = [f"{old} → {new}" for old, new in changes]
+        for comp in sorted(all_unmapped.keys()):
+            changes = all_unmapped[comp]
+            change_strs = [f"{ensure_v_prefix(old)} → {ensure_v_prefix(new)}" for old, new in changes]
             summary_lines.append(f"- {comp}: {', '.join(change_strs)}")
         summary_lines.append("")
 
@@ -678,12 +910,18 @@ def main():
 
     comp_repo_map = {}
     image_repo_map = {}
+    # Use current working directory as base for relative paths
+    base_dir = os.getcwd()
     for key, value in raw_map.items():
+        if not os.path.isabs(value):
+            abs_path = os.path.normpath(os.path.join(base_dir, value))
+        else:
+            abs_path = value
         if key.startswith("image:"):
             image_name = key[6:]
-            image_repo_map[image_name] = value
+            image_repo_map[image_name] = abs_path
         else:
-            comp_repo_map[key] = value
+            comp_repo_map[key] = abs_path
 
     auto_release_notes(args.manifest, comp_repo_map, image_repo_map,
                        args.author, args.summary, args.force,
