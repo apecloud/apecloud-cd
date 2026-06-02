@@ -155,12 +155,12 @@ def get_commits_between_tags(old_tag, new_tag, cwd=None, author=None):
             parts = line.split('|', 2)
             if len(parts) < 3:
                 continue
-            full_hash, subject, author_name = parts   # FIX: renamed variable
+            full_hash, subject, author_name = parts
             full_hash = full_hash.strip()
             subject = subject.strip()
             author_name = author_name.strip()
 
-            mapped_author = map_author(author_name, author)  # use outer 'author' dict
+            mapped_author = map_author(author_name, author)
             pr_nums = extract_pr_numbers(subject)
             clean_msg = clean_subject(subject)
             commit_url = f"{repo_base_url}/commit/{full_hash}"
@@ -377,8 +377,6 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
     else:
         prev_yaml = None
 
-    # ... rest of original function unchanged ...
-
     # Collect changes for components
     curr_comp_versions = extract_component_versions(curr_yaml)
 
@@ -514,21 +512,49 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
     changed_entries.sort(key=sort_key)
 
     # ------------------------------------------------------------
-    # Generate full release notes (original behavior)
+    # Collect unmapped component/engine version changes (no repo mapping)
     # ------------------------------------------------------------
-    print(f"Found {len(changed_entries)} version change(s):")
-    for etype, name, idx, old, new, _ in changed_entries:
-        if etype == 'component':
-            print(f"  Component {name}[{idx}]: {old} -> {new}")
-        else:
-            print(f"  Image {name}: {old} -> {new}")
+    unmapped_changes_by_name = {}  # name -> list of (old_ver, new_ver)
 
-    # Build output: What's Changed section (only if there are changes)
+    # Determine which YAML to use for previous versions
+    if force:
+        prev_yaml_for_unmapped = get_yaml_from_commit(manifest_path, "HEAD^")
+    else:
+        prev_yaml_for_unmapped = prev_yaml
+
+    if prev_yaml_for_unmapped is not None:
+        prev_versions_unmapped = extract_component_versions(prev_yaml_for_unmapped)
+        curr_versions_unmapped = extract_component_versions(curr_yaml)
+        for (comp, idx), new_ver in curr_versions_unmapped.items():
+            # Skip components that have a repo mapping or are excluded
+            if comp in comp_repo_map or comp in EXCLUDED_COMPONENTS:
+                continue
+            old_ver = prev_versions_unmapped.get((comp, idx))
+            if old_ver is not None and str(old_ver) != str(new_ver):
+                if comp not in unmapped_changes_by_name:
+                    unmapped_changes_by_name[comp] = []
+                unmapped_changes_by_name[comp].append((old_ver, new_ver))
+
+    # ------------------------------------------------------------
+    # Generate full release notes
+    # ------------------------------------------------------------
+    has_any_change = bool(changed_entries) or bool(unmapped_changes_by_name)
+    if not has_any_change:
+        print("No valid release notes generated.")
+        return
+
     summary_lines = []
+    summary_lines.append("## What's Changed")
+    summary_lines.append("")
 
+    # Process detailed entries (components with repos and images)
     if changed_entries:
-        summary_lines.append("## What's Changed")
-        summary_lines.append("")
+        print(f"Found {len(changed_entries)} version change(s):")
+        for etype, name, idx, old, new, _ in changed_entries:
+            if etype == 'component':
+                print(f"  Component {name}[{idx}]: {old} -> {new}")
+            else:
+                print(f"  Image {name}: {old} -> {new}")
 
         for etype, name, idx, old_tag, new_tag, repo_base_url in changed_entries:
             if etype == 'component':
@@ -567,6 +593,16 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
                 summary_lines.append(notes)
                 summary_lines.append("")
 
+    # Process unmapped components/engines (short format)
+    if unmapped_changes_by_name:
+        summary_lines.append("### Other Components and Engines")
+        summary_lines.append("")
+        for comp in sorted(unmapped_changes_by_name.keys()):
+            changes = unmapped_changes_by_name[comp]
+            change_strs = [f"{old} → {new}" for old, new in changes]
+            summary_lines.append(f"- {comp}: {', '.join(change_strs)}")
+        summary_lines.append("")
+
     # Add Components and Engines sections (as tables)
     components_dict, engines_entries = collect_components_and_engines(curr_yaml, MONITORED_IMAGES)
 
@@ -597,10 +633,6 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
                 else:
                     summary_lines.append(f"| | {version} | {sv_str} |")
         summary_lines.append("")
-
-    if not summary_lines:
-        print("No valid release notes generated.")
-        return
 
     with open(summary_output, 'w', encoding='utf-8') as f:
         f.write("\n".join(summary_lines))
