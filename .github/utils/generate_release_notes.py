@@ -516,13 +516,13 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
         curr_comp_versions = extract_component_versions(curr_yaml)
 
         changed_names = set()
-        # Component changes
+        # Component changes (top-level)
         for (comp, idx), new_ver in curr_comp_versions.items():
             old_ver = prev_comp_versions.get((comp, idx))
             if old_ver is not None and str(old_ver) != str(new_ver):
                 changed_names.add(comp)
 
-        # Image changes
+        # Image changes (top-level)
         for image_name, parent_comp in MONITORED_IMAGES.items():
             curr_ver, _ = extract_image_version(curr_yaml, parent_comp, image_name)
             if curr_ver is None:
@@ -533,15 +533,74 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
                     short_name = image_name.split('/')[-1]
                     changed_names.add(short_name)
             else:
-                # No previous YAML: assume changed
                 short_name = image_name.split('/')[-1]
                 changed_names.add(short_name)
 
-        # Version follow (no repo required)
+        # Version follow (top-level)
         VERSION_FOLLOW = {"kubeblocks-console": "kubeblocks-cloud"}
         for child, parent in VERSION_FOLLOW.items():
             if parent in changed_names and child not in changed_names:
                 changed_names.add(child)
+
+        # ------------------------------------------------------------
+        # Recursive processing for kubeblocks-cloud manifest changes
+        # ------------------------------------------------------------
+        # Check if kubeblocks-cloud version changed in top-level diff
+        kb_cloud_changed = False
+        old_kb_version = None
+        new_kb_version = None
+        for (comp, idx), new_ver in curr_comp_versions.items():
+            if comp == "kubeblocks-cloud":
+                old_ver = prev_comp_versions.get((comp, idx))
+                if old_ver is not None and str(old_ver) != str(new_ver):
+                    kb_cloud_changed = True
+                    old_kb_version = old_ver
+                    new_kb_version = new_ver
+                break
+
+        if kb_cloud_changed and "kubeblocks-cloud" in comp_repo_map:
+            repo_path = comp_repo_map["kubeblocks-cloud"]
+            if os.path.isdir(repo_path) and os.path.isdir(os.path.join(repo_path, '.git')):
+                # Determine tags for comparison
+                old_tag = get_old_tag_for_kubeblocks_cloud(old_kb_version, new_kb_version)
+                new_tag = ensure_v_prefix(new_kb_version)
+                # Retrieve manifests from tags
+                old_manifest = get_manifest_from_tag(repo_path, old_tag, rel_manifest_path)
+                new_manifest = get_manifest_from_tag(repo_path, new_tag, rel_manifest_path)
+                if old_manifest and new_manifest:
+                    # Perform recursive comparison to get all changed components (without generating detailed notes)
+                    # We don't need image_repo_map or author for just collecting names, but compare_manifests expects them.
+                    # Pass empty maps and processed_set to avoid side effects.
+                    rec_changes, _ = compare_manifests(
+                        old_manifest, new_manifest, comp_repo_map, image_repo_map,
+                        author=None, processed_set=set(), recursion_depth=0
+                    )
+                    # Add component names and image short names from recursive changes
+                    for etype, name, idx, _, _, _ in rec_changes:
+                        if etype == 'component':
+                            changed_names.add(name)
+                        elif etype == 'image':
+                            # name is monitor_key (full image name like apecloud/dms)
+                            short_name = name.split('/')[-1]
+                            changed_names.add(short_name)
+                    # Also add any components that appear as unmapped? Not needed because compare_manifests already
+                    # returns mapped changes only. Unmapped ones are in second return value, but we don't have repo
+                    # mapping for them. However, we still want to include unmapped component names (like casdoor-helm-charts)
+                    # because they are real changes. We need to also extract unmapped from compare_manifests.
+                    # Let's get the second return value as well.
+                    _, rec_unmapped = compare_manifests(
+                        old_manifest, new_manifest, comp_repo_map, image_repo_map,
+                        author=None, processed_set=set(), recursion_depth=0
+                    )
+                    for comp, ver_list in rec_unmapped.items():
+                        changed_names.add(comp)
+                else:
+                    print("  Warning: Could not retrieve manifest from one of the tags for recursive list-changed")
+            else:
+                print("  Warning: kubeblocks-cloud repository path invalid, cannot recursively list changes")
+
+        # Also need to consider monitored images that may have changed inside kubeblocks-cloud manifest?
+        # The recursive compare already includes image changes (etype='image'), which are added above.
 
         output = ''.join(f'[{n}]' for n in sorted(changed_names))
         print(output if output else "No changes")
