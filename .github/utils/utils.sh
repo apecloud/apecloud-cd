@@ -223,18 +223,28 @@ delete_tag() {
     gh_curl -s -X DELETE  $GITHUB_API/repos/$GITHUB_REPO/git/refs/tags/$TAG_NAME
 }
 
+delete_release_versions_all() {
+    local versions_str="$TAG_NAME"
+    if [[ "$versions_str" != *"|"* ]]; then
+        delete_release_version
+        return
+    fi
+    local -a versions
+    IFS='|' read -r -a versions <<< "$versions_str"
+    for version in "${versions[@]}"; do
+        TAG_NAME="$version"
+        delete_release_version
+    done
+}
+
 delete_release_version() {
     release_id=$( gh_curl -s $GITHUB_API/repos/$GITHUB_REPO/releases/tags/$TAG_NAME | jq -r '.id' )
     if [[ -n "$release_id" && "$release_id" != "null" ]]; then
         echo "delete $GITHUB_REPO release $TAG_NAME"
-        if ! gh_curl -s -X DELETE "$GITHUB_API/repos/$GITHUB_REPO/releases/$release_id"; then
-            echo "error: failed to delete release $TAG_NAME" >&2
-        fi
+        gh_curl -s -X DELETE $GITHUB_API/repos/$GITHUB_REPO/releases/$release_id
     else
         echo "delete $GITHUB_REPO release $TAG_NAME via gh cli"
-        if ! gh release delete "$TAG_NAME" --repo "$GITHUB_REPO" --yes; then
-            echo "error: failed to delete release $TAG_NAME via gh cli" >&2
-        fi
+        gh release delete "$TAG_NAME" --repo $GITHUB_REPO --yes
     fi
     delete_tag
 }
@@ -270,6 +280,21 @@ delete_release_charts() {
     done
 }
 
+delete_kubeblocks_release_charts_all() {
+    local versions_str="$TAG_NAME"
+    if [[ "$versions_str" != *"|"* ]]; then
+        delete_kubeblocks_release_chart
+        return
+    fi
+    local -a versions
+    IFS='|' read -r -a versions <<< "$versions_str"
+    for version in "${versions[@]}"; do
+        local clean_v="${version/v/}"
+        TAG_NAME_TMP="$clean_v"
+        delete_kubeblocks_release_chart
+    done
+}
+
 delete_kubeblocks_release_chart() {
     chart_file="deploy/helm/Chart.yaml"
     if [[ -f "$chart_file" ]]; then
@@ -278,6 +303,21 @@ delete_kubeblocks_release_chart() {
         TAG_NAME="$chart_name-$TAG_NAME_TMP"
         delete_release_version
     fi
+}
+
+delete_release_charts_all() {
+    local versions_str="$TAG_NAME"
+    if [[ "$versions_str" != *"|"* ]]; then
+        delete_release_chart
+        return
+    fi
+    local -a versions
+    IFS='|' read -r -a versions <<< "$versions_str"
+    for version in "${versions[@]}"; do
+        local clean_v="${version/v/}"
+        TAG_NAME_TMP="$clean_v"
+        delete_release_chart
+    done
 }
 
 delete_release_chart() {
@@ -2142,11 +2182,10 @@ main() {
             trigger_repo_workflow
         ;;
         8)
-            delete_release_version
+            delete_release_versions_all
         ;;
         9)
-            #delete_release_charts
-            delete_kubeblocks_release_chart
+            delete_kubeblocks_release_charts_all
         ;;
         10)
             delete_docker_images
@@ -2266,7 +2305,7 @@ main() {
             get_cloud_delete_release
         ;;
         49)
-            delete_release_chart
+            delete_release_charts_all
         ;;
         50)
             delete_docker_images_cloud
