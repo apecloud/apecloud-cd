@@ -64,14 +64,11 @@ jobs:
           
       - name: Delete Cloud releases
         run: |
-          DELETE_VERSIONS="${{ needs.get-version.outputs.delete-version }}"
-          for del_version in $(echo "${DELETE_VERSIONS}" | sed 's/|/ /g'); do
-              bash .github/utils/utils.sh \
-                  --type 8 \
-                  --github-repo "apecloud/apecloud" \
-                  --tag-name "${del_version}" \
-                  --github-token "${{ env.GH_TOKEN }}"
-          done
+          bash .github/utils/utils.sh \
+              --type 8 \
+              --github-repo "apecloud/apecloud" \
+              --tag-name "${{ needs.get-version.outputs.delete-version }}" \
+              --github-token "${{ env.GH_TOKEN }}"
 
   delete-github-helm-chart:
     runs-on: ubuntu-latest
@@ -101,15 +98,12 @@ jobs:
           if [[ "${{ matrix.chart-repo }}" == "helm-charts-enterprise" ]]; then
               DELETE_CHARTS="kubeblocks-cloud"
           fi
-          DELETE_VERSIONS="${{ needs.get-version.outputs.delete-version }}"
-          for del_release in $(echo "${DELETE_VERSIONS}" | sed 's/|/ /g'); do
-              bash apecloud-cd/.github/utils/utils.sh \
-                  --type 49 \
-                  --github-repo "apecloud/${{ matrix.chart-repo }}" \
-                  --tag-name "${del_release}" \
-                  --chart-path "${DELETE_CHARTS}" \
-                  --github-token ${{ env.GH_TOKEN }}
-          done
+          bash apecloud-cd/.github/utils/utils.sh \
+              --type 49 \
+              --github-repo "apecloud/${{ matrix.chart-repo }}" \
+              --tag-name "${{ needs.get-version.outputs.delete-version }}" \
+              --chart-path "${DELETE_CHARTS}" \
+              --github-token ${{ env.GH_TOKEN }}
 
   delete-jihulab-helm-chart:
     runs-on: ubuntu-latest

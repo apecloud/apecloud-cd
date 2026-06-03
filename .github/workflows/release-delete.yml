@@ -53,13 +53,11 @@ jobs:
 
       - name: delete kubeblocks release
         run: |
-          for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
-              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
-                  --type 8 \
-                  --github-repo apecloud/kubeblocks \
-                  --tag-name $release \
-                  --github-token ${{ env.GITHUB_TOKEN }}
-          done
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+              --type 8 \
+              --github-repo apecloud/kubeblocks \
+              --tag-name "${{ inputs.VERSION }}" \
+              --github-token ${{ env.GITHUB_TOKEN }}
 
       - name: delete Jihulab kubeblocks release
         if: ${{ always() }}
@@ -96,13 +94,11 @@ jobs:
 
       - name: delete github helm chart release
         run: |
-          for release in $(echo "${{ inputs.VERSION }}" | sed 's/|/ /g'); do
-              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
-                  --type 9 \
-                  --github-repo apecloud/helm-charts \
-                  --tag-name $release \
-                  --github-token ${{ env.GITHUB_TOKEN }}
-          done
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+              --type 9 \
+              --github-repo apecloud/helm-charts \
+              --tag-name "${{ inputs.VERSION }}" \
+              --github-token ${{ env.GITHUB_TOKEN }}
 
       - name: delete Jihulab helm chart release
         if: ${{ always() }}
