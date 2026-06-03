@@ -1,0 +1,200 @@
+name: Release Delete Cloud
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      VERSION:
+        description: "The version(s) to delete, e.g. v2.3.0-alpha.0 or v2.3.0-alpha.1|v2.3.0-alpha.0"
+        type: string
+        required: true
+        default: ''
+      APECD_REF:
+        description: "The ref of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+
+run-name: delete cloud release:${{ inputs.VERSION }}
+
+env:
+  GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+  ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
+  JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
+
+jobs:
+  get-version:
+    runs-on: ubuntu-latest
+    outputs:
+      delete-version: ${{ steps.get_version.outputs.delete_version }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          ref: ${{ inputs.APECD_REF || 'main' }}
+
+      - name: Get version
+        id: get_version
+        run: |
+          DELETE_VERSION="${{ inputs.VERSION }}"
+          if [[ -z "${DELETE_VERSION}" ]]; then
+              echo "get delete version"
+              DELETE_VERSION=$(bash .github/utils/utils.sh --type 48 \
+                --github-repo apecloud/apecloud)
+          fi
+          echo "delete version: $DELETE_VERSION"
+          echo delete_version="$DELETE_VERSION" >> $GITHUB_OUTPUT
+
+  delete-release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    needs: [ get-version ]
+    steps:
+      - name: Checkout apecloud-cd
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          ref: ${{ inputs.APECD_REF || 'main' }}
+          
+      - name: Delete Cloud releases
+        run: |
+          DELETE_VERSIONS="${{ needs.get-version.outputs.delete-version }}"
+          for del_version in $(echo "${DELETE_VERSIONS}" | sed 's/|/ /g'); do
+              bash .github/utils/utils.sh \
+                  --type 8 \
+                  --github-repo "apecloud/apecloud" \
+                  --tag-name "${del_version}" \
+                  --github-token "${{ env.GH_TOKEN }}"
+          done
+
+  delete-github-helm-chart:
+    runs-on: ubuntu-latest
+    needs: [ get-version ]
+    strategy:
+      fail-fast: false
+      matrix:
+        chart-repo: [ "helm-charts", "helm-charts-enterprise" ]
+    steps:
+      - name: Checkout ${{ matrix.chart-repo }}
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/${{ matrix.chart-repo }}
+          path: ${{ matrix.chart-repo }}
+          token: ${{ env.GH_TOKEN }}
+          
+      - name: Checkout apecloud-cd
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          ref: ${{ inputs.APECD_REF || 'main' }}
+
+      - name: Delete GitHub helm chart releases
+        run: |
+          DELETE_CHARTS="kb-cloud-bootstrapper|kb-cloud-installer"
+          if [[ "${{ matrix.chart-repo }}" == "helm-charts-enterprise" ]]; then
+              DELETE_CHARTS="kubeblocks-cloud"
+          fi
+          DELETE_VERSIONS="${{ needs.get-version.outputs.delete-version }}"
+          for del_release in $(echo "${DELETE_VERSIONS}" | sed 's/|/ /g'); do
+              bash apecloud-cd/.github/utils/utils.sh \
+                  --type 49 \
+                  --github-repo "apecloud/${{ matrix.chart-repo }}" \
+                  --tag-name "${del_release}" \
+                  --chart-path "${DELETE_CHARTS}" \
+                  --github-token ${{ env.GH_TOKEN }}
+          done
+
+  delete-jihulab-helm-chart:
+    runs-on: ubuntu-latest
+    needs: [ get-version ]
+    strategy:
+      fail-fast: false
+      matrix:
+        chart-name: [ "kb-cloud-bootstrapper", "kb-cloud-installer", "kubeblocks-cloud" ]
+    steps:
+      - name: Checkout apecloud-cd
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          ref: ${{ inputs.APECD_REF || 'main' }}
+
+      - name: Delete Jihulab helm chart releases
+        run: |
+          DELETE_VERSIONS="${{ needs.get-version.outputs.delete-version }}"
+          bash .github/utils/release_gitlab.sh \
+              --type 7 \
+              --tag-name "${DELETE_VERSIONS}" \
+              --charts-dir "${{ matrix.chart-name }}" \
+              --access-token "${{ env.JIHULAB_ACCESS_TOKEN }}"
+
+  delete-dockerhub-image:
+    runs-on: ubuntu-latest
+    needs: [ get-version ]
+    steps:
+      - name: Checkout apecloud-cd
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          ref: ${{ inputs.APECD_REF || 'main' }}
+
+      - name: Delete DockerHub images
+        run: |
+          DOCKER_USER="${{ env.DOCKER_USER }}"
+          DOCKER_PASSWORD="${{ env.DOCKER_PASSWORD }}"
+          DELETE_VERSIONS="${{ needs.get-version.outputs.delete-version }}"
+          set -e
+          bash .github/utils/utils.sh \
+              --type 50 \
+              --user "${DOCKER_USER}" \
+              --password "${DOCKER_PASSWORD}" \
+              --tag-name "${DELETE_VERSIONS}"
+
+  delete-aliyun-image:
+    runs-on: ubuntu-latest
+    needs: get-version
+    steps:
+      - name: Checkout apecloud-cd
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          ref: ${{ inputs.APECD_REF || 'main' }}
+
+      - name: Install skopeo
+        run: |
+          sudo apt-get update
+          sudo apt install skopeo
+
+      - name: Delete Aliyun images
+        run: |
+          ALIYUN_USER="${{ env.ALIYUN_USER }}"
+          ALIYUN_PASSWORD="${{ env.ALIYUN_PASSWORD }}"
+          DELETE_VERSIONS="${{ needs.get-version.outputs.delete-version }}"
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+              --type 51 \
+              --user "${ALIYUN_USER}" \
+              --password "${ALIYUN_PASSWORD}" \
+              --tag-name "${DELETE_VERSIONS}"
+
+  update-charts-index:
+    if: ${{ always() }}
+    uses: ./.github/workflows/trigger-workflow.yml
+    needs: [ get-version, delete-github-helm-chart ]
+    strategy:
+      fail-fast: false
+      matrix:
+        chart-repo: [ "helm-charts", "helm-charts-enterprise" ]
+    with:
+      GITHUB_REPO: "apecloud/${{ matrix.chart-repo }}"
+      BRANCH_NAME: "gh-pages"
+      WORKFLOW_ID: "update-index.yml"
+      VERSION: "${{ needs.get-version.outputs.delete-version }}"
+      EXTRA_ARGS: "CHART_NAME=kubeblocks-cloud"
+    secrets: inherit
