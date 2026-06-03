@@ -26,7 +26,8 @@ Usage: $(basename "$0") <options>
                                 3) release helm chart
                                 4) update release latest
                                 5) delete release
-                                6) delete helm chart
+                                6) delete helm chart (KubeBlocks)
+                                7) delete helm chart
     -tn, --tag-name           Release tag name
     -pi, --project-id         Gitlab repo project id or "group%2Fproject"
     -at, --access-token       Gitlab access token
@@ -64,6 +65,10 @@ main() {
     parse_command_line "$@"
 
     local TAG_NAME_TMP=${TAG_NAME/v/}
+    if [[ "${TAG_NAME}" == *"|"* ]]; then
+        # Strip leading 'v' from all tag versions in the pipe-separated list
+        local TAG_NAME_TMP=$(echo "$TAG_NAME" | sed 's/^v//;s/|v/|/g')
+    fi
 
     case $TYPE in
         5|6)
@@ -94,6 +99,9 @@ main() {
         ;;
         6)
             delete_kubeblocks_helm_chart
+        ;;
+        7)
+            delete_helm_chart
         ;;
     esac
 
@@ -475,28 +483,78 @@ filter_charts() {
     wait
 }
 
-delete_helm_chart() {
-    TAG_NAME="$TAG_NAME_TMP"
-    get_addons_list
-    local DELETE_CHARTS_DIR=""
-    for charts_dir in $(echo "deploy" | sed 's/|/ /g'); do
-        if [[ ! -d "$charts_dir" ]]; then
-            echo "not found chart dir $charts_dir"
-            continue
-        fi
-        DELETE_CHARTS_DIR=$charts_dir
-        charts_files=$( ls -1 $charts_dir )
-        echo "$charts_files" | filter_charts
-    done
-}
-
 delete_kubeblocks_helm_chart() {
     chart_file="deploy/helm/Chart.yaml"
     if [[ -f "$chart_file" ]]; then
-        chart_name=$(cat $file | yq eval '.name' -)
+        chart_name=$(cat $chart_file | yq eval '.name' -)
         echo "delete helm_chart $chart_name $TAG_NAME_TMP"
         PROJECT_ID_TMP="${DEFAULT_HELM_CHARTS_PROJECT_ID}"
         delete_release_packages "$chart_name" "$PROJECT_ID_TMP"
+    fi
+}
+
+delete_release_packages_all() {
+    delete_name=${1:-""}
+    project_id=${2:-""}
+    request_type=DELETE
+    page_num=1
+    request_url=""
+
+    # Split TAG_NAME by '|' into a bash array for batch matching
+    local -a tag_list
+    IFS='|' read -r -a tag_list <<< "$TAG_NAME_TMP"
+    local -a remaining_tags=("${tag_list[@]}")
+
+    while true; do
+        request_url="$API_URL/$project_id/packages?page=$page_num&per_page=100"
+        packages_info=$( gitlab_api_curl -s $request_url )
+        length=$( echo "$packages_info" | jq length )
+        if [[ $length -eq 0 ]]; then
+            break
+        fi
+        for (( i=0; i<length; i++ )); do
+            package_version_raw=$( echo "$packages_info" | jq -r ".[$i].version" )
+            package_name_raw=$( echo "$packages_info" | jq -r ".[$i].name" )
+            if [[ "$package_name_raw" != "$delete_name" ]]; then
+                continue
+            fi
+            # Check if this version is in our remaining tags
+            local found_idx=-1
+            for idx in "${!remaining_tags[@]}"; do
+                if [[ "${remaining_tags[$idx]}" == "$package_version_raw" || "v${remaining_tags[$idx]}" == "$package_version_raw" ]]; then
+                    found_idx=$idx
+                    break
+                fi
+            done
+            if [[ $found_idx -ge 0 ]]; then
+                package_id=$( echo "$packages_info" | jq ".[$i].id" )
+                echo "package_id:$package_id"
+                echo "delete packages $package_name_raw $package_version_raw"
+                local delete_url=$API_URL/$project_id/packages/$package_id
+                gitlab_api_curl --request $request_type $delete_url
+                unset 'remaining_tags[found_idx]'
+                if [[ ${#remaining_tags[@]} -eq 0 ]]; then
+                    return
+                fi
+            fi
+        done
+        page_num=$(( $page_num + 1 ))
+    done
+}
+
+delete_helm_chart() {
+    if [[ -n "$CHARTS_DIR" ]]; then
+        for chart_name in $(echo "$CHARTS_DIR" | sed 's/|/ /g'); do
+            echo "delete helm_chart $chart_name"
+            echo "delete versions $TAG_NAME_TMP"
+            PROJECT_ID_TMP="${DEFAULT_APPLICATIONS_PROJECT_ID}"
+            if [[ "$chart_name" == "kubeblocks-cloud" ]]; then
+                PROJECT_ID_TMP="${DEFAULT_ENTERPRISE_PROJECT_ID}"
+            elif [[ "$chart_name" == "kb-cloud-bootstrapper" ]]; then
+                PROJECT_ID_TMP="${DEFAULT_CACHE_PROJECT_ID}"
+            fi
+            delete_release_packages_all "$chart_name" "$PROJECT_ID_TMP"
+        done
     fi
 }
 

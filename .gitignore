@@ -57,7 +57,6 @@ dist/
 bin/
 tmp/
 
-
 # helm dependency charts
 deploy/**/Chart.lock
 deploy/**/charts
@@ -65,6 +64,13 @@ deploy/**/charts
 # cli embed chart directory
 internal/cli/cluster/charts/
 
+# codex
+AGENTS.md
+
 # claude code
 CLAUDE.md
 .claude/
+
+# bak
+.github/bak
+.github/utils/__pycache__/*

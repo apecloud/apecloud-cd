@@ -58,6 +58,8 @@ Usage: $(basename "$0") <options>
                                 45) set engine summary result url2
                                 46) get playwright test result
                                 47) get playwright test result total
+                                48) get cloud delete release
+                                49) delete release chart
     -tn, --tag-name           Release tag name
     -gr, --github-repo        Github Repo
     -gt, --github-token       Github token
@@ -273,78 +275,631 @@ delete_kubeblocks_release_chart() {
     fi
 }
 
-delete_docker_images() {
-    echo "delete kubeblocks image $TAG_NAME_TMP"
-    docker run --rm -it apecloud/remove-dockerhub-tag \
-        --user "$USER" --password "$PASSWORD" \
-        apecloud/kubeblocks:$TAG_NAME_TMP
-
-    echo "delete kubeblocks-tools image $TAG_NAME_TMP"
-    docker run --rm -it apecloud/remove-dockerhub-tag \
-        --user "$USER" --password "$PASSWORD" \
-        apecloud/kubeblocks-tools:$TAG_NAME_TMP
-
-    echo "delete kubeblocks-datascript image $TAG_NAME_TMP"
-    docker run --rm -it apecloud/remove-dockerhub-tag \
-        --user "$USER" --password "$PASSWORD" \
-        apecloud/kubeblocks-datascript:$TAG_NAME_TMP
-
-    echo "delete kubeblocks-charts image $TAG_NAME_TMP"
-    docker run --rm -it apecloud/remove-dockerhub-tag \
-        --user "$USER" --password "$PASSWORD" \
-        apecloud/kubeblocks-charts:$TAG_NAME_TMP
-
-    echo "delete kubeblocks-dataprotection image $TAG_NAME_TMP"
-    docker run --rm -it apecloud/remove-dockerhub-tag \
-        --user "$USER" --password "$PASSWORD" \
-        apecloud/kubeblocks-dataprotection:$TAG_NAME_TMP
+delete_release_chart() {
+    if [[ -n "$CHART_PATH" ]]; then
+        for chart_name in $(echo "$CHART_PATH" | sed 's/|/ /g'); do
+            echo "delete chart $chart_name-$TAG_NAME_TMP"
+            if [[ "$chart_name" == "kubeblocks-cloud" ]]; then
+                TAG_NAME="$chart_name-v$TAG_NAME_TMP"
+            else
+                TAG_NAME="$chart_name-$TAG_NAME_TMP"
+            fi
+            delete_release_version
+        done
+    fi
 }
 
+delete_docker_images() {
+    local -a images=(
+        "apecloud/kubeblocks"
+        "apecloud/kubeblocks-tools"
+        "apecloud/kubeblocks-datascript"
+        "apecloud/kubeblocks-charts"
+        "apecloud/kubeblocks-dataprotection"
+    )
+
+    local -a versions
+    IFS='|' read -r -a versions <<< "$TAG_NAME_TMP"
+
+    local fail_count=0
+    local total_count=0
+
+    for version in "${versions[@]}"; do
+        (
+            for image in "${images[@]}"; do
+                echo "delete $image:$version"
+                ((total_count++))
+                if ! docker run --rm \
+                        apecloud/remove-dockerhub-tag \
+                        --user "$USER" \
+                        --password "$PASSWORD" \
+                        "$image:$version"; then
+                    echo "error: failed to delete $image:$version" >&2
+                    ((fail_count++))
+                fi
+            done
+        ) &
+    done
+    wait
+
+    if [[ $fail_count -gt 0 ]]; then
+        echo "$(tput -T xterm setaf 1)$fail_count/$total_count deletions failed$(tput -T xterm sgr0)"
+    else
+        echo "$(tput -T xterm setaf 2)all $total_count images deleted$(tput -T xterm sgr0)"
+    fi
+}
+
+delete_aliyun_images_generic() {
+    local registry_domain=${1:-""}
+    if [[ -z "$registry_domain" ]]; then
+        echo "error: registry domain is required" >&2
+        return 1
+    fi
+
+    local -a images=(
+        "kubeblocks"
+        "kubeblocks-tools"
+        "kubeblocks-datascript"
+        "kubeblocks-charts"
+        "kubeblocks-dataprotection"
+    )
+
+    local -a versions
+    IFS='|' read -r -a versions <<< "$TAG_NAME_TMP"
+
+    local fail_count=0
+    local total_count=0
+    local max_concurrent=10
+    local current_jobs=0
+
+    for version in "${versions[@]}"; do
+        (
+            for image in "${images[@]}"; do
+                echo "delete $registry_domain/apecloud/$image:$version"
+                ((total_count++))
+                if ! skopeo delete \
+                        --creds "$USER:$PASSWORD" \
+                        "docker://${registry_domain}/apecloud/${image}:${version}"; then
+                    echo "error: failed to delete ${image}:${version}" >&2
+                    ((fail_count++))
+                fi
+            done
+        ) &
+        ((current_jobs++))
+        if [[ $current_jobs -ge $max_concurrent ]]; then
+            wait -n
+            ((current_jobs--))
+        fi
+    done
+    wait
+
+    if [[ $fail_count -gt 0 ]]; then
+        echo "$(tput -T xterm setaf 1)$fail_count/$total_count deletions failed$(tput -T xterm sgr0)"
+    else
+        echo "$(tput -T xterm setaf 2)all $total_count images deleted$(tput -T xterm sgr0)"
+    fi
+}
+
+
 delete_aliyun_images() {
-    cmd_head="skopeo delete --creds \"$USER:$PASSWORD\" docker://apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud"
-    echo "delete kubeblocks image $TAG_NAME_TMP"
-    eval_cmd="${cmd_head}/kubeblocks:$TAG_NAME_TMP"
-    echo $(eval $eval_cmd)
-
-    echo "delete kubeblocks-tools image $TAG_NAME_TMP"
-    eval_cmd="${cmd_head}/kubeblocks-tools:$TAG_NAME_TMP"
-    echo $(eval $eval_cmd)
-
-    echo "delete kubeblocks-datascript image $TAG_NAME_TMP"
-    eval_cmd="${cmd_head}/kubeblocks-datascript:$TAG_NAME_TMP"
-    echo $(eval $eval_cmd)
-
-    echo "delete kubeblocks-charts image $TAG_NAME_TMP"
-    eval_cmd="${cmd_head}/kubeblocks-charts:$TAG_NAME_TMP"
-    echo $(eval $eval_cmd)
-
-    echo "delete kubeblocks-dataprotection image $TAG_NAME_TMP"
-    eval_cmd="${cmd_head}/kubeblocks-dataprotection:$TAG_NAME_TMP"
-    echo $(eval $eval_cmd)
+    delete_aliyun_images_generic "apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com"
 }
 
 delete_aliyun_images_new() {
-    cmd_head="skopeo delete --creds \"$USER:$PASSWORD\" docker://infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud"
-    echo "delete kubeblocks image $TAG_NAME_TMP"
+    delete_aliyun_images_generic "infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com"
+}
 
-    eval_cmd="${cmd_head}/kubeblocks:$TAG_NAME_TMP"
-    echo $(eval $eval_cmd)
+#!/bin/bash
 
-    echo "delete kubeblocks-tools image $TAG_NAME_TMP"
-    eval_cmd="${cmd_head}/kubeblocks-tools:$TAG_NAME_TMP"
-    echo $(eval $eval_cmd)
+# ==================== Version comparison functions ====================
+# Check if version $1 <= $2
+version_le() { [ "$1" = "$2" ] || [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ]; }
+# Check if version $1 >= $2
+version_ge() { [ "$1" = "$2" ] || [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$2" ]; }
+# Check if version $1 < $2
+version_lt() { [ "$1" != "$2" ] && [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ]; }
+# Check if version $1 > $2
+version_gt() { [ "$1" != "$2" ] && [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$2" ]; }
+# Check if $1 is within [$2, $3] (inclusive)
+version_in_range() { version_ge "$1" "$2" && version_le "$1" "$3"; }
 
-    echo "delete kubeblocks-datascript image $TAG_NAME_TMP"
-    eval_cmd="${cmd_head}/kubeblocks-datascript:$TAG_NAME_TMP"
-    echo $(eval $eval_cmd)
+# ==================== kubeblocks-installer suffix mapping ====================
+# Returns the middle suffix for kubeblocks-installer based on the version.
+# The final tag is constructed as: ${version}${suffix}-offline
+get_kubeblocks_installer_suffix() {
+    local ver="$1"
+    # v0.28.0-alpha.30 ~ v0.28.1-alpha.0
+    if version_in_range "$ver" "v0.28.0-alpha.30" "v0.28.1-alpha.0"; then
+        echo "-0.9.1-beta.18"
+    # v0.29.0-alpha.0 ~ v0.29.0-alpha.58
+    elif version_in_range "$ver" "v0.29.0-alpha.0" "v0.29.0-alpha.58"; then
+        echo "-0.9.1"
+    # v0.29.0-alpha.59 ~ v0.29.0-alpha.70
+    elif version_in_range "$ver" "v0.29.0-alpha.59" "v0.29.0-alpha.70"; then
+        echo "-0.9.2-beta.7"
+    # v0.29.0-alpha.71 ~ v0.29.0-alpha.73
+    elif version_in_range "$ver" "v0.29.0-alpha.71" "v0.29.0-alpha.73"; then
+        echo "-0.9.2-beta.13"
+    # v0.29.0-alpha.74 ~ v0.29.0-alpha.90
+    elif version_in_range "$ver" "v0.29.0-alpha.74" "v0.29.0-alpha.90"; then
+        echo "-0.9.2-beta.16"
+    # v0.29.0-alpha.91 ~ v0.29.0-alpha.130
+    elif version_in_range "$ver" "v0.29.0-alpha.91" "v0.29.0-alpha.130"; then
+        echo "-0.9.2-beta.20"
+    # v0.29.0-alpha.131 ~ v0.29.0-alpha.169
+    elif version_in_range "$ver" "v0.29.0-alpha.131" "v0.29.0-alpha.169"; then
+        echo "-0.9.2"
+    # v0.30.0-alpha.0 ~ v0.30.0-alpha.86
+    elif version_in_range "$ver" "v0.30.0-alpha.0" "v0.30.0-alpha.86"; then
+        echo "-0.9.2"
+    # v0.30.0-alpha.87 ~ v0.31.0-alpha.39
+    elif version_in_range "$ver" "v0.30.0-alpha.87" "v0.31.0-alpha.39"; then
+        echo "-0.9.3-beta.22"
+    # v0.31.0-alpha.40 ~ v0.31.0-alpha.43
+    elif version_in_range "$ver" "v0.31.0-alpha.40" "v0.31.0-alpha.43"; then
+        echo "-0.9.3-beta.24"
+    # v0.31.0-alpha.44 ~ v0.31.0-alpha.60
+    elif version_in_range "$ver" "v0.31.0-alpha.44" "v0.31.0-alpha.60"; then
+        echo "-0.9.3-beta.25"
+    # v0.31.0-alpha.61 ~ v0.31.0-alpha.76
+    elif version_in_range "$ver" "v0.31.0-alpha.61" "v0.31.0-alpha.76"; then
+        echo "-0.9.3"
+    # v0.31.0-alpha.77 ~ v0.31.0-alpha.80
+    elif version_in_range "$ver" "v0.31.0-alpha.77" "v0.31.0-alpha.80"; then
+        echo "-0.9.4-beta.1"
+    # v0.31.0-alpha.81 ~ v0.31.0-alpha.99
+    elif version_in_range "$ver" "v0.31.0-alpha.81" "v0.31.0-alpha.99"; then
+        echo "-0.9.4-beta.2"
+    # v0.31.0-alpha.100 ~ v0.31.0-alpha.102
+    elif version_in_range "$ver" "v0.31.0-alpha.100" "v0.31.0-alpha.102"; then
+        echo "-0.9.4-beta.3"
+    # v0.31.0-alpha.103 ~ v0.31.0-alpha.107
+    elif version_in_range "$ver" "v0.31.0-alpha.103" "v0.31.0-alpha.107"; then
+        echo "-0.9.4-beta.4"
+    # v0.31.0-alpha.108 ~ v0.31.0-alpha.112
+    elif version_in_range "$ver" "v0.31.0-alpha.108" "v0.31.0-alpha.112"; then
+        echo "-0.9.4-beta.5"
+    # v0.31.0-alpha.114
+    elif [ "$ver" = "v0.31.0-alpha.114" ]; then
+        echo "-0.9.4-beta.6"
+    # v0.31.0-alpha.115 ~ v0.31.0-alpha.127
+    elif version_in_range "$ver" "v0.31.0-alpha.115" "v0.31.0-alpha.127"; then
+        echo "-0.9.4-beta.7"
+    # v0.31.0-alpha.128 ~ v0.31.0-alpha.134
+    elif version_in_range "$ver" "v0.31.0-alpha.128" "v0.31.0-alpha.134"; then
+        echo "-0.9.4-beta.10"
+    # v0.31.0-alpha.135 ~ v0.31.0-alpha.146
+    elif version_in_range "$ver" "v0.31.0-alpha.135" "v0.31.0-alpha.146"; then
+        echo "-0.9.4-beta.11"
+    # v0.31.0-alpha.147 ~ v0.31.0-alpha.152
+    elif version_in_range "$ver" "v0.31.0-alpha.147" "v0.31.0-alpha.152"; then
+        echo "-0.9.4-beta.13"
+    # v1.1.0-alpha.0 ~ v1.1.0-alpha.14
+    elif version_in_range "$ver" "v1.1.0-alpha.0" "v1.1.0-alpha.14"; then
+        echo "-0.9.4-beta.14"
+    # v1.1.0-alpha.15
+    elif [ "$ver" = "v1.1.0-alpha.15" ]; then
+        echo "-0.9.4-beta.16"
+    # v1.1.0-alpha.16
+    elif [ "$ver" = "v1.1.0-alpha.16" ]; then
+        echo "-0.9.4-beta.17"
+    # v1.1.0-alpha.17 ~ v1.1.0-alpha.21
+    elif version_in_range "$ver" "v1.1.0-alpha.17" "v1.1.0-alpha.21"; then
+        echo "-0.9.4-beta.18"
+    # v1.1.0-alpha.22 ~ v1.1.0-alpha.39
+    elif version_in_range "$ver" "v1.1.0-alpha.22" "v1.1.0-alpha.39"; then
+        echo "-0.9.4-beta.19"
+    # v1.1.0-alpha.40 ~ v1.1.0-alpha.41
+    elif version_in_range "$ver" "v1.1.0-alpha.40" "v1.1.0-alpha.41"; then
+        echo "-0.9.4-beta.23"
+    # v1.1.0-alpha.42 ~ v1.1.0-alpha.47
+    elif version_in_range "$ver" "v1.1.0-alpha.42" "v1.1.0-alpha.47"; then
+        echo "-0.9.4-beta.26"
+    # v1.1.0-alpha.48 ~ v1.1.0-alpha.71
+    elif version_in_range "$ver" "v1.1.0-alpha.48" "v1.1.0-alpha.71"; then
+        echo "-0.9.4-beta.27"
+    # v1.2.0-alpha.0 ~ v1.2.0-alpha.12
+    elif version_in_range "$ver" "v1.2.0-alpha.0" "v1.2.0-alpha.12"; then
+        echo "-0.9.4-beta.27"
+    # v1.2.0-alpha.13 ~ v1.2.0-alpha.18
+    elif version_in_range "$ver" "v1.2.0-alpha.13" "v1.2.0-alpha.18"; then
+        echo "-0.9.4-beta.31"
+    # v1.2.0-alpha.19 ~ v1.2.0-alpha.62
+    elif version_in_range "$ver" "v1.2.0-alpha.19" "v1.2.0-alpha.62"; then
+        echo "-0.9.4-beta.32"
+    # v1.2.0-alpha.63 ~ v1.2.0-alpha.89
+    elif version_in_range "$ver" "v1.2.0-alpha.63" "v1.2.0-alpha.89"; then
+        echo "-0.9.5-beta.2"
+    # v1.2.0-alpha.90 ~ v1.2.0-alpha.94
+    elif version_in_range "$ver" "v1.2.0-alpha.90" "v1.2.0-alpha.94"; then
+        echo "-0.9.5-beta.4"
+    # v1.2.0-alpha.95 ~ v1.2.0-alpha.104
+    elif version_in_range "$ver" "v1.2.0-alpha.95" "v1.2.0-alpha.104"; then
+        echo "-0.9.5-beta.5"
+    # v1.2.0-alpha.105 ~ v1.2.0-alpha.118
+    elif version_in_range "$ver" "v1.2.0-alpha.105" "v1.2.0-alpha.118"; then
+        echo "-0.9.5-beta.6"
+    # v1.2.0-alpha.119 ~ v1.2.0-alpha.123
+    elif version_in_range "$ver" "v1.2.0-alpha.119" "v1.2.0-alpha.123"; then
+        echo "-0.9.5-beta.8"
+    # v1.2.0-alpha.124 and above (including v2.x series) - no extra suffix
+    elif version_ge "$ver" "v1.2.0-alpha.124"; then
+        echo ""
+    else
+        # Fallback: return empty suffix for unknown versions
+        echo ""
+    fi
+}
 
-    echo "delete kubeblocks-charts image $TAG_NAME_TMP"
-    eval_cmd="${cmd_head}/kubeblocks-charts:$TAG_NAME_TMP"
-    echo $(eval $eval_cmd)
+# ==================== Docker Hub deletion function ====================
+delete_docker_images_cloud() {
+    local -a images=(
+        "apecloud/openconsole"
+        "apecloud/apiserver"
+        "apecloud/task-manager"
+        "apecloud/cubetran-front"
+        "apecloud/cr4w"
+        "apecloud/relay"
+        "apecloud/sentry"
+        "apecloud/sentry-init"
+        "apecloud/apecloud-charts"
+        "apecloud/kb-cloud-installer"
+        "apecloud/kubeblocks-console"
+        "apecloud/kb-cloud-hook"
+        "apecloud/kb-cloud-docs"
+        "apecloud/kubeblocks-installer"
+    )
 
-    echo "delete kubeblocks-dataprotection image $TAG_NAME_TMP"
-    eval_cmd="${cmd_head}/kubeblocks-dataprotection:$TAG_NAME_TMP"
-    echo $(eval $eval_cmd)
+    local -a versions
+    IFS='|' read -r -a versions <<< "$TAG_NAME"
+
+    local fail_count=0
+    local total_count=0
+    local max_concurrent=5
+    local current_jobs=0
+
+    for version in "${versions[@]}"; do
+        (
+            for image in "${images[@]}"; do
+                local short_name="${image#apecloud/}"
+                local should_delete=false
+                local -a extra_tags=()
+
+                case "$short_name" in
+                    "kb-cloud-installer")
+                        if version_ge "$version" "v0.24.0-alpha.36"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "apecloud-charts")
+                        if version_in_range "$version" "v0.12.0-alpha.0" "v0.30.0-alpha.26"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "sentry"|"sentry-init")
+                        if version_in_range "$version" "v0.5.0-alpha.6" "v0.31.0-alpha.8"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "relay")
+                        if version_in_range "$version" "v0.6.0-alpha.4" "v0.31.0-alpha.66"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "cr4w")
+                        if version_ge "$version" "v0.21.0-alpha.6"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "cubetran-front")
+                        if version_in_range "$version" "v0.5.6-alpha.1" "v2.2.0-alpha.195"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "task-manager")
+                        if version_le "$version" "v0.31.0-alpha.8"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "apiserver")
+                        should_delete=true
+                        if version_in_range "$version" "v0.25.0-alpha.0" "v0.26.0-alpha.9"; then
+                            extra_tags+=("${version}-jni")
+                        fi
+                        ;;
+                    "openconsole")
+                        if version_le "$version" "v0.9.0-alpha.3"; then
+                            should_delete=false
+                            extra_tags+=("default-${version}" "managed-${version}" "anywhere-${version}")
+                        elif version_in_range "$version" "v0.31.0-alpha.23" "v2.3.0-alpha.1"; then
+                            should_delete=true
+                            extra_tags+=("${version}-admin" "${version}-console")
+                        elif version_le "$version" "v0.31.0-alpha.23"; then
+                            should_delete=true
+                        else
+                            should_delete=false
+                        fi
+                        ;;
+                    "kubeblocks-console")
+                        if version_ge "$version" "v2.2.0-alpha.76"; then
+                            should_delete=true
+                            if version_ge "$version" "v2.3.0-alpha.56"; then
+                                extra_tags+=("${version}-rds")
+                            fi
+                        fi
+                        ;;
+                    "kb-cloud-hook")
+                        if version_ge "$version" "v0.28.0-alpha.102"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "kb-cloud-docs")
+                        if version_ge "$version" "v1.1.0-alpha.9"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "kubeblocks-installer")
+                        # For Docker Hub, tags follow the same pattern as Alibaba Cloud.
+                        if version_ge "$version" "v0.28.0-alpha.30"; then
+                            suffix=$(get_kubeblocks_installer_suffix "$version")
+                            if [[ -n "$suffix" ]]; then
+                                full_tag="${version}${suffix}-offline"
+                            else
+                                full_tag="${version}-offline"
+                            fi
+                            echo "delete $image:$full_tag"
+                            ((total_count++))
+                            if ! docker run --rm \
+                                    apecloud/remove-dockerhub-tag \
+                                    --user "$USER" \
+                                    --password "$PASSWORD" \
+                                    "$image:$full_tag"; then
+                                echo "error: failed to delete $image:$full_tag" >&2
+                                ((fail_count++))
+                            fi
+                        fi
+                        # Do not attempt to delete the plain ${version} tag
+                        continue
+                        ;;
+                    *)
+                        should_delete=true
+                        ;;
+                esac
+
+                # Delete the primary tag if needed
+                if $should_delete; then
+                    echo "delete $image:$version"
+                    ((total_count++))
+                    if ! docker run --rm \
+                            apecloud/remove-dockerhub-tag \
+                            --user "$USER" \
+                            --password "$PASSWORD" \
+                            "$image:$version"; then
+                        echo "error: failed to delete $image:$version" >&2
+                        ((fail_count++))
+                    fi
+                fi
+
+                # Delete any extra tags
+                for extra_tag in "${extra_tags[@]}"; do
+                    echo "delete $image:$extra_tag"
+                    ((total_count++))
+                    if ! docker run --rm \
+                            apecloud/remove-dockerhub-tag \
+                            --user "$USER" \
+                            --password "$PASSWORD" \
+                            "$image:$extra_tag"; then
+                        echo "error: failed to delete $image:$extra_tag" >&2
+                        ((fail_count++))
+                    fi
+                done
+            done
+        ) &
+        ((current_jobs++))
+        if [[ $current_jobs -ge $max_concurrent ]]; then
+            wait -n
+            ((current_jobs--))
+        fi
+    done
+    wait
+
+    if [[ $fail_count -gt 0 ]]; then
+        echo "$(tput -T xterm setaf 1)$fail_count/$total_count deletions failed$(tput -T xterm sgr0)"
+    else
+        echo "$(tput -T xterm setaf 2)all $total_count images deleted$(tput -T xterm sgr0)"
+    fi
+}
+
+# ==================== Alibaba Cloud deletion function ====================
+delete_aliyun_images_generic_cloud() {
+    local registry_domain=${1:-""}
+    if [[ -z "$registry_domain" ]]; then
+        echo "error: registry domain is required" >&2
+        return 1
+    fi
+
+    local -a images=(
+        "apecloud/openconsole"
+        "apecloud/apiserver"
+        "apecloud/task-manager"
+        "apecloud/cubetran-front"
+        "apecloud/cr4w"
+        "apecloud/relay"
+        "apecloud/sentry"
+        "apecloud/sentry-init"
+        "apecloud/apecloud-charts"
+        "apecloud/kb-cloud-installer"
+        "apecloud/kubeblocks-console"
+        "apecloud/kb-cloud-hook"
+        "apecloud/kb-cloud-docs"
+        "apecloud/kubeblocks-installer"
+    )
+
+    local -a versions
+    IFS='|' read -r -a versions <<< "$TAG_NAME"
+
+    local fail_count=0
+    local total_count=0
+    local max_concurrent=10
+    local current_jobs=0
+
+    for version in "${versions[@]}"; do
+        # Alibaba Cloud registry only contains images from v0.15.0-alpha.10 onward
+        if version_lt "$version" "v0.15.0-alpha.10"; then
+            echo "skip version $version (Alibaba Cloud images do not exist below v0.15.0-alpha.10)" >&2
+            continue
+        fi
+
+        (
+            for image in "${images[@]}"; do
+                local short_name="${image#apecloud/}"
+                local should_delete=false
+                local -a extra_tags=()
+
+                case "$short_name" in
+                    "kb-cloud-installer")
+                        if version_ge "$version" "v0.24.0-alpha.36"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "apecloud-charts")
+                        if version_in_range "$version" "v0.12.0-alpha.0" "v0.30.0-alpha.26"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "sentry"|"sentry-init")
+                        if version_in_range "$version" "v0.5.0-alpha.6" "v0.31.0-alpha.8"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "relay")
+                        if version_in_range "$version" "v0.6.0-alpha.4" "v0.31.0-alpha.66"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "cr4w")
+                        if version_ge "$version" "v0.21.0-alpha.6"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "cubetran-front")
+                        if version_in_range "$version" "v0.5.6-alpha.1" "v2.2.0-alpha.195"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "task-manager")
+                        if version_le "$version" "v0.31.0-alpha.8"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "apiserver")
+                        should_delete=true
+                        if version_in_range "$version" "v0.25.0-alpha.0" "v0.26.0-alpha.9"; then
+                            extra_tags+=("${version}-jni")
+                        fi
+                        ;;
+                    "openconsole")
+                        if version_le "$version" "v0.9.0-alpha.3"; then
+                            should_delete=false
+                            extra_tags+=("default-${version}" "managed-${version}" "anywhere-${version}")
+                        elif version_in_range "$version" "v0.31.0-alpha.23" "v2.3.0-alpha.1"; then
+                            should_delete=true
+                            extra_tags+=("${version}-admin" "${version}-console")
+                        elif version_le "$version" "v0.31.0-alpha.23"; then
+                            should_delete=true
+                        else
+                            should_delete=false
+                        fi
+                        ;;
+                    "kubeblocks-console")
+                        if version_ge "$version" "v2.2.0-alpha.76"; then
+                            should_delete=true
+                            if version_ge "$version" "v2.3.0-alpha.56"; then
+                                extra_tags+=("${version}-rds")
+                            fi
+                        fi
+                        ;;
+                    "kb-cloud-hook")
+                        if version_ge "$version" "v0.28.0-alpha.102"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "kb-cloud-docs")
+                        if version_ge "$version" "v1.1.0-alpha.9"; then
+                            should_delete=true
+                        fi
+                        ;;
+                    "kubeblocks-installer")
+                        # Tags are of the form ${version}${suffix}-offline. Use suffix mapping.
+                        if version_ge "$version" "v0.28.0-alpha.30"; then
+                            suffix=$(get_kubeblocks_installer_suffix "$version")
+                            if [[ -n "$suffix" ]]; then
+                                full_tag="${version}${suffix}-offline"
+                            else
+                                full_tag="${version}-offline"
+                            fi
+                            full_image="${registry_domain}/${image}:${full_tag}"
+                            echo "delete $full_image"
+                            ((total_count++))
+                            if ! skopeo delete \
+                                    --creds "$USER:$PASSWORD" \
+                                    "docker://${full_image}"; then
+                                echo "error: failed to delete ${image}:${full_tag}" >&2
+                                ((fail_count++))
+                            fi
+                        fi
+                        # Skip primary tag deletion (does not exist)
+                        continue
+                        ;;
+                    *)
+                        should_delete=true
+                        ;;
+                esac
+
+                # Delete primary tag if needed
+                if $should_delete; then
+                    full_image="${registry_domain}/${image}:${version}"
+                    echo "delete $full_image"
+                    ((total_count++))
+                    if ! skopeo delete \
+                            --creds "$USER:$PASSWORD" \
+                            "docker://${full_image}"; then
+                        echo "error: failed to delete ${image}:${version}" >&2
+                        ((fail_count++))
+                    fi
+                fi
+
+                # Delete any extra tags
+                for extra_tag in "${extra_tags[@]}"; do
+                    extra_full_image="${registry_domain}/${image}:${extra_tag}"
+                    echo "delete $extra_full_image"
+                    ((total_count++))
+                    if ! skopeo delete \
+                            --creds "$USER:$PASSWORD" \
+                            "docker://${extra_full_image}"; then
+                        echo "error: failed to delete ${image}:${extra_tag}" >&2
+                        ((fail_count++))
+                    fi
+                done
+            done
+        ) &
+        ((current_jobs++))
+        if [[ $current_jobs -ge $max_concurrent ]]; then
+            wait -n
+            ((current_jobs--))
+        fi
+    done
+    wait
+
+    if [[ $fail_count -gt 0 ]]; then
+        echo "$(tput -T xterm setaf 1)$fail_count/$total_count deletions failed$(tput -T xterm sgr0)"
+    else
+        echo "$(tput -T xterm setaf 2)all $total_count images deleted$(tput -T xterm sgr0)"
+    fi
+}
+
+delete_aliyun_images_cloud() {
+    delete_aliyun_images_generic_cloud "apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com"
 }
 
 set_runs_jobs() {
@@ -659,6 +1214,20 @@ get_delete_release() {
 
         if [[ "$delete_flag" == "1" ]]; then
             set_delete_release
+        fi
+    done
+    echo "$DELETE_RELEASE"
+}
+
+get_cloud_delete_release() {
+    release_list=$( gh release list --repo $GITHUB_REPO --limit 1000 --json tagName,publishedAt \
+        | jq -r '.[] | select(.publishedAt < (now - 7*86400 | todateiso8601)) | .tagName' \
+        | (grep -E "alpha|beta" || true) | sort -uV )
+    for tag in $( echo "$release_list" ) ;do
+        if [[ -z "$DELETE_RELEASE" ]]; then
+            DELETE_RELEASE="$tag"
+        else
+            DELETE_RELEASE="$DELETE_RELEASE|$tag"
         fi
     done
     echo "$DELETE_RELEASE"
@@ -1531,6 +2100,10 @@ main() {
     parse_command_line "$@"
 
     local TAG_NAME_TMP=${TAG_NAME/v/}
+    if [[ "${TAG_NAME}" == *"|"* ]]; then
+        # Strip leading 'v' from all tag versions in the pipe-separated list
+        local TAG_NAME_TMP=$(echo "$TAG_NAME" | sed 's/^v//;s/|v/|/g')
+    fi
 
     case $TYPE in
         8|9|10|11)
@@ -1683,6 +2256,18 @@ main() {
         ;;
         47)
             get_playwright_test_result_total
+        ;;
+        48)
+            get_cloud_delete_release
+        ;;
+        49)
+            delete_release_chart
+        ;;
+        50)
+            delete_docker_images_cloud
+        ;;
+        51)
+            delete_aliyun_images_cloud
         ;;
     esac
 }
