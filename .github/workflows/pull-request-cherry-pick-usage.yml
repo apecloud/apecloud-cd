@@ -25,12 +25,35 @@ jobs:
           elif [[ "${{ github.repository }}" == "apecloud/apecloud-addons" ]]; then
               EXAMPLE_RELEASE_BRANCH="release-1.0"
           fi
+          if [[ "${{ github.repository }}" == "apecloud/kubeblocks" ]]; then
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+                  --type 15 \
+                  --github-repo "${{ github.repository }}" \
+                  --issue-number "${{ github.event.pull_request.number }}" \
+                  --issue-comment "**Auto Cherry-pick Instructions**
+          \`\`\`
+          Usage:
+            - /nopick: Not auto cherry-pick when PR merged.
+            - /pick: release-x.x [release-x.x]: Auto cherry-pick to the specified branch when PR merged.
           
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
-              --type 15 \
-              --github-repo "${{ github.repository }}" \
-              --issue-number "${{ github.event.pull_request.number }}" \
-              --issue-comment "**Auto Cherry-pick Instructions**
+          Example:
+            - /nopick
+            - /pick ${EXAMPLE_RELEASE_BRANCH}
+          \`\`\`
+              
+          ****CLA Recheck Instructions****
+          \`\`\`
+          Usage:
+            - /recheck-cla: Trigger a re-check of CLA status for this pull request.
+          Example:
+            - /recheck-cla
+          \`\`\`"
+          else
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+                  --type 15 \
+                  --github-repo "${{ github.repository }}" \
+                  --issue-number "${{ github.event.pull_request.number }}" \
+                  --issue-comment "**Auto Cherry-pick Instructions**
           \`\`\`
           Usage:
             - /nopick: Not auto cherry-pick when PR merged.
@@ -40,3 +63,4 @@ jobs:
             - /nopick
             - /pick ${EXAMPLE_RELEASE_BRANCH}
           \`\`\`"
+          fi
