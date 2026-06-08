@@ -36,6 +36,14 @@ on:
         options:
           - '0.30'
           - '2.1'
+      TEST_TYPE:
+        description: "Test type (smoke=pytest, click=click_tests)"
+        type: choice
+        required: true
+        default: 'smoke'
+        options:
+          - smoke
+          - click
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
@@ -58,6 +66,11 @@ on:
         type: string
         required: false
         default: '0.30'
+      TEST_TYPE:
+        description: "Test type (smoke=pytest, click=click_tests)"
+        type: string
+        required: false
+        default: 'smoke'
       APECD_REF:
         description: "The branch name of apecloud-cd"
         type: string
@@ -282,8 +295,9 @@ jobs:
           CLOUD_VERSION="${{ needs.get-test-engine.outputs.cloud-version }}"  
 
           # run cloud e2e web test
+          TEST_TYPE="${{ inputs.TEST_TYPE || 'smoke' }}"
           bash test/cloud/test_cloud_e2e_web.sh \
-              --test-type smoke \
+              --test-type "${TEST_TYPE}" \
               --pod-index "${TEST_JOB_INDEX}" \
               --cloud-version "${CLOUD_VERSION}" | tee -a ${run_file_log}
           
