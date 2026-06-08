@@ -61,12 +61,8 @@ jobs:
           echo "SCHEDULE_CRON:${SCHEDULE_CRON}"
           DAY_OF_WEEK="${SCHEDULE_CRON##* }"
           echo "DAY_OF_WEEK:${DAY_OF_WEEK}"
-          if [[ "${SCHEDULE_CRON}" == "0 21 * * 6" || "${DAY_OF_WEEK}" == "6" ]]; then
-              DAY_OF_WEEK=""
-          else
-              DAY_OF_WEEK=$(( DAY_OF_WEEK + 1 ))
-          fi
-          echo "DAY_OF_WEEK2:${DAY_OF_WEEK}"
+          DAY_OF_WEEK=$(( DAY_OF_WEEK + 1 ))
+          echo "DAY_OF_WEEK:${DAY_OF_WEEK}"
           echo day-of-week="${DAY_OF_WEEK}" >> $GITHUB_OUTPUT
 
 #  e2e-engine-test-10:
