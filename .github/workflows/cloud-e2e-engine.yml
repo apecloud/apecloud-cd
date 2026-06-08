@@ -137,7 +137,7 @@ jobs:
               fi
               if [[ $(( engine_index % ${KB_CLOUD_TEST_ENGINES_PRE} )) == 0 ]]; then
                   test_job_index=$(( test_job_index + 1 ))
-                  if [[ -n "${TEST_INDEX}" && "${TEST_INDEX}" != "7" && "${TEST_INDEX}" != "${test_job_index}" ]]; then
+                  if [[ -n "${TEST_INDEX}" && "${TEST_INDEX}" != "${test_job_index}" ]]; then
                       echo "TEST_INDEX:${TEST_INDEX} not equal to test job index:${test_job_index}, Skip test."
                       test_engines_tmp=""
                       continue
@@ -156,7 +156,7 @@ jobs:
           done
           if [[ -n "${test_engines_tmp}" ]]; then
               test_job_index=$(( test_job_index + 1 ))
-              if [[ -n "${TEST_INDEX}" && "${TEST_INDEX}" != "7" && "${TEST_INDEX}" != "${test_job_index}" ]]; then
+              if [[ -n "${TEST_INDEX}" && "${TEST_INDEX}" != "${test_job_index}" ]]; then
                   echo "TEST_INDEX:${TEST_INDEX} not equal to test job index:${test_job_index}, Skip test."
               else
                   test_job_index_tmp=$(printf "%02d" $test_job_index)
