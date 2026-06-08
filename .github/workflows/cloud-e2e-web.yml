@@ -26,6 +26,7 @@ on:
         required: true
         default: 'idc1'
         options:
+          - idc
           - idc1
           - idc4
       CLOUD_VERSION:
@@ -36,6 +37,7 @@ on:
         options:
           - '0.30'
           - '2.1'
+          - '2.2'
       TEST_TYPE:
         description: "Test type (smoke=pytest, click=click_tests)"
         type: choice
