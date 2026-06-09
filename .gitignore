@@ -70,6 +70,7 @@ AGENTS.md
 # claude code
 CLAUDE.md
 .claude/
+kubeblocks-e2e-maintainer
 
 # bak
 .github/bak
