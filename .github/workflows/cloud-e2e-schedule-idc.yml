@@ -3,13 +3,13 @@ name: Cloud E2E Schedule Idc
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 21 * * 0' # Runs at 5:00 UTC on Mon
-    - cron: '0 21 * * 1' # Runs at 5:00 UTC on Tue
-    - cron: '0 21 * * 2' # Runs at 5:00 UTC on Wed
-    - cron: '0 21 * * 3' # Runs at 5:00 UTC on Thu
-    - cron: '0 21 * * 4' # Runs at 5:00 UTC on Fri
-    - cron: '0 21 * * 5' # Runs at 5:00 UTC on Sat
-    - cron: '0 21 * * 6' # Runs at 5:00 UTC on Sun
+    - cron: '0 20 * * 0' # Runs at 4:00 UTC on Mon
+    - cron: '0 20 * * 1' # Runs at 4:00 UTC on Tue
+    - cron: '0 20 * * 2' # Runs at 4:00 UTC on Wed
+    - cron: '0 20 * * 3' # Runs at 4:00 UTC on Thu
+    - cron: '0 20 * * 4' # Runs at 4:00 UTC on Fri
+    - cron: '0 20 * * 5' # Runs at 4:00 UTC on Sat
+    - cron: '0 20 * * 6' # Runs at 4:00 UTC on Sun
 
 jobs:
   release-e2e-image:
