@@ -312,7 +312,7 @@ jobs:
               kubectl get pods -n kb-system
               KUBEBLOCKS_SAS=$(kubectl get serviceaccounts -n kb-system | (grep "kubeblocks" || true) | awk '{print $1}')
               if [[ -n "${KUBEBLOCKS_SAS}" && ${patch_sa_flag} -eq 0 ]]; then
-                  for kb_sa in ${KUBEBLOCKS_SAS}; do
+                  for kb_sa in $(echo "${KUBEBLOCKS_SAS}"); do
                       echo "patch serviceaccount ${kb_sa}..."
                       for i in {1..5}; do
                           kubectl patch -p '{"imagePullSecrets":[{"name":"kb-addon-test-registry-key"}]}' \
