@@ -53,11 +53,6 @@ on:
         type: boolean
         required: false
         default: false
-      UPGRADE_ADDON_EXTRA_ENV:
-        description: "The cloud env name of upgrade addon extra "
-        type: string
-        required: false
-        default: ''
   workflow_call:
     inputs:
       CLOUD_ENV_NAME:
@@ -110,11 +105,6 @@ on:
         type: boolean
         required: false
         default: false
-      UPGRADE_ADDON_EXTRA_ENV:
-        description: "The cloud env name of upgrade addon extra "
-        type: string
-        required: false
-        default: ''
 
 
 env:
@@ -135,6 +125,7 @@ env:
   JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
   JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
   CHART_PROJECT_ID: ${{ secrets.GITLAB_PROJECT_ID }}
+  CLOUD_DEPLOY_BOT_WEBHOOK: ${{ vars.CLOUD_DEPLOY_BOT_WEBHOOK }}
 
 
 jobs:
@@ -271,6 +262,8 @@ jobs:
       TYPE: "2"
       CONTENT: "deploy ${{ needs.deploy-cloud.outputs.cloud-env-name }} release ${{ needs.deploy-cloud.outputs.tag-name }} ${{ needs.deploy-cloud.outputs.content-result }}"
       WAIT_TIME: 60
+      BOT_TYPE: "specify"
+      BOT_WEBHOOK: "${{ env.CLOUD_DEPLOY_BOT_WEBHOOK }}"
       APECD_REF: ${{ inputs.APECD_REF }}
     secrets: inherit
 
