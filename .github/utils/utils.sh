@@ -1055,11 +1055,18 @@ get_ginkgo_test_result() {
 
 get_playwright_test_result() {
     local FINAL_RESULT="$TEST_RESULT"
-    local jobs_url
+
+    # 检测新旧格式
+    local IS_NEW_FMT=false
+    if [[ "$FINAL_RESULT" == *"@@@"* ]]; then
+        IS_NEW_FMT=true
+    fi
 
     for i in {1..2}; do
-        jobs_url_api="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=$i"
+        local jobs_url_api="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=$i"
+        local jobs_list
         jobs_list=$( gh_curl -s "$jobs_url_api" )
+        local total_count
         total_count=$( echo "$jobs_list" | jq '.total_count' )
         if [[ "$total_count" == "null" || $(is_number "$total_count") == "false" ]]; then
             echo "total_count:${total_count}"
@@ -1071,29 +1078,38 @@ get_playwright_test_result() {
                 break
             fi
 
-            local jobs_name
+            local jobs_name jobs_url
             jobs_name=$( echo "$jobs_list" | jq ".jobs[$j].name" --raw-output )
             jobs_url=$( echo "$jobs_list" | jq ".jobs[$j].html_url" --raw-output )
 
-            local job_keys=("$jobs_name")
-            if [[ ${#jobs_name} -gt 3 ]]; then
-                job_keys+=("${jobs_name:1}")
-            fi
-
-            local key_found=false
-
-            for search_key in "${job_keys[@]}"; do
-
-                local search_pattern="###${search_key}###"
-                local replacement_pattern="###${search_key}###${jobs_url}###"
-
-                if [[ "$FINAL_RESULT" == *"$search_pattern"* ]]; then
-                    FINAL_RESULT=$(echo "$FINAL_RESULT" | sed "s|${search_pattern}|${replacement_pattern}|g")
-                    key_found=true
+            if $IS_NEW_FMT; then
+                # 新格式: ###ENG###RATE@@@DATA@@@FAIL_OPS → ###ENG###RATE###JOB_URL@@@DATA@@@FAIL_OPS
+                local eng
+                eng="${FINAL_RESULT#\#\#\#}"
+                eng="${eng%%\#\#\#*}"
+                if [[ "$jobs_name" == *"$eng"* ]]; then
+                    local head_part tail_part
+                    head_part="${FINAL_RESULT%%@@@*}"
+                    tail_part="${FINAL_RESULT#*@@@}"
+                    head_part="${head_part%###*}"
+                    FINAL_RESULT="${head_part}###${jobs_url}###${tail_part}"
                     break
                 fi
-            done
-
+            else
+                # 旧格式不变
+                local job_keys=("$jobs_name")
+                if [[ ${#jobs_name} -gt 3 ]]; then
+                    job_keys+=("${jobs_name:1}")
+                fi
+                for search_key in "${job_keys[@]}"; do
+                    local search_pattern="###${search_key}###"
+                    local replacement_pattern="###${search_key}###${jobs_url}###"
+                    if [[ "$FINAL_RESULT" == *"$search_pattern"* ]]; then
+                        FINAL_RESULT=$(echo "$FINAL_RESULT" | sed "s|${search_pattern}|${replacement_pattern}|g")
+                        break
+                    fi
+                done
+            fi
         done
     done
 
