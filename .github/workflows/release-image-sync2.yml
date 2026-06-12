@@ -255,6 +255,7 @@ jobs:
             cmd=$cmd"IMAGE_NAME=${{ inputs.IMAGE_NAME }} "
           fi
           
+          echo "$cmd"
           eval "$cmd"
 
   sync-to-aliyun:

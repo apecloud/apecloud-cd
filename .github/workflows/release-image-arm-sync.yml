@@ -175,6 +175,7 @@ jobs:
             cmd=$cmd"IMG=${{ env.DOCKER_REGISTRY_URL }}/${{ inputs.IMG }} "
           fi
           
+          echo "$cmd"
           eval "$cmd"
 
       - name: get runner name
