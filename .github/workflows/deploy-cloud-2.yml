@@ -1,4 +1,4 @@
-name: Deploy Cloud
+name: Deploy Cloud Extra
 
 on:
   workflow_dispatch:
