@@ -109,6 +109,7 @@ env:
 
 jobs:
   deploy-cloud:
+    if: ${{ startsWith(inputs.VERSION, 'v2.2') }}
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -236,7 +237,7 @@ jobs:
     secrets: inherit
 
   upgrade-addon:
-    if: ${{ inputs.UPGRADE_ADDON }}
+    if: ${{ inputs.UPGRADE_ADDON && startsWith(inputs.VERSION, 'v2.2') }}
     permissions:
       contents: 'read'
       id-token: 'write'

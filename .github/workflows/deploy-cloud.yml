@@ -215,6 +215,7 @@ jobs:
 
   trigger-deploy-cloud:
     needs: [ deploy-cloud ]
+    if: ${{ startsWith(inputs.VERSION, 'v2.2') }}
     uses: ./.github/workflows/trigger-workflow.yml
     with:
       GITHUB_REPO: "apecloud/apecloud-cd"
