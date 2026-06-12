@@ -221,7 +221,7 @@ jobs:
       BRANCH_NAME: "${{ inputs.APECD_REF }}"
       WORKFLOW_ID: "deploy-cloud-2.yml"
       APECD_REF: "${{ inputs.APECD_REF }}"
-      EXTRA_ARGS: "MAKE_OPS=deploy#VERSION=${{ inputs.VERSION }}#GO_VERSION=1.25#GIT_CONFIG=true#CLOUD_ENV_NAME=vke#UPGRADE_ADDON=true"
+      EXTRA_ARGS: "MAKE_OPS=deploy#VERSION=${{ inputs.VERSION }}#CLOUD_ENV_NAME=vke#UPGRADE_ADDON=true"
     secrets: inherit
 
   upgrade-addon:
