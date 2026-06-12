@@ -1687,78 +1687,101 @@ def send_kbcli_message(url_v, result_v, title_v):
     print(res.text)
 
 def send_playwright_message(url_v, result_v, title_v):
-    import json
-    import requests
-
     json_results = []
-
     header_ret = {
         "tag": "column_set", "flex_mode": "none", "background_style": "grey",
         "columns": [
-            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Test Type**", "text_align": "center"}]},
+            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Engine**", "text_align": "center"}]},
             {"tag": "column", "width": "weighted", "weight": 2, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Test Spec**", "text_align": "center"}]},
-            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Test Result**", "text_align": "center"}]},
+            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Pass Rate**", "text_align": "center"}]},
+            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Fail Ops**", "text_align": "center"}]},
         ]
     }
     json_results.append(header_ret)
 
     if result_v:
-        stripped_result = result_v.lstrip("###")
+        stripped = result_v.lstrip("###")
+        is_new = "@@@" in stripped
 
-        parts_list = stripped_result.split("###")
+        if is_new:
+            blocks = stripped.split("###")
+            for i in range(0, len(blocks), 3):
+                if i + 2 >= len(blocks):
+                    break
+                engine_type = blocks[i]
+                pass_rate = blocks[i + 1]
+                url_data = blocks[i + 2]
+                job_url, rest = url_data.split("@@@", 1) if "@@@" in url_data else (url_data, "")
+                parts = rest.split("@@@")
+                specs_block = parts[0] if len(parts) > 0 else ""
+                fail_ops_all = parts[1] if len(parts) > 1 else ""
 
-        if len(parts_list) % 3 == 0:
+                if len(json_results) > 1:
+                    json_results.append({"tag": "markdown", "content": "---"})
 
-            engine_blocks = zip(parts_list[0::3], parts_list[1::3], parts_list[2::3])
+                is_first = True
+                for pair in specs_block.split("##"):
+                    if not pair:
+                        continue
+                    ret = pair.split("|")
+                    if len(ret) < 6:
+                        continue
+                    _, spec, succ, fail, skip, _ = ret[:6]
+                    fail_n = int(fail)
+                    c = "red" if fail_n > 0 else "green"
 
-            for engine_type, ret_url, specs_block in engine_blocks:
+                    if is_first:
+                        ec = f"<a href='{job_url}'>{engine_type}</a>"
+                        rc = f"<font color='{c}'>{pass_rate}</font>"
+                        fc = f"<font color='red'>{fail_ops_all}</font>" if fail_n > 0 and fail_ops_all else ""
+                        is_first = False
+                    else:
+                        ec = rc = fc = ""
 
-                if len(json_results) > 1 and json_results[-1].get("tag") != "markdown":
+                    sc = f"<font color='{c}'>{spec}</font>"
+
                     json_results.append({
-                        "tag": "markdown",
-                        "content": "---",
-                        "extra_config": {"padding": {"top": 8, "bottom": 8}}
+                        "tag": "column_set", "flex_mode": "none",
+                        "columns": [
+                            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": ec, "text_align": "center"}]},
+                            {"tag": "column", "width": "weighted", "weight": 2, "vertical_align": "top", "elements": [{"tag": "markdown", "content": sc, "text_align": "center"}]},
+                            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": rc, "text_align": "center"}]},
+                            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": fc, "text_align": "center"}]},
+                        ]
                     })
-
-                is_first_row = True
-                test_pairs = specs_block.split("##")
-
-                for pair in test_pairs:
-                    if pair:
+        else:
+            parts_list = stripped.split("###")
+            if len(parts_list) % 3 == 0:
+                engine_blocks = zip(parts_list[0::3], parts_list[1::3], parts_list[2::3])
+                for engine_type, job_url, specs_block in engine_blocks:
+                    if len(json_results) > 1:
+                        json_results.append({"tag": "markdown", "content": "---"})
+                    is_first = True
+                    for pair in specs_block.split("##"):
+                        if not pair:
+                            continue
                         ret = pair.split("|", 1)
                         if len(ret) != 2:
                             continue
-
-                        test_spec = ret[0]
-                        test_ret = ret[1]
-
-                        color = 'red' if "ERROR" in test_ret or "FAILED" in test_ret else 'green'
-
-                        if is_first_row:
-                            type_content = f"<a href='{ret_url}'>{engine_type}</a>"
-                            is_first_row = False
+                        spec, test_ret = ret[0], ret[1]
+                        c = 'red' if "ERROR" in test_ret or "FAILED" in test_ret else 'green'
+                        if is_first:
+                            ec = f"<a href='{job_url}'>{engine_type}</a>"
+                            is_first = False
                         else:
-                            type_content = ""
-
-                        test_type_element = {"tag": "markdown", "content": type_content, "text_align": "center"}
-                        test_spec_element = {"tag": "markdown", "content": f"<font color='{color}'>{test_spec}</font>", "text_align": "center"}
-                        test_ret_element = {"tag": "markdown", "content": f"<font color='{color}'>{test_ret}</font>", "text_align": "center"}
-
-                        json_ret = {
+                            ec = ""
+                        json_results.append({
                             "tag": "column_set", "flex_mode": "none",
                             "columns": [
-                                {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [test_type_element]},
-                                {"tag": "column", "width": "weighted", "weight": 2, "vertical_align": "top", "elements": [test_spec_element]},
-                                {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [test_ret_element]},
+                                {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": ec, "text_align": "center"}]},
+                                {"tag": "column", "width": "weighted", "weight": 2, "vertical_align": "top", "elements": [{"tag": "markdown", "content": f"<font color='{c}'>{spec}</font>", "text_align": "center"}]},
+                                {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "", "text_align": "center"}]},
+                                {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": f"<font color='{c}'>{test_ret}</font>", "text_align": "center"}]},
                             ]
-                        }
-                        json_results.append(json_ret)
+                        })
 
     card = json.dumps({
-        "header": {
-            "template": "blue",
-            "title": {"tag": "plain_text", "content": title_v}
-        },
+        "header": {"template": "blue", "title": {"tag": "plain_text", "content": title_v}},
         "elements": json_results
     }, indent=2)
     body = json.dumps({"msg_type": "interactive", "card": card})
