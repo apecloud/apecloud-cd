@@ -248,6 +248,7 @@ jobs:
             cmd=$cmd"IMAGE_NAME=${{ inputs.IMAGE_NAME }} "
           fi
           
+          echo "$cmd"
           eval "$cmd"
 
       - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
@@ -294,6 +295,7 @@ jobs:
             cmd=$cmd"IMAGE_NAME=${{ inputs.IMAGE_NAME }} "
           fi
           
+          echo "$cmd"
           eval "$cmd"
 
       - if: ${{ env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
@@ -340,4 +342,5 @@ jobs:
             cmd=$cmd"IMAGE_NAME=${{ inputs.IMAGE_NAME }} "
           fi
           
+          echo "$cmd"
           eval "$cmd"

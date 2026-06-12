@@ -183,4 +183,5 @@ jobs:
               cmd=$cmd"--extra-args \"${{ inputs.EXTRA_ARGS }}\" "
           fi
 
+          echo "$cmd"
           eval "$cmd"

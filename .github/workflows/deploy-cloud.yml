@@ -186,6 +186,7 @@ jobs:
             cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.tag_name }} "
           fi
 
+          echo "$cmd"
           eval "$cmd"
           deploy_ret=$?
           if [[ $deploy_ret -eq 0 ]]; then
