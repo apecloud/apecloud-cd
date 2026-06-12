@@ -125,7 +125,6 @@ env:
   JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
   JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
   CHART_PROJECT_ID: ${{ secrets.GITLAB_PROJECT_ID }}
-  CLOUD_DEPLOY_BOT_WEBHOOK: ${{ vars.CLOUD_DEPLOY_BOT_WEBHOOK }}
 
 
 jobs:
@@ -263,7 +262,7 @@ jobs:
       CONTENT: "deploy ${{ needs.deploy-cloud.outputs.cloud-env-name }} release ${{ needs.deploy-cloud.outputs.tag-name }} ${{ needs.deploy-cloud.outputs.content-result }}"
       WAIT_TIME: 60
       BOT_TYPE: "specify"
-      BOT_WEBHOOK: "${{ env.CLOUD_DEPLOY_BOT_WEBHOOK }}"
+      BOT_WEBHOOK: "${{ vars.CLOUD_DEPLOY_BOT_WEBHOOK }}"
       APECD_REF: ${{ inputs.APECD_REF }}
     secrets: inherit
 
