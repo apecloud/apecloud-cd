@@ -1032,13 +1032,35 @@ set_ginkgo_runs_jobs() {
     done
 }
 
+set_ginkgo_runs_jobs_fallback() {
+    local fallback_url="https://github.com/$GITHUB_REPO/actions/runs/$RUN_ID"
+    local test_result="$TEST_RESULT"
+    local ginkgo_test=0
+
+    if [[ "$test_result" == *"SUCCESS!"*"--"* || "$test_result" == *"FAIL!"*"--"* ]]; then
+        test_result="$(echo "${test_result}" | sed 's/ /#/g')"
+        ginkgo_test=1
+    fi
+
+    for test_ret in `echo "$test_result" | sed 's/##/ /g'`; do
+        if [[ -z "$test_ret" ]]; then
+            continue
+        fi
+        if [[ $ginkgo_test -eq 1 ]]; then
+            test_ret="$(echo "${test_ret}" | sed 's/#/ /g')"
+        fi
+        TEST_RET=$TEST_RET"##$test_ret|$fallback_url"
+    done
+}
+
 get_ginkgo_test_result() {
+    local jobs_api_failed=false
     for i in {1..2}; do
         jobs_url="$GITHUB_API/repos/$GITHUB_REPO/actions/runs/$RUN_ID/jobs?per_page=200&page=$i"
         jobs_list=$( gh_curl -s $jobs_url )
         total_count=$( echo "$jobs_list" | jq '.total_count' )
         if [[ "$total_count" == "null" || $(is_number "$total_count") == "false" ]]; then
-            echo "total_count:${total_count}"
+            jobs_api_failed=true
             break
         fi
         for i in $(seq 0 $total_count); do
@@ -1050,6 +1072,10 @@ get_ginkgo_test_result() {
             set_ginkgo_runs_jobs "$jobs_name" "$jobs_url"
         done
     done
+    if [[ "$jobs_api_failed" == "true" || -z "$TEST_RET" ]]; then
+        TEST_RET=""
+        set_ginkgo_runs_jobs_fallback
+    fi
     echo "$TEST_RET"
 }
 
