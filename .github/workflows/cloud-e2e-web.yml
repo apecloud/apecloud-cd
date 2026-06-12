@@ -83,7 +83,6 @@ run-name: Cloud E2E Web Test on:${{ inputs.CLOUD_VERSION }} ${{ inputs.TEST_ENGI
 
 env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
-  ACK_KUBECONFIG_DEMO: ${{ secrets.ACK_KUBECONFIG_DEMO }}
   IDC_KUBECONFIG: ${{ secrets.IDC_KUBECONFIG }}
   IDC_KUBECONFIG_1: ${{ secrets.IDC_KUBECONFIG_1 }}
   IDC_KUBECONFIG_2: ${{ secrets.IDC_KUBECONFIG_2 }}
@@ -250,10 +249,6 @@ jobs:
               dev)
                   echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
                   E2E_ENV_VARS="${{ vars.E2E_WEB_ENV_VARS_DEV }}"
-              ;;
-              demo)
-                  echo '${{ env.ACK_KUBECONFIG_DEMO }}' > $HOME/.kube/config
-                  E2E_ENV_VARS="${{ vars.E2E_WEB_ENV_VARS_DEMO }}"
               ;;
               idc)
                   echo '${{ env.IDC_KUBECONFIG }}' > $HOME/.kube/config
