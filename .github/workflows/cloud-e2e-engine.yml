@@ -90,13 +90,10 @@ run-name: Cloud E2E Engine Test on Env:${{ inputs.CLOUD_ENV_NAME }}:${{ inputs.C
 
 env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
-  ACK_KUBECONFIG_DEMO: ${{ secrets.ACK_KUBECONFIG_DEMO }}
   IDC_KUBECONFIG: ${{ secrets.IDC_KUBECONFIG }}
   IDC_KUBECONFIG_1: ${{ secrets.IDC_KUBECONFIG_1 }}
   IDC_KUBECONFIG_2: ${{ secrets.IDC_KUBECONFIG_2 }}
   IDC_KUBECONFIG_4: ${{ secrets.IDC_KUBECONFIG_4 }}
-  ACK_KUBECONFIG_PROD: ${{ secrets.ACK_KUBECONFIG_PROD }}
-  ACK_KUBECONFIG_INTL_PROD: ${{ secrets.ACK_KUBECONFIG_INTL_PROD }}
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
 
@@ -279,10 +276,6 @@ jobs:
                   echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
                   E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_DEV }}"
               ;;
-              demo)
-                  echo '${{ env.ACK_KUBECONFIG_DEMO }}' > $HOME/.kube/config
-                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_DEMO }}"
-              ;;
               idc)
                   echo '${{ env.IDC_KUBECONFIG }}' > $HOME/.kube/config
                   E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC }}"
@@ -298,14 +291,6 @@ jobs:
               idc4)
                   echo '${{ env.IDC_KUBECONFIG_4 }}' > $HOME/.kube/config
                   E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC4 }}"
-              ;;
-              prod)
-                  echo '${{ env.ACK_KUBECONFIG_PROD }}' > $HOME/.kube/config
-                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_PROD }}"
-              ;;
-              intl_prod)
-                  echo '${{ env.ACK_KUBECONFIG_INTL_PROD }}' > $HOME/.kube/config
-                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_INTL_PROD }}"
               ;;
           esac
           echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV

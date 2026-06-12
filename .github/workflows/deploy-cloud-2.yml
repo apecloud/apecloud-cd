@@ -1,6 +1,63 @@
 name: Deploy Cloud
 
 on:
+  workflow_dispatch:
+    inputs:
+      CLOUD_ENV_NAME:
+        description: "The cloud env name of deploy "
+        type: string
+        required: false
+        default: ''
+      MAKE_OPS:
+        description: "The ops name of makefile"
+        type: string
+        required: false
+        default: ''
+      MAKE_OPS_PRE:
+        description: "The pre ops name of makefile"
+        type: string
+        required: false
+        default: ''
+      VERSION:
+        description: "The tag name of image"
+        type: string
+        required: false
+        default: ''
+      GO_VERSION:
+        description: "Install the specify version of GO"
+        type: string
+        required: false
+        default: ''
+      GIT_CONFIG:
+        description: "InsteadOf git config global url (default: false)"
+        type: boolean
+        required: false
+        default: false
+      KUBECTL_VERSION:
+        description: "Install the specify version of kubectl (default: latest)"
+        type: string
+        required: false
+        default: 'v1.28.3'
+      REMOVE_PREFIX:
+        description: "Enable remove prefix v  (default: true)"
+        type: boolean
+        required: false
+        default: true
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+      UPGRADE_ADDON:
+        description: "Upgrade addon  (default: false)"
+        type: boolean
+        required: false
+        default: false
+      UPGRADE_ADDON_EXTRA_ENV:
+        description: "The cloud env name of upgrade addon extra "
+        type: string
+        required: false
+        default: ''
   workflow_call:
     inputs:
       CLOUD_ENV_NAME:
@@ -92,15 +149,19 @@ jobs:
       cloud-env-name: ${{ steps.cloud_env.outputs.cloud_env_name }}
       content-result: ${{ steps.deploy_result.outputs.content_result }}
     steps:
-      - name: Checkout Code
+      - name: Checkout apecloud Code
         uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud
+          ref: ${{ inputs.VERSION }}
+          token: ${{ env.GITHUB_TOKEN }}
 
       - name: Checkout apecloud-values Code
         uses: actions/checkout@v4
         with:
           repository: apecloud/apecloud-values
           path: apecloud-values
-          ref: ${{ github.ref }}
+          ref: ${{ inputs.VERSION }}
           token: ${{ env.GITHUB_TOKEN }}
 
       - name: Setup Go specify version
@@ -213,28 +274,20 @@ jobs:
       APECD_REF: ${{ inputs.APECD_REF }}
     secrets: inherit
 
-  trigger-deploy-cloud:
-    needs: [ deploy-cloud ]
-    uses: ./.github/workflows/trigger-workflow.yml
-    with:
-      GITHUB_REPO: "apecloud/apecloud-cd"
-      BRANCH_NAME: "${{ inputs.APECD_REF }}"
-      WORKFLOW_ID: "deploy-cloud-2.yml"
-      APECD_REF: "${{ inputs.APECD_REF }}"
-      EXTRA_ARGS: "MAKE_OPS=deploy#VERSION=${{ inputs.VERSION }}#GO_VERSION=1.25#GIT_CONFIG=true#CLOUD_ENV_NAME=vke#UPGRADE_ADDON=true"
-    secrets: inherit
-
   upgrade-addon:
-    if: ${{ inputs.UPGRADE_ADDON && startsWith(inputs.CLOUD_ENV_NAME, 'idc') }}
+    if: ${{ inputs.UPGRADE_ADDON }}
     permissions:
       contents: 'read'
       id-token: 'write'
-    needs: [ deploy-cloud ]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Checkout Code
+      - name: Checkout apecloud Code
         uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud
+          ref: ${{ inputs.VERSION }}
+          token: ${{ env.GITHUB_TOKEN }}
 
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -257,70 +310,6 @@ jobs:
           mkdir -p $HOME/.kube
           touch $HOME/.kube/config
           CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
-          case "$CLOUD_ENV_NAME" in
-              dev)
-                  echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
-              ;;
-              idc)
-                  echo '${{ env.IDC_KUBECONFIG }}' > $HOME/.kube/config
-              ;;
-              idc1)
-                  echo '${{ env.IDC_KUBECONFIG_1 }}' > $HOME/.kube/config
-              ;;
-              idc2)
-                  echo '${{ env.IDC_KUBECONFIG_2 }}' > $HOME/.kube/config
-              ;;
-              idc4)
-                  echo '${{ env.IDC_KUBECONFIG_4 }}' > $HOME/.kube/config
-              ;;
-              vke)
-                  echo '${{ env.VKE_KUBECONFIG }}' > $HOME/.kube/config
-                  cp -r apecloud-values/vke/values.yaml ${CHART_VALUES_FILENAME}
-              ;;
-              *)
-                  echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
-              ;;
-          esac
-
-      - name: Upgrade Addon
-        run: |
-          MANIFESTS_FILE="./manifests/deploy-manifests.yaml"
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_charts_addon_upgrade.sh "${MANIFESTS_FILE}"
-
-
-  upgrade-addon-idc:
-    if: ${{ inputs.UPGRADE_ADDON && inputs.UPGRADE_ADDON_EXTRA_ENV != '' }}
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-    needs: [ deploy-cloud ]
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Checkout apecloud-cd Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud-cd
-          path: ./apecloud-cd
-          ref: ${{ inputs.APECD_REF }}
-
-      - uses: azure/setup-kubectl@v3
-        with:
-          version: "${{ inputs.KUBECTL_VERSION }}"
-
-      - name: Install Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: ${{ env.HELM_VERSION }}
-
-      - name: Configure Context ${{ inputs.UPGRADE_ADDON_EXTRA_ENV }}
-        run: |
-          mkdir -p $HOME/.kube
-          touch $HOME/.kube/config
-          CLOUD_ENV_NAME="${{ inputs.UPGRADE_ADDON_EXTRA_ENV }}"
           case "$CLOUD_ENV_NAME" in
               dev)
                   echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
