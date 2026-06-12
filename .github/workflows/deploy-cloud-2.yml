@@ -225,7 +225,7 @@ jobs:
 
   send-message:
     needs: [ deploy-cloud ]
-    if: ${{ always() }}
+    if: ${{ always() && startsWith(inputs.VERSION, 'v2.2') }}
     uses: ./.github/workflows/feishui-message.yml
     with:
       TYPE: "2"
