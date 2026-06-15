@@ -373,16 +373,23 @@ jobs:
                 if (fmt=="click") { succ=$(NF-2); fail=$(NF-1); skip=$NF; extra=0 }
                 else              { succ=$(NF-3); fail=$(NF-2); skip=$(NF-1); extra=$NF }
                 if (fail+0!=fail) next
-                data=data sprintf("%s|%s|%d|%d|%d|%d##", eng, spec, succ+0, fail+0, skip+0, extra+0)
-                if (fail+0>0) eng_fail=eng
+                rate = ""
+                if (succ + fail > 0) { rate = sprintf("%.1f%%", (succ / (succ + fail)) * 100) }
+                else { rate = "100%" }
+                data=data sprintf("%s|%s|%d|%d|%d|%d|%s##", eng, spec, succ+0, fail+0, skip+0, extra+0, rate)
+                if (eng_fail == "") eng_fail = eng
+                if (fail+0>0) eng_fail = eng
               }
               in_block && /PASS RATE:/ { sub(/^[[:space:]]*PASS RATE:[[:space:]]*/,""); rate=$0 }
               in_block && /FAIL_OPS:/ { sub(/^[[:space:]]*FAIL_OPS:[[:space:]]*/,""); fail_ops=$0 }
               /^={15,}/ { in_block=0 }
               END { printf "ENG=%s\nRATE=%s\nDATA=%s\nFAIL_OPS=%s\n", eng_fail, rate, data, fail_ops }
             ' "${test_file_log_path}")
-            eval "$TEST_PARSED"
-            TEST_RESULT="###${ENG:-NONE}###${RATE}@@@${DATA}@@@${FAIL_OPS:-}"
+            TMP_ENG=$(echo "$TEST_PARSED" | grep '^ENG=' | cut -d= -f2-)
+            TMP_RATE=$(echo "$TEST_PARSED" | grep '^RATE=' | cut -d= -f2-)
+            TMP_DATA=$(echo "$TEST_PARSED" | grep '^DATA=' | cut -d= -f2-)
+            TMP_FAILOPS=$(echo "$TEST_PARSED" | grep '^FAIL_OPS=' | cut -d= -f2-)
+            TEST_RESULT="###${TMP_ENG:-NONE}###${TMP_RATE}@@@${TMP_DATA}@@@${TMP_FAILOPS:-}"
           else
             TEST_RESULT=""
           fi
