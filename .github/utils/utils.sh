@@ -1056,7 +1056,6 @@ get_ginkgo_test_result() {
 get_playwright_test_result() {
     local FINAL_RESULT="$TEST_RESULT"
 
-    # 检测新旧格式
     local IS_NEW_FMT=false
     if [[ "$FINAL_RESULT" == *"@@@"* ]]; then
         IS_NEW_FMT=true
@@ -1083,20 +1082,9 @@ get_playwright_test_result() {
             jobs_url=$( echo "$jobs_list" | jq ".jobs[$j].html_url" --raw-output )
 
             if $IS_NEW_FMT; then
-                # 新格式: ###ENG###RATE@@@DATA@@@FAIL_OPS → ###ENG###RATE###JOB_URL@@@DATA@@@FAIL_OPS
-                local eng
-                eng="${FINAL_RESULT#\#\#\#}"
-                eng="${eng%%\#\#\#*}"
-                if [[ "$jobs_name" == *"$eng"* ]]; then
-                    local head_part tail_part
-                    head_part="${FINAL_RESULT%%@@@*}"
-                    tail_part="${FINAL_RESULT#*@@@}"
-                    head_part="${head_part%###*}"
-                    FINAL_RESULT="${head_part}###${jobs_url}###${tail_part}"
-                    break
-                fi
+                # 新格式: ###ENG###RATE@@@ → ###ENG###RATE###JOB_URL@@@ (大小写不敏感)
+                FINAL_RESULT=$(echo "$FINAL_RESULT" | sed -E "s|(###${jobs_name}###)([0-9.]+%)(@@@)|\\1\\2###${jobs_url}\\3|gI")
             else
-                # 旧格式不变
                 local job_keys=("$jobs_name")
                 if [[ ${#jobs_name} -gt 3 ]]; then
                     job_keys+=("${jobs_name:1}")

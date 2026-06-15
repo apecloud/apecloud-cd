@@ -1686,7 +1686,7 @@ def send_kbcli_message(url_v, result_v, title_v):
     res = requests.post(url=url_v, data=body, headers=headers)
     print(res.text)
 
-def send_playwright_message(url_v, result_v, title_v):
+def send_playwright_message(url_v, result_v, title_v, job_url_v=""):
     json_results = []
     header_ret = {
         "tag": "column_set", "flex_mode": "none", "background_style": "grey",
@@ -1705,14 +1705,26 @@ def send_playwright_message(url_v, result_v, title_v):
 
         if is_new:
             blocks = stripped.split("###")
-            for i in range(0, len(blocks), 3):
-                if i + 2 >= len(blocks):
+            # 支持 2 段 (无 job_url) 和 3 段 (有 job_url)
+            step = 3 if len(blocks) >= 3 else 2
+            for i in range(0, len(blocks), step):
+                if i + 1 >= len(blocks):
                     break
                 engine_type = blocks[i]
-                pass_rate = blocks[i + 1]
-                url_data = blocks[i + 2]
-                job_url, rest = url_data.split("@@@", 1) if "@@@" in url_data else (url_data, "")
-                parts = rest.split("@@@")
+                if step == 3:
+                    pass_rate = blocks[i + 1]
+                    url_data = blocks[i + 2]
+                    job_url, rest = url_data.split("@@@", 1) if "@@@" in url_data else (url_data, "")
+                else:
+                    rest = blocks[i + 1]
+                    if "@@@" in rest:
+                        pass_rate, rest = rest.split("@@@", 1)
+                        job_url = job_url_v or ""
+                    else:
+                        pass_rate = rest
+                        rest = ""
+                        job_url = job_url_v or ""
+                parts = rest.split("@@@") if rest else ["", ""]
                 specs_block = parts[0] if len(parts) > 0 else ""
                 fail_ops_all = parts[1] if len(parts) > 1 else ""
 
@@ -1727,16 +1739,20 @@ def send_playwright_message(url_v, result_v, title_v):
                     if len(ret) < 6:
                         continue
                     _, spec, succ, fail, skip, _ = ret[:6]
+                    row_rate = ret[6] if len(ret) > 6 else pass_rate
                     fail_n = int(fail)
                     c = "red" if fail_n > 0 else "green"
 
                     if is_first:
-                        ec = f"<a href='{job_url}'>{engine_type}</a>"
-                        rc = f"<font color='{c}'>{pass_rate}</font>"
-                        fc = f"<font color='red'>{fail_ops_all}</font>" if fail_n > 0 and fail_ops_all else ""
+                        if job_url:
+                            ec = f"<a href='{job_url}'>{engine_type}</a>"
+                        else:
+                            ec = engine_type
                         is_first = False
                     else:
-                        ec = rc = fc = ""
+                        ec = ""
+                    rc = f"<font color='{c}'>{row_rate}</font>"
+                    fc = f"<font color='red'>{fail_ops_all}</font>" if fail_n > 0 and fail_ops_all else ""
 
                     sc = f"<font color='{c}'>{spec}</font>"
 
@@ -1824,7 +1840,7 @@ if __name__ == '__main__':
     elif send_type == "kbcli":
         send_kbcli_message(url, result, title)
     elif send_type == "playwright":
-        send_playwright_message(url, result, title)
+        send_playwright_message(url, result, title, job_url)
     else:
         send_message(url, result, title)
 
