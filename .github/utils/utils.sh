@@ -1082,8 +1082,15 @@ get_playwright_test_result() {
             jobs_url=$( echo "$jobs_list" | jq ".jobs[$j].html_url" --raw-output )
 
             if $IS_NEW_FMT; then
-                # 新格式: ###ENG###RATE@@@ → ###ENG###RATE###JOB_URL@@@ (大小写不敏感)
+                # 新格式: ###ENG###RATE@@@ → ###ENG###RATE###JOB_URL@@@
+                # 1) 精确匹配 (大小写不敏感)
                 FINAL_RESULT=$(echo "$FINAL_RESULT" | sed -E "s|(###${jobs_name}###)([0-9.]+%)(@@@)|\\1\\2###${jobs_url}\\3|gI")
+                # 2) 子串匹配: job名含于引擎标识内 (如 KingbaseDB 含 kingbase)
+                FINAL_RESULT=$(echo "$FINAL_RESULT" | sed -E "s|(###[^#]*${jobs_name}[^#]*###)([0-9.]+%)(@@@)|\\1\\2###${jobs_url}\\3|gI")
+                # 3) 特殊映射: 输出名与 job 名完全不同
+                case "$jobs_name" in
+                    sqlserver) FINAL_RESULT=$(echo "$FINAL_RESULT" | sed -E "s|(###SQL###)([0-9.]+%)(@@@)|\\1\\2###${jobs_url}\\3|g") ;;
+                esac
             else
                 local job_keys=("$jobs_name")
                 if [[ ${#jobs_name} -gt 3 ]]; then

@@ -369,9 +369,14 @@ jobs:
               $0 ~ m { in_block=1; next }
               in_block && /^  -/ { sep++; next }
               in_block && sep==1 && $1!~/^(ENGINE|---)/ {
-                eng=$1; spec=$2
-                if (fmt=="click") { succ=$(NF-2); fail=$(NF-1); skip=$NF; extra=0 }
-                else              { succ=$(NF-3); fail=$(NF-2); skip=$(NF-1); extra=$NF }
+                if (fmt=="click") {
+                    # click 复合引擎名检测: Oceanbase Proxy → Oceanbase_Proxy
+                    if (NF >= 8) { eng = $1 "_" $2; spec = $3; succ=$(NF-2); fail=$(NF-1); skip=$NF; extra=0 }
+                    else         { eng = $1; spec = $2;      succ=$(NF-2); fail=$(NF-1); skip=$NF; extra=0 }
+                } else {
+                    eng=$1; spec=$2
+                    succ=$(NF-3); fail=$(NF-2); skip=$(NF-1); extra=$NF
+                }
                 if (fail+0!=fail) next
                 rate = ""
                 if (succ + fail > 0) { rate = sprintf("%.1f%%", (succ / (succ + fail)) * 100) }
