@@ -359,7 +359,7 @@ jobs:
   send-message:
     needs: [ get-test-type, e2e-api-test ]
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    if: ${{ always() && (inputs.CLOUD_BRANCH == 'main' || startsWith(inputs.CLOUD_BRANCH, 'release-') ) }}
     steps:
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
