@@ -159,15 +159,19 @@ jobs:
               fi
               index=$((index+1))
               echo "trivy image ${image}"
-              trivy_scan_cmd="trivy image --format table --severity CRITICAL,HIGH --ignorefile ${{ github.workspace }}/apecloud-cd/.trivyignore --ignore-unfixed --output trivy_scan_report_${index}.out"
+              scan_cache_dir="/tmp/trivy-cache-${index}"
+              mkdir -p "${scan_cache_dir}"
+              trivy_scan_cmd="trivy image --format table --severity CRITICAL,HIGH --ignorefile ${{ github.workspace }}/apecloud-cd/.trivyignore --ignore-unfixed --cache-dir ${scan_cache_dir} --output trivy_scan_report_${index}.out"
               if [[ $index -eq 1 ]]; then
                   eval "$trivy_scan_cmd ${image}"
               else
+                  cp -a /tmp/trivy-cache-1/. "${scan_cache_dir}/"
                   eval "$trivy_scan_cmd --skip-db-update --quiet ${image}" &
               fi
               sleep 1
           done
           wait
+          rm -rf /tmp/trivy-cache-*
           TOTAL_VULNERABILITIES=""
           touch trivy_scan_report.out
           index=0
