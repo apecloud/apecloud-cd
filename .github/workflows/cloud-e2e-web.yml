@@ -352,8 +352,8 @@ jobs:
           set -e
 
           cat ${test_file_log_path}        
-          
-          # 检测结果格式
+           
+           # Detect result format: CLICK-RESULT or PLAYWRIGHT-RESULT
           if grep -q "CLICK-RESULT" "${test_file_log_path}"; then
             FMT="click"
             MARKER="CLICK-RESULT"
@@ -370,7 +370,7 @@ jobs:
               in_block && /^  -/ { sep++; next }
               in_block && sep==1 && $1!~/^(ENGINE|---)/ {
                 if (fmt=="click") {
-                    # click 复合引擎名检测: Oceanbase Proxy → Oceanbase_Proxy
+                    # Combine compound engine names: Oceanbase Proxy → Oceanbase_Proxy
                     if (NF >= 8) { eng = $1 "_" $2; spec = $3; succ=$(NF-2); fail=$(NF-1); skip=$NF; extra=0 }
                     else         { eng = $1; spec = $2;      succ=$(NF-2); fail=$(NF-1); skip=$NF; extra=0 }
                 } else {
