@@ -1082,8 +1082,15 @@ get_playwright_test_result() {
             jobs_url=$( echo "$jobs_list" | jq ".jobs[$j].html_url" --raw-output )
 
             if $IS_NEW_FMT; then
-                # 新格式: ###ENG###RATE@@@ → ###ENG###RATE###JOB_URL@@@ (大小写不敏感)
+                # New format: ###ENG###RATE@@@ → ###ENG###RATE###JOB_URL@@@
+                # 1) exact match (case-insensitive)
                 FINAL_RESULT=$(echo "$FINAL_RESULT" | sed -E "s|(###${jobs_name}###)([0-9.]+%)(@@@)|\\1\\2###${jobs_url}\\3|gI")
+                # 2) substring match: job name contained in engine identifier (e.g. KingbaseDB contains kingbase)
+                FINAL_RESULT=$(echo "$FINAL_RESULT" | sed -E "s|(###[^#]*${jobs_name}[^#]*###)([0-9.]+%)(@@@)|\\1\\2###${jobs_url}\\3|gI")
+                # 3) special mapping: output name differs completely from job name
+                case "$jobs_name" in
+                    sqlserver) FINAL_RESULT=$(echo "$FINAL_RESULT" | sed -E "s|(###SQL###)([0-9.]+%)(@@@)|\\1\\2###${jobs_url}\\3|g") ;;
+                esac
             else
                 local job_keys=("$jobs_name")
                 if [[ ${#jobs_name} -gt 3 ]]; then

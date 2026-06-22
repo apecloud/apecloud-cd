@@ -1705,8 +1705,10 @@ def send_playwright_message(url_v, result_v, title_v, job_url_v=""):
 
         if is_new:
             blocks = stripped.split("###")
-            # 支持 2 段 (无 job_url) 和 3 段 (有 job_url)
-            step = 3 if len(blocks) >= 3 else 2
+            # Detect job URL injection (3 segments: ENG/RATE/JOB_URL@@@... vs 2: ENG/RATE@@@...)
+            step = 2
+            if len(blocks) >= 3 and "@@@" in blocks[2]:
+                step = 3
             for i in range(0, len(blocks), step):
                 if i + 1 >= len(blocks):
                     break
