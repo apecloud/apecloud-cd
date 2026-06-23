@@ -87,6 +87,9 @@ on:
         default: false
 
 
+run-name: ${{ inputs.MAKE_OPS }} ${{ inputs.CLOUD_ENV_NAME }} ${{ inputs.VERSION }} ${{ inputs.UPGRADE_ADDON }}
+
+
 env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
   IDC_KUBECONFIG: ${{ secrets.IDC_KUBECONFIG }}
