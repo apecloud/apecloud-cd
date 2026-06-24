@@ -111,16 +111,15 @@ helm release image check:
 `release-image-cache2.yml` supports optional BuildKit secret inputs:
 
 - `BUILDX_SECRETS`: values passed to `docker/build-push-action` `secrets`
-- `BUILDX_SECRET_ENVS`: env mappings passed to `secret-envs`
+- `BUILDX_SECRET_ID`: BuildKit secret id for the optional `BUILDX_SECRET` workflow secret
 - `BUILDX_SECRET_FILES`: file mappings passed to `secret-files`
 
-Map a repository or organization secret to generic `BUILDX_SECRET`, then reference it from
-`BUILDX_SECRET_ENVS`:
+Map a repository or organization secret to generic `BUILDX_SECRET`, then set the BuildKit secret id
+with `BUILDX_SECRET_ID`:
 
 ```yaml
 with:
-  BUILDX_SECRET_ENVS: |
-    addon_runtime_seed=BUILDX_SECRET
+  BUILDX_SECRET_ID: addon_runtime_seed
 secrets:
   BUILDX_SECRET: ${{ secrets.ADDON_RUNTIME_KEY_SEED }}
 ```
@@ -137,8 +136,7 @@ secrets:
 If the caller already has a same-named generic secret, `secrets: inherit` can be used instead:
 
 ```yaml
-BUILDX_SECRET_ENVS: |
-  addon_runtime_seed=BUILDX_SECRET
+BUILDX_SECRET_ID: addon_runtime_seed
 secrets: inherit
 ```
 
