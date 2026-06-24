@@ -28,6 +28,21 @@ on:
         type: string
         required: false
         default: ''
+      BUILDX_SECRETS:
+        description: "BuildKit secrets passed to docker/build-push-action"
+        type: string
+        required: false
+        default: ''
+      BUILDX_SECRET_ENVS:
+        description: "BuildKit secret env mappings passed to docker/build-push-action"
+        type: string
+        required: false
+        default: ''
+      BUILDX_SECRET_FILES:
+        description: "BuildKit secret file mappings passed to docker/build-push-action"
+        type: string
+        required: false
+        default: ''
       GO_VERSION:
         description: "Install the specify version of GO"
         type: string
@@ -93,6 +108,25 @@ on:
         type: string
         required: false
         default: ''
+    secrets:
+      DOCKER_REGISTRY_USER:
+        required: false
+      DOCKER_REGISTRY_PASSWORD:
+        required: false
+      ALIYUN_REGISTRY_USER:
+        required: false
+      ALIYUN_REGISTRY_PASSWORD:
+        required: false
+      ALIYUN_USER_NEW:
+        required: false
+      ALIYUN_PASSWORD_NEW:
+        required: false
+      PERSONAL_ACCESS_USER:
+        required: false
+      PERSONAL_ACCESS_TOKEN:
+        required: false
+      BUILDX_SECRET:
+        required: false
 
 env:
   DOCKER_REGISTRY_URL: docker.io
@@ -356,13 +390,18 @@ jobs:
 
       - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
         name: Build and Push to Docker Hub
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
+        env:
+          BUILDX_SECRET: ${{ secrets.BUILDX_SECRET }}
         with:
           context: ${{ inputs.CONTEXT }}
           file: ${{ inputs.DOCKERFILE_PATH }}
           tags: ${{ steps.get_image_push_tags.outputs.dockerhub-push-tags }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
+          secrets: ${{ inputs.BUILDX_SECRETS }}
+          secret-envs: ${{ inputs.BUILDX_SECRET_ENVS }}
+          secret-files: ${{ inputs.BUILDX_SECRET_FILES }}
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -386,13 +425,18 @@ jobs:
 
       - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
         name: Build and Push to Aliyun Registry
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
+        env:
+          BUILDX_SECRET: ${{ secrets.BUILDX_SECRET }}
         with:
           context: ${{ inputs.CONTEXT }}
           file: ${{ inputs.DOCKERFILE_PATH }}
           tags: ${{ steps.get_image_push_tags.outputs.aliyun-push-tags }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
+          secrets: ${{ inputs.BUILDX_SECRETS }}
+          secret-envs: ${{ inputs.BUILDX_SECRET_ENVS }}
+          secret-files: ${{ inputs.BUILDX_SECRET_FILES }}
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -416,13 +460,18 @@ jobs:
 
       - if: ${{ env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
         name: Build and Push to Aliyun Registry New
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
+        env:
+          BUILDX_SECRET: ${{ secrets.BUILDX_SECRET }}
         with:
           context: ${{ inputs.CONTEXT }}
           file: ${{ inputs.DOCKERFILE_PATH }}
           tags: ${{ steps.get_image_push_tags.outputs.aliyun-new-push-tags }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
+          secrets: ${{ inputs.BUILDX_SECRETS }}
+          secret-envs: ${{ inputs.BUILDX_SECRET_ENVS }}
+          secret-files: ${{ inputs.BUILDX_SECRET_FILES }}
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
