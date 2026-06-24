@@ -111,32 +111,17 @@ helm release image check:
 `release-image-cache2.yml` supports optional BuildKit secret inputs:
 
 - `BUILDX_SECRETS`: values passed to `docker/build-push-action` `secrets`
-- `BUILDX_SECRET_ID`: BuildKit secret id for the optional `BUILDX_SECRET` workflow secret
+- `BUILDX_SECRET_ID`: BuildKit secret id for the optional named workflow secret
+- `BUILDX_SECRET_NAME`: GitHub Actions secret name to pass as the BuildKit secret
 - `BUILDX_SECRET_FILES`: file mappings passed to `secret-files`
 
-Map a repository or organization secret to generic `BUILDX_SECRET`, then set the BuildKit secret id
-with `BUILDX_SECRET_ID`:
+Use `secrets: inherit`, then set both the BuildKit secret id and the inherited GitHub Actions
+secret name:
 
 ```yaml
 with:
   BUILDX_SECRET_ID: addon_runtime_seed
-secrets:
-  BUILDX_SECRET: ${{ secrets.ADDON_RUNTIME_KEY_SEED }}
-```
-
-When using explicit `secrets:` mappings, also pass any registry credentials required by the build:
-
-```yaml
-secrets:
-  DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
-  DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
-  BUILDX_SECRET: ${{ secrets.ADDON_RUNTIME_KEY_SEED }}
-```
-
-If the caller already has a same-named generic secret, `secrets: inherit` can be used instead:
-
-```yaml
-BUILDX_SECRET_ID: addon_runtime_seed
+  BUILDX_SECRET_NAME: ADDON_RUNTIME_KEY_SEED
 secrets: inherit
 ```
 

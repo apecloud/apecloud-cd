@@ -34,7 +34,12 @@ on:
         required: false
         default: ''
       BUILDX_SECRET_ID:
-        description: "BuildKit secret id for the optional BUILDX_SECRET workflow secret"
+        description: "BuildKit secret id for the optional named workflow secret"
+        type: string
+        required: false
+        default: ''
+      BUILDX_SECRET_NAME:
+        description: "GitHub Actions secret name to pass as the BuildKit secret"
         type: string
         required: false
         default: ''
@@ -108,26 +113,6 @@ on:
         type: string
         required: false
         default: ''
-    secrets:
-      DOCKER_REGISTRY_USER:
-        required: false
-      DOCKER_REGISTRY_PASSWORD:
-        required: false
-      ALIYUN_REGISTRY_USER:
-        required: false
-      ALIYUN_REGISTRY_PASSWORD:
-        required: false
-      ALIYUN_USER_NEW:
-        required: false
-      ALIYUN_PASSWORD_NEW:
-        required: false
-      PERSONAL_ACCESS_USER:
-        required: false
-      PERSONAL_ACCESS_TOKEN:
-        required: false
-      BUILDX_SECRET:
-        required: false
-
 env:
   DOCKER_REGISTRY_URL: docker.io
   ALIYUN_REGISTRY_URL: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
@@ -399,7 +384,7 @@ jobs:
           build-args: ${{ inputs.BUILDX_ARGS }}
           secrets: |
             ${{ inputs.BUILDX_SECRETS }}
-            ${{ inputs.BUILDX_SECRET_ID != '' && format('{0}={1}', inputs.BUILDX_SECRET_ID, secrets.BUILDX_SECRET) || '' }}
+            ${{ inputs.BUILDX_SECRET_ID != '' && inputs.BUILDX_SECRET_NAME != '' && format('{0}={1}', inputs.BUILDX_SECRET_ID, secrets[inputs.BUILDX_SECRET_NAME]) || '' }}
           secret-files: ${{ inputs.BUILDX_SECRET_FILES }}
           push: true
           cache-from: type=gha
@@ -433,7 +418,7 @@ jobs:
           build-args: ${{ inputs.BUILDX_ARGS }}
           secrets: |
             ${{ inputs.BUILDX_SECRETS }}
-            ${{ inputs.BUILDX_SECRET_ID != '' && format('{0}={1}', inputs.BUILDX_SECRET_ID, secrets.BUILDX_SECRET) || '' }}
+            ${{ inputs.BUILDX_SECRET_ID != '' && inputs.BUILDX_SECRET_NAME != '' && format('{0}={1}', inputs.BUILDX_SECRET_ID, secrets[inputs.BUILDX_SECRET_NAME]) || '' }}
           secret-files: ${{ inputs.BUILDX_SECRET_FILES }}
           push: true
           cache-from: type=gha
@@ -467,7 +452,7 @@ jobs:
           build-args: ${{ inputs.BUILDX_ARGS }}
           secrets: |
             ${{ inputs.BUILDX_SECRETS }}
-            ${{ inputs.BUILDX_SECRET_ID != '' && format('{0}={1}', inputs.BUILDX_SECRET_ID, secrets.BUILDX_SECRET) || '' }}
+            ${{ inputs.BUILDX_SECRET_ID != '' && inputs.BUILDX_SECRET_NAME != '' && format('{0}={1}', inputs.BUILDX_SECRET_ID, secrets[inputs.BUILDX_SECRET_NAME]) || '' }}
           secret-files: ${{ inputs.BUILDX_SECRET_FILES }}
           push: true
           cache-from: type=gha
