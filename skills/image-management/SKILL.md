@@ -106,6 +106,25 @@ helm release image check:
 - `REMOVE_PREFIX`: whether to strip the leading `v` from the version.
 - `IMG` and `VERSION`: full image name and tag for manifest generation.
 
+### 5. Pass BuildKit secrets to cached image builds
+
+`release-image-cache2.yml` supports optional BuildKit secret inputs:
+
+- `BUILDX_SECRETS`: values passed to `docker/build-push-action` `secrets`
+- `BUILDX_SECRET_ID`: BuildKit secret id for the optional named workflow secret
+- `BUILDX_SECRET_NAME`: GitHub Actions secret name to pass as the BuildKit secret
+- `BUILDX_SECRET_FILES`: file mappings passed to `secret-files`
+
+Use `secrets: inherit`, then set both the BuildKit secret id and the inherited GitHub Actions
+secret name:
+
+```yaml
+with:
+  BUILDX_SECRET_ID: addon_runtime_seed
+  BUILDX_SECRET_NAME: ADDON_RUNTIME_KEY_SEED
+secrets: inherit
+```
+
 ## Common Commands
 
 ```bash

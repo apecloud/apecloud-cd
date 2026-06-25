@@ -28,6 +28,26 @@ on:
         type: string
         required: false
         default: ''
+      BUILDX_SECRETS:
+        description: "BuildKit secrets passed to docker/build-push-action"
+        type: string
+        required: false
+        default: ''
+      BUILDX_SECRET_ID:
+        description: "BuildKit secret id for the optional named workflow secret"
+        type: string
+        required: false
+        default: ''
+      BUILDX_SECRET_NAME:
+        description: "GitHub Actions secret name to pass as the BuildKit secret"
+        type: string
+        required: false
+        default: ''
+      BUILDX_SECRET_FILES:
+        description: "BuildKit secret file mappings passed to docker/build-push-action"
+        type: string
+        required: false
+        default: ''
       GO_VERSION:
         description: "Install the specify version of GO"
         type: string
@@ -93,7 +113,6 @@ on:
         type: string
         required: false
         default: ''
-
 env:
   DOCKER_REGISTRY_URL: docker.io
   ALIYUN_REGISTRY_URL: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
@@ -363,6 +382,10 @@ jobs:
           tags: ${{ steps.get_image_push_tags.outputs.dockerhub-push-tags }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
+          secrets: |
+            ${{ inputs.BUILDX_SECRETS }}
+            ${{ inputs.BUILDX_SECRET_ID != '' && inputs.BUILDX_SECRET_NAME != '' && format('{0}={1}', inputs.BUILDX_SECRET_ID, secrets[inputs.BUILDX_SECRET_NAME]) || '' }}
+          secret-files: ${{ inputs.BUILDX_SECRET_FILES }}
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -393,6 +416,10 @@ jobs:
           tags: ${{ steps.get_image_push_tags.outputs.aliyun-push-tags }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
+          secrets: |
+            ${{ inputs.BUILDX_SECRETS }}
+            ${{ inputs.BUILDX_SECRET_ID != '' && inputs.BUILDX_SECRET_NAME != '' && format('{0}={1}', inputs.BUILDX_SECRET_ID, secrets[inputs.BUILDX_SECRET_NAME]) || '' }}
+          secret-files: ${{ inputs.BUILDX_SECRET_FILES }}
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -423,6 +450,10 @@ jobs:
           tags: ${{ steps.get_image_push_tags.outputs.aliyun-new-push-tags }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
+          secrets: |
+            ${{ inputs.BUILDX_SECRETS }}
+            ${{ inputs.BUILDX_SECRET_ID != '' && inputs.BUILDX_SECRET_NAME != '' && format('{0}={1}', inputs.BUILDX_SECRET_ID, secrets[inputs.BUILDX_SECRET_NAME]) || '' }}
+          secret-files: ${{ inputs.BUILDX_SECRET_FILES }}
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
