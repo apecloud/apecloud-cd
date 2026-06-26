@@ -1151,6 +1151,125 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
+  hadoop-pre:
+    if: ${{ inputs.previous-version && inputs.cloud-provider != 'aks' && (inputs.test-type == '' || contains(inputs.test-type, 'hadoop')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/kbcli-test-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "68"
+      test-type-name: "hadoop-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  hive-pre:
+    if: ${{ inputs.previous-version && inputs.cloud-provider != 'aks' && (inputs.test-type == '' || contains(inputs.test-type, 'hive')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/kbcli-test-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "69"
+      test-type-name: "hive-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  oceanbase-proxy-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'oceanbase-proxy')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/kbcli-test-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "70"
+      test-type-name: "oceanbase-proxy-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  nacos-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'nacos')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/kbcli-test-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "71"
+      test-type-name: "nacos-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  vault-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'vault')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/kbcli-test-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "72"
+      test-type-name: "vault-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  foundationdb-pre:
+    if: ${{ inputs.previous-version && inputs.cloud-provider != 'aks' && (inputs.test-type == '' || contains(inputs.test-type, 'foundationdb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/kbcli-test-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "73"
+      test-type-name: "foundationdb-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  selectdb-pre:
+    if: ${{ inputs.previous-version && inputs.cloud-provider != 'aks' && (inputs.test-type == '' || contains(inputs.test-type, 'selectdb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/kbcli-test-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "74"
+      test-type-name: "selectdb-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
   send-message:
     if: ${{ inputs.previous-version && always() }}
     runs-on: ubuntu-latest
@@ -1168,7 +1287,9 @@ jobs:
              orchestrator-pre, rabbitmq-pre, loki-pre, victoria-metrics-pre, gaussdb-pre,
              damengdb-pre, kingbase-pre, vastbase-pre, mssql-pre, rocketmq-pre,
              goldendb-pre, tdsql-pre, greatsql-pre, greatdb-pre,
-             asmysql-proxy-pre, asmysql-orc-pre, asmysql-orc-proxy-pre]
+             asmysql-proxy-pre, asmysql-orc-pre, asmysql-orc-proxy-pre,
+             hadoop-pre, hive-pre, oceanbase-proxy-pre, nacos-pre,
+             vault-pre, foundationdb-pre, selectdb-pre]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1394,6 +1515,10 @@ jobs:
                   TEST_RESULT="${TEST_RESULT}##mssql-pre|${{ needs.mssql-pre.outputs.test-result }}"
               fi
 
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase-proxy"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##oceanbase-proxy-pre|${{ needs.oceanbase-proxy-pre.outputs.test-result }}"
+              fi
+
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"rocketmq"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##rocketmq-pre|${{ needs.rocketmq-pre.outputs.test-result }}"
               fi
@@ -1430,6 +1555,30 @@ jobs:
               fi
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"asmysql-orc-proxy|"* || "$TEST_TYPE" == *"asmysql-orc-proxy" ]]; then
                   TEST_RESULT="${TEST_RESULT}##asmysql-orc-proxy-pre|${{ needs.asmysql-orc-proxy-pre.outputs.test-result }}"
+              fi
+
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"hadoop"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##hadoop-pre|${{ needs.hadoop-pre.outputs.test-result }}"
+              fi
+
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"hive"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##hive-pre|${{ needs.hive-pre.outputs.test-result }}"
+              fi
+
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"nacos"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##nacos-pre|${{ needs.nacos-pre.outputs.test-result }}"
+              fi
+
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"vault"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##vault-pre|${{ needs.vault-pre.outputs.test-result }}"
+              fi
+
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"foundationdb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##foundationdb-pre|${{ needs.foundationdb-pre.outputs.test-result }}"
+              fi
+
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"selectdb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##selectdb-pre|${{ needs.selectdb-pre.outputs.test-result }}"
               fi
           fi
           
