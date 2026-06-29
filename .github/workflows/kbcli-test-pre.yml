@@ -60,6 +60,9 @@ on:
       random-suffix:
         description: "random suffix"
         value: ${{ jobs.kbcli-test-pre.outputs.random-suffix }}
+      test-result-report:
+        description: "test result report"
+        value: ${{ jobs.kbcli-test-pre.outputs.test-result-report }}
 
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -71,6 +74,10 @@ env:
   HELM_VERSION: "v3.16.3"
   JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
   JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
+  DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+  ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
 
 
 permissions:
@@ -84,6 +91,7 @@ jobs:
     outputs:
       test-result: ${{ steps.kbcli_test.outputs.test-result }}
       random-suffix: ${{ steps.kbcli_test.outputs.random-suffix }}
+      test-result-report: ${{ steps.test_result_report.outputs.test-result-report }}
     steps:
       - name: checkout testinfra
         uses: actions/checkout@v4
@@ -227,17 +235,22 @@ jobs:
               cmd="${cmd} --cluster-name '${{ inputs.k8s-cluster-name }}' "
           fi
           
+          common_cmd=""
+          if [[ "${{ inputs.test-args }}" != *"--generate-output"* && "${{ inputs.test-args }}" != *"--only-kubectl"* && "${{ inputs.test-args }}" != *"--ape-local"* ]]; then
+              common_cmd=" --generate-output true "
+          fi
+          
           if [[ -n "${{ env.AWS_ACCESS_KEY_ID }}" && -n "${{ env.AWS_SECRET_ACCESS_KEY }}" ]]; then
               if [[ "${KB_VERSION}" != "0.5."* && "${KB_VERSION}" != "0.6."* && "${KB_VERSION}" != "0.7."* && "${KB_VERSION}" != "0.8."* && -n "${{ env.JIHULAB_ACCESS_TOKEN }}" ]]; then
-                  cmd="${cmd} --args '${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }} --jihulab-token ${{ env.JIHULAB_ACCESS_TOKEN }}' "
+                  cmd="${cmd} --args '${{ inputs.test-args }} ${common_cmd} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }} --jihulab-token ${{ env.JIHULAB_ACCESS_TOKEN }}' "
               else
-                  cmd="${cmd} --args '${{ inputs.test-args }} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}' "
+                  cmd="${cmd} --args '${{ inputs.test-args }} ${common_cmd} --aws-access-key-id ${{ env.AWS_ACCESS_KEY_ID }} --aws-secret-access-key ${{ env.AWS_SECRET_ACCESS_KEY }}' "
               fi
           else
               if [[ "${KB_VERSION}" != "0.5."* && "${KB_VERSION}" != "0.6."* && "${KB_VERSION}" != "0.7."* && "${KB_VERSION}" != "0.8."* && -n "${{ env.JIHULAB_ACCESS_TOKEN }}" ]]; then
-                  cmd="${cmd} --args '${{ inputs.test-args }} --jihulab-token ${{ env.JIHULAB_ACCESS_TOKEN }}' "
+                  cmd="${cmd} --args '${{ inputs.test-args }} ${common_cmd} --jihulab-token ${{ env.JIHULAB_ACCESS_TOKEN }}' "
               else
-                  cmd="${cmd} --args '${{ inputs.test-args }}' "
+                  cmd="${cmd} --args '${{ inputs.test-args }} ${common_cmd}' "
               fi
           fi
           echo "$cmd"
@@ -257,4 +270,17 @@ jobs:
               exit 1
           else
               echo test-result=[PASSED] >> $GITHUB_OUTPUT
+          fi
+
+      - name: test result report
+        if: ${{ always() }}
+        id: test_result_report
+        run: |
+          test_result_report_output_file_log="test-result-report-output.log"
+          if [[ -f "${test_result_report_output_file_log}" ]]; then
+              test_result_report=""
+              test_result_report_tmp="$(cat "${test_result_report_output_file_log}")"
+              test_result_report="$(echo "${test_result_report_tmp}")"
+              echo "$test_result_report"
+              echo test-result-report="${test_result_report}" >> $GITHUB_OUTPUT
           fi
