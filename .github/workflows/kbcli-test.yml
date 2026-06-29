@@ -351,7 +351,7 @@ jobs:
               echo test-result=[PASSED] >> $GITHUB_OUTPUT
           fi
 
-      - name: Setup v
+      - name: Setup ossutil
         if: ${{ always() && inputs.previous-version == '' && ! contains(inputs.test-args, 'ape-local') && ! contains(inputs.test-args, 'only-kubectl') }}
         uses: manyuanrong/setup-ossutil@v2.0
         with:
