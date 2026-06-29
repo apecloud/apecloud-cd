@@ -351,7 +351,7 @@ jobs:
               echo test-result=[PASSED] >> $GITHUB_OUTPUT
           fi
 
-      - name: Setup ossutil
+      - name: Setup v
         if: ${{ always() && inputs.previous-version == '' && ! contains(inputs.test-args, 'ape-local') && ! contains(inputs.test-args, 'only-kubectl') }}
         uses: manyuanrong/setup-ossutil@v2.0
         with:
@@ -396,7 +396,7 @@ jobs:
                   fi
               done
           
-              if [[ -n "${result_engine_name}" && -z "${PREVIOUS_VERSION}" && "${{ inputs.test-args }}" != *"--ape-local"* && "${{ inputs.test-args }}" != *"--only-kubectl"* ]]; then
+              if [[ -n "${result_engine_name}" && -n "${PREVIOUS_VERSION}" && "${{ inputs.test-args }}" != *"--ape-local"* && "${{ inputs.test-args }}" != *"--only-kubectl"* ]]; then
                   KUBEBLOCKS_VERSION="${{ env.KUBEBLOCKS_RELEASE_VERSION }}"
                   if [[ "${KUBEBLOCKS_VERSION}" != "v"* ]]; then
                       KUBEBLOCKS_VERSION="v${KUBEBLOCKS_VERSION}"
