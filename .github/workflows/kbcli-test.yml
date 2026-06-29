@@ -296,16 +296,17 @@ jobs:
               cmd="${cmd} --test-type '${{ inputs.cluster-test-type }}' "
           fi
           
+          common_cmd=""
           if [[ -z "${PREVIOUS_VERSION}" && "${{ inputs.test-args }}" != *"--ape-local"* && "${{ inputs.test-args }}" != *"--only-kubectl"* ]]; then
               # chaos mesh test
               if [[ "${{ inputs.test-args }}" != *"--service-version"* ]]; then
                   common_cmd=" --chaos-mesh true "
               fi
+          fi
           
-              # generate report
-              if [[ "${{ inputs.test-args }}" != *"--generate-output"* ]]; then
-                  common_cmd=" --generate-output true ${common_cmd}"
-              fi
+          # generate report (also for upgrade, but skip for local-only modes)
+          if [[ "${{ inputs.test-args }}" != *"--generate-output"* && "${{ inputs.test-args }}" != *"--ape-local"* && "${{ inputs.test-args }}" != *"--only-kubectl"* ]]; then
+              common_cmd=" --generate-output true ${common_cmd}"
           fi
           
           if [[ -n "${{ inputs.test-args }}" && "${{ inputs.test-args }}" == *"--only-kubectl true"* ]]; then
