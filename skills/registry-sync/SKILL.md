@@ -20,7 +20,7 @@ This skill covers **image synchronization between registries**: docker.io ↔ Al
 | [`.github/workflows/skopeo-sync-images-docker.yml`](../../.github/workflows/skopeo-sync-images-docker.yml) | Bulk sync images to docker.io |
 | [`.github/workflows/skopeo-sync-images-aliyun.yml`](../../.github/workflows/skopeo-sync-images-aliyun.yml) | Bulk sync images to legacy Aliyun |
 | [`.github/workflows/skopeo-sync-images-aliyun-and-docker.yml`](../../.github/workflows/skopeo-sync-images-aliyun-and-docker.yml) | Sync to both Aliyun and docker.io |
-| [`.github/workflows/skopeo-sync-images-aliyun-to-aliyun.yml`](../../.github/workflows/skopeo-sync-images-aliyun-to-aliyun.yml) | Sync between Aliyun domains |
+| [`.github/workflows/skopeo-sync-images-aliyun-to-aliyun.yml`](../../.github/archive/20260630/workflows/skopeo-sync-images-aliyun-to-aliyun.yml) | Sync between Aliyun domains |
 | [`.github/workflows/skopeo-copy-image-docker-new-tag.yml`](../../.github/workflows/skopeo-copy-image-docker-new-tag.yml) | Copy image to docker.io with a new tag |
 | [`.github/workflows/release-image-sync.yml`](../../.github/archive/20260630/workflows/release-image-sync.yml) | Image sync during release |
 | [`.github/workflows/release-image-sync2.yml`](../../.github/workflows/release-image-sync2.yml) | Another image sync entry point |

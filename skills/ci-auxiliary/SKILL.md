@@ -30,8 +30,8 @@ This skill covers **PR / issue / milestone / cherry-pick** automation.
 | [`.github/workflows/renew-issue.yml`](../../.github/workflows/renew-issue.yml) | Renew/reopen issues |
 | [`.github/workflows/update-release-notes.yml`](../../.github/workflows/update-release-notes.yml) | Update release notes (also in release-operations) |
 | [`.github/workflows/feishui-message.yml`](../../.github/workflows/feishui-message.yml) | Feishu message push |
-| [`.github/workflows/delete-runner.yml`](../../.github/workflows/delete-runner.yml) | Delete a GitHub Actions runner by repo |
-| [`.github/workflows/enable-self-runner.yml`](../../.github/workflows/enable-self-runner.yml) | Enable/disable self-hosted runners in a cluster |
+| [`.github/workflows/delete-runner.yml`](../../.github/archive/20260630/workflows/delete-runner.yml) | Delete a GitHub Actions runner by repo |
+| [`.github/workflows/enable-self-runner.yml`](../../.github/archive/20260630/workflows/enable-self-runner.yml) | Enable/disable self-hosted runners in a cluster |
 
 ### Utils
 
