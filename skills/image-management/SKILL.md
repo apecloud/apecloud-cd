@@ -19,7 +19,7 @@ This skill covers the **full image lifecycle** for KubeBlocks and related compon
 |---|---|
 | [`.github/workflows/release-image.yml`](../../.github/workflows/release-image.yml) | Main image build/push workflow, supports buildx, multi-platform, submodules |
 | [`.github/workflows/release-image-check.yml`](../../.github/workflows/release-image-check.yml) | Image build check (qemu, buildx, docker build) |
-| [`.github/workflows/release-image-manifest.yml`](../../.github/workflows/release-image-manifest.yml) | Generate and push multi-arch manifests to docker.io and Aliyun |
+| [`.github/workflows/release-image-manifest.yml`](../../.github/archive/20260630/workflows/release-image-manifest.yml) | Generate and push multi-arch manifests to docker.io and Aliyun |
 | [`.github/workflows/manifests-image-check.yml`](../../.github/workflows/manifests-image-check.yml) | Check images listed in a manifests file |
 | [`.github/workflows/manifests-charts-image-check.yml`](../../.github/workflows/manifests-charts-image-check.yml) | Check chart images referenced in helm manifests |
 | [`.github/workflows/release-image-cache.yml`](../../.github/workflows/release-image-cache.yml) | Build and cache image (first variant) |
