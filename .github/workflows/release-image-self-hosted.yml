@@ -222,23 +222,43 @@ jobs:
           provenance: false
           sbom: false
 
-      - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
-        name: Login to Aliyun Registry
-        uses: docker/login-action@v2
+  sync-to-aliyun:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.SYNC_ENABLE }}
+    needs: [ release-image ]
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
         with:
-          registry: ${{ env.ALIYUN_REGISTRY_URL }}
-          username: ${{ env.ALIYUN_USER }}
-          password: ${{ env.ALIYUN_PASSWORD }}
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ inputs.APECD_REF }}
 
-      - if: ${{ env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
-        name: Build and Push to Aliyun Registry
-        uses: docker/build-push-action@v5
+      - name: generate image yaml
+        run: |
+          IMAGES_TAG="${{ needs.release-image.outputs.tag-name }}"
+          IMAGES_INPUT=""
+          if [[ -n "${{ inputs.IMG }}" ]]; then
+              IMAGES_INPUT="${{ inputs.IMG }}:${IMAGES_TAG}"
+          fi
+
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+             --type 32 \
+             --images "${IMAGES_INPUT}" \
+             --registry "${{ env.DOCKER_REGISTRY_URL }}"
+
+      - uses: hhyasdf/image-sync-action@v1.1
+        name: sync image to apecloud aliyun registry
+        if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
         with:
-          context: ${{ inputs.CONTEXT }}
-          file: ${{ inputs.DOCKERFILE_PATH }}
-          tags: ${{ env.ALIYUN_REGISTRY_URL }}/${{ inputs.IMG }}:${{ steps.get_tag_name.outputs.tag-name }}
-          platforms: ${{ inputs.BUILDX_PLATFORMS }}
-          build-args: ${{ inputs.BUILDX_ARGS }}
-          push: true
-          provenance: false
-          sbom: false
+          auth_file: ${{ github.workspace }}/apecloud-cd/.github/actions/image-sync-auth-apecloud.yml
+          images_file: ./image_sync_yaml_apecloud.yml
+          proc: 6
+          retries: 5
+          version: v1.5.2
+        env:
+          DOCKER_USER: ${{ env.DOCKER_USER }}
+          DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
+          ALIYUN_USER: ${{ env.ALIYUN_USER }}
+          ALIYUN_PASSWORD: ${{ env.ALIYUN_PASSWORD }}

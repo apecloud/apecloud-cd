@@ -25,7 +25,7 @@ This skill covers **image synchronization between registries**: docker.io ↔ Al
 | [`.github/workflows/release-image-sync.yml`](../../.github/workflows/release-image-sync.yml) | Image sync during release |
 | [`.github/workflows/release-image-sync2.yml`](../../.github/workflows/release-image-sync2.yml) | Another image sync entry point |
 | [`.github/workflows/release-image-sync-self-hosted.yml`](../../.github/workflows/release-image-sync-self-hosted.yml) | Sync on self-hosted runners |
-| [`.github/workflows/release-image-arm-sync.yml`](../../.github/workflows/release-image-arm-sync.yml) | arm64 image sync |
+| [`.github/workflows/release-image-arm-sync.yml`](../../.github/archive/20260630/workflows/release-image-arm-sync.yml) | arm64 image sync |
 
 ### Utils
 
