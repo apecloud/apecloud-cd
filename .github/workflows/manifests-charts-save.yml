@@ -53,6 +53,16 @@ on:
         type: string
         required: false
         default: ''
+      RESOLVE_MANIFESTS_SCRIPT:
+        description: "Script that resolves the manifests file when ADDON_SECURE_DELIVERY_ENABLED is true"
+        type: string
+        required: false
+        default: ''
+      ADDON_SECURE_DELIVERY_ENABLED:
+        description: "Optional override for deploy-values.yaml addonSecureDelivery.enable"
+        type: string
+        required: false
+        default: ''
   workflow_call:
     inputs:
       MANIFESTS_FILE:
@@ -102,6 +112,16 @@ on:
         default: ''
       APECLOUD_ADDON_BRANCH:
         description: "The branch of apecloud-addons"
+        type: string
+        required: false
+        default: ''
+      RESOLVE_MANIFESTS_SCRIPT:
+        description: "Script that resolves the manifests file when ADDON_SECURE_DELIVERY_ENABLED is true"
+        type: string
+        required: false
+        default: ''
+      ADDON_SECURE_DELIVERY_ENABLED:
+        description: "Optional override for deploy-values.yaml addonSecureDelivery.enable"
         type: string
         required: false
         default: ''
@@ -180,8 +200,43 @@ jobs:
           fi
           echo "release-version=${RELEASE_VERSION}" >> $GITHUB_OUTPUT
           
+          VALUES_FILE="${MANIFESTS_FILE%/*}/deploy-values.yaml"
+          ADDON_SECURE_DELIVERY_ENABLED="${{ inputs.ADDON_SECURE_DELIVERY_ENABLED }}"
+          if [[ -n "${ADDON_SECURE_DELIVERY_ENABLED}" ]]; then
+              case "${ADDON_SECURE_DELIVERY_ENABLED}" in
+                  true|false) ;;
+                  *)
+                      echo "ADDON_SECURE_DELIVERY_ENABLED must be true or false, got: ${ADDON_SECURE_DELIVERY_ENABLED}" >&2
+                      exit 1
+                      ;;
+              esac
+              if [[ ! -f "${VALUES_FILE}" ]]; then
+                  echo "deploy values file not found: ${VALUES_FILE}" >&2
+                  exit 1
+              fi
+              yq e -i ".addonSecureDelivery.enable = ${ADDON_SECURE_DELIVERY_ENABLED}" "${VALUES_FILE}"
+          fi
+
           echo "update manifests version to ${RELEASE_VERSION}"
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_version_update.sh "${MANIFESTS_FILE}" "${RELEASE_VERSION}"
+
+          RESOLVE_MANIFESTS_SCRIPT="${{ inputs.RESOLVE_MANIFESTS_SCRIPT }}"
+          if [[ "${ADDON_SECURE_DELIVERY_ENABLED}" == "true" ]]; then
+              if [[ -z "${RESOLVE_MANIFESTS_SCRIPT}" ]]; then
+                  echo "RESOLVE_MANIFESTS_SCRIPT is required when ADDON_SECURE_DELIVERY_ENABLED is true" >&2
+                  exit 1
+              fi
+              if [[ ! -f "${RESOLVE_MANIFESTS_SCRIPT}" ]]; then
+                  echo "resolve manifests script not found: ${RESOLVE_MANIFESTS_SCRIPT}" >&2
+                  exit 1
+              fi
+              echo "resolve manifests with ${RESOLVE_MANIFESTS_SCRIPT}"
+              RESOLVED_MANIFESTS_FILE="$(mktemp)"
+              bash "${RESOLVE_MANIFESTS_SCRIPT}" "${MANIFESTS_FILE}" "${VALUES_FILE}" "${RESOLVED_MANIFESTS_FILE}"
+              mv "${RESOLVED_MANIFESTS_FILE}" "${MANIFESTS_FILE}"
+          elif [[ -n "${RESOLVE_MANIFESTS_SCRIPT}" ]]; then
+              echo "skip resolve manifests because ADDON_SECURE_DELIVERY_ENABLED is not true"
+          fi
           
           echo "save manifests charts"
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_charts_save.sh "${MANIFESTS_FILE}" "${RELEASE_VERSION}"
@@ -196,7 +251,7 @@ jobs:
         run: |
           MANIFESTS_FILE="${{ inputs.MANIFESTS_FILE }}"
           VALUES_FILE="${MANIFESTS_FILE%/*}/deploy-values.yaml"
-          RELEASE_VERSION="${{ inputs.RELEASE_VERSION }}"
+          RELEASE_VERSION="${{ steps.save-charts.outputs.release-version }}"
           ossutil cp -rf ./${MANIFESTS_FILE} oss://${{ env.OSS_BUCKET }}/manifests/${RELEASE_VERSION}/manifests.yaml
           upload_ret=$?
           if [[ $upload_ret -eq 0 ]]; then
