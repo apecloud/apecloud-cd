@@ -74,7 +74,7 @@ jobs:
       release-version: "${{ inputs.previous-version }}"
       test-type: "0"
       test-type-name: "install-kubeblocks-pre"
-      test-args: "--enable-addon kubebench ${{ inputs.test-args }}"
+      test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
       artifact-name: ${{ inputs.artifact-name }}
       branch-name: ${{ inputs.branch-name }}
