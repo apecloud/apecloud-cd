@@ -24,6 +24,7 @@ save_charts_package() {
     charts_name=$(yq e "to_entries|map(.key)|.[]"  ${MANIFESTS_FILE})
     tar_flag=0
     for i in {1..10}; do
+        failed_charts=()
         for chart_name in $(echo "$charts_name"); do
             if [[ -z "$chart_name" || "$chart_name" == "#"* || "$chart_name" == "kata" || "$chart_name" == "dbdrag" ]]; then
                 continue
@@ -61,6 +62,9 @@ save_charts_package() {
                     fi
                     sleep 1
                 done
+                if [[ $ret_msg -ne 0 ]]; then
+                    failed_charts+=("$chart_tmp")
+                fi
                 chart_index=$(( $chart_index + 1 ))
             done
         done
@@ -74,6 +78,10 @@ save_charts_package() {
         fi
         sleep 1
     done
+    if [[ ${#failed_charts[@]} -gt 0 ]]; then
+        echo "$(tput -T xterm setaf 1)::error title=Failed to fetch charts:${failed_charts[*]} $(tput -T xterm sgr0)"
+        exit 1
+    fi
     if [[ $tar_flag -eq 0 ]]; then
         echo "$(tput -T xterm setaf 1)tar ${APP_PKG_NAME} error$(tput -T xterm sgr0)"
         exit 1
