@@ -12,7 +12,7 @@ on:
         description: "The branch name of apecloud-cd"
         type: string
         required: false
-        default: 'main'
+        default: 'trivy_cloud'
   schedule:
     - cron: '0 1 * * 1' # Runs at 08:00 UTC on Mon to Friday
 
@@ -101,20 +101,10 @@ jobs:
       ADDON: false
     secrets: inherit
 
-  ape-local:
-    uses: ./.github/workflows/trivy-scan.yml
-    needs: [ get-images ]
-    with:
-      ITEM: "ape-local"
-      IMAGES: "${{ needs.get-images.outputs.ape-local-images }}"
-      ADDON: false
-      LOGIN_DOCKER: true
-    secrets: inherit
-
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: [ get-images, kubeblocks-cloud, kubeblocks, gemini, gemini-monitor, ape-local ]
+    needs: [ get-images, kubeblocks-cloud, kubeblocks, gemini, gemini-monitor ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -128,7 +118,6 @@ jobs:
           TEST_RESULT="${TEST_RESULT}##${{ needs.kubeblocks.outputs.total-vulnerabilities }}"
           TEST_RESULT="${TEST_RESULT}##${{ needs.gemini.outputs.total-vulnerabilities }}"
           TEST_RESULT="${TEST_RESULT}##${{ needs.gemini-monitor.outputs.total-vulnerabilities }}"
-          TEST_RESULT="${TEST_RESULT}##${{ needs.ape-local.outputs.total-vulnerabilities }}"
           
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)

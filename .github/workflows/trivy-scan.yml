@@ -230,8 +230,10 @@ jobs:
                       echo "✅ $(tput -T xterm setaf 2)${image} has no CRITICAL vulnerabilities$(tput -T xterm sgr0)"
                   fi
                   image_tmp="${image/docker.io\//}"
-                  TOTAL_VULNERABILITIES="${TOTAL_VULNERABILITIES}##${{ inputs.ITEM }}|${image_tmp}|${critical_total}|${CI_JOB_URL}"
-          
+                  if [[ $critical_total -eq 0 ]]; then
+                     TOTAL_VULNERABILITIES="${TOTAL_VULNERABILITIES}##${{ inputs.ITEM }}|${image_tmp}|${critical_total}|${CI_JOB_URL}"
+                  fi
+                  
                   echo "====================================================================== ${image} ======================================================================" >> trivy_scan_report.out
                   cat "${trivy_scan_report}" >> trivy_scan_report.out
                   echo "=======================================================================================================================================================================" >> trivy_scan_report.out
