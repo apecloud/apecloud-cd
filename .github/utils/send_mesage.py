@@ -1404,12 +1404,8 @@ def send_trivy_cloud_scan_message(url_v, result_v, title_v):
                 if ret[2] == "0":
                     critical_color = "green"
 
-                high_color = "red"
-                if ret[3] == "0":
-                    high_color = "green"
-
                 image_color = "orange"
-                if ret[2] == "0" and ret[3] == "0":
+                if ret[2] == "0":
                     image_color = "green"
 
                 json_ret = {
@@ -1425,7 +1421,7 @@ def send_trivy_cloud_scan_message(url_v, result_v, title_v):
                             "elements": [
                                 {
                                     "tag": "markdown",
-                                    "content": "<a href='" + ret[4] + "'>" + item_name_tmp + "</a>",
+                                    "content": "<a href='" + ret[3] + "'>" + item_name_tmp + "</a>",
                                     "text_align": "center"
                                 }
                             ]
