@@ -1338,7 +1338,7 @@ def send_trivy_scan_message(url_v, result_v, title_v):
     print(res.text)
 
 
-def send_trivy_scan_message(url_v, result_v, title_v):
+def send_trivy_cloud_scan_message(url_v, result_v, title_v):
     print("send report message")
     json_results = []
     json_ret = {
