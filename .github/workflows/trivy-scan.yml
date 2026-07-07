@@ -231,20 +231,12 @@ jobs:
                   fi
                   image_tmp="${image/docker.io\//}"
                   if [[ $critical_total -eq 0 ]]; then
-                      TOTAL_VULNERABILITIES="${TOTAL_VULNERABILITIES}##${{ inputs.ITEM }}|${image_tmp}|${critical_total}|${CI_JOB_URL}"
-          
-                      echo "====================================================================== ${image} ======================================================================" >> trivy_scan_report.out
-                      cat "${trivy_scan_report}" >> trivy_scan_report.out
-                      echo "=======================================================================================================================================================================" >> trivy_scan_report.out
-                      echo "" >> trivy_scan_report.out
+                     TOTAL_VULNERABILITIES="${TOTAL_VULNERABILITIES}##${{ inputs.ITEM }}|${image_tmp}|${critical_total}|${CI_JOB_URL}"
                   fi
+                  cat "${trivy_scan_report}"
               fi
           done
           echo "${TOTAL_VULNERABILITIES}"
           echo "total_vulnerabilities=${TOTAL_VULNERABILITIES}" >> $GITHUB_OUTPUT
 
-      - name: view trivy scan report
-        shell: bash
-        run: |
-          trivy_scan_report="trivy_scan_report.out"
-          cat "${trivy_scan_report}"
+
