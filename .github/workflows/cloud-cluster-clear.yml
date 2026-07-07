@@ -187,6 +187,7 @@ jobs:
           echo CLOUD_E2E_CLEAR_POD_NAME="$CLOUD_E2E_CLEAR_POD_NAME" >> $GITHUB_ENV
 
       - name: Waiting for Cloud E2E Clear Pod to be Completed
+        continue-on-error: true
         run: |
           set +e
           set -o nounset

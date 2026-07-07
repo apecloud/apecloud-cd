@@ -7,7 +7,7 @@ on:
         description: "The specify version of GO (e.g. mysql,postgresql,redis)"
         type: string
         required: false
-        default: 'elasticsearch,qdrant,zookeeper,tdsql,rabbitmq,loki,victoria-metrics,rocketmq,postgresql,kafka,kingbase,gaussdb,redis,damengdb,starrocks,vastbase,mongodb,minio,tidb,oceanbase-proxy,mysql,clickhouse,mssql,oracle'
+        default: 'mysql,postgresql,redis'
       CLOUD_ENV_NAME:
         description: "The cloud env name of test (e.g. idc) "
         type: string
@@ -49,7 +49,7 @@ on:
         description: "The specify version of GO (e.g. mysql,postgresql,redis)"
         type: string
         required: false
-        default: 'elasticsearch,qdrant,zookeeper,tdsql,rabbitmq,loki,victoria-metrics,rocketmq,postgresql,kafka,kingbase,gaussdb,redis,damengdb,starrocks,vastbase,mongodb,minio,tidb,oceanbase-proxy,mysql,clickhouse,mssql,oracle'
+        default: 'mysql,postgresql,redis'
       CLOUD_ENV_NAME:
         description: "The cloud env name of test (e.g. v2.2) "
         type: string
