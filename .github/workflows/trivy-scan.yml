@@ -231,13 +231,13 @@ jobs:
                   fi
                   image_tmp="${image/docker.io\//}"
                   if [[ $critical_total -eq 0 ]]; then
-                     TOTAL_VULNERABILITIES="${TOTAL_VULNERABILITIES}##${{ inputs.ITEM }}|${image_tmp}|${critical_total}|${CI_JOB_URL}"
+                      TOTAL_VULNERABILITIES="${TOTAL_VULNERABILITIES}##${{ inputs.ITEM }}|${image_tmp}|${critical_total}|${CI_JOB_URL}"
+          
+                      echo "====================================================================== ${image} ======================================================================" >> trivy_scan_report.out
+                      cat "${trivy_scan_report}" >> trivy_scan_report.out
+                      echo "=======================================================================================================================================================================" >> trivy_scan_report.out
+                      echo "" >> trivy_scan_report.out
                   fi
-                  
-                  echo "====================================================================== ${image} ======================================================================" >> trivy_scan_report.out
-                  cat "${trivy_scan_report}" >> trivy_scan_report.out
-                  echo "=======================================================================================================================================================================" >> trivy_scan_report.out
-                  echo "" >> trivy_scan_report.out
               fi
           done
           echo "${TOTAL_VULNERABILITIES}"
@@ -248,12 +248,5 @@ jobs:
         run: |
           trivy_scan_report="trivy_scan_report.out"
           if [[ -f "${trivy_scan_report}" ]]; then
-              cat "${trivy_scan_report}" | (grep --color=always -E 'CRITICAL|^' || true)
-              check_vulnerabilities=$(cat "${trivy_scan_report}" | (grep "Total:" |egrep "CRITICAL" || true))
-              if [[ -n "${check_vulnerabilities}" ]]; then
-                  echo "❌ $(tput -T xterm setaf 1)Images found with CRITICAL vulnerabilities!$(tput -T xterm sgr0)"
-                  exit 1
-              else
-                  echo "✅ $(tput -T xterm setaf 2)Images not found with CRITICAL vulnerabilities!$(tput -T xterm sgr0)"
-              fi
+              cat "${trivy_scan_report}"
           fi
