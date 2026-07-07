@@ -1338,6 +1338,144 @@ def send_trivy_scan_message(url_v, result_v, title_v):
     print(res.text)
 
 
+def send_trivy_scan_message(url_v, result_v, title_v):
+    print("send report message")
+    json_results = []
+    json_ret = {
+        "tag": "column_set",
+        "flex_mode": "none",
+        "background_style": "grey",
+        "columns": [
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 2,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Item**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 5,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Image**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+            {
+                "tag": "column",
+                "width": "weighted",
+                "weight": 1,
+                "vertical_align": "top",
+                "elements": [
+                    {
+                        "tag": "markdown",
+                        "content": "**Critical**",
+                        "text_align": "center"
+                    }
+                ]
+            },
+        ]
+    }
+    json_results.append(json_ret)
+    if result_v:
+        result_array = result_v.split("##")
+        item_name = ""
+        for results in result_array:
+            if results:
+                ret = results.split("|")
+                item_name_tmp = ret[0]
+                if item_name == "" or item_name != item_name_tmp:
+                    item_name = item_name_tmp
+                else:
+                    item_name_tmp = " "
+
+                critical_color = "red"
+                if ret[2] == "0":
+                    critical_color = "green"
+
+                high_color = "red"
+                if ret[3] == "0":
+                    high_color = "green"
+
+                image_color = "orange"
+                if ret[2] == "0" and ret[3] == "0":
+                    image_color = "green"
+
+                json_ret = {
+                    "tag": "column_set",
+                    "flex_mode": "none",
+                    "background_style": "default",
+                    "columns": [
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 2,
+                            "vertical_align": "center",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<a href='" + ret[4] + "'>" + item_name_tmp + "</a>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 5,
+                            "vertical_align": "center",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<font color='" + image_color + "'>" + ret[1] + "</font>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 1,
+                            "vertical_align": "center",
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": "<font color='" + critical_color + "'>" + ret[2] + "</font>",
+                                    "text_align": "center"
+                                }
+                            ]
+                        }
+                    ],
+                }
+                json_results.append(json_ret)
+
+    card = json.dumps({
+        "header": {
+            "template": "orange",
+            "title": {
+                "tag": "plain_text",
+                "content": title_v
+            }
+        },
+        "elements": json_results
+    })
+    body = json.dumps({"msg_type": "interactive", "card": card})
+    headers = {"Content-Type": "application/json"}
+    res = requests.post(url=url_v, data=body, headers=headers)
+    print(res.text)
+
+
 def send_check_addon_version_message(url_v, result_v, title_v):
     print("send report message")
     json_results = []
@@ -1837,6 +1975,8 @@ if __name__ == '__main__':
         send_engine_summary_message2(url, result, title)
     elif send_type == "trivy":
         send_trivy_scan_message(url, result, title)
+    elif send_type == "trivy-cloud":
+        send_trivy_cloud_scan_message(url, result, title)
     elif send_type == "check-addon-version":
         send_check_addon_version_message(url, result, title)
     elif send_type == "kbcli":

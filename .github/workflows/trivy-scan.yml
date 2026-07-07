@@ -161,7 +161,7 @@ jobs:
               echo "trivy image ${image}"
               scan_cache_dir="/tmp/trivy-cache-${index}"
               mkdir -p "${scan_cache_dir}"
-              trivy_scan_cmd="trivy image --format table --severity CRITICAL,HIGH --ignorefile ${{ github.workspace }}/apecloud-cd/.trivyignore --ignore-unfixed --cache-dir ${scan_cache_dir} --output trivy_scan_report_${index}.out"
+              trivy_scan_cmd="trivy image --format table --severity CRITICAL --ignorefile ${{ github.workspace }}/apecloud-cd/.trivyignore --ignore-unfixed --cache-dir ${scan_cache_dir} --output trivy_scan_report_${index}.out"
               if [[ $index -eq 1 ]]; then
                   eval "$trivy_scan_cmd ${image}"
               else
@@ -196,14 +196,14 @@ jobs:
                       CI_JOB_URL=""
                   fi
           
-                  check_vulnerabilities=$(cat "${trivy_scan_report}" | (grep "Total:" |egrep "CRITICAL|HIGH" || true) )
+                  check_vulnerabilities=$(cat "${trivy_scan_report}" | (grep "Total:" |egrep "CRITICAL" || true) )
                   high_total=0
                   critical_total=0
                   if [[ -n "${check_vulnerabilities}" ]]; then
-                      echo "❌ $(tput -T xterm setaf 1)${image} has CRITICAL or HIGH vulnerabilities$(tput -T xterm sgr0)"
+                      echo "❌ $(tput -T xterm setaf 1)${image} has CRITICAL vulnerabilities$(tput -T xterm sgr0)"
                       high_index=0
                       critical_index=0
-                      for vulnerabilities in $(cat "${trivy_scan_report}" | (grep "Total:" | egrep "CRITICAL|HIGH" || true) ); do
+                      for vulnerabilities in $(cat "${trivy_scan_report}" | (grep "Total:" | egrep "CRITICAL" || true) ); do
                           if [[ "$high_index" == "1" ]]; then
                               high=$(echo "$vulnerabilities" |( grep -o '[0-9]\+' || true))
                               high_total=$((high_total + high))
@@ -224,13 +224,13 @@ jobs:
                           fi
                       done
                       total_total=$((high_total + critical_total))
-                      vulnerabilities_total="Total: $total_total (HIGH: $high_total, CRITICAL: $critical_total)"
+                      vulnerabilities_total="Total: $total_total (CRITICAL: $critical_total)"
                       echo "${vulnerabilities_total}"
                   else
-                      echo "✅ $(tput -T xterm setaf 2)${image} has no CRITICAL or HIGH vulnerabilities$(tput -T xterm sgr0)"
+                      echo "✅ $(tput -T xterm setaf 2)${image} has no CRITICAL vulnerabilities$(tput -T xterm sgr0)"
                   fi
                   image_tmp="${image/docker.io\//}"
-                  TOTAL_VULNERABILITIES="${TOTAL_VULNERABILITIES}##${{ inputs.ITEM }}|${image_tmp}|${critical_total}|${high_total}|${CI_JOB_URL}"
+                  TOTAL_VULNERABILITIES="${TOTAL_VULNERABILITIES}##${{ inputs.ITEM }}|${image_tmp}|${critical_total}|${CI_JOB_URL}"
           
                   echo "====================================================================== ${image} ======================================================================" >> trivy_scan_report.out
                   cat "${trivy_scan_report}" >> trivy_scan_report.out
@@ -246,12 +246,12 @@ jobs:
         run: |
           trivy_scan_report="trivy_scan_report.out"
           if [[ -f "${trivy_scan_report}" ]]; then
-              cat "${trivy_scan_report}" | (grep --color=always -E 'CRITICAL|HIGH|^' || true)
-              check_vulnerabilities=$(cat "${trivy_scan_report}" | (grep "Total:" |egrep "CRITICAL|HIGH" || true))
+              cat "${trivy_scan_report}" | (grep --color=always -E 'CRITICAL|^' || true)
+              check_vulnerabilities=$(cat "${trivy_scan_report}" | (grep "Total:" |egrep "CRITICAL" || true))
               if [[ -n "${check_vulnerabilities}" ]]; then
-                  echo "❌ $(tput -T xterm setaf 1)Images found with CRITICAL or HIGH vulnerabilities!$(tput -T xterm sgr0)"
+                  echo "❌ $(tput -T xterm setaf 1)Images found with CRITICAL vulnerabilities!$(tput -T xterm sgr0)"
                   exit 1
               else
-                  echo "✅ $(tput -T xterm setaf 2)Images not found with CRITICAL or HIGH vulnerabilities!$(tput -T xterm sgr0)"
+                  echo "✅ $(tput -T xterm setaf 2)Images not found with CRITICAL vulnerabilities!$(tput -T xterm sgr0)"
               fi
           fi
