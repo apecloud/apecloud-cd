@@ -247,6 +247,4 @@ jobs:
         shell: bash
         run: |
           trivy_scan_report="trivy_scan_report.out"
-          if [[ -f "${trivy_scan_report}" ]]; then
-              cat "${trivy_scan_report}"
-          fi
+          cat "${trivy_scan_report}"
