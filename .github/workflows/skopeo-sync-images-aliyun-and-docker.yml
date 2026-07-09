@@ -12,7 +12,7 @@ on:
         required: false
         default: 'docker.io'
 
-run-name: sync to aliyun and dockerhub:${{ inputs.images_name }}
+run-name: "sync to aliyun and dockerhub: ${{ inputs.registry }}/${{ inputs.images_name }}"
 
 env:
   DOCKER_REGISTRY_URL: docker.io

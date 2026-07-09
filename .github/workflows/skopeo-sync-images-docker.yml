@@ -12,7 +12,7 @@ on:
         required: false
         default: 'apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com'
 
-run-name: sync to docker.io:${{ inputs.images_name }}
+run-name: "sync to docker.io: ${{ inputs.registry }}/${{ inputs.images_name }}"
 
 env:
   DOCKER_REGISTRY_URL: docker.io
