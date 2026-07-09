@@ -12,7 +12,7 @@ on:
         required: false
         default: 'docker.io'
 
-run-name: sync to aliyun:${{ inputs.images_name }}
+run-name: "sync to aliyun: ${{ inputs.registry }}/${{ inputs.images_name }}"
 
 env:
   ALIYUN_REGISTRY_URL: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
