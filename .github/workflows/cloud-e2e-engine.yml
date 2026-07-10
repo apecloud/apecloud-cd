@@ -43,6 +43,11 @@ on:
         type: string
         required: false
         default: '1.0'
+      TEST_ENGINES_BATCH:
+        description: "The batched test engines (comma separated) for run-name display"
+        type: string
+        required: false
+        default: ''
   workflow_call:
     inputs:
       TEST_ENGINES:
@@ -85,8 +90,13 @@ on:
         type: string
         required: false
         default: '1.0'
+      TEST_ENGINES_BATCH:
+        description: "The batched test engines (comma separated) for run-name display"
+        type: string
+        required: false
+        default: ''
 
-run-name: Cloud E2E Engine Test on Env:${{ inputs.CLOUD_ENV_NAME }}:${{ inputs.CLOUD_TEST_ENV }}:${{ inputs.CLOUD_TEST_KB_VERSION }} ${{ inputs.TEST_ENGINES }} Ref:${{ inputs.CLOUD_BRANCH }}
+run-name: Cloud E2E Engine Test on Env:${{ inputs.CLOUD_ENV_NAME }}:${{ inputs.CLOUD_TEST_ENV }}:${{ inputs.CLOUD_TEST_KB_VERSION }} ${{ inputs.TEST_ENGINES_BATCH != '' && inputs.TEST_ENGINES_BATCH || inputs.TEST_ENGINES }} Ref:${{ inputs.CLOUD_BRANCH }}
 
 env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
@@ -299,7 +309,7 @@ jobs:
         run: |
           pip3 install python-dateutil
 
-      - name: run ${{ matrix.test-type }}
+      - name: run ${{ matrix.test-engine }}
         run: |
           run_file_log="run_e2e_test_result.log"
           touch ${run_file_log} 
