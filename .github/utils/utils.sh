@@ -1104,14 +1104,19 @@ get_playwright_test_result() {
             jobs_url=$( echo "$jobs_list" | jq ".jobs[$j].html_url" --raw-output )
 
             if $IS_NEW_FMT; then
-                # New format: ###ENG###RATE@@@ → ###ENG###RATE###JOB_URL@@@
-                # 1) exact match (case-insensitive)
-                FINAL_RESULT=$(echo "$FINAL_RESULT" | sed -E "s|(###${jobs_name}###)([0-9.]+%)(@@@)|\\1\\2###${jobs_url}\\3|gI")
-                # 2) substring match: job name contained in engine identifier (e.g. KingbaseDB contains kingbase)
-                FINAL_RESULT=$(echo "$FINAL_RESULT" | sed -E "s|(###[^#]*${jobs_name}[^#]*###)([0-9.]+%)(@@@)|\\1\\2###${jobs_url}\\3|gI")
-                # 3) special mapping: output name differs completely from job name
+                # New format with report: ###ENG###RATE###REPORT_URL@@@ -> ###ENG###RATE###JOB_URL###REPORT_URL@@@
+                FINAL_RESULT=$(echo "$FINAL_RESULT" | sed -E "s|(###${jobs_name}###)([0-9.]+%###)([^#]*)(@@@)|\1\2${jobs_url}###\3\4|gI")
+                # New format without report: ###ENG###RATE@@@ -> ###ENG###RATE###JOB_URL@@@
+                FINAL_RESULT=$(echo "$FINAL_RESULT" | sed -E "s|(###${jobs_name}###)([0-9.]+%)(@@@)|\1\2###${jobs_url}\3|gI")
+                # Substring match: job name contained in engine identifier (e.g. KingbaseDB contains kingbase)
+                FINAL_RESULT=$(echo "$FINAL_RESULT" | sed -E "s|(###[^#]*${jobs_name}[^#]*###)([0-9.]+%###)([^#]*)(@@@)|\1\2${jobs_url}###\3\4|gI")
+                FINAL_RESULT=$(echo "$FINAL_RESULT" | sed -E "s|(###[^#]*${jobs_name}[^#]*###)([0-9.]+%)(@@@)|\1\2###${jobs_url}\3|gI")
+                # Special mapping: output name differs completely from job name
                 case "$jobs_name" in
-                    sqlserver) FINAL_RESULT=$(echo "$FINAL_RESULT" | sed -E "s|(###SQL###)([0-9.]+%)(@@@)|\\1\\2###${jobs_url}\\3|g") ;;
+                    sqlserver)
+                        FINAL_RESULT=$(echo "$FINAL_RESULT" | sed -E "s|(###SQL(_Server)?###)([0-9.]+%###)([^#]*)(@@@)|\1\3${jobs_url}###\4\5|g")
+                        FINAL_RESULT=$(echo "$FINAL_RESULT" | sed -E "s|(###SQL(_Server)?###)([0-9.]+%)(@@@)|\1\3###${jobs_url}\4|g")
+                    ;;
                 esac
             else
                 local job_keys=("$jobs_name")
