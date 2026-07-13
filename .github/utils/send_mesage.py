@@ -1686,15 +1686,28 @@ def send_kbcli_message(url_v, result_v, title_v):
     res = requests.post(url=url_v, data=body, headers=headers)
     print(res.text)
 
-def send_playwright_message(url_v, result_v, title_v, job_url_v=""):
+def send_playwright_message(url_v, result_v, title_v, job_url_v="", failed=False):
+    def col(content, weight=1):
+        return {
+            "tag": "column", "width": "weighted", "weight": weight, "vertical_align": "top",
+            "elements": [{"tag": "markdown", "content": content, "text_align": "center"}]
+        }
+
+    def is_report_url(value):
+        return value.startswith("http://") or value.startswith("https://") or value.startswith("oss://")
+
+    def is_job_url(value):
+        return "github.com" in value or "/actions/runs/" in value
+
     json_results = []
     header_ret = {
         "tag": "column_set", "flex_mode": "none", "background_style": "grey",
         "columns": [
-            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Engine**", "text_align": "center"}]},
-            {"tag": "column", "width": "weighted", "weight": 2, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Test Spec**", "text_align": "center"}]},
-            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Pass Rate**", "text_align": "center"}]},
-            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "**Fail Ops**", "text_align": "center"}]},
+            col("**Engine**", 1),
+            col("**Test Spec**", 2),
+            col("**Pass Rate**", 1),
+            col("**Fail Ops**", 1),
+            col("**Report**", 1),
         ]
     }
     json_results.append(header_ret)
@@ -1705,27 +1718,43 @@ def send_playwright_message(url_v, result_v, title_v, job_url_v=""):
 
         if is_new:
             blocks = stripped.split("###")
-            # Detect job URL injection (3 segments: ENG/RATE/JOB_URL@@@... vs 2: ENG/RATE@@@...)
-            step = 2
-            if len(blocks) >= 3 and "@@@" in blocks[2]:
-                step = 3
-            for i in range(0, len(blocks), step):
+            i = 0
+            while i < len(blocks):
+                if not blocks[i]:
+                    i += 1
+                    continue
                 if i + 1 >= len(blocks):
                     break
+
                 engine_type = blocks[i]
-                if step == 3:
-                    pass_rate = blocks[i + 1]
-                    url_data = blocks[i + 2]
-                    job_url, rest = url_data.split("@@@", 1) if "@@@" in url_data else (url_data, "")
+                pass_rate = blocks[i + 1]
+                i += 2
+                job_url = job_url_v or ""
+                report_url = ""
+                rest = ""
+                url_segments = []
+
+                if "@@@" in pass_rate:
+                    pass_rate, rest = pass_rate.split("@@@", 1)
                 else:
-                    rest = blocks[i + 1]
-                    if "@@@" in rest:
-                        pass_rate, rest = rest.split("@@@", 1)
-                        job_url = job_url_v or ""
-                    else:
-                        pass_rate = rest
-                        rest = ""
-                        job_url = job_url_v or ""
+                    while i < len(blocks):
+                        segment = blocks[i]
+                        i += 1
+                        if "@@@" in segment:
+                            prefix, rest = segment.split("@@@", 1)
+                            if prefix:
+                                url_segments.append(prefix)
+                            break
+                        url_segments.append(segment)
+
+                for segment in url_segments:
+                    if not segment:
+                        continue
+                    if is_job_url(segment):
+                        job_url = segment
+                    elif is_report_url(segment):
+                        report_url = segment
+
                 parts = rest.split("@@@") if rest else ["", ""]
                 specs_block = parts[0] if len(parts) > 0 else ""
                 fail_ops_all = parts[1] if len(parts) > 1 else ""
@@ -1738,33 +1767,32 @@ def send_playwright_message(url_v, result_v, title_v, job_url_v=""):
                     if not pair:
                         continue
                     ret = pair.split("|")
-                    if len(ret) < 6:
+                    if len(ret) < 8:
                         continue
-                    _, spec, succ, fail, skip, _ = ret[:6]
-                    row_rate = ret[6] if len(ret) > 6 else pass_rate
+                    _, spec, row_rate, status, succ, fail, skip, _ = ret[:8]
                     fail_n = int(fail)
-                    c = "red" if fail_n > 0 else "green"
+                    c = "red" if status == "FAILED" else "green"
 
                     if is_first:
-                        if job_url:
-                            ec = f"<a href='{job_url}'>{engine_type}</a>"
-                        else:
-                            ec = engine_type
+                        ec = f"<a href='{job_url}'>{engine_type}</a>" if job_url else engine_type
+                        report_c = f"<a href='{report_url}'>Report</a>" if report_url else ""
                         is_first = False
                     else:
                         ec = ""
-                    rc = f"<font color='{c}'>{row_rate}</font>"
-                    fc = f"<font color='red'>{fail_ops_all}</font>" if fail_n > 0 and fail_ops_all else ""
+                        report_c = ""
 
+                    rc = f"<font color='{c}'>{row_rate if row_rate else pass_rate}</font>"
+                    fc = f"<font color='red'>{fail_ops_all}</font>" if fail_n > 0 and fail_ops_all else ""
                     sc = f"<font color='{c}'>{spec}</font>"
 
                     json_results.append({
                         "tag": "column_set", "flex_mode": "none",
                         "columns": [
-                            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": ec, "text_align": "center"}]},
-                            {"tag": "column", "width": "weighted", "weight": 2, "vertical_align": "top", "elements": [{"tag": "markdown", "content": sc, "text_align": "center"}]},
-                            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": rc, "text_align": "center"}]},
-                            {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": fc, "text_align": "center"}]},
+                            col(ec, 1),
+                            col(sc, 2),
+                            col(rc, 1),
+                            col(fc, 1),
+                            col(report_c, 1),
                         ]
                     })
         else:
@@ -1784,17 +1812,18 @@ def send_playwright_message(url_v, result_v, title_v, job_url_v=""):
                         spec, test_ret = ret[0], ret[1]
                         c = 'red' if "ERROR" in test_ret or "FAILED" in test_ret else 'green'
                         if is_first:
-                            ec = f"<a href='{job_url}'>{engine_type}</a>"
+                            ec = f"<a href='{job_url}'>{engine_type}</a>" if job_url else engine_type
                             is_first = False
                         else:
                             ec = ""
                         json_results.append({
                             "tag": "column_set", "flex_mode": "none",
                             "columns": [
-                                {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": ec, "text_align": "center"}]},
-                                {"tag": "column", "width": "weighted", "weight": 2, "vertical_align": "top", "elements": [{"tag": "markdown", "content": f"<font color='{c}'>{spec}</font>", "text_align": "center"}]},
-                                {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": "", "text_align": "center"}]},
-                                {"tag": "column", "width": "weighted", "weight": 1, "vertical_align": "top", "elements": [{"tag": "markdown", "content": f"<font color='{c}'>{test_ret}</font>", "text_align": "center"}]},
+                                col(ec, 1),
+                                col(f"<font color='{c}'>{spec}</font>", 2),
+                                col("", 1),
+                                col(f"<font color='{c}'>{test_ret}</font>", 1),
+                                col("", 1),
                             ]
                         })
 

@@ -218,6 +218,12 @@ jobs:
       test-result-35: ${{ steps.get_test_result.outputs.test-result-35 }}
       test-date: ${{ steps.upload_test_result.outputs.test-date }}
     runs-on: ubuntu-latest
+    env:
+      OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
+      OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
+      OSS_ENDPOINT: oss-cn-zhangjiakou.aliyuncs.com
+      OSS_BUCKET: kubeblocks-oss
+      OSS_PREFIX: reports/kbcloud
     steps:
       - name: Checkout testinfra Code
         uses: actions/checkout@v4
@@ -290,6 +296,9 @@ jobs:
           export TEST_ENGINES=${TEST_ENGINES}
           
           CLOUD_VERSION="${{ needs.get-test-engine.outputs.cloud-version }}"  
+          TEST_DATE="${{ needs.get-test-engine.outputs.test-date }}"
+          export TEST_DATE
+          export OSS_PREFIX="${OSS_PREFIX}"
 
           # run cloud e2e web test
           TEST_TYPE="${{ inputs.TEST_TYPE || 'smoke' }}"
@@ -349,6 +358,9 @@ jobs:
               fi
               sleep 1
           done
+          if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" ]]; then
+              kubectl delete secret -n default ${CLOUD_E2E_TEST_POD_NAME}-oss --ignore-not-found=true
+          fi
           set -e
 
           cat ${test_file_log_path}        
@@ -378,10 +390,9 @@ jobs:
                     succ=$(NF-3); fail=$(NF-2); skip=$(NF-1); extra=$NF
                 }
                 if (fail+0!=fail) next
-                rate = ""
-                if (succ + fail > 0) { rate = sprintf("%.1f%%", (succ / (succ + fail)) * 100) }
-                else { rate = "100%" }
-                data=data sprintf("%s|%s|%d|%d|%d|%d|%s##", eng, spec, succ+0, fail+0, skip+0, extra+0, rate)
+                if (fmt=="click") { status = (fail+0 > 0) ? "FAILED" : "PASSED"; row_rate = "" }
+                else              { status = $4; row_rate = $3 }
+                data=data sprintf("%s|%s|%s|%s|%d|%d|%d|%d##", eng, spec, row_rate, status, succ+0, fail+0, skip+0, extra+0)
                 if (eng_fail == "") eng_fail = eng
                 if (fail+0>0) eng_fail = eng
               }
@@ -394,7 +405,8 @@ jobs:
             TMP_RATE=$(echo "$TEST_PARSED" | grep '^RATE=' | cut -d= -f2-)
             TMP_DATA=$(echo "$TEST_PARSED" | grep '^DATA=' | cut -d= -f2-)
             TMP_FAILOPS=$(echo "$TEST_PARSED" | grep '^FAIL_OPS=' | cut -d= -f2-)
-            TEST_RESULT="###${TMP_ENG:-NONE}###${TMP_RATE}@@@${TMP_DATA}@@@${TMP_FAILOPS:-}"
+            TMP_REPORT_URL=$(grep '^\[OSS-REPORT-URL\]' "${test_file_log_path}" | tail -1 | sed 's/^\[OSS-REPORT-URL\]//')
+            TEST_RESULT="###${TMP_ENG:-NONE}###${TMP_RATE}###${TMP_REPORT_URL}@@@${TMP_DATA}@@@${TMP_FAILOPS:-}"
           else
             TEST_RESULT=""
           fi
