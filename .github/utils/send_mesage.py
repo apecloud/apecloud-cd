@@ -125,6 +125,8 @@ def send_message(url_v, result_v, title_v):
         for results in result_array:
             if results:
                 ret = results.split("|")
+                if len(ret) < 3:
+                    continue
                 ret_4 = colorize_status(ret[1])
                 json_ret = {
                     "tag": "column_set",
@@ -624,6 +626,8 @@ def send_ginkgo_message(url_v, result_v, title_v):
         for results in result_array:
             if results:
                 ret = results.split("|")
+                if len(ret) < 2:
+                    continue
                 if "FAIL! --" in results or "SUCCESS! --" in results:
                     ret_4 = colorize_ginkgo_status(ret)
                 else:

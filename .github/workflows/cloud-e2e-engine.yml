@@ -125,55 +125,67 @@ jobs:
           if [[ -z "$TEST_ENGINES" ]]; then
               TEST_ENGINES="mysql"
           fi
-          test_engines=""
-          test_engines_all=""
-          test_engines_tmp=""
-          engine_index=0
-          test_job_index=0
-          for engine_tmp in $(echo "${TEST_ENGINES}" | sed 's/,/ /g' ); do
-              engine_index=$(( engine_index + 1 ))
-              if [[ -z "${test_engines_tmp}" ]]; then
-                  test_engines_tmp="${engine_tmp}"
+          TEST_ENGINES_BATCH="${{ inputs.TEST_ENGINES_BATCH }}"
+          if [[ -n "${TEST_ENGINES_BATCH}" ]]; then
+              echo "Use TEST_ENGINES_BATCH as test engines: ${TEST_ENGINES_BATCH}"
+              if [[ -n "${TEST_INDEX}" ]]; then
+                  test_job_index_tmp=$(printf "%02d" ${TEST_INDEX})
               else
-                  test_engines_tmp="${test_engines_tmp},${engine_tmp}"
+                  test_job_index_tmp="01"
               fi
+              test_engines="{\"test-engine\":\"${TEST_ENGINES_BATCH}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+              test_engines_all="${TEST_ENGINES_BATCH}|${test_job_index_tmp}"
+          else
+              test_engines=""
+              test_engines_all=""
+              test_engines_tmp=""
+              engine_index=0
+              test_job_index=0
+              for engine_tmp in $(echo "${TEST_ENGINES}" | sed 's/,/ /g' ); do
+                  engine_index=$(( engine_index + 1 ))
+                  if [[ -z "${test_engines_tmp}" ]]; then
+                      test_engines_tmp="${engine_tmp}"
+                  else
+                      test_engines_tmp="${test_engines_tmp},${engine_tmp}"
+                  fi
           
-              KB_CLOUD_TEST_ENGINES_PRE="${{ vars.KB_CLOUD_TEST_ENGINES_PRE }}"
-              if [[ -z "${KB_CLOUD_TEST_ENGINES_PRE}" ]]; then
-                  KB_CLOUD_TEST_ENGINES_PRE=5
-              fi
-              if [[ $(( engine_index % ${KB_CLOUD_TEST_ENGINES_PRE} )) == 0 ]]; then
+                  KB_CLOUD_TEST_ENGINES_PRE="${{ vars.KB_CLOUD_TEST_ENGINES_PRE }}"
+                  if [[ -z "${KB_CLOUD_TEST_ENGINES_PRE}" ]]; then
+                      KB_CLOUD_TEST_ENGINES_PRE=5
+                  fi
+                  if [[ $(( engine_index % ${KB_CLOUD_TEST_ENGINES_PRE} )) == 0 ]]; then
+                      test_job_index=$(( test_job_index + 1 ))
+                      if [[ -n "${TEST_INDEX}" && "${TEST_INDEX}" != "${test_job_index}" ]]; then
+                          echo "TEST_INDEX:${TEST_INDEX} not equal to test job index:${test_job_index}, Skip test."
+                          test_engines_tmp=""
+                          continue
+                      fi
+          
+                      test_job_index_tmp=$(printf "%02d" $test_job_index)
+                      if [[ -z "${test_engines}" ]]; then
+                          test_engines_all="${test_engines_tmp}|${test_job_index_tmp}"
+                          test_engines="{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+                      else
+                          test_engines_all="${test_engines_all}##${test_engines_tmp}|${test_job_index_tmp}"
+                          test_engines="${test_engines},{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+                      fi
+                      test_engines_tmp=""
+                  fi
+              done
+              if [[ -n "${test_engines_tmp}" ]]; then
                   test_job_index=$(( test_job_index + 1 ))
                   if [[ -n "${TEST_INDEX}" && "${TEST_INDEX}" != "${test_job_index}" ]]; then
                       echo "TEST_INDEX:${TEST_INDEX} not equal to test job index:${test_job_index}, Skip test."
-                      test_engines_tmp=""
-                      continue
-                  fi
-          
-                  test_job_index_tmp=$(printf "%02d" $test_job_index)
-                  if [[ -z "${test_engines}" ]]; then
-                      test_engines_all="${test_engines_tmp}|${test_job_index_tmp}"
-                      test_engines="{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
                   else
-                      test_engines_all="${test_engines_all}##${test_engines_tmp}|${test_job_index_tmp}"
-                      test_engines="${test_engines},{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+                      test_job_index_tmp=$(printf "%02d" $test_job_index)
+                      if [[ -z "${test_engines}" ]]; then
+                          test_engines_all="${test_engines_tmp}|${test_job_index_tmp}"
+                          test_engines="{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+                      else
+                          test_engines_all="${test_engines_all}##${test_engines_tmp}|${test_job_index_tmp}"
+                          test_engines="${test_engines},{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
+                    fi
                   fi
-                  test_engines_tmp=""
-              fi
-          done
-          if [[ -n "${test_engines_tmp}" ]]; then
-              test_job_index=$(( test_job_index + 1 ))
-              if [[ -n "${TEST_INDEX}" && "${TEST_INDEX}" != "${test_job_index}" ]]; then
-                  echo "TEST_INDEX:${TEST_INDEX} not equal to test job index:${test_job_index}, Skip test."
-              else
-                  test_job_index_tmp=$(printf "%02d" $test_job_index)
-                  if [[ -z "${test_engines}" ]]; then
-                      test_engines_all="${test_engines_tmp}|${test_job_index_tmp}"
-                      test_engines="{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
-                  else
-                      test_engines_all="${test_engines_all}##${test_engines_tmp}|${test_job_index_tmp}"
-                      test_engines="${test_engines},{\"test-engine\":\"${test_engines_tmp}\",\"test-job-index\":\"${test_job_index_tmp}\"}"
-                fi
               fi
           fi
           echo "${test_engines}"
