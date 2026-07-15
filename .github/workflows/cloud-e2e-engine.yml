@@ -243,9 +243,6 @@ jobs:
       test-result-5: ${{ steps.get_test_result.outputs.test-result-5 }}
       test-result-6: ${{ steps.get_test_result.outputs.test-result-6 }}
       test-result-7: ${{ steps.get_test_result.outputs.test-result-7 }}
-      test-result-8: ${{ steps.get_test_result.outputs.test-result-8 }}
-      test-result-9: ${{ steps.get_test_result.outputs.test-result-9 }}
-      test-result-10: ${{ steps.get_test_result.outputs.test-result-10 }}
       test-summary-1: ${{ steps.get_test_result.outputs.test-summary-1 }}
       test-summary-2: ${{ steps.get_test_result.outputs.test-summary-2 }}
       test-summary-3: ${{ steps.get_test_result.outputs.test-summary-3 }}
@@ -253,9 +250,6 @@ jobs:
       test-summary-5: ${{ steps.get_test_result.outputs.test-summary-5 }}
       test-summary-6: ${{ steps.get_test_result.outputs.test-summary-6 }}
       test-summary-7: ${{ steps.get_test_result.outputs.test-summary-7 }}
-      test-summary-8: ${{ steps.get_test_result.outputs.test-summary-8 }}
-      test-summary-9: ${{ steps.get_test_result.outputs.test-summary-9 }}
-      test-summary-10: ${{ steps.get_test_result.outputs.test-summary-10 }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout testinfra Code
@@ -475,21 +469,6 @@ jobs:
                   echo test-result-7="${TEST_RESULT}" >> $GITHUB_OUTPUT
                   echo test-summary-7="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
               ;; 
-              08)
-                  echo "TEST_JOB_INDEX:${TEST_JOB_INDEX}"
-                  echo test-result-8="${TEST_RESULT}" >> $GITHUB_OUTPUT
-                  echo test-summary-8="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
-              ;;  
-              09)
-                  echo "TEST_JOB_INDEX:${TEST_JOB_INDEX}"
-                  echo test-result-9="${TEST_RESULT}" >> $GITHUB_OUTPUT
-                  echo test-summary-9="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
-              ;;  
-              10)
-                  echo "TEST_JOB_INDEX:${TEST_JOB_INDEX}"
-                  echo test-result-10="${TEST_RESULT}" >> $GITHUB_OUTPUT
-                  echo test-summary-10="${ENGINE_SUMMARY}" >> $GITHUB_OUTPUT
-              ;; 
           esac
           echo "TEST_RESULT:${TEST_RESULT}"
           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
@@ -555,21 +534,6 @@ jobs:
                   07)
                       echo "test-job-index:${test_job_index}"
                       TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-7 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
-                  ;;
-                  08)
-                      echo "test-job-index:${test_job_index}"
-                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-8 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
-                  ;;
-                  09)
-                      echo "test-job-index:${test_job_index}"
-                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-9 }}"
-                      TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
-                  ;;
-                  10)
-                      echo "test-job-index:${test_job_index}"
-                      TEST_RESULT="${{ needs.e2e-engine-test.outputs.test-result-10 }}"
                       TEST_RESULT_ALL="${TEST_RESULT_ALL}##${test_engines}|${TEST_RESULT}"                     
                   ;;
               esac
@@ -719,63 +683,6 @@ jobs:
                   07)
                       echo "test-job-index:${test_job_index}"
                       ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-7 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME_TMP}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
-                      if [[ -n "${ENGINE_SUMMARY}" ]]; then
-                          echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
-                          ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
-                              --type 45 \
-                              --test-result "${TEST_RESULT_ALL}" \
-                              --coverage-result "${ENGINE_SUMMARY}")"
-                          echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
-          
-                          python3 .github/utils/send_mesage.py \
-                              --send-type "engine-summary2" \
-                              --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
-                              --title "$TEST_TITLE_ENGINE_SUMMARY" \
-                              --result "$ENGINE_SUMMARY_TMP"
-                      fi
-                  ;;
-                  08)
-                      echo "test-job-index:${test_job_index}"
-                      ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-8 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME_TMP}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
-                      if [[ -n "${ENGINE_SUMMARY}" ]]; then
-                          echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
-                          ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
-                              --type 45 \
-                              --test-result "${TEST_RESULT_ALL}" \
-                              --coverage-result "${ENGINE_SUMMARY}")"
-                          echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
-          
-                          python3 .github/utils/send_mesage.py \
-                              --send-type "engine-summary2" \
-                              --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
-                              --title "$TEST_TITLE_ENGINE_SUMMARY" \
-                              --result "$ENGINE_SUMMARY_TMP"
-                      fi
-                  ;;
-                  09)
-                      echo "test-job-index:${test_job_index}"
-                      ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-9 }}"
-                      TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME_TMP}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
-                      if [[ -n "${ENGINE_SUMMARY}" ]]; then
-                          echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
-                          ENGINE_SUMMARY_TMP="$(bash .github/utils/utils.sh \
-                              --type 45 \
-                              --test-result "${TEST_RESULT_ALL}" \
-                              --coverage-result "${ENGINE_SUMMARY}")"
-                          echo "ENGINE_SUMMARY_TMP:${ENGINE_SUMMARY_TMP}"
-          
-                          python3 .github/utils/send_mesage.py \
-                              --send-type "engine-summary2" \
-                              --url "${{ vars.REPORT_BOT_WEBHOOK }}" \
-                              --title "$TEST_TITLE_ENGINE_SUMMARY" \
-                              --result "$ENGINE_SUMMARY_TMP"
-                      fi
-                  ;;
-                  10)
-                      echo "test-job-index:${test_job_index}"
-                      ENGINE_SUMMARY="${{ needs.e2e-engine-test.outputs.test-summary-10 }}"
                       TEST_TITLE_ENGINE_SUMMARY="[${CLOUD_BRANCH}][${CLOUD_ENV_NAME_TMP}] Cloud E2E ${test_engines} API Summary [${date_ret}]"
                       if [[ -n "${ENGINE_SUMMARY}" ]]; then
                           echo "ENGINE_SUMMARY:${ENGINE_SUMMARY}"
