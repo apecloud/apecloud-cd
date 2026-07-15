@@ -436,7 +436,7 @@ jobs:
           esac
 
   e2e-engine-test:
-    needs: [ e2e-engine-run ]
+    needs: [ get-test-engine, e2e-engine-run ]
     if: ${{ always() }}
     name: ${{ matrix.test-engine }} result
     strategy:
