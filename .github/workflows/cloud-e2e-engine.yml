@@ -227,7 +227,7 @@ jobs:
       delete_env_name: "${{ inputs.CLOUD_TEST_ENV }}"
     secrets: inherit
 
-  e2e-engine-test:
+  e2e-engine-run:
     if: ${{ always() }}
     needs: [ get-test-engine, e2e-cluster-clear ]
     name: ${{ matrix.test-engine }}
@@ -236,20 +236,20 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.get-test-engine.outputs.test-engines) }}
     outputs:
-      test-result-1: ${{ steps.get_test_result.outputs.test-result-1 }}
-      test-result-2: ${{ steps.get_test_result.outputs.test-result-2 }}
-      test-result-3: ${{ steps.get_test_result.outputs.test-result-3 }}
-      test-result-4: ${{ steps.get_test_result.outputs.test-result-4 }}
-      test-result-5: ${{ steps.get_test_result.outputs.test-result-5 }}
-      test-result-6: ${{ steps.get_test_result.outputs.test-result-6 }}
-      test-result-7: ${{ steps.get_test_result.outputs.test-result-7 }}
-      test-summary-1: ${{ steps.get_test_result.outputs.test-summary-1 }}
-      test-summary-2: ${{ steps.get_test_result.outputs.test-summary-2 }}
-      test-summary-3: ${{ steps.get_test_result.outputs.test-summary-3 }}
-      test-summary-4: ${{ steps.get_test_result.outputs.test-summary-4 }}
-      test-summary-5: ${{ steps.get_test_result.outputs.test-summary-5 }}
-      test-summary-6: ${{ steps.get_test_result.outputs.test-summary-6 }}
-      test-summary-7: ${{ steps.get_test_result.outputs.test-summary-7 }}
+      pod-name-1: ${{ steps.wait_cloud_e2e.outputs.pod-name-1 }}
+      pod-name-2: ${{ steps.wait_cloud_e2e.outputs.pod-name-2 }}
+      pod-name-3: ${{ steps.wait_cloud_e2e.outputs.pod-name-3 }}
+      pod-name-4: ${{ steps.wait_cloud_e2e.outputs.pod-name-4 }}
+      pod-name-5: ${{ steps.wait_cloud_e2e.outputs.pod-name-5 }}
+      pod-name-6: ${{ steps.wait_cloud_e2e.outputs.pod-name-6 }}
+      pod-name-7: ${{ steps.wait_cloud_e2e.outputs.pod-name-7 }}
+      check-completed-1: ${{ steps.wait_cloud_e2e.outputs.check-completed-1 }}
+      check-completed-2: ${{ steps.wait_cloud_e2e.outputs.check-completed-2 }}
+      check-completed-3: ${{ steps.wait_cloud_e2e.outputs.check-completed-3 }}
+      check-completed-4: ${{ steps.wait_cloud_e2e.outputs.check-completed-4 }}
+      check-completed-5: ${{ steps.wait_cloud_e2e.outputs.check-completed-5 }}
+      check-completed-6: ${{ steps.wait_cloud_e2e.outputs.check-completed-6 }}
+      check-completed-7: ${{ steps.wait_cloud_e2e.outputs.check-completed-7 }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout testinfra Code
@@ -356,13 +356,51 @@ jobs:
           echo CLOUD_E2E_TEST_POD_NAME="$CLOUD_E2E_TEST_POD_NAME" >> $GITHUB_ENV
 
       - name: Waiting for Cloud E2E to be Completed
+        id: wait_cloud_e2e
         run: |
+          TEST_JOB_INDEX="${{ matrix.test-job-index }}"
+          case "${TEST_JOB_INDEX}" in
+              01)
+                  echo "pod-name-1=${CLOUD_E2E_TEST_POD_NAME}" >> $GITHUB_OUTPUT
+              ;;
+              02)
+                  echo "pod-name-2=${CLOUD_E2E_TEST_POD_NAME}" >> $GITHUB_OUTPUT
+              ;;
+              03)
+                  echo "pod-name-3=${CLOUD_E2E_TEST_POD_NAME}" >> $GITHUB_OUTPUT
+              ;;
+              04)
+                  echo "pod-name-4=${CLOUD_E2E_TEST_POD_NAME}" >> $GITHUB_OUTPUT
+              ;;
+              05)
+                  echo "pod-name-5=${CLOUD_E2E_TEST_POD_NAME}" >> $GITHUB_OUTPUT
+              ;;
+              06)
+                  echo "pod-name-6=${CLOUD_E2E_TEST_POD_NAME}" >> $GITHUB_OUTPUT
+              ;;
+              07)
+                  echo "pod-name-7=${CLOUD_E2E_TEST_POD_NAME}" >> $GITHUB_OUTPUT
+              ;;
+          esac
+          
           set +e
           set -o nounset
+
+          START_TIME=$(date +%s)
+          MAX_WAIT_SECONDS=18000
+          CHECK_COMPLETED="false"
+
           sleep 10
           while true; do
               if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" ; then
                   echo "Cloud E2E Test is Done"
+                  CHECK_COMPLETED="true"
+                  break
+              fi
+
+              ELAPSED=$(($(date +%s) - START_TIME))
+              if [[ ${ELAPSED} -gt ${MAX_WAIT_SECONDS} ]]; then
+                  echo "Reached max wait time in e2e-engine-run, handing over to result job"
                   break
               fi
               if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Running|Error" ; then
@@ -372,6 +410,174 @@ jobs:
               fi
               sleep 1
           done
+
+          case "${TEST_JOB_INDEX}" in
+              01)
+                  echo "check-completed-1=${CHECK_COMPLETED}" >> $GITHUB_OUTPUT
+              ;;
+              02)
+                  echo "check-completed-2=${CHECK_COMPLETED}" >> $GITHUB_OUTPUT
+              ;;
+              03)
+                  echo "check-completed-3=${CHECK_COMPLETED}" >> $GITHUB_OUTPUT
+              ;;
+              04)
+                  echo "check-completed-4=${CHECK_COMPLETED}" >> $GITHUB_OUTPUT
+              ;;
+              05)
+                  echo "check-completed-5=${CHECK_COMPLETED}" >> $GITHUB_OUTPUT
+              ;;
+              06)
+                  echo "check-completed-6=${CHECK_COMPLETED}" >> $GITHUB_OUTPUT
+              ;;
+              07)
+                  echo "check-completed-7=${CHECK_COMPLETED}" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+  e2e-engine-test:
+    needs: [ e2e-engine-run ]
+    if: ${{ always() }}
+    name: ${{ matrix.test-engine }} result
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.get-test-engine.outputs.test-engines) }}
+    outputs:
+      test-result-1: ${{ steps.get_test_result.outputs.test-result-1 }}
+      test-result-2: ${{ steps.get_test_result.outputs.test-result-2 }}
+      test-result-3: ${{ steps.get_test_result.outputs.test-result-3 }}
+      test-result-4: ${{ steps.get_test_result.outputs.test-result-4 }}
+      test-result-5: ${{ steps.get_test_result.outputs.test-result-5 }}
+      test-result-6: ${{ steps.get_test_result.outputs.test-result-6 }}
+      test-result-7: ${{ steps.get_test_result.outputs.test-result-7 }}
+      test-summary-1: ${{ steps.get_test_result.outputs.test-summary-1 }}
+      test-summary-2: ${{ steps.get_test_result.outputs.test-summary-2 }}
+      test-summary-3: ${{ steps.get_test_result.outputs.test-summary-3 }}
+      test-summary-4: ${{ steps.get_test_result.outputs.test-summary-4 }}
+      test-summary-5: ${{ steps.get_test_result.outputs.test-summary-5 }}
+      test-summary-6: ${{ steps.get_test_result.outputs.test-summary-6 }}
+      test-summary-7: ${{ steps.get_test_result.outputs.test-summary-7 }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout testinfra Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/testinfra
+          path: ./
+          token: ${{ env.GH_TOKEN }}
+
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: Configure ACK Context ${{ inputs.CLOUD_ENV_NAME }}
+        id: cloud_env
+        run: |
+          mkdir -p $HOME/.kube
+          touch $HOME/.kube/config
+          CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
+          if [[ -z "$CLOUD_ENV_NAME" ]]; then
+              CLOUD_ENV_NAME="dev"
+          fi
+          echo CLOUD_ENV_NAME="$CLOUD_ENV_NAME" >> $GITHUB_ENV
+
+          E2E_ENV_VARS=""
+          case "$CLOUD_ENV_NAME" in
+              dev)
+                  echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_DEV }}"
+              ;;
+              idc)
+                  echo '${{ env.IDC_KUBECONFIG }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC }}"
+              ;;
+              idc1)
+                  echo '${{ env.IDC_KUBECONFIG_1 }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC1 }}"
+              ;;
+              idc2)
+                  echo '${{ env.IDC_KUBECONFIG_2 }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC2 }}"
+              ;;
+              idc4)
+                  echo '${{ env.IDC_KUBECONFIG_4 }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC4 }}"
+              ;;
+          esac
+          echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
+
+      - name: Continue Waiting for Cloud E2E
+        run: |
+          TEST_JOB_INDEX="${{ matrix.test-job-index }}"
+          CLOUD_E2E_TEST_POD_NAME=""
+          CHECK_COMPLETED=""
+          case "${TEST_JOB_INDEX}" in
+              01)
+                  CLOUD_E2E_TEST_POD_NAME="${{ needs.e2e-engine-run.outputs.pod-name-1 }}"
+                  CHECK_COMPLETED="${{ needs.e2e-engine-run.outputs.check-completed-1 }}"
+              ;;
+              02)
+                  CLOUD_E2E_TEST_POD_NAME="${{ needs.e2e-engine-run.outputs.pod-name-2 }}"
+                  CHECK_COMPLETED="${{ needs.e2e-engine-run.outputs.check-completed-2 }}"
+              ;;
+              03)
+                  CLOUD_E2E_TEST_POD_NAME="${{ needs.e2e-engine-run.outputs.pod-name-3 }}"
+                  CHECK_COMPLETED="${{ needs.e2e-engine-run.outputs.check-completed-3 }}"
+              ;;
+              04)
+                  CLOUD_E2E_TEST_POD_NAME="${{ needs.e2e-engine-run.outputs.pod-name-4 }}"
+                  CHECK_COMPLETED="${{ needs.e2e-engine-run.outputs.check-completed-4 }}"
+              ;;
+              05)
+                  CLOUD_E2E_TEST_POD_NAME="${{ needs.e2e-engine-run.outputs.pod-name-5 }}"
+                  CHECK_COMPLETED="${{ needs.e2e-engine-run.outputs.check-completed-5 }}"
+              ;;
+              06)
+                  CLOUD_E2E_TEST_POD_NAME="${{ needs.e2e-engine-run.outputs.pod-name-6 }}"
+                  CHECK_COMPLETED="${{ needs.e2e-engine-run.outputs.check-completed-6 }}"
+              ;;
+              07)
+                  CLOUD_E2E_TEST_POD_NAME="${{ needs.e2e-engine-run.outputs.pod-name-7 }}"
+                  CHECK_COMPLETED="${{ needs.e2e-engine-run.outputs.check-completed-7 }}"
+              ;;
+          esac
+          echo CLOUD_E2E_TEST_POD_NAME="$CLOUD_E2E_TEST_POD_NAME" >> $GITHUB_ENV
+          
+          set +e
+          set -o nounset
+
+          if [[ -z "${CLOUD_E2E_TEST_POD_NAME}" ]]; then
+              echo "cloud-e2e-test-pod-name is empty, cannot continue waiting"
+              exit 1
+          fi
+
+          if [[ "${CHECK_COMPLETED}" == "true" ]]; then
+              echo "cloud-e2e-run is already completed waiting for pod ${CLOUD_E2E_TEST_POD_NAME}"
+          
+          else
+              START_TIME=$(date +%s)
+              MAX_WAIT_SECONDS=18000
+    
+              while true; do
+                  if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" ; then
+                      echo "Cloud E2E Test is Done"
+                      break
+                  fi
+    
+                  ELAPSED=$(($(date +%s) - START_TIME))
+                  if [[ ${ELAPSED} -gt ${MAX_WAIT_SECONDS} ]]; then
+                      echo "Timeout waiting for Cloud E2E in result job"
+                      exit 1
+                  fi
+    
+                  kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} --tail=5
+                  sleep 1
+              done
+          fi
 
       - name: Get Test Result
         if: ${{ always() }}
