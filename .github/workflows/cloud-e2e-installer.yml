@@ -158,6 +158,12 @@ jobs:
 
       - name: install kb cloud
         run: |
+          kubectl create secret docker-registry kb-addon-test-registry-key \
+              --docker-server="${{ env.DOCKER_REGISTRY_URL_INDEX }}" \
+              --docker-username='${{ env.DOCKER_REGISTRY_USER }}' \
+              --docker-password='${{ env.DOCKER_REGISTRY_PASSWORD }}' \
+              --docker-email="" -n kb-cloud
+          
           helm repo add kb-chart https://apecloud.github.io/helm-charts
           
           helm install installer kb-chart/kb-cloud-installer \
@@ -170,6 +176,7 @@ jobs:
               --set fqdn.domain=mytest.kubeblocks.com \
               --set tls.enabled=true \
               --set ingress.routeType="host" \
+              --set image.pullSecrets[0].name=kb-addon-test-registry-key \
               --set metaDB.zalandoOperator.clusterConfig.resources.requests.cpu="100m" \
               --set metaDB.zalandoOperator.clusterConfig.resources.requests.memory="128Mi"
 
