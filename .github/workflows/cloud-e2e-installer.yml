@@ -58,6 +58,7 @@ env:
   DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
   JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
+  KB_ADDON_SECRET_NAME: "kb-addon-test-registry-key"
   PROJECT_ID: 165897
   UPGRADE_RESULT: 0
 
@@ -156,14 +157,28 @@ jobs:
               --version v1.16.0 \
               --set crds.enabled=true
 
+      - name: create secret ${{ env.KB_ADDON_SECRET_NAME }}
+        run: |
+          KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
+          DOCKER_REGISTRY_URL_INDEX="${{ env.DOCKER_REGISTRY_URL_INDEX }}"
+          DOCKER_REGISTRY_USER="${{ env.DOCKER_REGISTRY_USER }}"
+          DOCKER_REGISTRY_PASSWORD="${{ env.DOCKER_REGISTRY_PASSWORD }}"
+          
+          for ns in kb-cloud kb-system; do
+              if ! kubectl get namespace "$ns" >/dev/null 2>&1; then
+                  kubectl create namespace "$ns"
+              fi
+              kubectl create secret docker-registry "${KB_ADDON_SECRET_NAME}" \
+                  --docker-server="${DOCKER_REGISTRY_URL_INDEX}" \
+                  --docker-username="${DOCKER_REGISTRY_USER}" \
+                  --docker-password="${DOCKER_REGISTRY_PASSWORD}" \
+                  --docker-email="" \
+                  -n "$ns" --dry-run=client -o yaml | kubectl apply -f -
+          done
+
       - name: install kb cloud
         run: |
-          kubectl create secret docker-registry kb-addon-test-registry-key \
-              --docker-server="${{ env.DOCKER_REGISTRY_URL_INDEX }}" \
-              --docker-username='${{ env.DOCKER_REGISTRY_USER }}' \
-              --docker-password='${{ env.DOCKER_REGISTRY_PASSWORD }}' \
-              --docker-email="" -n kb-cloud
-          
+          KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
           helm repo add kb-chart https://apecloud.github.io/helm-charts
           
           helm install installer kb-chart/kb-cloud-installer \
@@ -176,7 +191,7 @@ jobs:
               --set fqdn.domain=mytest.kubeblocks.com \
               --set tls.enabled=true \
               --set ingress.routeType="host" \
-              --set image.pullSecrets[0].name=kb-addon-test-registry-key \
+              --set image.pullSecrets[0].name=${KB_ADDON_SECRET_NAME} \
               --set metaDB.zalandoOperator.clusterConfig.resources.requests.cpu="100m" \
               --set metaDB.zalandoOperator.clusterConfig.resources.requests.memory="128Mi"
 
@@ -295,11 +310,6 @@ jobs:
         id: deploy_kb_cloud_env
         run: |
           sleep 10
-          kubectl create secret docker-registry kb-addon-test-registry-key \
-              --docker-server="${{ env.DOCKER_REGISTRY_URL_INDEX }}" \
-              --docker-username='${{ env.DOCKER_REGISTRY_USER }}' \
-              --docker-password='${{ env.DOCKER_REGISTRY_PASSWORD }}' \
-              --docker-email="" -n kb-system
           check_status=0
           patch_sa_flag=0
           
