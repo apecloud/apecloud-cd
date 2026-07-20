@@ -230,7 +230,6 @@ jobs:
   e2e-engine-run:
     if: ${{ always() }}
     needs: [ get-test-engine, e2e-cluster-clear ]
-    name: run ${{ matrix.test-engine }}
     strategy:
       max-parallel: 1
       fail-fast: false
