@@ -13,6 +13,36 @@ add_chart_repo() {
     helm repo update ${KB_ENT_REPO_NAME}
 }
 
+get_helm_release_status() {
+    local release_name=$1
+    helm list -n kb-system --all --filter "^${release_name}$" --output json 2>/dev/null | yq e '.[0].status // "unknown"' -
+}
+
+rollback_abnormal_release() {
+    local release_name=$1
+    local release_status
+    release_status=$(get_helm_release_status "${release_name}")
+    if [[ -z "${release_status}" || "${release_status}" == "deployed" ]]; then
+        return 0
+    fi
+
+    echo "release ${release_name} status is ${release_status}, rollback to previous revision before upgrade"
+    helm rollback -n kb-system "${release_name}"
+    local retry=0
+    local max_retry=60
+    while [[ $retry -lt $max_retry ]]; do
+        sleep 2
+        release_status=$(get_helm_release_status "${release_name}")
+        if [[ "${release_status}" == "deployed" ]]; then
+            echo "release ${release_name} rollback success, status: deployed"
+            return 0
+        fi
+        retry=$((retry + 1))
+    done
+    echo "$(tput -T xterm setaf 1)::error title=release ${release_name} rollback timeout, current status: ${release_status} $(tput -T xterm sgr0)"
+    return 1
+}
+
 upgrade_charts_addon() {
     if [[ ! -f "${MANIFESTS_FILE}" ]]; then
         echo "$(tput -T xterm setaf 1)::error title=Not found manifests file:${MANIFESTS_FILE} $(tput -T xterm sgr0)"
@@ -20,7 +50,7 @@ upgrade_charts_addon() {
     fi
 
     upgrade_flag=0
-    deploy_addons=$(helm list -n kb-system | (grep "kb-addon-" || true) | awk '{print $1}')
+    deploy_addons=$(helm list -n kb-system --all | (grep "kb-addon-" || true) | awk '$8 != "uninstalled" && $8 != "superseded" {print $1}')
     charts_name=$(yq e "to_entries|map(.key)|.[]"  ${MANIFESTS_FILE})
     kubeblocks_version="$(helm get metadata -n kb-system kubeblocks | (grep "VERSION:" | grep -v "APP_VERSION:" || true ) | awk '{print $2}')"
     for chart_name in $(echo "$charts_name"); do
@@ -42,6 +72,11 @@ upgrade_charts_addon() {
         done
 
         if [[ $deploy_flag -eq 0 || -z "${deploy_addon_tmp}" ]]; then
+            continue
+        fi
+        # rollback abnormal release before upgrade
+        if ! rollback_abnormal_release "${deploy_addon_tmp}"; then
+            echo "$(tput -T xterm setaf 1)::error title=skip upgrade addon ${chart_name} due to abnormal release:${deploy_addon_tmp} $(tput -T xterm sgr0)"
             continue
         fi
 
