@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+set +x
 
 readonly APPROVED_ACR_PREFIX="apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/"
 
@@ -44,6 +45,6 @@ for ref in "$@"; do
         exit 1
     fi
 
-    printf 'ref=%s root_digest=%s linux_amd64_digest=%s\n' \
+    printf 'ref=%s root_digest=%s linux_amd64_digest=%s rc=0\n' \
         "${ref}" "${root_digest}" "${amd64_digest}"
 done

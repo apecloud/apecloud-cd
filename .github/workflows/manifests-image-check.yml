@@ -157,5 +157,5 @@ jobs:
       - name: Read ACR manifest digests
         run: |
           bash "${{ github.workspace }}/.github/utils/read_acr_manifest_digests.sh" \
-            "${{ env.ALIYUN_REGISTRY_URL }}/apecloud/rustfs/rustfs:1.0.0-beta.10" \
+            "${{ env.ALIYUN_REGISTRY_URL }}/apecloud/rustfs:1.0.0-beta.10" \
             "${{ env.ALIYUN_REGISTRY_URL }}/apecloud/kubeblocks-tools:1.0.0"
