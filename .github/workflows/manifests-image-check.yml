@@ -32,6 +32,11 @@ on:
           - default
           - aliyun
           - dockerhub
+      READBACK_ACR_DIGESTS:
+        description: "Read only: report the approved RustFS beta.10 and kubeblocks-tools ACR digests"
+        type: boolean
+        required: false
+        default: false
   workflow_call:
     inputs:
       MANIFESTS_FILE:
@@ -59,6 +64,11 @@ on:
         default: ''
         type: string
         required: false
+      READBACK_ACR_DIGESTS:
+        description: "Read only: report the approved RustFS beta.10 and kubeblocks-tools ACR digests"
+        type: boolean
+        required: false
+        default: false
 
 run-name: check images ${{ inputs.CHECK_REGISTRY }}
 
@@ -74,6 +84,7 @@ env:
 
 jobs:
   images-check:
+    if: ${{ !inputs.READBACK_ACR_DIGESTS }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -128,3 +139,23 @@ jobs:
                   bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_image_check.sh "${MANIFESTS_FILE}"
               ;;
           esac
+
+  acr-digest-readback:
+    if: ${{ inputs.READBACK_ACR_DIGESTS }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Login to Aliyun Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.ALIYUN_REGISTRY_URL }}
+          username: ${{ env.ALIYUN_USER }}
+          password: ${{ env.ALIYUN_PASSWORD }}
+
+      - name: Read ACR manifest digests
+        run: |
+          bash "${{ github.workspace }}/.github/utils/read_acr_manifest_digests.sh" \
+            "${{ env.ALIYUN_REGISTRY_URL }}/apecloud/rustfs/rustfs:1.0.0-beta.10" \
+            "${{ env.ALIYUN_REGISTRY_URL }}/apecloud/kubeblocks-tools:1.0.0"
