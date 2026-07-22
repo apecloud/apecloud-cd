@@ -34,7 +34,7 @@ on:
         default: ''
         options:
           -
-          - dev
+          - KB1.0
           - idc
           - idc1
           - idc2
