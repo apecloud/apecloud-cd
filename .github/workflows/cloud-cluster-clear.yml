@@ -9,6 +9,7 @@ on:
         required: true
         default: 'idc1'
         options:
+          - dev
           - idc
           - idc1
           - idc2
@@ -33,6 +34,7 @@ on:
         default: ''
         options:
           -
+          - dev
           - idc
           - idc1
           - idc2
@@ -63,6 +65,7 @@ on:
 run-name: Cloud Cluster Clear on Env:${{ inputs.cloud_env_name }} ${{ inputs.delete_env_name }} Org:${{ inputs.cloud_org_name }} ${{ inputs.cloud_version }}
 
 env:
+  ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
   IDC_KUBECONFIG: ${{ secrets.IDC_KUBECONFIG }}
   IDC_KUBECONFIG_1: ${{ secrets.IDC_KUBECONFIG_1 }}
   IDC_KUBECONFIG_2: ${{ secrets.IDC_KUBECONFIG_2 }}
@@ -104,6 +107,9 @@ jobs:
               ;;
               idc4)
                   echo '${{ env.IDC_KUBECONFIG_4 }}' > $HOME/.kube/config
+              ;;
+              dev)
+                  echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
               ;;
           esac
           
@@ -147,6 +153,10 @@ jobs:
               idc4)
                   echo '${{ env.IDC_KUBECONFIG_4 }}' > $HOME/.kube/config
                   E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_IDC4 }}"
+              ;;
+              dev)
+                  echo '${{ env.IDC_KUBECONFIG_4 }}' > $HOME/.kube/config
+                  E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_DEV }}"
               ;;
           esac
           echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
