@@ -3,8 +3,8 @@ name: Cloud E2E Schedule Web
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 12 * * 0-4' # Runs at 3:00 UTC on Mon to Friday
-    - cron: '0 12 * * 6' # Runs at 5:00 UTC on Sun
+    # 20:00 Asia/Shanghai, Sunday through Friday.
+    - cron: '0 12 * * 0-5'
 
 jobs:
   get-test-engine:
@@ -73,4 +73,3 @@ jobs:
       APECD_REF: "main"
       EXTRA_ARGS: "TEST_ENGINES=${{ needs.get-test-engine.outputs.test-engines }}#CLOUD_ENV_NAME=idc#CLOUD_VERSION=2.2#TEST_TYPE=click"
     secrets: inherit
-

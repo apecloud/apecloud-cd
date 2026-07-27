@@ -22,12 +22,43 @@ def _int(value: Any) -> int:
         return 0
 
 
-def _rate(counts: Mapping[str, Any]) -> str:
+def _stored_rate(counts: Mapping[str, Any], name: str) -> str:
+    value = counts.get(name)
+    if value is None:
+        return ""
+    try:
+        return f"{float(value):.1f}%"
+    except (TypeError, ValueError):
+        return ""
+
+
+def _execution_rate(counts: Mapping[str, Any]) -> str:
+    stored = _stored_rate(counts, "execution_pass_rate")
+    if stored:
+        return stored
     passed = _int(counts.get("passed"))
     failed = _int(counts.get("failed"))
-    broken = _int(counts.get("broken"))
-    executable = passed + failed + broken
+    executable = passed + failed
     return f"{passed / executable * 100:.1f}%" if executable else "0.0%"
+
+
+def _effective_rate(counts: Mapping[str, Any]) -> str:
+    stored = _stored_rate(counts, "effective_pass_rate")
+    if stored:
+        return stored
+    passed = _int(counts.get("passed"))
+    denominator = (
+        passed
+        + _int(counts.get("failed"))
+        + _int(counts.get("broken"))
+        + _int(counts.get("blocked"))
+        + _int(counts.get("not_reached"))
+    )
+    return f"{passed / denominator * 100:.1f}%" if denominator else "0.0%"
+
+
+def _rate_pair(counts: Mapping[str, Any]) -> str:
+    return f"{_execution_rate(counts)} / {_effective_rate(counts)}"
 
 
 def _safe_field(value: Any) -> str:
@@ -57,17 +88,28 @@ def notification_fragment(
             or "default"
         )
         failed = _int(counts.get("failed"))
-        broken = _int(counts.get("broken")) + _int(counts.get("not_reached"))
-        status = "FAILED" if failed else "BROKEN" if broken else "PASSED"
+        broken = _int(counts.get("broken"))
+        blocked = _int(counts.get("blocked"))
+        not_reached = _int(counts.get("not_reached"))
+        status = (
+            "FAILED"
+            if failed
+            else "BROKEN"
+            if broken or blocked or not_reached
+            else "PASSED"
+        )
         rows.append("|".join([
             row_engine,
             spec,
-            _rate(counts),
+            _rate_pair(counts),
             status,
             str(_int(counts.get("passed"))),
             str(failed),
-            str(_int(counts.get("skipped")) + _int(counts.get("unsupported"))),
+            str(_int(counts.get("skipped"))),
             str(broken),
+            str(blocked),
+            str(_int(counts.get("unsupported"))),
+            str(not_reached),
         ]))
 
     # Initialization failures may terminate the run before any test case starts,
@@ -75,24 +117,29 @@ def notification_fragment(
     # interruption, so the notification must not contain an empty summary.
     if not rows:
         failed = _int(totals.get("failed"))
-        broken = _int(totals.get("broken")) + _int(totals.get("not_reached"))
+        broken = _int(totals.get("broken"))
+        blocked = _int(totals.get("blocked"))
+        not_reached = _int(totals.get("not_reached"))
         top_status = str(summary.get("status") or "").lower()
         status = (
             "FAILED"
             if failed
             else "BROKEN"
-            if broken or top_status == "broken"
+            if broken or blocked or not_reached or top_status == "broken"
             else "PASSED"
         )
         rows.append("|".join([
             engine,
             "run",
-            _rate(totals),
+            _rate_pair(totals),
             status,
             str(_int(totals.get("passed"))),
             str(failed),
-            str(_int(totals.get("skipped")) + _int(totals.get("unsupported"))),
+            str(_int(totals.get("skipped"))),
             str(broken),
+            str(blocked),
+            str(_int(totals.get("unsupported"))),
+            str(not_reached),
         ]))
 
     failed_subjects = []
@@ -113,7 +160,7 @@ def notification_fragment(
         ) + f"<a href='{issue_url}'>Issue</a>"
     data = "##".join(rows)
     return (
-        f"###{engine}###{_rate(totals)}###{report_url}"
+        f"###{engine}###{_effective_rate(totals)}###{report_url}"
         f"@@@{data}@@@{_safe_field(fail_ops)}"
     )
 

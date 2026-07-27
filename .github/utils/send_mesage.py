@@ -1688,8 +1688,8 @@ def send_kbcli_message(url_v, result_v, title_v):
     res = requests.post(url=url_v, data=body, headers=headers)
     print(res.text)
 
-FEISHU_HARD_LIMIT_BYTES = 30 * 1024
-FEISHU_TARGET_BYTES = int(os.getenv("FEISHU_TARGET_BYTES", str(27 * 1024)))
+FEISHU_HARD_LIMIT_BYTES = 30_000
+FEISHU_TARGET_BYTES = int(os.getenv("FEISHU_TARGET_BYTES", "27000"))
 FEISHU_MAX_RETRIES = int(os.getenv("FEISHU_MAX_RETRIES", "3"))
 
 
@@ -1714,7 +1714,7 @@ def _playwright_header():
         "columns": [
             _playwright_col("**Engine**", 1),
             _playwright_col("**Test Spec**", 2),
-            _playwright_col("**Pass Rate**", 1),
+            _playwright_col("**Exec / Effective**", 1),
             _playwright_col("**Fail Ops**", 1),
             _playwright_col("**Report**", 1),
         ],
@@ -1881,13 +1881,29 @@ def _parse_playwright_rows(result_v, job_url_v=""):
                 values = pair.split("|")
                 if len(values) < 8:
                     continue
-                _, spec, row_rate, status, _succ, fail, _skip, _extra = values[:8]
+                row_engine, spec, row_rate, status = values[:4]
+                fail = values[5]
+                broken = _safe_int(values[7])
+                blocked = _safe_int(values[8]) if len(values) > 8 else 0
+                unsupported = _safe_int(values[9]) if len(values) > 9 else 0
+                not_reached = _safe_int(values[10]) if len(values) > 10 else 0
+                issue_parts = []
+                if _safe_int(fail) > 0 and fail_ops:
+                    issue_parts.append(fail_ops)
+                if broken:
+                    issue_parts.append(f"Broken {broken}")
+                if blocked:
+                    issue_parts.append(f"Blocked {blocked}")
+                if not_reached:
+                    issue_parts.append(f"Not reached {not_reached}")
+                if unsupported and status != "PASSED":
+                    issue_parts.append(f"Unsupported {unsupported}")
                 rows.append(_playwright_row(
-                    engine=engine,
+                    engine=row_engine or engine,
                     spec=spec,
                     rate=row_rate or pass_rate,
                     status=status,
-                    fail_ops=fail_ops if _safe_int(fail) > 0 else "",
+                    fail_ops=" · ".join(issue_parts),
                     report_url=report_url,
                     job_url=job_url,
                 ))
@@ -1945,6 +1961,16 @@ def _paginate_playwright_rows(rows, title, target_bytes=None):
 def send_playwright_message(url_v, result_v, title_v, job_url_v="", failed=False):
     print("send playwright message")
     rows = _parse_playwright_rows(result_v, job_url_v)
+    if not rows:
+        rows = [_playwright_row(
+            engine="workflow",
+            spec="run",
+            rate="0.0% / 0.0%",
+            status="BROKEN",
+            fail_ops="No structured test result was collected",
+            report_url="",
+            job_url=job_url_v,
+        )]
     pages = _paginate_playwright_rows(rows, title_v)
     total = len(pages)
     def send_page(page_rows, page_title):

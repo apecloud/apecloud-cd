@@ -299,6 +299,7 @@ jobs:
 
       - name: run ${{ matrix.test-type }}
         run: |
+          set -o pipefail
           run_file_log="run_e2e_test_result.log"
           touch ${run_file_log} 
           
@@ -332,9 +333,14 @@ jobs:
           echo CLOUD_E2E_TEST_POD_NAME="$CLOUD_E2E_TEST_POD_NAME" >> $GITHUB_ENV
 
       - name: Waiting for Cloud E2E Web to be Completed
+        timeout-minutes: 180
         run: |
           set +e
           set -o nounset
+          if [[ -z "${CLOUD_E2E_TEST_POD_NAME:-}" ]]; then
+              echo "Cloud E2E Web pod name was not produced"
+              exit 1
+          fi
           sleep 10
           while true; do
               if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" ; then
@@ -356,28 +362,31 @@ jobs:
           file_log="test_result.log"
           test_file_log_path="${{ github.workspace }}/${file_log}"
           touch ${test_file_log_path}
+          CLOUD_E2E_TEST_POD_NAME="${CLOUD_E2E_TEST_POD_NAME:-}"
           
           set +e
           set -o nounset
-          for i in $(seq 1 10); do
-              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${test_file_log_path}
-              log_ret=$?
-              if [[ $log_ret -eq 0 ]]; then
-                  break
-              fi
-              sleep 1
-          done
-          
-          for i in $(seq 1 10); do
-              kubectl delete pod -n default ${CLOUD_E2E_TEST_POD_NAME} --force
-              delete_ret=$?
-              if [[ $delete_ret -eq 0 ]]; then
-                  break
-              fi
-              sleep 1
-          done
           if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" ]]; then
+              for i in $(seq 1 10); do
+                  kubectl logs -n default "${CLOUD_E2E_TEST_POD_NAME}" > "${test_file_log_path}"
+                  log_ret=$?
+                  if [[ $log_ret -eq 0 ]]; then
+                      break
+                  fi
+                  sleep 1
+              done
+
+              for i in $(seq 1 10); do
+                  kubectl delete pod -n default "${CLOUD_E2E_TEST_POD_NAME}" --force
+                  delete_ret=$?
+                  if [[ $delete_ret -eq 0 ]]; then
+                      break
+                  fi
+                  sleep 1
+              done
               kubectl delete secret -n default ${CLOUD_E2E_TEST_POD_NAME}-oss --ignore-not-found=true
+          else
+              echo "Cloud E2E Web pod name is empty; emitting a BROKEN result"
           fi
           set -e
 
@@ -442,9 +451,15 @@ jobs:
           else
             TEST_RESULT=""
           fi
+
+          if [[ -z "${TEST_RESULT}" ]]; then
+            TEST_RESULT="###${{ matrix.test-engine }}###0.0%@@@${{ matrix.test-engine }}|run|0.0% / 0.0%|BROKEN|0|0|0|1|0|0|1##@@@No structured test result was collected"
+          fi
           
           if [[ "${STRUCTURED_SUMMARY_READY}" == "true" ]]; then
             test_ret=$(python3 -c 'import json,sys; s=json.load(open(sys.argv[1])); print("FAILED" if s.get("status") not in ("passed", "success") else "")' e2e-summary.json)
+          elif [[ -z "${FMT}" ]]; then
+            test_ret="FAILED"
           else
             test_ret=$(grep -qE "PLAYWRIGHT TEST FAILED|CLICK TEST FAILED" "${test_file_log_path}" && echo "FAILED" || true)
           fi
@@ -675,6 +690,7 @@ jobs:
           for test_engines_all in $(echo "${TEST_ENGINES_ALL}" | sed 's/##/ /g'); do
               test_engines=${test_engines_all%%|*}
               test_job_index=${test_engines_all#*|}
+              TEST_RESULT=""
               case "${test_job_index}" in
                   01)
                       TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-1 }}"
@@ -818,6 +834,9 @@ jobs:
                       TEST_RESULT_ALL="${TEST_RESULT_ALL}${TEST_RESULT}"
                   ;;
               esac
+              if [[ -z "${TEST_RESULT}" ]]; then
+                  TEST_RESULT_ALL="${TEST_RESULT_ALL}###${test_engines}###0.0%@@@${test_engines}|run|0.0% / 0.0%|BROKEN|0|0|0|1|0|0|1##@@@No matrix test output was collected"
+              fi
           done
           
           echo "TEST_RESULT_ALL:${TEST_RESULT_ALL}"
