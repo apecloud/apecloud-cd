@@ -70,8 +70,9 @@ def notification_fragment(
             str(broken),
         ]))
 
-    # 初始化失败等场景可能在任何测试用例开始前就终止，此时 results 为空，
-    # 但顶层 counts/status 仍然能说明这是框架中断，不能发送成一条空摘要。
+    # Initialization failures may terminate the run before any test case starts,
+    # leaving results empty. Top-level counts/status still identify a framework
+    # interruption, so the notification must not contain an empty summary.
     if not rows:
         failed = _int(totals.get("failed"))
         broken = _int(totals.get("broken")) + _int(totals.get("not_reached"))

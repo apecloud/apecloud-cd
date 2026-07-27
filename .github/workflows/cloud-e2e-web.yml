@@ -91,8 +91,9 @@ on:
 
 run-name: Cloud E2E Web Test on:${{ inputs.CLOUD_VERSION }} ${{ inputs.TEST_ENGINES }} Ref:${{ inputs.APECD_REF }}
 
-# failure_state.json 是按版本/环境/测试套件读改写的共享状态。同一路由的
-# 两个 workflow 并发会产生 last-write-wins，因此跨 run 串行、run 内 matrix 仍并行。
+# failure_state.json is shared read-modify-write state scoped by version,
+# environment, and test suite. Concurrent workflows on the same route would
+# cause last-write-wins updates, so runs are serialized while matrix jobs remain parallel.
 concurrency:
   group: cloud-e2e-web-${{ inputs.CLOUD_VERSION }}-${{ inputs.CLOUD_ENV_NAME }}-${{ inputs.TEST_TYPE }}
   cancel-in-progress: false
@@ -391,7 +392,8 @@ jobs:
             STRUCTURED_SUMMARY_READY=true
           fi
 
-          # summary.json 是主数据源；旧镜像没有 summary 时再解析控制台表格。
+          # summary.json is the primary data source. Fall back to parsing the
+          # console table only when an older image does not provide a summary.
           if grep -q "CLICK-RESULT" "${test_file_log_path}"; then
             FMT="click"
             MARKER="CLICK-RESULT"
