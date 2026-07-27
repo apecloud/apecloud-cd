@@ -1,0 +1,122 @@
+name: E2E Reproducible Issue
+
+on:
+  workflow_call:
+    inputs:
+      cloud-version:
+        description: Cloud version used to build the OSS run path.
+        type: string
+        required: true
+      environment:
+        description: Test environment used to build the OSS run path.
+        type: string
+        required: true
+      suite-type:
+        description: E2E suite type, smoke or click.
+        type: string
+        required: true
+      engines:
+        description: Engine/index list emitted by cloud-e2e-web.
+        type: string
+        required: true
+      test-date:
+        description: Test date in YYYYMMDD format.
+        type: string
+        required: true
+      run-id:
+        description: Originating GitHub Actions run ID.
+        type: string
+        required: true
+      run-attempt:
+        description: Originating GitHub Actions run attempt.
+        type: string
+        required: true
+      apecloud-cd-ref:
+        description: apecloud-cd ref containing the Issue manager.
+        type: string
+        required: false
+        default: main
+      repository:
+        description: Target GitHub repository.
+        type: string
+        required: false
+        default: apecloud/apecloud
+    secrets:
+      issue-token:
+        description: Token allowed to manage issues in the target repository.
+        required: true
+
+jobs:
+  process-issue-candidates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout apecloud-cd
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          ref: ${{ inputs.apecloud-cd-ref }}
+
+      - name: Create or update reproducible Issues
+        continue-on-error: true
+        env:
+          CLOUD_VERSION: ${{ inputs.cloud-version }}
+          TEST_ENVIRONMENT: ${{ inputs.environment }}
+          TEST_SUITE: ${{ inputs.suite-type }}
+          TEST_ENGINES: ${{ inputs.engines }}
+          TEST_DATE: ${{ inputs.test-date }}
+          SOURCE_RUN_ID: ${{ inputs.run-id }}
+          SOURCE_RUN_ATTEMPT: ${{ inputs.run-attempt }}
+          ISSUE_REPOSITORY: ${{ inputs.repository }}
+          ISSUE_TOKEN: ${{ secrets.issue-token }}
+          OSS_BUCKET: kubeblocks-oss
+          OSS_ENDPOINT: oss-cn-zhangjiakou.aliyuncs.com
+          OSS_PREFIX: reports/kbcloud
+        run: |
+          set -euo pipefail
+
+          sanitize() {
+            printf '%s' "${1:-unknown}" | sed 's/[^A-Za-z0-9._-]/_/g'
+          }
+
+          normalized_version="${CLOUD_VERSION}"
+          [[ "${normalized_version}" == v* ]] || normalized_version="v${normalized_version}"
+          safe_env=$(sanitize "${TEST_ENVIRONMENT}")
+          safe_suite=$(sanitize "${TEST_SUITE}")
+          year="${TEST_DATE:0:4}"
+          month="${TEST_DATE:4:2}"
+          day="${TEST_DATE:6:2}"
+          public_root="https://${OSS_BUCKET}.${OSS_ENDPOINT}/${OSS_PREFIX}"
+          action_url="https://github.com/${{ github.repository }}/actions/runs/${SOURCE_RUN_ID}"
+
+          processed=0
+          IFS='##' read -ra engine_entries <<< "${TEST_ENGINES}"
+          for entry in "${engine_entries[@]}"; do
+            engine="${entry%%|*}"
+            [[ -n "${engine}" ]] || continue
+            safe_engine=$(sanitize "${engine}")
+            run_root="${public_root}/runs/${normalized_version}/${safe_env}/${safe_suite}/${year}/${month}/${day}/${SOURCE_RUN_ID}/${SOURCE_RUN_ATTEMPT}/${safe_engine}"
+            summary_url="${run_root}/summary.json"
+            report_url="${run_root}/report.html"
+            summary_file="${RUNNER_TEMP}/e2e-summary-${safe_engine}.json"
+            output_file="${RUNNER_TEMP}/e2e-issues-${safe_engine}.json"
+
+            if ! curl -fsSL "${summary_url}" -o "${summary_file}"; then
+              echo "::warning::未找到 ${engine} 的 summary.json，跳过 Issue 处理"
+              continue
+            fi
+
+            if ! python3 .github/utils/web_e2e_summary.py issue \
+              --summary "${summary_file}" \
+              --repository "${ISSUE_REPOSITORY}" \
+              --token "${ISSUE_TOKEN}" \
+              --action-url "${action_url}" \
+              --report-url "${report_url}" \
+              --summary-url "${summary_url}" \
+              --output "${output_file}"; then
+              echo "::warning::${engine} 的 Issue 处理失败，继续处理其他引擎"
+              continue
+            fi
+            processed=$((processed + 1))
+          done
+
+          echo "已处理 ${processed} 个引擎的 Issue 候选"

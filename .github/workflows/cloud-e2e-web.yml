@@ -51,6 +51,11 @@ on:
         type: string
         required: false
         default: 'main'
+      ENABLE_E2E_ISSUES:
+        description: "Create/update reproducible issues in apecloud/apecloud"
+        type: boolean
+        required: false
+        default: false
   workflow_call:
     inputs:
       TEST_ENGINES:
@@ -78,8 +83,20 @@ on:
         type: string
         required: false
         default: 'main'
+      ENABLE_E2E_ISSUES:
+        description: "Create/update reproducible issues in apecloud/apecloud"
+        type: boolean
+        required: false
+        default: false
 
 run-name: Cloud E2E Web Test on:${{ inputs.CLOUD_VERSION }} ${{ inputs.TEST_ENGINES }} Ref:${{ inputs.APECD_REF }}
+
+# failure_state.json is shared read-modify-write state scoped by version,
+# environment, and test suite. Concurrent workflows on the same route would
+# cause last-write-wins updates, so runs are serialized while matrix jobs remain parallel.
+concurrency:
+  group: cloud-e2e-web-${{ inputs.CLOUD_VERSION }}-${{ inputs.CLOUD_ENV_NAME }}-${{ inputs.TEST_TYPE }}
+  cancel-in-progress: false
 
 env:
   ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
@@ -224,6 +241,7 @@ jobs:
       OSS_ENDPOINT: oss-cn-zhangjiakou.aliyuncs.com
       OSS_BUCKET: kubeblocks-oss
       OSS_PREFIX: reports/kbcloud
+      CLOUD_E2E_ISSUE_REPO: apecloud/apecloud
     steps:
       - name: Checkout testinfra Code
         uses: actions/checkout@v4
@@ -281,6 +299,7 @@ jobs:
 
       - name: run ${{ matrix.test-type }}
         run: |
+          set -o pipefail
           run_file_log="run_e2e_test_result.log"
           touch ${run_file_log} 
           
@@ -314,9 +333,14 @@ jobs:
           echo CLOUD_E2E_TEST_POD_NAME="$CLOUD_E2E_TEST_POD_NAME" >> $GITHUB_ENV
 
       - name: Waiting for Cloud E2E Web to be Completed
+        timeout-minutes: 180
         run: |
           set +e
           set -o nounset
+          if [[ -z "${CLOUD_E2E_TEST_POD_NAME:-}" ]]; then
+              echo "Cloud E2E Web pod name was not produced"
+              exit 1
+          fi
           sleep 10
           while true; do
               if kubectl get pods -n default | grep "${CLOUD_E2E_TEST_POD_NAME}" | egrep "Completed|Error" ; then
@@ -338,34 +362,47 @@ jobs:
           file_log="test_result.log"
           test_file_log_path="${{ github.workspace }}/${file_log}"
           touch ${test_file_log_path}
+          CLOUD_E2E_TEST_POD_NAME="${CLOUD_E2E_TEST_POD_NAME:-}"
           
           set +e
           set -o nounset
-          for i in $(seq 1 10); do
-              kubectl logs -n default ${CLOUD_E2E_TEST_POD_NAME} > ${test_file_log_path}
-              log_ret=$?
-              if [[ $log_ret -eq 0 ]]; then
-                  break
-              fi
-              sleep 1
-          done
-          
-          for i in $(seq 1 10); do
-              kubectl delete pod -n default ${CLOUD_E2E_TEST_POD_NAME} --force
-              delete_ret=$?
-              if [[ $delete_ret -eq 0 ]]; then
-                  break
-              fi
-              sleep 1
-          done
           if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" ]]; then
+              for i in $(seq 1 10); do
+                  kubectl logs -n default "${CLOUD_E2E_TEST_POD_NAME}" > "${test_file_log_path}"
+                  log_ret=$?
+                  if [[ $log_ret -eq 0 ]]; then
+                      break
+                  fi
+                  sleep 1
+              done
+
+              for i in $(seq 1 10); do
+                  kubectl delete pod -n default "${CLOUD_E2E_TEST_POD_NAME}" --force
+                  delete_ret=$?
+                  if [[ $delete_ret -eq 0 ]]; then
+                      break
+                  fi
+                  sleep 1
+              done
               kubectl delete secret -n default ${CLOUD_E2E_TEST_POD_NAME}-oss --ignore-not-found=true
+          else
+              echo "Cloud E2E Web pod name is empty; emitting a BROKEN result"
           fi
           set -e
 
           cat ${test_file_log_path}        
            
-           # Detect result format: CLICK-RESULT or PLAYWRIGHT-RESULT
+          TMP_REPORT_URL=$(grep '^\[OSS-REPORT-URL\]' "${test_file_log_path}" | tail -1 | sed 's/^\[OSS-REPORT-URL\]//')
+          TMP_SUMMARY_URL=$(grep '^\[OSS-SUMMARY-URL\]' "${test_file_log_path}" | tail -1 | sed 's/^\[OSS-SUMMARY-URL\]//')
+          echo "report-url=${TMP_REPORT_URL}" >> "$GITHUB_OUTPUT"
+          echo "summary-url=${TMP_SUMMARY_URL}" >> "$GITHUB_OUTPUT"
+          STRUCTURED_SUMMARY_READY=false
+          if [[ -n "${TMP_SUMMARY_URL}" ]] && curl -fsSL "${TMP_SUMMARY_URL}" -o e2e-summary.json; then
+            STRUCTURED_SUMMARY_READY=true
+          fi
+
+          # summary.json is the primary data source. Fall back to parsing the
+          # console table only when an older image does not provide a summary.
           if grep -q "CLICK-RESULT" "${test_file_log_path}"; then
             FMT="click"
             MARKER="CLICK-RESULT"
@@ -376,7 +413,12 @@ jobs:
             FMT=""
           fi
             
-          if [ -n "$FMT" ]; then
+          if [[ "${STRUCTURED_SUMMARY_READY}" == "true" ]]; then
+            TEST_RESULT=$(python3 apecloud-cd/.github/utils/web_e2e_summary.py \
+              notification \
+              --summary e2e-summary.json \
+              --report-url "${TMP_REPORT_URL}")
+          elif [ -n "$FMT" ]; then
             TEST_PARSED=$(awk -v m="$MARKER" -v fmt="$FMT" '
               $0 ~ m { in_block=1; next }
               in_block && /^  -/ { sep++; next }
@@ -405,13 +447,22 @@ jobs:
             TMP_RATE=$(echo "$TEST_PARSED" | grep '^RATE=' | cut -d= -f2-)
             TMP_DATA=$(echo "$TEST_PARSED" | grep '^DATA=' | cut -d= -f2-)
             TMP_FAILOPS=$(echo "$TEST_PARSED" | grep '^FAIL_OPS=' | cut -d= -f2-)
-            TMP_REPORT_URL=$(grep '^\[OSS-REPORT-URL\]' "${test_file_log_path}" | tail -1 | sed 's/^\[OSS-REPORT-URL\]//')
             TEST_RESULT="###${TMP_ENG:-NONE}###${TMP_RATE}###${TMP_REPORT_URL}@@@${TMP_DATA}@@@${TMP_FAILOPS:-}"
           else
             TEST_RESULT=""
           fi
+
+          if [[ -z "${TEST_RESULT}" ]]; then
+            TEST_RESULT="###${{ matrix.test-engine }}###0.0%@@@${{ matrix.test-engine }}|run|0.0% / 0.0%|BROKEN|0|0|0|1|0|0|1##@@@No structured test result was collected"
+          fi
           
-          test_ret=$(grep -qE "PLAYWRIGHT TEST FAILED|CLICK TEST FAILED" "${test_file_log_path}" && echo "FAILED" || true)          
+          if [[ "${STRUCTURED_SUMMARY_READY}" == "true" ]]; then
+            test_ret=$(python3 -c 'import json,sys; s=json.load(open(sys.argv[1])); print("FAILED" if s.get("status") not in ("passed", "success") else "")' e2e-summary.json)
+          elif [[ -z "${FMT}" ]]; then
+            test_ret="FAILED"
+          else
+            test_ret=$(grep -qE "PLAYWRIGHT TEST FAILED|CLICK TEST FAILED" "${test_file_log_path}" && echo "FAILED" || true)
+          fi
           
           TEST_JOB_INDEX="${{ matrix.test-job-index }}"
           delimiter="EOF_VAR_${TEST_JOB_INDEX}"
@@ -567,27 +618,27 @@ jobs:
                   echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               31)
-                  echo "test-result-30<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "test-result-31<<$delimiter" >> $GITHUB_OUTPUT
                   echo "$TEST_RESULT" >> $GITHUB_OUTPUT
                   echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               32)
-                  echo "test-result-30<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "test-result-32<<$delimiter" >> $GITHUB_OUTPUT
                   echo "$TEST_RESULT" >> $GITHUB_OUTPUT
                   echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               33)
-                  echo "test-result-30<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "test-result-33<<$delimiter" >> $GITHUB_OUTPUT
                   echo "$TEST_RESULT" >> $GITHUB_OUTPUT
                   echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               34)
-                  echo "test-result-30<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "test-result-34<<$delimiter" >> $GITHUB_OUTPUT
                   echo "$TEST_RESULT" >> $GITHUB_OUTPUT
                   echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
               35)
-                  echo "test-result-30<<$delimiter" >> $GITHUB_OUTPUT
+                  echo "test-result-35<<$delimiter" >> $GITHUB_OUTPUT
                   echo "$TEST_RESULT" >> $GITHUB_OUTPUT
                   echo "$delimiter" >> $GITHUB_OUTPUT
               ;;
@@ -596,7 +647,25 @@ jobs:
           if [[ -n "$test_ret" ]]; then
               exit 1
           fi
-  
+
+  # Optional and removable: deleting this job does not affect test result
+  # parsing, OSS state updates, job status, or Feishu notification.
+  e2e-reproducible-issue:
+    if: ${{ always() && inputs.ENABLE_E2E_ISSUES }}
+    needs: [ get-test-engine, e2e-web-test ]
+    uses: ./.github/workflows/e2e-reproducible-issue.yml
+    with:
+      cloud-version: ${{ needs.get-test-engine.outputs.cloud-version }}
+      environment: ${{ needs.get-test-engine.outputs.cloud-env-name }}
+      suite-type: ${{ inputs.TEST_TYPE }}
+      engines: ${{ needs.get-test-engine.outputs.test-engines-all }}
+      test-date: ${{ needs.get-test-engine.outputs.test-date }}
+      run-id: ${{ github.run_id }}
+      run-attempt: ${{ github.run_attempt }}
+      apecloud-cd-ref: ${{ inputs.APECD_REF }}
+      repository: apecloud/apecloud
+    secrets:
+      issue-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
   send-message:
     needs: [ get-test-engine, e2e-web-test ]
@@ -621,6 +690,7 @@ jobs:
           for test_engines_all in $(echo "${TEST_ENGINES_ALL}" | sed 's/##/ /g'); do
               test_engines=${test_engines_all%%|*}
               test_job_index=${test_engines_all#*|}
+              TEST_RESULT=""
               case "${test_job_index}" in
                   01)
                       TEST_RESULT="${{ needs.e2e-web-test.outputs.test-result-1 }}"
@@ -764,6 +834,9 @@ jobs:
                       TEST_RESULT_ALL="${TEST_RESULT_ALL}${TEST_RESULT}"
                   ;;
               esac
+              if [[ -z "${TEST_RESULT}" ]]; then
+                  TEST_RESULT_ALL="${TEST_RESULT_ALL}###${test_engines}###0.0%@@@${test_engines}|run|0.0% / 0.0%|BROKEN|0|0|0|1|0|0|1##@@@No matrix test output was collected"
+              fi
           done
           
           echo "TEST_RESULT_ALL:${TEST_RESULT_ALL}"
