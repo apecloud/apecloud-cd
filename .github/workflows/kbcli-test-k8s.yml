@@ -592,7 +592,7 @@ jobs:
     secrets: inherit
 
   test-polardbx:
-    if: ${{ ! (contains(inputs.KB_VERSION, 'v1.') && inputs.CLOUD_PROVIDER == 'aks') && needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'polardbx')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
+    if: ${{ ! (contains(inputs.KB_VERSION, 'v1.') && (inputs.CLOUD_PROVIDER == 'eks' || inputs.CLOUD_PROVIDER == 'aks')) && needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'polardbx')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
