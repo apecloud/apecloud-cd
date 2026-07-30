@@ -2,6 +2,10 @@ name: Releae Image Cache And Sync To Aliyun
 
 on:
   workflow_call:
+    outputs:
+      image-index-digest:
+        description: "OCI index digest produced by the successful image build"
+        value: ${{ jobs.release-image.outputs.image-index-digest }}
     inputs:
       MAKE_OPS_PRE:
         description: "The pre ops name of makefile (e.g. generate)"
@@ -114,6 +118,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
+      image-index-digest: ${{ steps.select_image_index_digest.outputs.image-index-digest }}
     steps:
       - name: Pre Check
         id: pre_check
@@ -210,6 +215,7 @@ jobs:
           password: ${{ env.DOCKER_PASSWORD }}
 
       - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && inputs.ARGS_TOKEN }}
+        id: build_with_args_token
         name: Build and Push to Docker Hub
         uses: docker/build-push-action@v5
         with:
@@ -230,6 +236,7 @@ jobs:
           sbom: false
 
       - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && ! inputs.ARGS_TOKEN }}
+        id: build_without_args_token
         name: Build and Push to Docker Hub
         uses: docker/build-push-action@v5
         with:
@@ -247,6 +254,36 @@ jobs:
           cache-to: type=gha,mode=max
           provenance: false
           sbom: false
+
+      - name: Validate and export OCI index digest
+        id: select_image_index_digest
+        shell: bash
+        env:
+          DIGEST_WITH_ARGS_TOKEN: ${{ steps.build_with_args_token.outputs.digest }}
+          DIGEST_WITHOUT_ARGS_TOKEN: ${{ steps.build_without_args_token.outputs.digest }}
+        run: |
+          set -euo pipefail
+
+          digests=()
+          if [[ -n "$DIGEST_WITH_ARGS_TOKEN" ]]; then
+            digests+=("$DIGEST_WITH_ARGS_TOKEN")
+          fi
+          if [[ -n "$DIGEST_WITHOUT_ARGS_TOKEN" ]]; then
+            digests+=("$DIGEST_WITHOUT_ARGS_TOKEN")
+          fi
+
+          if [[ ${#digests[@]} -ne 1 ]]; then
+            echo "expected exactly one successful image build digest, got ${#digests[@]}" >&2
+            exit 1
+          fi
+
+          image_index_digest="${digests[0]}"
+          if [[ ! "$image_index_digest" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "image build returned an invalid OCI index digest" >&2
+            exit 1
+          fi
+
+          echo "image-index-digest=$image_index_digest" >> "$GITHUB_OUTPUT"
 
   sync-to-aliyun:
     runs-on: ubuntu-latest
