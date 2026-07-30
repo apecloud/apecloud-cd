@@ -57,6 +57,36 @@ class ReleaseImageCacheSyncContractTest(unittest.TestCase):
             },
         )
 
+        steps = self.contract_workflow["jobs"]["contract"]["steps"]
+        self.assertEqual(
+            steps[2],
+            {
+                "name": "Install contract tools",
+                "run": (
+                    "python -m pip install --disable-pip-version-check "
+                    "PyYAML==6.0.2 ruff==0.11.13"
+                ),
+            },
+        )
+        self.assertEqual(
+            steps[3],
+            {
+                "name": "Check contract lint and format",
+                "run": (
+                    "ruff check .github/utils/test_release_image_cache_sync_contract.py\n"
+                    "ruff format --check "
+                    ".github/utils/test_release_image_cache_sync_contract.py\n"
+                ),
+            },
+        )
+        self.assertEqual(
+            steps[4],
+            {
+                "name": "Run reusable workflow contract",
+                "run": "python .github/utils/test_release_image_cache_sync_contract.py",
+            },
+        )
+
     def test_reusable_and_job_outputs_are_additive_and_exact(self) -> None:
         workflow_outputs = self.workflow["on"]["workflow_call"]["outputs"]
         self.assertEqual(
