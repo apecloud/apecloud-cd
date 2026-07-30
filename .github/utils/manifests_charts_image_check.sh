@@ -305,12 +305,6 @@ check_charts_images() {
                         set_values="${set_values} --set controller.admissionWebhooks.patch.image.image=apecloud/kube-webhook-certgen "
                         set_values="${set_values} --set controller.admissionWebhooks.patch.image.digest= "
                     ;;
-                    gemini)
-                        set_values="${set_values} --set victoria-metrics-cluster.enabled=false "
-                        set_values="${set_values} --set loki.enabled=false "
-                        set_values="${set_values} --set kubeviewer.enabled=false "
-                        set_values="${set_values} --set cr-exporter.enabled=false "
-                    ;;
                     kb-cloud-installer|dbdrag)
                         continue
                     ;;
