@@ -9,12 +9,20 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github/workflows/release-image-cache-sync.yml"
+CONTRACT_WORKFLOW = (
+    ROOT / ".github/workflows/test-release-image-cache-sync-contract.yml"
+)
+CONTRACT_PATHS = [
+    ".github/workflows/release-image-cache-sync.yml",
+    ".github/workflows/test-release-image-cache-sync-contract.yml",
+    ".github/utils/test_release_image_cache_sync_contract.py",
+]
 VALID_DIGEST_A = "sha256:" + "a" * 64
 VALID_DIGEST_B = "sha256:" + "b" * 64
 
 
-def load_workflow() -> dict:
-    workflow = yaml.safe_load(WORKFLOW.read_text())
+def load_workflow(path: Path) -> dict:
+    workflow = yaml.safe_load(path.read_text())
     workflow_on = workflow.get("on", workflow.get(True))
     if not isinstance(workflow_on, dict):
         raise AssertionError("workflow must define an on mapping")
@@ -33,8 +41,21 @@ def step_by_id(workflow: dict, step_id: str) -> dict:
 class ReleaseImageCacheSyncContractTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.workflow = load_workflow()
+        cls.workflow = load_workflow(WORKFLOW)
+        cls.contract_workflow = load_workflow(CONTRACT_WORKFLOW)
         cls.selector = step_by_id(cls.workflow, "select_image_index_digest")
+
+    def test_contract_workflow_trigger_matrix_is_exact(self) -> None:
+        triggers = self.contract_workflow["on"]
+        self.assertEqual(set(triggers), {"pull_request", "push"})
+        self.assertEqual(triggers["pull_request"], {"paths": CONTRACT_PATHS})
+        self.assertEqual(
+            triggers["push"],
+            {
+                "branches": ["main"],
+                "paths": CONTRACT_PATHS,
+            },
+        )
 
     def test_reusable_and_job_outputs_are_additive_and_exact(self) -> None:
         workflow_outputs = self.workflow["on"]["workflow_call"]["outputs"]
@@ -65,8 +86,14 @@ class ReleaseImageCacheSyncContractTest(unittest.TestCase):
         self.assertEqual(build_steps, [token_build, plain_build])
         self.assertLess(steps.index(token_build), steps.index(self.selector))
         self.assertLess(steps.index(plain_build), steps.index(self.selector))
-        self.assertIn("inputs.ARGS_TOKEN", token_build["if"])
-        self.assertIn("! inputs.ARGS_TOKEN", plain_build["if"])
+        self.assertEqual(
+            token_build["if"],
+            "${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && inputs.ARGS_TOKEN }}",
+        )
+        self.assertEqual(
+            plain_build["if"],
+            "${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && ! inputs.ARGS_TOKEN }}",
+        )
         for build in (token_build, plain_build):
             self.assertEqual(build["uses"], "docker/build-push-action@v5")
             self.assertIs(build["with"]["push"], True)
