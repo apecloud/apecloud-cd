@@ -1504,6 +1504,11 @@ def send_check_addon_version_message(url_v, result_v, title_v):
     print(res.text)
 
 
+def _natural_name_key(item):
+    name = item.split("|", 1)[0]
+    return re.sub(r'(\d+)', lambda m: m.group(1).zfill(8), name).lower()
+
+
 def send_kbcli_message(url_v, result_v, title_v):
     print("send message")
     json_results = []
@@ -1582,7 +1587,10 @@ def send_kbcli_message(url_v, result_v, title_v):
     json_results.append(json_ret)
 
     if result_v:
-        result_array = result_v.split("##")
+        result_array = sorted(
+            (r for r in result_v.split("##") if r),
+            key=_natural_name_key,
+        )
         for results in result_array:
             if results:
                 summary_color = "red"
