@@ -352,7 +352,7 @@ jobs:
           fi
 
       - name: Setup ossutil
-        if: ${{ always() && inputs.previous-version == '' && ! contains(inputs.test-args, 'ape-local') && ! contains(inputs.test-args, 'only-kubectl') }}
+        if: ${{ always() && ! contains(inputs.test-args, 'ape-local') && ! contains(inputs.test-args, 'only-kubectl') }}
         uses: manyuanrong/setup-ossutil@v2.0
         with:
           access-key-id: "${{ env.OSS_KEY_ID }}"
@@ -360,7 +360,7 @@ jobs:
           endpoint: "${{ env.OSS_ENDPOINT }}"
 
       - name: test result report
-        if: ${{ always() }}
+        if: ${{ always() && inputs.previous-version == '' && ! contains(inputs.test-args, 'ape-local') && ! contains(inputs.test-args, 'only-kubectl') }}
         id: test_result_report
         run: |
           test_result_report_output_file_log="test-result-report-output.log"
@@ -395,17 +395,16 @@ jobs:
                       result_engine_name=$(echo "$test_ret" | sed 's/^-----*-----\(.*\)(.*/\1/' | tr ' ' '_')
                   fi
               done
-          
-              if [[ -n "${result_engine_name}" && -n "${PREVIOUS_VERSION}" && "${{ inputs.test-args }}" != *"--ape-local"* && "${{ inputs.test-args }}" != *"--only-kubectl"* ]]; then
+              if [[ -n "${result_engine_name}" ]]; then
                   KUBEBLOCKS_VERSION="${{ env.KUBEBLOCKS_RELEASE_VERSION }}"
                   if [[ "${KUBEBLOCKS_VERSION}" != "v"* ]]; then
                       KUBEBLOCKS_VERSION="v${KUBEBLOCKS_VERSION}"
                   fi
                   OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}"
                   upload_file_name="${result_engine_name}Test_Report.log"
-                  sed -i 's/${{ env.AWS_ACCESS_KEY_ID }}/***/g' ${FILE_LOG}
-                  sed -i 's/${{ env.AWS_SECRET_ACCESS_KEY }}/***/g' ${FILE_LOG}
-                  sed -i 's/${{ env.JIHULAB_ACCESS_TOKEN }}/***/g' ${FILE_LOG}
+                  [[ -n "${{ env.AWS_ACCESS_KEY_ID }}" ]] && sed -i 's/${{ env.AWS_ACCESS_KEY_ID }}/***/g' ${FILE_LOG}
+                  [[ -n "${{ env.AWS_SECRET_ACCESS_KEY }}" ]] && sed -i 's/${{ env.AWS_SECRET_ACCESS_KEY }}/***/g' ${FILE_LOG}
+                  [[ -n "${{ env.JIHULAB_ACCESS_TOKEN }}" ]] && sed -i 's/${{ env.JIHULAB_ACCESS_TOKEN }}/***/g' ${FILE_LOG}
                   echo "cp -r ${FILE_LOG} ${upload_file_name}"
                   cp -r ${FILE_LOG} ${upload_file_name}
                   for i in $(seq 1 3); do
@@ -421,3 +420,42 @@ jobs:
                   done
               fi
           fi
+
+      - name: upload restart snapshot to oss
+        if: ${{ always() && inputs.previous-version != '' && ! contains(inputs.test-args, 'ape-local') && ! contains(inputs.test-args, 'only-kubectl') }}
+        run: |
+          # collect restart snapshot files generated during upgrade (only created when pods restarted)
+          snapshot_files=$(ls upgrade_restart_snapshot_*.log 2>/dev/null || true)
+          if [[ -z "$snapshot_files" ]]; then
+              echo "no restart snapshot files found, skip upload"
+              exit 0
+          fi
+          echo "found restart snapshot files:"
+          echo "$snapshot_files"
+
+          # redact potential secrets before packaging (guard against empty values to avoid sed empty-match corruption)
+          [[ -n "${{ env.AWS_ACCESS_KEY_ID }}" ]] && sed -i 's/${{ env.AWS_ACCESS_KEY_ID }}/***/g' $snapshot_files
+          [[ -n "${{ env.AWS_SECRET_ACCESS_KEY }}" ]] && sed -i 's/${{ env.AWS_SECRET_ACCESS_KEY }}/***/g' $snapshot_files
+          [[ -n "${{ env.JIHULAB_ACCESS_TOKEN }}" ]] && sed -i 's/${{ env.JIHULAB_ACCESS_TOKEN }}/***/g' $snapshot_files
+
+          KUBEBLOCKS_VERSION="${{ env.KUBEBLOCKS_RELEASE_VERSION }}"
+          if [[ "${KUBEBLOCKS_VERSION}" != "v"* ]]; then
+              KUBEBLOCKS_VERSION="v${KUBEBLOCKS_VERSION}"
+          fi
+          OSS_DIR="oss://${{ env.OSS_BUCKET }}/reports/kubeblocks/${KUBEBLOCKS_VERSION}"
+
+          tar_name="restart_snapshot_${GITHUB_RUN_ID}_$(date +%Y%m%d%H%M%S).tar.gz"
+          tar -czf "${tar_name}" ${snapshot_files}
+          echo "packaged restart snapshot: ${tar_name}"
+
+          for i in $(seq 1 3); do
+              ossutil cp -rf "${tar_name}" "${OSS_DIR}/${tar_name}"
+              upload_ret=$?
+              if [[ $upload_ret -eq 0 ]]; then
+                  echo "::notice::upload restart snapshot to ${OSS_DIR}/${tar_name}"
+                  break
+              else
+                  echo "::warning::upload ${tar_name} to oss failure (attempt $i)"
+              fi
+              sleep 1
+          done
