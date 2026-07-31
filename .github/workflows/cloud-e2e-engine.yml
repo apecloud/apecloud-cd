@@ -215,14 +215,10 @@ jobs:
 
   e2e-cluster-clear:
     needs: [ get-test-engine ]
-    strategy:
-      fail-fast: false
-      matrix:
-        kb-cloud-test-org: [ "e2e-test", "e2e-web" ]
     uses: ./.github/workflows/cloud-cluster-clear.yml
     with:
       cloud_env_name: "${{ inputs.CLOUD_ENV_NAME }}"
-      cloud_org_name: "${{ matrix.kb-cloud-test-org }}"
+      cloud_org_name: "e2e-test"
       cloud_version: "${{ needs.get-test-engine.outputs.cloud-branch }}"
       delete_env_name: "${{ inputs.CLOUD_TEST_ENV }}"
     secrets: inherit
