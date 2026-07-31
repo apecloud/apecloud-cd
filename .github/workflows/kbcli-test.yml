@@ -360,7 +360,7 @@ jobs:
           endpoint: "${{ env.OSS_ENDPOINT }}"
 
       - name: test result report
-        if: ${{ always() && inputs.previous-version == '' && ! contains(inputs.test-args, 'ape-local') && ! contains(inputs.test-args, 'only-kubectl') }}
+        if: ${{ always() && inputs.previous-version == '' && ! contains(inputs.test-args, '--upgrade true --keep-resource true') && ! contains(inputs.test-args, 'ape-local') && ! contains(inputs.test-args, 'only-kubectl') }}
         id: test_result_report
         run: |
           test_result_report_output_file_log="test-result-report-output.log"
@@ -422,7 +422,7 @@ jobs:
           fi
 
       - name: upload restart snapshot to oss
-        if: ${{ always() && inputs.previous-version != '' && ! contains(inputs.test-args, 'ape-local') && ! contains(inputs.test-args, 'only-kubectl') }}
+        if: ${{ always() && (inputs.previous-version != '' || contains(inputs.test-args, '--upgrade true --keep-resource true')) && ! contains(inputs.test-args, 'ape-local') && ! contains(inputs.test-args, 'only-kubectl') }}
         run: |
           # collect restart snapshot files generated during upgrade (only created when pods restarted)
           snapshot_files=$(ls upgrade_restart_snapshot_*.log 2>/dev/null || true)
