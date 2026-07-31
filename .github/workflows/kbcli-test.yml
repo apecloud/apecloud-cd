@@ -360,7 +360,7 @@ jobs:
           endpoint: "${{ env.OSS_ENDPOINT }}"
 
       - name: test result report
-        if: ${{ always() && inputs.previous-version == '' && ! contains(inputs.test-args, '--upgrade true --keep-resource true') && ! contains(inputs.test-args, 'ape-local') && ! contains(inputs.test-args, 'only-kubectl') }}
+        if: ${{ always() && ! contains(inputs.test-args, 'ape-local') && ! contains(inputs.test-args, 'only-kubectl') }}
         id: test_result_report
         run: |
           test_result_report_output_file_log="test-result-report-output.log"
@@ -395,7 +395,10 @@ jobs:
                       result_engine_name=$(echo "$test_ret" | sed 's/^-----*-----\(.*\)(.*/\1/' | tr ' ' '_')
                   fi
               done
-              if [[ -n "${result_engine_name}" ]]; then
+          
+              PREVIOUS_VERSION="${{ inputs.previous-version }}"
+              TEST_ARGS="${{ inputs.test-args }}"
+              if [[ -n "${result_engine_name}" && -z "${PREVIOUS_VERSION}" && "${TEST_ARGS}" != *"--upgrade true --keep-resource true"* ]]; then
                   KUBEBLOCKS_VERSION="${{ env.KUBEBLOCKS_RELEASE_VERSION }}"
                   if [[ "${KUBEBLOCKS_VERSION}" != "v"* ]]; then
                       KUBEBLOCKS_VERSION="v${KUBEBLOCKS_VERSION}"
