@@ -981,23 +981,6 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
-  victoria-logs-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'victoria-logs')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
-    needs: [ install-kubeblocks-pre ]
-    uses: ./.github/workflows/kbcli-test-pre.yml
-    with:
-      cloud-provider: ${{ inputs.cloud-provider }}
-      region: ${{ inputs.region }}
-      release-version: "${{ inputs.previous-version }}"
-      test-type: "75"
-      test-type-name: "victoria-logs-pre"
-      test-args: "${{ inputs.test-args }}"
-      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
-      artifact-name: ${{ inputs.artifact-name }}
-      branch-name: ${{ inputs.branch-name }}
-      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
-    secrets: inherit
-
   gaussdb-pre:
     if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'gaussdb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') }}
     needs: [ install-kubeblocks-pre ]
@@ -1287,6 +1270,57 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
+  victoria-logs-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'victoria-logs')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/kbcli-test-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "75"
+      test-type-name: "victoria-logs-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  he3sql-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'he3sql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/kbcli-test-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "76"
+      test-type-name: "he3sql-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
+  rustfs-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'rustfs')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/kbcli-test-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "77"
+      test-type-name: "rustfs-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
   check-send-message:
     if: ${{ inputs.previous-version }}
     runs-on: ubuntu-latest
@@ -1308,7 +1342,7 @@ jobs:
                   fi
                   case "${test_type}" in
                       camellia-redis-proxy|damengdb|doris|elasticsearch|foundationdb|gaussdb|gbase|goldendb|greatdb|hadoop|hive|\
-                      kingbase|milvus|mongodb|mssql|mysql|nacos|oceanbase-ent|oceanbase-proxy|oracle|rabbitmq|rustfs|selectdb|\
+                      kingbase|milvus|mongodb|mssql|mysql|nacos|oceanbase-ent|oceanbase-proxy|oracle|rabbitmq|rustfs|selectdb|he3sql|\
                       starrocks-ent|tdengine|tdengine-ent|tdsql|vastbase|vault|victoria-logs|victoria-metrics)
                           SEND_MESSAGE_ENT=1
                       ;;
@@ -1659,7 +1693,7 @@ jobs:
              oceanbase-ent-pre, starrocks-ent-pre, rabbitmq-pre, victoria-metrics-pre, gaussdb-pre,
              damengdb-pre, kingbase-pre, vastbase-pre, mssql-pre, oceanbase-proxy-pre, goldendb-pre,
              tdsql-pre, greatdb-pre, victoria-logs-pre, doris-pre, hadoop-pre, hive-pre, nacos-pre,
-             vault-pre, foundationdb-pre, selectdb-pre ]
+             vault-pre, foundationdb-pre, selectdb-pre, he3sql-pre, rustfs-pre ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1791,13 +1825,6 @@ jobs:
           fi
 
           if [[ "${{ inputs.release-version }}" != "v0.5."* && "${{ inputs.release-version }}" != "v0.6."* && "${{ inputs.release-version }}" != "v0.7."* && "${{ inputs.release-version }}" != "v0.8."* && "${{ inputs.release-version }}" != "v0.9."* ]]; then
-
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"victoria-logs"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##victoria-logs-pre|${{ needs.victoria-logs-pre.outputs.test-result }}"
-                  cmd="${cmd_head} \"${{ needs.victoria-logs-pre.outputs.test-result-report }}\" "
-                  TEST_RESULT+=$(eval "$cmd")
-              fi
-
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"doris"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##doris-pre|${{ needs.doris-pre.outputs.test-result }}"
                   cmd="${cmd_head} \"${{ needs.doris-pre.outputs.test-result-report }}\" "
@@ -1837,6 +1864,36 @@ jobs:
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"selectdb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##selectdb-pre|${{ needs.selectdb-pre.outputs.test-result }}"
                   cmd="${cmd_head} \"${{ needs.selectdb-pre.outputs.test-result-report }}\" "
+                  TEST_RESULT+=$(eval "$cmd")
+              fi
+
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"selectdb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##selectdb-pre|${{ needs.selectdb-pre.outputs.test-result }}"
+                  cmd="${cmd_head} \"${{ needs.selectdb-pre.outputs.test-result-report }}\" "
+                  TEST_RESULT+=$(eval "$cmd")
+              fi
+
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"selectdb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##selectdb-pre|${{ needs.selectdb-pre.outputs.test-result }}"
+                  cmd="${cmd_head} \"${{ needs.selectdb-pre.outputs.test-result-report }}\" "
+                  TEST_RESULT+=$(eval "$cmd")
+              fi
+          
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"victoria-logs"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##victoria-logs-pre|${{ needs.victoria-logs-pre.outputs.test-result }}"
+                  cmd="${cmd_head} \"${{ needs.victoria-logs-pre.outputs.test-result-report }}\" "
+                  TEST_RESULT+=$(eval "$cmd")
+              fi
+          
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"he3sql"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##he3sql-pre|${{ needs.he3sql-pre.outputs.test-result }}"
+                  cmd="${cmd_head} \"${{ needs.he3sql-pre.outputs.test-result-report }}\" "
+                  TEST_RESULT+=$(eval "$cmd")
+              fi
+          
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"rustfs"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##rustfs-pre|${{ needs.rustfs-pre.outputs.test-result }}"
+                  cmd="${cmd_head} \"${{ needs.rustfs-pre.outputs.test-result-report }}\" "
                   TEST_RESULT+=$(eval "$cmd")
               fi
           fi
