@@ -1506,7 +1506,9 @@ def send_check_addon_version_message(url_v, result_v, title_v):
 
 def _natural_name_key(item):
     name = item.split("|", 1)[0]
-    return re.sub(r'(\d+)', lambda m: m.group(1).zfill(8), name).lower()
+    # Put install-kubeblocks at the top, then natural sort for the rest
+    priority = 0 if name.lower().startswith("install-kubeblocks") else 1
+    return (priority, re.sub(r'(\d+)', lambda m: m.group(1).zfill(8), name).lower())
 
 
 def send_kbcli_message(url_v, result_v, title_v):
