@@ -17,13 +17,10 @@ run-name: "sync to aliyun and dockerhub: ${{ inputs.registry }}/${{ inputs.image
 env:
   DOCKER_REGISTRY_URL: docker.io
   ALIYUN_REGISTRY_URL: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
-  ALIYUN_REGISTRY_URL_NEW: infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
   ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
-  ALIYUN_USER_NEW: ${{ secrets.ALIYUN_USER_NEW }}
-  ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
   ECR_PASSWORD: ${{ secrets.ECR_PASSWORD }}
 
 jobs:
@@ -95,21 +92,7 @@ jobs:
               "${{ env.ALIYUN_USER }}" \
               "${{ env.ALIYUN_PASSWORD }}" \
               ${{ github.workspace }}/.github/utils/images-list.txt \
-              "${{ inputs.registry }}" \
-              '${{ env.ECR_PASSWORD }}'
-          
-          if [[ -n "${{ env.ALIYUN_USER_NEW }}" && -n "${{ env.ALIYUN_PASSWORD_NEW }}" && matrix.registry == 'apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com' ]]; then
-              bash ${{ github.workspace }}/.github/utils/skopeo_sync_to_aliyun_new.sh \
-                  "${{ env.DOCKER_USER }}" \
-                  '${{ env.DOCKER_PASSWORD }}' \
-                  "${{ env.ALIYUN_USER_NEW }}" \
-                  "${{ env.ALIYUN_PASSWORD_NEW }}" \
-                  ${{ github.workspace }}/.github/utils/images-list.txt \
-                  "${{ inputs.registry }}" \
-                  "${{ env.ALIYUN_USER }}" \
-                  "${{ env.ALIYUN_PASSWORD }}" \
-                  '${{ env.ECR_PASSWORD }}'
-          fi
+              "${{ inputs.registry }}"
 
       - name: skopeo copy images to aliyun
         if: ${{ steps.check_image_exists.outputs.skopeo-tool == 'copy' }}
@@ -118,14 +101,4 @@ jobs:
               "${{ env.ALIYUN_USER }}" \
               "${{ env.ALIYUN_PASSWORD }}" \
               ${{ github.workspace }}/.github/utils/images-list.txt \
-              "${{ inputs.registry }}" \
-              '${{ env.ECR_PASSWORD }}'
-          
-          if [[ -n "${{ env.ALIYUN_USER_NEW }}" && -n "${{ env.ALIYUN_PASSWORD_NEW }}" ]]; then
-              bash ${{ github.workspace }}/.github/utils/skopeo_copy_to_aliyun_new.sh \
-                  "${{ env.ALIYUN_USER_NEW }}" \
-                  "${{ env.ALIYUN_PASSWORD_NEW }}" \
-                  ${{ github.workspace }}/.github/utils/images-list.txt \
-                  "${{ inputs.registry }}" \
-                  '${{ env.ECR_PASSWORD }}'
-          fi
+              "${{ inputs.registry }}"

@@ -12,7 +12,7 @@ main() {
         if [[ "$chart" == *"loadbalancer"* || "$chart" == *"kblib-"*".tgz"* ]]; then
             continue
         fi
-        images=$( helm template $chart | egrep 'image:|repository:|tag:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/|infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/|ghcr.io/|quay.io/' | (grep -v '[A-Z]' || true) | awk '{print $2}' | sed 's/"//g' )
+        images=$( helm template $chart | egrep 'image:|repository:|tag:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/|ghcr.io/|quay.io/' | (grep -v '[A-Z]' || true) | awk '{print $2}' | sed 's/"//g' )
         repository=""
         for image in $( echo "$images" ); do
             skip_flag=0
@@ -113,8 +113,7 @@ check_image() {
         ;;
         docker.io/apecloud/*|\
         apecloud/*|\
-        apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/*|\
-        infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/*)
+        apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/*)
             check_image_exists "$image" $skipFlag
         ;;
         *)
