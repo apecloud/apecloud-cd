@@ -92,13 +92,10 @@ on:
 env:
   DOCKER_REGISTRY_URL: docker.io
   ALIYUN_REGISTRY_URL: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
-  ALIYUN_REGISTRY_URL_NEW: infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
   ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
-  ALIYUN_USER_NEW: ${{ secrets.ALIYUN_USER_NEW }}
-  ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   REDHAT_USERNAME: ${{ inputs.ENABLE_SECRETS && format('redhat_username={0}', secrets.REDHAT_USERNAME) || '' }}
@@ -263,21 +260,14 @@ jobs:
 
       - name: generate image yaml
         run: |
-          if [[ -n "${{ env.ALIYUN_USER_NEW }}" && -n "${{ env.ALIYUN_PASSWORD_NEW }}" ]]; then
-              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
-                --type 27 \
-                --images "${{ inputs.IMG }}:${{ needs.release-image.outputs.tag-name }}" \
-                --registry "${{ env.DOCKER_REGISTRY_URL }}"
-          else
-              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
-                --type 32 \
-                --images "${{ inputs.IMG }}:${{ needs.release-image.outputs.tag-name }}" \
-                --registry "${{ env.DOCKER_REGISTRY_URL }}"
-          fi
+            bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
+              --type 32 \
+              --images "${{ inputs.IMG }}:${{ needs.release-image.outputs.tag-name }}" \
+              --registry "${{ env.DOCKER_REGISTRY_URL }}"
 
       - uses: hhyasdf/image-sync-action@v1.1
         name: sync image to apecloud aliyun registry
-        if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && (env.ALIYUN_USER_NEW == '' || env.ALIYUN_PASSWORD_NEW == '') }}
+        if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
         with:
           auth_file: ${{ github.workspace }}/apecloud-cd/.github/actions/image-sync-auth-apecloud.yml
           images_file: ./image_sync_yaml_apecloud.yml
@@ -289,20 +279,3 @@ jobs:
           DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
           ALIYUN_USER: ${{ env.ALIYUN_USER }}
           ALIYUN_PASSWORD: ${{ env.ALIYUN_PASSWORD }}
-
-      - uses: hhyasdf/image-sync-action@v1.1
-        name: sync image to all aliyun registry
-        if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' && env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' && env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
-        with:
-          auth_file: ${{ github.workspace }}/apecloud-cd/.github/actions/image-sync-auth.yml
-          images_file: ./image_sync_yaml.yml
-          proc: 6
-          retries: 5
-          version: v1.5.2
-        env:
-          DOCKER_USER: ${{ env.DOCKER_USER }}
-          DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
-          ALIYUN_USER: ${{ env.ALIYUN_USER }}
-          ALIYUN_PASSWORD: ${{ env.ALIYUN_PASSWORD }}
-          ALIYUN_USER_NEW: ${{ env.ALIYUN_USER_NEW }}
-          ALIYUN_PASSWORD_NEW: ${{ env.ALIYUN_PASSWORD_NEW }}

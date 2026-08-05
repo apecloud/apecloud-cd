@@ -18,8 +18,6 @@ env:
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
   ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
-  ALIYUN_USER_NEW: ${{ secrets.ALIYUN_USER_NEW }}
-  ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
 
 
 jobs:
@@ -115,16 +113,6 @@ jobs:
               bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
                   --type 11  \
                   --user ${{ env.ALIYUN_USER }} --password "${{ env.ALIYUN_PASSWORD }}" \
-                  --tag-name $release
-          done
-
-      - name: delete aliyun registry image New
-        if: ${{ always() }}
-        run: |
-          for release in $(echo "${{ needs.delete-release.outputs.release-version }}" | sed 's/|/ /g'); do
-              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh \
-                  --type 18  \
-                  --user ${{ env.ALIYUN_USER_NEW }} --password "${{ env.ALIYUN_PASSWORD_NEW }}" \
                   --tag-name $release
           done
 

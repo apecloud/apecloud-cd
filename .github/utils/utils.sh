@@ -28,7 +28,6 @@ Usage: $(basename "$0") <options>
                                 15) comment issue
                                 16) delete runner
                                 17) get job url
-                                18) delete aliyun images new
                                 19) delete helm-charts index
                                 20) get incremental chart package
                                 21) set pr size label
@@ -428,10 +427,6 @@ delete_aliyun_images_generic() {
 
 delete_aliyun_images() {
     delete_aliyun_images_generic "apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com"
-}
-
-delete_aliyun_images_new() {
-    delete_aliyun_images_generic "infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com"
 }
 
 #!/bin/bash
@@ -1560,7 +1555,6 @@ generate_image_yaml() {
         image_name=${image##*/}
         tee -a $image_sync_yaml << EOF
 ${REGISTRY}/${image}:
-  - "infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/${image_name}"
   - "apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/${image_name}"
 EOF
     done
@@ -2248,9 +2242,6 @@ main() {
         ;;
         17)
             get_job_url
-        ;;
-        18)
-            delete_aliyun_images_new
         ;;
         19)
             delete_charts_index

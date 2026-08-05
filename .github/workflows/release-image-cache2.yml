@@ -116,13 +116,10 @@ on:
 env:
   DOCKER_REGISTRY_URL: docker.io
   ALIYUN_REGISTRY_URL: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
-  ALIYUN_REGISTRY_URL_NEW: infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com
   DOCKER_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   ALIYUN_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
   ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
-  ALIYUN_USER_NEW: ${{ secrets.ALIYUN_USER_NEW }}
-  ALIYUN_PASSWORD_NEW: ${{ secrets.ALIYUN_PASSWORD_NEW }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
@@ -233,11 +230,9 @@ jobs:
           
           DOCKER_REGISTRY_URL="${{ env.DOCKER_REGISTRY_URL }}"
           ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
-          ALIYUN_REGISTRY_URL_NEW="${{ env.ALIYUN_REGISTRY_URL_NEW }}"
           
           DOCKERHUB_PUSH_TAGS="${DOCKER_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
           ALIYUN_PUSH_TAGS="${ALIYUN_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
-          ALIYUN_NEW_PUSH_TAGS="${ALIYUN_REGISTRY_URL_NEW}/${IMAGE_PUSH_TAG}"
           
           if [[ "${IMAGE_TAG_NAME}" == "v"*"."*"."* && "${IMAGE_NAME}" == "apecloud/apecloud-addon-charts" && -d "addons" ]]; then
               add_addons="${{ inputs.ADD_ADDONS }}"
@@ -295,12 +290,6 @@ jobs:
                           ALIYUN_PUSH_TAGS="${ALIYUN_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
                       else
                           ALIYUN_PUSH_TAGS="${ALIYUN_PUSH_TAGS},${ALIYUN_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
-                      fi
-                      
-                      if [[ -z "{ALIYUN_NEW_PUSH_TAGS}" ]]; then
-                          ALIYUN_NEW_PUSH_TAGS="${ALIYUN_REGISTRY_URL_NEW}/${IMAGE_PUSH_TAG}"
-                      else
-                          ALIYUN_NEW_PUSH_TAGS="${ALIYUN_NEW_PUSH_TAGS},${ALIYUN_REGISTRY_URL_NEW}/${IMAGE_PUSH_TAG}"
                       fi
                   fi
               done
@@ -414,40 +403,6 @@ jobs:
           context: ${{ inputs.CONTEXT }}
           file: ${{ inputs.DOCKERFILE_PATH }}
           tags: ${{ steps.get_image_push_tags.outputs.aliyun-push-tags }}
-          platforms: ${{ inputs.BUILDX_PLATFORMS }}
-          build-args: ${{ inputs.BUILDX_ARGS }}
-          secrets: |
-            ${{ inputs.BUILDX_SECRETS }}
-            ${{ inputs.BUILDX_SECRET_ID != '' && inputs.BUILDX_SECRET_NAME != '' && format('{0}={1}', inputs.BUILDX_SECRET_ID, secrets[inputs.BUILDX_SECRET_NAME]) || '' }}
-          secret-files: ${{ inputs.BUILDX_SECRET_FILES }}
-          push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          provenance: false
-          sbom: false
-
-      - name: Set registry and repository ${{ env.ALIYUN_REGISTRY_URL_NEW }}
-        if: ${{ (inputs.IMG == 'apecloud/apecloud-charts' || inputs.IMG == 'apecloud/apecloud-addon-charts') && env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
-        run: |
-          echo "set addons chart registry to apecloud and repogistory to ${{ env.ALIYUN_REGISTRY_URL_NEW }}"
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
-            "${{ env.ALIYUN_REGISTRY_URL_NEW }}" "addons"
-
-      - if: ${{ env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
-        name: Login to Aliyun Registry New
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.ALIYUN_REGISTRY_URL_NEW }}
-          username: ${{ env.ALIYUN_USER_NEW }}
-          password: ${{ env.ALIYUN_PASSWORD_NEW }}
-
-      - if: ${{ env.ALIYUN_USER_NEW != '' && env.ALIYUN_PASSWORD_NEW != '' }}
-        name: Build and Push to Aliyun Registry New
-        uses: docker/build-push-action@v5
-        with:
-          context: ${{ inputs.CONTEXT }}
-          file: ${{ inputs.DOCKERFILE_PATH }}
-          tags: ${{ steps.get_image_push_tags.outputs.aliyun-new-push-tags }}
           platforms: ${{ inputs.BUILDX_PLATFORMS }}
           build-args: ${{ inputs.BUILDX_ARGS }}
           secrets: |
