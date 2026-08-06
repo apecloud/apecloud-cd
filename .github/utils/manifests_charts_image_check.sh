@@ -57,7 +57,9 @@ check_service_version_images() {
         ret_tmp=$?
         check_engine_result_file="images-${chart_name_tmp}-${chart_version_tmp}.yaml"
         images=""
+        check_ran_ok=0
         if [[ -f "${check_engine_result_file}" ]]; then
+            check_ran_ok=1
             images=$(yq e '.'${chart_name_tmp}'[0].images[]' ${check_engine_result_file} | grep -v 'IMAGE_TAG')
             if [[ -z "${SKIP_DELETE_FILE}" || "${check_engine_result_file}" != *"${SKIP_DELETE_FILE}"* ]]; then
                 rm -rf ${check_engine_result_file}
@@ -89,11 +91,11 @@ check_service_version_images() {
             fi
             repository=""
         done
-        # Success = result file was generated (Python ran successfully).
+        # Success = Python ran and produced a result file.
         # Python exit code 1 just means differences were found, not a runtime failure.
-        # images may be empty if the chart has only common images, or if all images
-        # are to be removed (manifest has extras). We still consider the check successful.
-        if [[ -f "${check_engine_result_file}" ]]; then
+        # We check check_ran_ok (set before we deleted the result file) instead of
+        # checking file existence (file is already cleaned up by this point).
+        if [[ $check_ran_ok -eq 1 ]]; then
             echo "$(tput -T xterm setaf 2)Check chart ${chart_name_tmp} ${chart_version_tmp} success$(tput -T xterm sgr0)"
             rm -f "${stderr_file}"
             check_failed=0
