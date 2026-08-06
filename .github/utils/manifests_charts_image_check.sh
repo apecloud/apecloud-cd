@@ -89,9 +89,11 @@ check_service_version_images() {
             fi
             repository=""
         done
-        # Success = images were extracted successfully.
+        # Success = result file was generated (Python ran successfully).
         # Python exit code 1 just means differences were found, not a runtime failure.
-        if [[ -n "$images" ]]; then
+        # images may be empty if the chart has only common images, or if all images
+        # are to be removed (manifest has extras). We still consider the check successful.
+        if [[ -f "${check_engine_result_file}" ]]; then
             echo "$(tput -T xterm setaf 2)Check chart ${chart_name_tmp} ${chart_version_tmp} success$(tput -T xterm sgr0)"
             rm -f "${stderr_file}"
             check_failed=0
