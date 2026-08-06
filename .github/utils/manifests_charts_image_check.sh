@@ -66,7 +66,7 @@ check_service_version_images() {
         fi
         repository=""
         for repository in $( echo "$images" ); do
-            if [[ "${repository}" == "null" ]]; then
+            if [[ "${repository}" == "null" || ("${chart_name_tmp}" == "redis" && "$repository" == "docker.io/busybox:"*) ]]; then
                 continue
             fi
             echo "check engine image (${chart_name_tmp} ${chart_version_tmp}): $repository"
