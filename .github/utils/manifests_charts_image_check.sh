@@ -148,6 +148,13 @@ check_images() {
         if [[ $ret_tmp -ne 0 ]]; then
             # Check for deterministic errors that should not be retried
             if grep -q "not found in" "${helm_stderr}" 2>/dev/null; then
+                # kubeblocks-cloud chart versions are periodically cleaned up,
+                # so "not found" is expected and should only be a warning, not a failure.
+                if [[ "$chart_name_tmp" == "kubeblocks-cloud" ]]; then
+                    echo "${log_prefix} $(tput -T xterm setaf 3)Chart version not found in repo (expected for kubeblocks-cloud, skipping).$(tput -T xterm sgr0)"
+                    rm -f "${helm_stdout}" "${helm_stderr}"
+                    return
+                fi
                 echo "${log_prefix} $(tput -T xterm setaf 1)Chart version not found in repo, will not retry.$(tput -T xterm sgr0)"
                 cat "${helm_stderr}" | sed "s/^/${log_prefix} (helm stderr) /"
                 echo "${log_prefix} $(tput -T xterm setaf 1)Failed to check ${chart_name_tmp} ${chart_version_tmp} (chart version not found)$(tput -T xterm sgr0)" >> check_manifest_result
