@@ -42,8 +42,16 @@ check_service_version_images() {
         return
     fi
 
+    # Export env vars so Python script uses the same repos and credentials as Bash
+    export COMMUNITY_REPO_URL="${KB_REPO_URL}"
+    export ENTERPRISE_REPO_URL="${KB_ENT_REPO_URL}"
+    export CHART_ACCESS_USER="${CHART_ACCESS_USER}"
+    export CHART_ACCESS_TOKEN="${CHART_ACCESS_TOKEN}"
+
+    check_failed=0
     for j in {1..10}; do
-        python3 ${CHECK_ENGINE_FILE} -m ${MANIFESTS_FILE} -e ${chart_name_tmp} --addonVersion ${chart_version_tmp} --serviceVersion "${service_versions_tmp}" 2>/dev/null
+        stderr_file="check-${chart_name_tmp}-${chart_version_tmp}-stderr.log"
+        python3 ${CHECK_ENGINE_FILE} -m ${MANIFESTS_FILE} -e ${chart_name_tmp} --addonVersion ${chart_version_tmp} --serviceVersion "${service_versions_tmp}" 2>"${stderr_file}"
         ret_tmp=$?
         check_engine_result_file="images-${chart_name_tmp}-${chart_version_tmp}.yaml"
         images=""
@@ -59,7 +67,7 @@ check_service_version_images() {
             if [[ "${repository}" == "null" ]]; then
                 continue
             fi
-            echo "check engine image: $repository"
+            echo "check engine image (${chart_name_tmp} ${chart_version_tmp}): $repository"
             check_flag=0
             for chart_image in $( echo "$chart_images_tmp" ); do
                 if [[ "$chart_image" == "$repository" ]]; then
@@ -81,10 +89,29 @@ check_service_version_images() {
         done
         if [[ $ret_tmp -eq 0 && -n "$images" ]]; then
             echo "$(tput -T xterm setaf 2)Check chart ${chart_name_tmp} ${chart_version_tmp} success$(tput -T xterm sgr0)"
+            rm -f "${stderr_file}"
+            check_failed=0
             break
         fi
+        check_failed=1
         sleep 1
     done
+
+    if [[ $check_failed -eq 1 ]]; then
+        check_result_tmp="$(tput -T xterm setaf 1)Failed to check ${chart_name_tmp} ${chart_version_tmp} (chart download or render failed after 10 retries)$(tput -T xterm sgr0)"
+        echo "${check_result_tmp}"
+        stderr_file="check-${chart_name_tmp}-${chart_version_tmp}-stderr.log"
+        if [[ -f "${stderr_file}" ]]; then
+            echo "$(tput -T xterm setaf 3)Last attempt stderr:$(tput -T xterm sgr0)"
+            cat "${stderr_file}"
+            rm -f "${stderr_file}"
+        fi
+        CHECK_RESULTS="$(cat check_manifest_result)"
+        if [[ "${CHECK_RESULTS}" != *"${check_result_tmp}"* ]]; then
+            echo "${check_result_tmp}" >> check_manifest_result
+        fi
+        echo 1 > exit_result
+    fi
 }
 
 check_images() {
