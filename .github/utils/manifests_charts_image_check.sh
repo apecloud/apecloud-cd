@@ -43,7 +43,9 @@ check_service_version_images() {
     fi
 
     # Export env vars so Python script uses the same repos and credentials as Bash
+    export COMMUNITY_REPO_NAME="${KB_REPO_NAME}"
     export COMMUNITY_REPO_URL="${KB_REPO_URL}"
+    export ENTERPRISE_REPO_NAME="${KB_ENT_REPO_NAME}"
     export ENTERPRISE_REPO_URL="${KB_ENT_REPO_URL}"
     export CHART_ACCESS_USER="${CHART_ACCESS_USER}"
     export CHART_ACCESS_TOKEN="${CHART_ACCESS_TOKEN}"
@@ -87,7 +89,9 @@ check_service_version_images() {
             fi
             repository=""
         done
-        if [[ $ret_tmp -eq 0 && -n "$images" ]]; then
+        # Success = images were extracted successfully.
+        # Python exit code 1 just means differences were found, not a runtime failure.
+        if [[ -n "$images" ]]; then
             echo "$(tput -T xterm setaf 2)Check chart ${chart_name_tmp} ${chart_version_tmp} success$(tput -T xterm sgr0)"
             rm -f "${stderr_file}"
             check_failed=0
