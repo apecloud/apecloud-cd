@@ -106,18 +106,23 @@ check_service_version_images() {
     done
 
     if [[ $check_failed -eq 1 ]]; then
+        local log_prefix="[$chart_name_tmp/$chart_version_tmp]"
         check_result_tmp="$(tput -T xterm setaf 1)Failed to check ${chart_name_tmp} ${chart_version_tmp} (chart download or render failed after 10 retries)$(tput -T xterm sgr0)"
-        echo "${check_result_tmp}"
+        echo "${log_prefix} ${check_result_tmp}"
         stderr_file="check-${chart_name_tmp}-${chart_version_tmp}-stderr.log"
-        if [[ -f "${stderr_file}" ]]; then
-            echo "$(tput -T xterm setaf 3)Last attempt stderr:$(tput -T xterm sgr0)"
-            cat "${stderr_file}"
+        if [[ -f "${stderr_file}" && -s "${stderr_file}" ]]; then
+            echo "${log_prefix} $(tput -T xterm setaf 3)Last attempt stderr:$(tput -T xterm sgr0)"
+            cat "${stderr_file}" | sed "s/^/${log_prefix}   /"
+            rm -f "${stderr_file}"
+        else
+            echo "${log_prefix} $(tput -T xterm setaf 3)(no stderr output from check-engine-images.py — script may have failed to start or produced no output)$(tput -T xterm sgr0)"
             rm -f "${stderr_file}"
         fi
         CHECK_RESULTS="$(cat check_manifest_result)"
         if [[ "${CHECK_RESULTS}" != *"${check_result_tmp}"* ]]; then
             echo "${check_result_tmp}" >> check_manifest_result
         fi
+        echo "1" > "fail-${chart_name_tmp}-${chart_version_tmp}.flag"
         echo 1 > exit_result
     fi
 }
@@ -128,14 +133,47 @@ check_images() {
     chart_name_tmp=${3:-""}
     chart_images_tmp=${4:-""}
     set_values_tmp=${5:-""}
+    local log_prefix="[$chart_name_tmp/$chart_version_tmp]"
+    local helm_stderr="helm-${chart_name_tmp}-${chart_version_tmp}-stderr.log"
+    local helm_stdout="helm-${chart_name_tmp}-${chart_version_tmp}-stdout.log"
     for j in {1..10}; do
         template_repo="${KB_REPO_NAME}"
         if [[ "$is_enterprise_tmp" == "true" ]]; then
             template_repo="${KB_ENT_REPO_NAME}"
         fi
-        echo "helm template ${chart_name_tmp} ${template_repo}/${chart_name_tmp} --version ${chart_version_tmp} ${set_values_tmp}"
-        images=$( helm template ${chart_name_tmp} ${template_repo}/${chart_name_tmp} --version ${chart_version_tmp} ${set_values_tmp} | egrep 'image:|repository:|tag:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/|ghcr.io/|quay.io/' | (grep -v '[A-Z]' || true) | awk '{print $2}' | sed 's/"//g' )
+        echo "${log_prefix} helm template ${chart_name_tmp} ${template_repo}/${chart_name_tmp} --version ${chart_version_tmp} ${set_values_tmp}"
+        # Run helm template separately to capture its real exit code and stderr
+        helm template ${chart_name_tmp} ${template_repo}/${chart_name_tmp} --version ${chart_version_tmp} ${set_values_tmp}             > "${helm_stdout}" 2> "${helm_stderr}"
         ret_tmp=$?
+        if [[ $ret_tmp -ne 0 ]]; then
+            # Check for deterministic errors that should not be retried
+            if grep -q "not found in" "${helm_stderr}" 2>/dev/null; then
+                echo "${log_prefix} $(tput -T xterm setaf 1)Chart version not found in repo, will not retry.$(tput -T xterm sgr0)"
+                cat "${helm_stderr}" | sed "s/^/${log_prefix} (helm stderr) /"
+                echo "${log_prefix} $(tput -T xterm setaf 1)Failed to check ${chart_name_tmp} ${chart_version_tmp} (chart version not found)$(tput -T xterm sgr0)" >> check_manifest_result
+                echo "1" > "fail-${chart_name_tmp}-${chart_version_tmp}.flag"
+                echo 1 > exit_result
+                rm -f "${helm_stdout}" "${helm_stderr}"
+                return
+            fi
+            # Retry for transient errors
+            if [[ $j -lt 10 ]]; then
+                echo "${log_prefix} helm template failed (attempt $j/10), retrying in 1s..."
+                sleep 1
+                continue
+            fi
+            # Final failure after all retries
+            echo "${log_prefix} $(tput -T xterm setaf 1)helm template failed after 10 retries$(tput -T xterm sgr0)"
+            echo "${log_prefix} Last attempt stderr:"
+            cat "${helm_stderr}" | sed "s/^/${log_prefix}   /"
+            echo "${log_prefix} $(tput -T xterm setaf 1)Failed to check ${chart_name_tmp} ${chart_version_tmp} (helm template failed after 10 retries)$(tput -T xterm sgr0)" >> check_manifest_result
+            echo "1" > "fail-${chart_name_tmp}-${chart_version_tmp}.flag"
+            echo 1 > exit_result
+            rm -f "${helm_stdout}" "${helm_stderr}"
+            return
+        fi
+        # Parse images from stdout
+        images=$( cat "${helm_stdout}" | egrep 'image:|repository:|tag:|docker.io/|apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/|ghcr.io/|quay.io/' | (grep -v '[A-Z]' || true) | awk '{print $2}' | sed 's/"//g' )
         repository=""
         for image in $( echo "$images" ); do
             if [[ $image == *":"* ]]; then
@@ -217,11 +255,22 @@ check_images() {
             fi
             repository=""
         done
-        if [[ $ret_tmp -eq 0 && -n "$images" ]]; then
-            echo "$(tput -T xterm setaf 2)Template chart ${chart_name_tmp} ${chart_version_tmp} success$(tput -T xterm sgr0)"
+        if [[ -n "$images" ]]; then
+            echo "${log_prefix} $(tput -T xterm setaf 2)Template chart ${chart_name_tmp} ${chart_version_tmp} success$(tput -T xterm sgr0)"
+            rm -f "${helm_stdout}" "${helm_stderr}"
             break
         fi
-        sleep 1
+        # helm template succeeded but no images extracted — might be transient
+        if [[ $j -lt 10 ]]; then
+            echo "${log_prefix} no images extracted (attempt $j/10), retrying in 1s..."
+            sleep 1
+        else
+            echo "${log_prefix} $(tput -T xterm setaf 1)Failed to check ${chart_name_tmp} ${chart_version_tmp} (no images extracted after 10 retries)$(tput -T xterm sgr0)"
+            echo "${log_prefix} $(tput -T xterm setaf 1)Failed to check ${chart_name_tmp} ${chart_version_tmp} (no images extracted after 10 retries)$(tput -T xterm sgr0)" >> check_manifest_result
+            echo "1" > "fail-${chart_name_tmp}-${chart_version_tmp}.flag"
+            echo 1 > exit_result
+            rm -f "${helm_stdout}" "${helm_stderr}"
+        fi
     done
 }
 
@@ -353,6 +402,30 @@ check_charts_images() {
         done
     done
     wait
+
+    # Collect and print failure summary
+    echo ""
+    echo "============================================"
+    echo "  FAILURE SUMMARY"
+    echo "============================================"
+    local fail_count=0
+    for f in fail-*.flag; do
+        [[ -f "$f" ]] || continue
+        local name_ver="${f#fail-}"
+        name_ver="${name_ver%.flag}"
+        fail_count=$((fail_count + 1))
+        echo "  FAIL: ${name_ver}"
+        rm -f "$f"
+    done
+    if [[ $fail_count -eq 0 ]]; then
+        echo "  All checks passed."
+    else
+        echo "--------------------------------------------"
+        echo "  Total failed: ${fail_count}"
+    fi
+    echo "============================================"
+    echo ""
+
     cat check_manifest_result
     cat exit_result
     exit $(cat exit_result)
