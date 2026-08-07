@@ -148,10 +148,11 @@ check_images() {
         if [[ $ret_tmp -ne 0 ]]; then
             # Check for deterministic errors that should not be retried
             if grep -q "not found in" "${helm_stderr}" 2>/dev/null; then
-                # kubeblocks-cloud chart versions are periodically cleaned up,
-                # so "not found" is expected and should only be a warning, not a failure.
-                if [[ "$chart_name_tmp" == "kubeblocks-cloud" ]]; then
-                    echo "${log_prefix} $(tput -T xterm setaf 3)Chart version not found in repo (expected for kubeblocks-cloud, skipping).$(tput -T xterm sgr0)"
+                # Charts whose versions may be periodically cleaned up from
+                # the repo — "not found" is expected, warn and skip instead of failing.
+                local skippable_not_found="kubeblocks-cloud|ingress-nginx|metallb|metrics-server|cert-manager|csi-driver-nfs"
+                if [[ "|${skippable_not_found}|" == *"|${chart_name_tmp}|"* ]]; then
+                    echo "${log_prefix} $(tput -T xterm setaf 3)Chart version not found in repo (version may have been cleaned up, skipping).$(tput -T xterm sgr0)"
                     rm -f "${helm_stdout}" "${helm_stderr}"
                     return
                 fi
