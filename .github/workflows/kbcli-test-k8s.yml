@@ -2006,12 +2006,12 @@ jobs:
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"he3sql"* ]]; then
               TEST_RESULT+="##he3sql|${{ needs.test-he3sql.outputs.test-result }}"
-              cmd="${cmd_head} "${{ needs.test-he3sql.outputs.test-result-report }}" "
+              cmd="${cmd_head} \"${{ needs.test-he3sql.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"rustfs"* ]]; then
               TEST_RESULT+="##rustfs|${{ needs.test-rustfs.outputs.test-result }}"
-              cmd="${cmd_head} "${{ needs.test-rustfs.outputs.test-result-report }}" "
+              cmd="${cmd_head} \"${{ needs.test-rustfs.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
           fi
