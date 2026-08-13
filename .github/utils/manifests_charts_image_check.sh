@@ -400,6 +400,13 @@ check_charts_images() {
                     kb-cloud-installer|dbdrag)
                         continue
                     ;;
+                    koordinator)
+                        set_values="${set_values} --set koordlet.image.repository=koordinator-sh/koordlet "
+                        set_values="${set_values} --set manager.image.repository=apecloud/koord-manager "
+                        set_values="${set_values} --set scheduler.image.repository=apecloud/koord-scheduler "
+                        set_values="${set_values} --set descheduler.image.repository=apecloud/koord-descheduler "
+                        set_values="${set_values} --set deviceDaemon.image.repository=apecloud/koord-device-daemon "
+                    ;;
                 esac
                 if [[ "$chart_name" == "kubeblocks-cloud" ]]; then
                     check_addon_charts_images "$chart_version" "$chart_name" "$chart_images" &
