@@ -226,7 +226,7 @@ jobs:
     secrets: inherit
 
   trigger-deploy-cloud:
-    if: ${{ startsWith(inputs.VERSION, 'v2.2') || startsWith(inputs.VERSION, 'v2.3') }}
+    if: ${{ (startsWith(inputs.VERSION, 'v2.2') || startsWith(inputs.VERSION, 'v2.3')) && startsWith(inputs.CLOUD_ENV_NAME, 'idc') }}
     uses: ./.github/workflows/trigger-workflow.yml
     with:
       GITHUB_REPO: "apecloud/apecloud-cd"
