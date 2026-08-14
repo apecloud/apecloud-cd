@@ -125,29 +125,16 @@ jobs:
       cloud-env-name: ${{ steps.cloud_env.outputs.cloud_env_name }}
       content-result: ${{ steps.deploy_result.outputs.content_result }}
     steps:
-      - name: Checkout apecloud Code
+      - name: Checkout testinfra Code
         uses: actions/checkout@v4
         with:
-          repository: apecloud/apecloud
-          ref: ${{ inputs.VERSION }}
-          token: ${{ env.GITHUB_TOKEN }}
-
-      - name: Checkout apecloud-values Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud-values
-          path: apecloud-values
-          ref: ${{ inputs.VERSION }}
+          repository: apecloud/testinfra
+          path: ./
           token: ${{ env.GITHUB_TOKEN }}
 
       - uses: azure/setup-kubectl@v3
         with:
           version: "${{ inputs.KUBECTL_VERSION }}"
-
-      - name: Install Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: ${{ env.HELM_VERSION }}
 
       - name: remove v prefix
         id: get_tag_name
@@ -167,39 +154,30 @@ jobs:
           CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
           echo 'CLOUD_ENV_NAME='${CLOUD_ENV_NAME} >> $GITHUB_ENV
           echo 'cloud_env_name='${CLOUD_ENV_NAME} >> $GITHUB_OUTPUT
-          CHART_VALUES_FILENAME="./kb_cloud_chart_values.yaml"
           case "$CLOUD_ENV_NAME" in
               dev)
                   echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
-                  cp -r apecloud-values/dev/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               idc)
                   echo '${{ env.IDC_KUBECONFIG }}' > $HOME/.kube/config
-                  cp -r apecloud-values/idc/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               idc1)
                   echo '${{ env.IDC_KUBECONFIG_1 }}' > $HOME/.kube/config
-                  cp -r apecloud-values/idc1/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               idc2)
                   echo '${{ env.IDC_KUBECONFIG_2 }}' > $HOME/.kube/config
-                  cp -r apecloud-values/idc2/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               idc4)
                   echo '${{ env.IDC_KUBECONFIG_4 }}' > $HOME/.kube/config
-                  cp -r apecloud-values/idc4/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               vke)
                   echo '${{ env.VKE_KUBECONFIG }}' > $HOME/.kube/config
-                  cp -r apecloud-values/vke/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               vke22)
                   echo '${{ env.VKE_KUBECONFIG_22 }}' > $HOME/.kube/config
-                  cp -r apecloud-values/vke22/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               vke23)
                   echo '${{ env.VKE_KUBECONFIG_23 }}' > $HOME/.kube/config
-                  cp -r apecloud-values/vke23/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               *)
                   echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
@@ -207,26 +185,68 @@ jobs:
           esac
           chmod 600 $HOME/.kube/config
 
-      - name: make pre
-        if: inputs.MAKE_OPS_PRE
+      - name: Create Deploy Pod
         run: |
-          make ${{ inputs.MAKE_OPS_PRE }}
+          run_file_log="run_deploy_result.log"
+          touch ${run_file_log}
 
-      - name: Deploy ${{ inputs.CLOUD_ENV_NAME }}
-        if: inputs.MAKE_OPS
+          export JIHULAB_ACCESS_USER="${{ env.JIHULAB_ACCESS_USER }}"
+          export JIHULAB_ACCESS_TOKEN="${{ env.JIHULAB_ACCESS_TOKEN }}"
+
+          bash test/cloud/test_cloud_deploy.sh \
+              --release-version "${{ inputs.VERSION }}" \
+              --env "${{ inputs.CLOUD_ENV_NAME }}" | tee -a ${run_file_log}
+
+          CLOUD_DEPLOY_POD_NAME="$(cat ${run_file_log} | (grep '\[CLOUD-DEPLOY-POD-NAME\]' || true) )"
+          if [[ -n "${CLOUD_DEPLOY_POD_NAME}" && "$CLOUD_DEPLOY_POD_NAME" == "[CLOUD-DEPLOY-POD-NAME]"* ]]; then
+              CLOUD_DEPLOY_POD_NAME=${CLOUD_DEPLOY_POD_NAME#*"[CLOUD-DEPLOY-POD-NAME]"}
+          fi
+          echo CLOUD_DEPLOY_POD_NAME="$CLOUD_DEPLOY_POD_NAME" >> $GITHUB_ENV
+
+      - name: Waiting for Cloud Deploy Pod to be Completed
         run: |
-          cmd="make ${{ inputs.MAKE_OPS }} "
+          set +e
+          set -o nounset
+          sleep 2
+          while true; do
+              if kubectl get pods -n kb-cloud | grep "${CLOUD_DEPLOY_POD_NAME}" | egrep "Completed|Error" ; then
+                  echo "Cloud Deploy is Done"
 
-          if [[ -n "${{ inputs.VERSION }}" ]]; then
-            cmd=$cmd"VERSION=${{ steps.get_tag_name.outputs.tag_name }} "
-          fi
+                  set +e
+                  set -o nounset
+                  for i in $(seq 1 10); do
+                      kubectl logs -n kb-cloud ${CLOUD_DEPLOY_POD_NAME}
+                      log_ret=$?
+                      if [[ $log_ret -eq 0 ]]; then
+                          break
+                      fi
+                      sleep 1
+                  done
 
-          echo "$cmd"
-          eval "$cmd"
-          deploy_ret=$?
-          if [[ $deploy_ret -eq 0 ]]; then
-              echo DEPLOY_RESULT=1 >> $GITHUB_ENV
-          fi
+                  pod_phase=$(kubectl get pod -n kb-cloud ${CLOUD_DEPLOY_POD_NAME} -o jsonpath='{.status.phase}')
+                  if [[ "$pod_phase" == "Succeeded" ]]; then
+                      echo DEPLOY_RESULT=1 >> $GITHUB_ENV
+                  fi
+
+                  for i in $(seq 1 10); do
+                      kubectl delete pod -n kb-cloud ${CLOUD_DEPLOY_POD_NAME} --force
+                      delete_ret=$?
+                      if [[ $delete_ret -eq 0 ]]; then
+                          break
+                      fi
+                      sleep 1
+                  done
+                  set -e
+
+                  break
+              fi
+              if kubectl get pods -n kb-cloud | grep "${CLOUD_DEPLOY_POD_NAME}" | egrep "Running|Error" ; then
+                  kubectl logs -n kb-cloud ${CLOUD_DEPLOY_POD_NAME} --tail=5
+              else
+                  echo "Waiting for Cloud Deploy Pod to be Completed..."
+              fi
+              sleep 1
+          done
 
       - name: deploy result
         if: ${{ always() }}
@@ -259,12 +279,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Checkout apecloud Code
+      - name: Checkout Code
         uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud
-          ref: ${{ inputs.VERSION }}
-          token: ${{ env.GITHUB_TOKEN }}
 
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
