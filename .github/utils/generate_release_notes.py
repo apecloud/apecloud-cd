@@ -24,7 +24,6 @@ from collections import defaultdict
 # Configuration: images to monitor and their parent component
 # ------------------------------------------------------------
 MONITORED_IMAGES = {
-    "apecloud/apecloud-mcp": "kubeblocks-cloud",
     "apecloud/ape-dts": "kubeblocks-cloud",
     "apecloud/dms": "kubeblocks-cloud",
     "apecloud/oteld": "gemini-monitor",
