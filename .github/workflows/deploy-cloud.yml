@@ -87,7 +87,7 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, kubeblocks ]
     timeout-minutes: 20
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.tag_name }}
