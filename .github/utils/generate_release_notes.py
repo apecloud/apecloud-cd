@@ -602,7 +602,7 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
         # The recursive compare already includes image changes (etype='image'), which are added above.
 
         output = ''.join(f'[{n}]' for n in sorted(changed_names))
-        print(output if output else "No changes")
+        print(output)
         return
     # ---- end list_only early exit ----
 
@@ -622,6 +622,7 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
 
     changed_entries = []  # Each entry: (type, name, idx, old_tag, new_tag, repo_url)
     # type can be 'component' or 'image'
+    all_unmapped = defaultdict(list)  # Unmapped component changes collected early and late
 
     if force:
         print("Force-all mode: generating notes for all components using previous tag (if available).")
@@ -826,7 +827,7 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
 
     # Merge recursive unmapped changes into the main unmapped dict (to be handled later)
     # We'll collect all unmapped changes in a dict for final output
-    all_unmapped = defaultdict(list)
+    # (all_unmapped initialized earlier, before diff processing)
 
     # Process top-level unmapped changes (from direct manifest diff)
     if prev_yaml is not None:
@@ -851,13 +852,11 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
     # Generate full release notes
     # ------------------------------------------------------------
     has_any_change = bool(changed_entries) or bool(all_unmapped)
-    if not has_any_change:
-        print("No valid release notes generated.")
-        return
 
     summary_lines = []
-    summary_lines.append("## What's Changed")
-    summary_lines.append("")
+    if has_any_change:
+        summary_lines.append("## What's Changed")
+        summary_lines.append("")
 
     # Process detailed entries (components with repos and images)
     if changed_entries:
@@ -913,6 +912,10 @@ def auto_release_notes(manifest_path, comp_repo_map, image_repo_map, author_file
             changes = all_unmapped[comp]
             change_strs = [f"{ensure_v_prefix(old)} → {ensure_v_prefix(new)}" for old, new in changes]
             summary_lines.append(f"- {comp}: {', '.join(change_strs)}")
+        summary_lines.append("")
+
+    if not has_any_change:
+        summary_lines.append("No component version changes detected in this release.")
         summary_lines.append("")
 
     # Add Components and Engines sections (as tables)
