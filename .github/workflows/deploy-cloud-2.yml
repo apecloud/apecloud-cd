@@ -308,11 +308,9 @@ jobs:
               ;;
               vke22)
                   echo '${{ env.VKE_KUBECONFIG_22 }}' > $HOME/.kube/config
-                  cp -r apecloud-values/vke22/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               vke23)
                   echo '${{ env.VKE_KUBECONFIG_23 }}' > $HOME/.kube/config
-                  cp -r apecloud-values/vke23/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               *)
                   echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
