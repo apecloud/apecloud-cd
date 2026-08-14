@@ -4,17 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       CLOUD_ENV_NAME:
-        description: "The cloud env name of deploy "
-        type: string
-        required: false
-        default: ''
-      MAKE_OPS:
-        description: "The ops name of makefile"
-        type: string
-        required: false
-        default: ''
-      MAKE_OPS_PRE:
-        description: "The pre ops name of makefile"
+        description: "The cloud env name of deploy"
         type: string
         required: false
         default: ''
@@ -24,12 +14,12 @@ on:
         required: false
         default: ''
       KUBECTL_VERSION:
-        description: "Install the specify version of kubectl (default: latest)"
+        description: "Install the specify version of kubectl (default: v1.28.3)"
         type: string
         required: false
         default: 'v1.28.3'
       REMOVE_PREFIX:
-        description: "Enable remove prefix v  (default: true)"
+        description: "Enable remove prefix v (default: true)"
         type: boolean
         required: false
         default: true
@@ -39,24 +29,14 @@ on:
         required: false
         default: 'main'
       UPGRADE_ADDON:
-        description: "Upgrade addon  (default: false)"
+        description: "Upgrade addon (default: false)"
         type: boolean
         required: false
         default: false
   workflow_call:
     inputs:
       CLOUD_ENV_NAME:
-        description: "The cloud env name of deploy "
-        type: string
-        required: false
-        default: ''
-      MAKE_OPS:
-        description: "The ops name of makefile"
-        type: string
-        required: false
-        default: ''
-      MAKE_OPS_PRE:
-        description: "The pre ops name of makefile"
+        description: "The cloud env name of deploy"
         type: string
         required: false
         default: ''
@@ -66,12 +46,12 @@ on:
         required: false
         default: ''
       KUBECTL_VERSION:
-        description: "Install the specify version of kubectl (default: latest)"
+        description: "Install the specify version of kubectl (default: v1.28.3)"
         type: string
         required: false
         default: 'v1.28.3'
       REMOVE_PREFIX:
-        description: "Enable remove prefix v  (default: true)"
+        description: "Enable remove prefix v (default: true)"
         type: boolean
         required: false
         default: true
@@ -81,13 +61,13 @@ on:
         required: false
         default: 'main'
       UPGRADE_ADDON:
-        description: "Upgrade addon  (default: false)"
+        description: "Upgrade addon (default: false)"
         type: boolean
         required: false
         default: false
 
 
-run-name: ${{ inputs.MAKE_OPS }} ${{ inputs.CLOUD_ENV_NAME }} ${{ inputs.VERSION }} ${{ inputs.UPGRADE_ADDON }}
+run-name: deploy ${{ inputs.CLOUD_ENV_NAME }} ${{ inputs.VERSION }} ${{ inputs.UPGRADE_ADDON }}
 
 
 env:
@@ -99,10 +79,7 @@ env:
   VKE_KUBECONFIG: ${{ secrets.VKE_KUBECONFIG }}
   VKE_KUBECONFIG_22: ${{ secrets.VKE_KUBECONFIG_22 }}
   VKE_KUBECONFIG_23: ${{ secrets.VKE_KUBECONFIG_23 }}
-  GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
-  DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
   CLOUD_ENV_NAME: ${{ inputs.CLOUD_ENV_NAME }}
   RELEASE_VERSION: ${{ inputs.VERSION }}
   DEPLOY_RESULT: 0
