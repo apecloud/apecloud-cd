@@ -159,18 +159,9 @@ env:
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   DEFAULT_BUILDX_ARGS: '--sbom=false --provenance=false'
-  POSTGRESQL_DB_HOST_DEV: ${{ secrets.POSTGRESQL_DB_HOST_DEV }}
-  POSTGRESQL_DB_PASSWORD_DEV: ${{ secrets.POSTGRESQL_DB_PASSWORD_DEV }}
-  POSTGRESQL_DB_PORT_DEV: ${{ secrets.POSTGRESQL_DB_PORT_DEV }}
-  POSTGRESQL_DB_HOST_IDC: ${{ secrets.POSTGRESQL_DB_HOST_IDC }}
-  POSTGRESQL_DB_PASSWORD_IDC: ${{ secrets.POSTGRESQL_DB_PASSWORD_IDC }}
-  POSTGRESQL_DB_PORT_IDC: ${{ secrets.POSTGRESQL_DB_PORT_IDC }}
   POSTGRESQL_DB_HOST_IDC1: ${{ secrets.POSTGRESQL_DB_HOST_IDC1 }}
   POSTGRESQL_DB_PASSWORD_IDC1: ${{ secrets.POSTGRESQL_DB_PASSWORD_IDC1 }}
   POSTGRESQL_DB_PORT_IDC1: ${{ secrets.POSTGRESQL_DB_PORT_IDC1 }}
-  POSTGRESQL_DB_HOST_IDC2: ${{ secrets.POSTGRESQL_DB_HOST_IDC2 }}
-  POSTGRESQL_DB_PASSWORD_IDC2: ${{ secrets.POSTGRESQL_DB_PASSWORD_IDC2 }}
-  POSTGRESQL_DB_PORT_IDC2: ${{ secrets.POSTGRESQL_DB_PORT_IDC2 }}
   POSTGRESQL_DB_HOST_IDC4: ${{ secrets.POSTGRESQL_DB_HOST_IDC4 }}
   POSTGRESQL_DB_PASSWORD_IDC4: ${{ secrets.POSTGRESQL_DB_PASSWORD_IDC4 }}
   POSTGRESQL_DB_PORT_IDC4: ${{ secrets.POSTGRESQL_DB_PORT_IDC4 }}
@@ -253,6 +244,15 @@ jobs:
           path: ./${{ inputs.GITHUB_PATH }}
           token: ${{ env.GITHUB_TOKEN }}
 
+      - name: Checkout apecloud-values Code
+        if: ${{ contains(inputs.MAKE_ARGS, 'TARGETS=fountain') }}
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-values
+          path: apecloud-values
+          ref: main
+          token: ${{ env.GITHUB_TOKEN }}
+
       - name: set PG HOST Env
         run: |
           RELEASE_VERSION="${{ inputs.VERSION }}"
@@ -261,17 +261,7 @@ jobs:
           IDC1_RELEASE_VERSION="${{ vars.IDC1_RELEASE_VERSION }}"
           IDC2_RELEASE_VERSION="${{ vars.IDC2_RELEASE_VERSION }}"
           IDC4_RELEASE_VERSION="${{ vars.IDC4_RELEASE_VERSION }}"
-          if [[ "${RELEASE_VERSION}" == "${CURRENT_RELEASE_VERSION}."* ]]; then
-              echo "set PG HOST Env DEV"
-              POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_DEV }}"
-              POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_DEV }}"
-              POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_DEV }}"
-          elif [[ "${RELEASE_VERSION}" == "${IDC_RELEASE_VERSION}."* ]]; then
-              echo "set PG HOST Env IDC"
-              POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_IDC }}"
-              POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_IDC }}"
-              POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_IDC }}"
-          elif [[ "${RELEASE_VERSION}" == "${IDC1_RELEASE_VERSION}."* ]]; then
+          if [[ "${RELEASE_VERSION}" == "${IDC1_RELEASE_VERSION}."* ]]; then
               echo "set PG HOST Env IDC1"
               POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_IDC1 }}"
               POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_IDC1 }}"
@@ -281,16 +271,6 @@ jobs:
               POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_IDC4 }}"
               POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_IDC4 }}"
               POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_IDC4 }}"
-          elif [[ "${RELEASE_VERSION}" == "${IDC2_RELEASE_VERSION}."* ]]; then
-              echo "set PG HOST Env IDC2"
-              POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_IDC2 }}"
-              POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_IDC2 }}"
-              POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_IDC2 }}"
-          else
-              echo "set PG HOST Env DEV"
-              POSTGRESQL_DB_HOST="${{ env.POSTGRESQL_DB_HOST_DEV }}"
-              POSTGRESQL_DB_PASSWORD="${{ env.POSTGRESQL_DB_PASSWORD_DEV }}"
-              POSTGRESQL_DB_PORT="${{ env.POSTGRESQL_DB_PORT_DEV }}"
           fi
           echo "POSTGRESQL_DB_HOST=${POSTGRESQL_DB_HOST}" >> $GITHUB_ENV
           echo "POSTGRESQL_DB_PASSWORD=${POSTGRESQL_DB_PASSWORD}" >> $GITHUB_ENV
@@ -479,6 +459,9 @@ jobs:
                   ;;
                   *TARGETS=terraform*)
                       IMAGES_INPUT="apecloud/terraform-provision:${IMAGES_TAG}"
+                  ;;
+                  *TARGETS=fountain*)
+                      IMAGES_INPUT="apecloud/kb-cloud-deploy:${IMAGES_TAG}"
                   ;;
                   *TARGETS*)  
                       for TARGET in $(echo "${TARGETS}"); do
