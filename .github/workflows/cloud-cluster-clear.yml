@@ -112,7 +112,7 @@ jobs:
                   echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
               ;;
           esac
-          
+          chmod 600 $HOME/.kube/config
           backup_filter="$(date +%Y-%m)"
           echo "delete e2e Retain backup"
           kubectl get backup -n kubeblocks-cloud-ns --no-headers | (grep "e2e-" | grep -v "${backup_filter}" || true) | awk '{print $1}' | xargs kubectl delete backup -n kubeblocks-cloud-ns &
@@ -159,6 +159,7 @@ jobs:
                   E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_DEV }}"
               ;;
           esac
+          chmod 600 $HOME/.kube/config
           echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
 
       - name: run e2e clear cluster

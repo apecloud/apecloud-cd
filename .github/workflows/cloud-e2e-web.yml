@@ -291,6 +291,7 @@ jobs:
                   E2E_ENV_VARS="${{ vars.E2E_WEB_ENV_VARS_IDC4 }}"
               ;;
           esac
+          chmod 600 $HOME/.kube/config
           echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
 
       - name: install python dateutil

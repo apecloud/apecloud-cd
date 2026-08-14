@@ -205,6 +205,7 @@ jobs:
                   echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
               ;;
           esac
+          chmod 600 $HOME/.kube/config
 
       - name: make pre
         if: inputs.MAKE_OPS_PRE
@@ -317,6 +318,7 @@ jobs:
                   echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
               ;;
           esac
+          chmod 600 $HOME/.kube/config
 
       - name: Upgrade Addon
         run: |

@@ -237,6 +237,7 @@ jobs:
           mkdir -p $HOME/.kube
           touch $HOME/.kube/config
           echo "${K8S_CLUSTER_KUBECONFIG}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
 
       - name: run test ${{ inputs.test-type-name }}
         id: kbcli_test
