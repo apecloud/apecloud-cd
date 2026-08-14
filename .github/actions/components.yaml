@@ -7,4 +7,3 @@ image:apecloud/oteld: ./oteld
 image:apecloud/dms: ./dms
 image:apecloud/servicemirror: ./servicemirror
 image:apecloud/ape-dts: ./ape-dts
-image:apecloud/apecloud-mcp: ./apecloud-mcp

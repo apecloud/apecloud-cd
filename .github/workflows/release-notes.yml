@@ -147,15 +147,6 @@ jobs:
           fetch-depth: 0
           token: ${{ env.GH_TOKEN }}
 
-      - name: checkout apecloud-mcp
-        if: ${{ contains(env.LIST_CHANGED, '[apecloud-mcp]') || inputs.FRORCE }}
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud-mcp
-          path: apecloud-mcp
-          fetch-depth: 0
-          token: ${{ env.GH_TOKEN }}
-
       - name: generate release notes
         run: |
           gen_cmd="python3 .github/utils/generate_release_notes.py"
