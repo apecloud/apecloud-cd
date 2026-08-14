@@ -97,6 +97,8 @@ env:
   IDC_KUBECONFIG_2: ${{ secrets.IDC_KUBECONFIG_2 }}
   IDC_KUBECONFIG_4: ${{ secrets.IDC_KUBECONFIG_4 }}
   VKE_KUBECONFIG: ${{ secrets.VKE_KUBECONFIG }}
+  VKE_KUBECONFIG_22: ${{ secrets.VKE_KUBECONFIG_22 }}
+  VKE_KUBECONFIG_23: ${{ secrets.VKE_KUBECONFIG_23 }}
   GITHUB_USER: ${{ secrets.PERSONAL_ACCESS_USER }}
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
@@ -190,6 +192,14 @@ jobs:
               vke)
                   echo '${{ env.VKE_KUBECONFIG }}' > $HOME/.kube/config
                   cp -r apecloud-values/vke/values.yaml ${CHART_VALUES_FILENAME}
+              ;;
+              vke22)
+                  echo '${{ env.VKE_KUBECONFIG_22 }}' > $HOME/.kube/config
+                  cp -r apecloud-values/vke22/values.yaml ${CHART_VALUES_FILENAME}
+              ;;
+              vke23)
+                  echo '${{ env.VKE_KUBECONFIG_23 }}' > $HOME/.kube/config
+                  cp -r apecloud-values/vke23/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               *)
                   echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
@@ -294,6 +304,14 @@ jobs:
               ;;
               vke)
                   echo '${{ env.VKE_KUBECONFIG }}' > $HOME/.kube/config
+              ;;
+              vke22)
+                  echo '${{ env.VKE_KUBECONFIG_22 }}' > $HOME/.kube/config
+                  cp -r apecloud-values/vke22/values.yaml ${CHART_VALUES_FILENAME}
+              ;;
+              vke23)
+                  echo '${{ env.VKE_KUBECONFIG_23 }}' > $HOME/.kube/config
+                  cp -r apecloud-values/vke23/values.yaml ${CHART_VALUES_FILENAME}
               ;;
               *)
                   echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
