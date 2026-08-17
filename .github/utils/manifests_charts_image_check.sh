@@ -59,8 +59,13 @@ check_service_version_images() {
         images=""
         check_ran_ok=0
         if [[ -f "${check_engine_result_file}" ]]; then
-            check_ran_ok=1
             images=$(yq e '.'${chart_name_tmp}'[0].images[]' ${check_engine_result_file} | grep -v 'IMAGE_TAG')
+            # Only consider it a successful run if we actually got images back.
+            # An empty result file (e.g. chart version not found, download failed)
+            # should trigger retry / failure, not silently pass.
+            if [[ -n "${images}" ]]; then
+                check_ran_ok=1
+            fi
             if [[ -z "${SKIP_DELETE_FILE}" || "${check_engine_result_file}" != *"${SKIP_DELETE_FILE}"* ]]; then
                 rm -rf ${check_engine_result_file}
                 rm -rf charts/${chart_name_tmp}-${chart_version_tmp}.tgz

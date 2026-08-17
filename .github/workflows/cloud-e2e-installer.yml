@@ -521,8 +521,28 @@ jobs:
           echo "CLOUD_PRE_VERSION:$CLOUD_PRE_VERSION"
           echo "cloud-pre-version=${CLOUD_PRE_VERSION}" >> $GITHUB_OUTPUT
 
+      - name: create secret ${{ env.KB_ADDON_SECRET_NAME }}
+        run: |
+          KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
+          DOCKER_REGISTRY_URL_INDEX="${{ env.DOCKER_REGISTRY_URL_INDEX }}"
+          DOCKER_REGISTRY_USER="${{ env.DOCKER_REGISTRY_USER }}"
+          DOCKER_REGISTRY_PASSWORD="${{ env.DOCKER_REGISTRY_PASSWORD }}"
+          
+          for ns in kb-cloud kb-system; do
+              if ! kubectl get namespace "$ns" >/dev/null 2>&1; then
+                  kubectl create namespace "$ns"
+              fi
+              kubectl create secret docker-registry "${KB_ADDON_SECRET_NAME}" \
+                  --docker-server="${DOCKER_REGISTRY_URL_INDEX}" \
+                  --docker-username="${DOCKER_REGISTRY_USER}" \
+                  --docker-password="${DOCKER_REGISTRY_PASSWORD}" \
+                  --docker-email="" \
+                  -n "$ns" --dry-run=client -o yaml | kubectl apply -f -
+          done
+
       - name: install kb cloud with ${{ steps.cloud_pre_version.outputs.cloud-pre-version }}
         run: |
+          KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
           helm repo add kb-chart https://apecloud.github.io/helm-charts
           CLOUD_PRE_VERSION="${{ steps.cloud_pre_version.outputs.cloud-pre-version }}"
           HELM_CHART_PKG_NAME="kb-cloud-installer-${CLOUD_PRE_VERSION/v/}.tgz"
@@ -549,6 +569,7 @@ jobs:
               --set fqdn.domain=mytest.kubeblocks.com \
               --set tls.enabled=true \
               --set ingress.routeType="host" \
+              --set image.pullSecrets[0].name=${KB_ADDON_SECRET_NAME} \
               --set metaDB.zalandoOperator.clusterConfig.resources.requests.cpu="100m" \
               --set metaDB.zalandoOperator.clusterConfig.resources.requests.memory="128Mi"
 
