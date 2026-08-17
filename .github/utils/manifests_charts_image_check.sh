@@ -133,6 +133,7 @@ check_images() {
     chart_name_tmp=${3:-""}
     chart_images_tmp=${4:-""}
     set_values_tmp=${5:-""}
+    chart_type_tmp=${6:-""}
     local log_prefix="[$chart_name_tmp/$chart_version_tmp]"
     local helm_stderr="helm-${chart_name_tmp}-${chart_version_tmp}-stderr.log"
     local helm_stdout="helm-${chart_name_tmp}-${chart_version_tmp}-stdout.log"
@@ -151,7 +152,7 @@ check_images() {
                 # Charts whose versions may be periodically cleaned up from
                 # the repo — "not found" is expected, warn and skip instead of failing.
                 local skippable_not_found="kubeblocks-cloud|ingress-nginx|metallb|metrics-server|cert-manager|csi-driver-nfs"
-                if [[ "|${skippable_not_found}|" == *"|${chart_name_tmp}|"* ]]; then
+                if [[ "|${skippable_not_found}|" == *"|${chart_name_tmp}|"* && "${chart_type_tmp}" != "engine" ]]; then
                     echo "${log_prefix} $(tput -T xterm setaf 3)Chart version not found in repo (version may have been cleaned up, skipping).$(tput -T xterm sgr0)"
                     rm -f "${helm_stdout}" "${helm_stderr}"
                     return
@@ -371,6 +372,7 @@ check_charts_images() {
         chart_index=0
         for chart_version in $(echo "$chart_versions" | sed 's/|/ /g'); do
             is_enterprise=$(yq e "."${chart_name}"[${chart_index}].isEnterprise"  ${MANIFESTS_FILE})
+            chart_type=$(yq e "."${chart_name}"[${chart_index}].type"  ${MANIFESTS_FILE})
             chart_images=$(yq e "."${chart_name}"[${chart_index}].images[]"  ${MANIFESTS_FILE})
             service_versions=""
             if yq e '.'${chart_name}'['${chart_index}'] | has("serviceVersions")' "${MANIFESTS_FILE}" >/dev/null 2>&1; then
@@ -411,7 +413,7 @@ check_charts_images() {
                 if [[ "$chart_name" == "kubeblocks-cloud" ]]; then
                     check_addon_charts_images "$chart_version" "$chart_name" "$chart_images" &
                 fi
-                check_images "$is_enterprise" "$chart_version" "$chart_name" "$chart_images" "$set_values" &
+                check_images "$is_enterprise" "$chart_version" "$chart_name" "$chart_images" "$set_values" "$chart_type" &
             fi
             chart_index=$(( $chart_index + 1 ))
         done
