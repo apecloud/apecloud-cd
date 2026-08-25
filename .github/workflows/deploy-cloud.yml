@@ -170,8 +170,12 @@ jobs:
                   done
 
                   pod_phase=$(kubectl get pod -n kb-cloud ${CLOUD_DEPLOY_POD_NAME} -o jsonpath='{.status.phase}')
-                  if [[ "$pod_phase" == "Succeeded" ]]; then
-                      echo DEPLOY_RESULT=1 >> $GITHUB_ENV
+                  pod_status=$(kubectl get pod -n kb-cloud ${CLOUD_DEPLOY_POD_NAME} | (grep "${CLOUD_DEPLOY_POD_NAME}" || true))
+          
+                  if [[ "$pod_phase" == "Succeeded" || "${pod_status}" == *"Completed"* ]]; then
+                      DEPLOY_RESULT=1
+                      echo "DEPLOY_RESULT:${DEPLOY_RESULT}"
+                      echo DEPLOY_RESULT=${DEPLOY_RESULT} >> $GITHUB_ENV
                   fi
 
                   for i in $(seq 1 10); do
