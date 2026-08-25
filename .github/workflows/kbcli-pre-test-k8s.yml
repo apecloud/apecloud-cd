@@ -1926,10 +1926,9 @@ jobs:
       release-version: "${{ inputs.release-version }}"
       test-type: "0"
       test-type-name: "install-kubeblocks"
-      test-args: "--config-s3 true --upgrade true --keep-resource true ${{ inputs.test-args }}"
+      test-args: "--config-s3 true --upgrade true ${{ inputs.previous-version && '--keep-resource true' || '' }} ${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
       artifact-name: ${{ inputs.artifact-name }}
       branch-name: ${{ inputs.branch-name }}
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
-
