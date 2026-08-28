@@ -119,7 +119,7 @@ jobs:
           FREE_DISK_SPACE=0
           RELEASE_IMG="${{ inputs.IMG }}"
           case $RELEASE_IMG in
-              apecloud/aperag|apecloud/doc-ray|apecloud/apiserver|apecloud/cr4w)
+              apecloud/aperag|apecloud/doc-ray|apecloud/apiserver|apecloud/cr4w|apecloud/apemind-enterprise|apecloud/apemind-enterprise-frontend)
                   FREE_DISK_SPACE=1
               ;;
           esac
