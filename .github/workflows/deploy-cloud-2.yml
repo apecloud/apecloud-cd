@@ -207,6 +207,11 @@ jobs:
                       DEPLOY_RESULT=1
                       echo "DEPLOY_RESULT:${DEPLOY_RESULT}"
                       echo DEPLOY_RESULT=${DEPLOY_RESULT} >> $GITHUB_ENV
+                  else
+                      echo "Cloud Deploy failed, last logs:"
+                      echo "==================== pod ${CLOUD_DEPLOY_POD_NAME} logs ===================="
+                      kubectl logs -n kb-cloud ${CLOUD_DEPLOY_POD_NAME} --tail=100 || true
+                      echo ""
                   fi
 
                   for i in $(seq 1 10); do
@@ -218,6 +223,8 @@ jobs:
                       sleep 1
                   done
                   set -e
+
+                  [[ "${DEPLOY_RESULT}" == "1" ]] || exit 1
 
                   break
               fi
