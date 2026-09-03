@@ -75,7 +75,7 @@ jobs:
         id: get_test_engine
         run: |
           TEST_INDEX="${{ needs.schedule-cron.outputs.day-of-week }}"
-          TEST_ENGINES="${{ vars.KB_CLOUD_TEST_ENGINES_IDC }}"
+          TEST_ENGINES="${{ vars.KB_CLOUD_TEST_ENGINES_IDC2 }}"
           if [[ -z "$TEST_ENGINES" ]]; then
               TEST_ENGINES="mysql"
           fi
