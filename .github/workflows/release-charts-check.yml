@@ -33,6 +33,11 @@ on:
         type: string
         required: false
         default: ''
+      HELM_LINT_SET_BY_CHART:
+        description: "JSON map of chart name to lint-only Helm --set values"
+        type: string
+        required: false
+        default: '{}'
       DEP_REPO:
         description: "The dependency of helm chart (e.g. helm repo add grafana https://grafana.github.io/helm-charts)"
         type: string
@@ -206,14 +211,21 @@ jobs:
           "${{ github.workspace }}/apecloud-cd/.github/utils/helm_package.sh" "${args[@]}"
 
       - name: helm lint
+        env:
+          HELM_LINT_SET_BY_CHART: ${{ inputs.HELM_LINT_SET_BY_CHART }}
         run: |
           for chart in $(echo "$(ls .cr-release-packages)"); do
-              if [[ "$chart" == "kubeblocks-cloud-"*".tgz" && -n "${{ inputs.HELM_SET }}" ]]; then
+              chart_name=$(helm show chart ".cr-release-packages/$chart" | awk '/^name:/ { print $2; exit }')
+              chart_lint_set=$(jq -er --arg chart "$chart_name" '.[$chart] // ""' <<< "$HELM_LINT_SET_BY_CHART")
+              if [[ -n "$chart_lint_set" ]]; then
+                  echo "helm lint $chart --set=<chart-specific values>"
+                  helm lint ".cr-release-packages/$chart" --set="$chart_lint_set"
+              elif [[ "$chart" == "kubeblocks-cloud-"*".tgz" && -n "${{ inputs.HELM_SET }}" ]]; then
                   echo "helm lint $chart --set=\"${{ inputs.HELM_SET }}\""
-                  helm lint .cr-release-packages/$chart --set="${{ inputs.HELM_SET }}"
+                  helm lint ".cr-release-packages/$chart" --set="${{ inputs.HELM_SET }}"
               else
                   echo "helm lint $chart"
-                  helm lint .cr-release-packages/$chart 
+                  helm lint ".cr-release-packages/$chart"
               fi
           done
 
