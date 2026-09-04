@@ -339,15 +339,30 @@ jobs:
           export KB_CLOUD_TEST_ENGINES=${TEST_ENGINES}
           
           # run cloud e2e test
-          bash test/cloud/test_cloud_e2e.sh \
-              --test-type "engine-test" \
-              --pod-index "${TEST_JOB_INDEX}" \
-              --release-version "${{ needs.get-test-engine.outputs.cloud-branch }}" \
-              --env "${CLOUD_TEST_ENV}" | tee -a ${run_file_log}
-          
-          CLOUD_E2E_TEST_POD_NAME="$(cat ${run_file_log} | (grep '\[CLOUD-E2E-TEST-POD-NAME\]' || true) )"
-          if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" && "$CLOUD_E2E_TEST_POD_NAME" == "[CLOUD-E2E-TEST-POD-NAME]"* ]]; then
-              CLOUD_E2E_TEST_POD_NAME=${CLOUD_E2E_TEST_POD_NAME#*"[CLOUD-E2E-TEST-POD-NAME]"}      
+          set +e
+          apply_ok="false"
+          for i in $(seq 1 10); do
+              bash test/cloud/test_cloud_e2e.sh \
+                  --test-type "engine-test" \
+                  --pod-index "${TEST_JOB_INDEX}" \
+                  --release-version "${{ needs.get-test-engine.outputs.cloud-branch }}" \
+                  --env "${CLOUD_TEST_ENV}" | tee -a ${run_file_log}
+
+              CLOUD_E2E_TEST_POD_NAME="$(cat ${run_file_log} | (grep '\[CLOUD-E2E-TEST-POD-NAME\]' || true) | tail -n 1)"
+              if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" && "$CLOUD_E2E_TEST_POD_NAME" == "[CLOUD-E2E-TEST-POD-NAME]"* ]]; then
+                  CLOUD_E2E_TEST_POD_NAME=${CLOUD_E2E_TEST_POD_NAME#*"[CLOUD-E2E-TEST-POD-NAME]"}
+              fi
+              if [[ -n "${CLOUD_E2E_TEST_POD_NAME}" ]] && kubectl get pod -n default "${CLOUD_E2E_TEST_POD_NAME}" >/dev/null 2>&1; then
+                  apply_ok="true"
+                  break
+              fi
+              echo "create cloud e2e test pod failed, retry ${i}/10"
+              sleep 1
+          done
+          set -e
+          if [[ "${apply_ok}" != "true" ]]; then
+              echo "create cloud e2e test pod failed"
+              exit 1
           fi
           echo CLOUD_E2E_TEST_POD_NAME="$CLOUD_E2E_TEST_POD_NAME" >> $GITHUB_ENV
 
