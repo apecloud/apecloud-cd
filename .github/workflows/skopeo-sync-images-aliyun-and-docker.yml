@@ -7,6 +7,9 @@ on:
         description: 'Publish and verify pinned Kibana 7.10.2 amd64/arm64 images'
         type: boolean
         default: false
+      verified_kibana_index:
+        description: 'Index digest that passed native ARM64 smoke; empty leaves release tag unchanged'
+        default: ''
       images_name:
         description: 'sync image src name (e.g. <namesapce>/<name>:<tag>)'
         required: false
@@ -168,6 +171,7 @@ jobs:
         run: bash .github/utils/kibana-7.10.2-multiarch.sh smoke
 
   kibana-promote:
+    if: ${{ inputs.verified_kibana_index != '' && inputs.verified_kibana_index == needs.kibana-prepare.outputs.index_digest }}
     needs: [kibana-prepare, kibana-smoke]
     runs-on: ubuntu-latest
     timeout-minutes: 15
