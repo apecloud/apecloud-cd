@@ -1,4 +1,4 @@
-name: Release Image Sync Self Hosted
+name: Release Image Sync
 
 on:
   workflow_call:
