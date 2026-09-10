@@ -177,6 +177,23 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-postgresql-13:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) && ! contains(inputs.TEST_TYPE, '-postgresql') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "2"
+      test-type-name: "postgresql-13"
+      test-args: "--service-version 13 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   test-postgresql-12:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'postgresql|') || endsWith(inputs.TEST_TYPE, 'postgresql')) && ! contains(inputs.TEST_TYPE, '-postgresql') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
@@ -194,10 +211,49 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-redis-8-10:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks,
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15,
+             test-postgresql-14, test-postgresql-13, test-postgresql-12 ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "5"
+      test-type-name: "redis-8-10"
+      test-args: "--service-version 8.10 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-redis-8-8:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks,
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15,
+             test-postgresql-14, test-postgresql-13, test-postgresql-12 ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "5"
+      test-type-name: "redis-8-8"
+      test-args: "--service-version 8.8 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   test-redis-8-6:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15,
+             test-postgresql-14, test-postgresql-13, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -215,7 +271,8 @@ jobs:
   test-redis-8-4:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15,
+             test-postgresql-14, test-postgresql-13, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -233,7 +290,8 @@ jobs:
   test-redis-8-2:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15,
+             test-postgresql-14, test-postgresql-13, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -251,7 +309,8 @@ jobs:
   test-redis-8-0:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15,
+             test-postgresql-14, test-postgresql-13, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -269,7 +328,8 @@ jobs:
   test-redis-7-4:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15,
+             test-postgresql-14, test-postgresql-13, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -287,7 +347,8 @@ jobs:
   test-redis-7-2:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15,
+             test-postgresql-14, test-postgresql-13, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -305,7 +366,8 @@ jobs:
   test-redis-7-0:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15,
+             test-postgresql-14, test-postgresql-13, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -323,7 +385,8 @@ jobs:
   test-redis-6-2:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12 ]
+             test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15,
+             test-postgresql-14, test-postgresql-13, test-postgresql-12 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -341,7 +404,8 @@ jobs:
   test-redis-cluster-8-6:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-redis-8-6, test-redis-8-4, test-redis-8-2, test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2 ]
+             test-redis-8-10, test-redis-8-8, test-redis-8-6, test-redis-8-4, test-redis-8-2,
+             test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -359,7 +423,8 @@ jobs:
   test-redis-cluster-8-4:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-redis-8-6, test-redis-8-4, test-redis-8-2, test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2 ]
+             test-redis-8-10, test-redis-8-8, test-redis-8-6, test-redis-8-4, test-redis-8-2,
+             test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -377,7 +442,8 @@ jobs:
   test-redis-cluster-8-2:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-redis-8-6, test-redis-8-4, test-redis-8-2, test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2 ]
+             test-redis-8-10, test-redis-8-8, test-redis-8-6, test-redis-8-4, test-redis-8-2,
+             test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -395,7 +461,8 @@ jobs:
   test-redis-cluster-8-0:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-redis-8-6, test-redis-8-4, test-redis-8-2, test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2 ]
+             test-redis-8-10, test-redis-8-8, test-redis-8-6, test-redis-8-4, test-redis-8-2,
+             test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -413,7 +480,8 @@ jobs:
   test-redis-cluster-7-4:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-redis-8-6, test-redis-8-4, test-redis-8-2, test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2 ]
+             test-redis-8-10, test-redis-8-8, test-redis-8-6, test-redis-8-4, test-redis-8-2,
+             test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -431,7 +499,8 @@ jobs:
   test-redis-cluster-7-2:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-redis-8-6, test-redis-8-4, test-redis-8-2, test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2 ]
+             test-redis-8-10, test-redis-8-8, test-redis-8-6, test-redis-8-4, test-redis-8-2,
+             test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -449,7 +518,8 @@ jobs:
   test-redis-cluster-7-0:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
-             test-redis-8-6, test-redis-8-4, test-redis-8-2, test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2 ]
+             test-redis-8-10, test-redis-8-8, test-redis-8-6, test-redis-8-4, test-redis-8-2,
+             test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2 ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
       cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
@@ -797,6 +867,23 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-elasticsearch-9:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'elasticsearch')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "25"
+      test-type-name: "elasticsearch-9"
+      test-args: "--service-version 9 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   test-elasticsearch-8:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'elasticsearch')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
@@ -899,6 +986,23 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-milvus-2-6:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'milvus')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "28"
+      test-type-name: "milvus-2-6"
+      test-args: "--service-version 2.6 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   test-milvus-2-5:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'milvus')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
@@ -989,8 +1093,8 @@ jobs:
     needs: [ terraform-init-k8s, test-kubeblocks,
              test-nebula-3-8, test-nebula-3-5,
              test-etcd-3-6, test-etcd-3-5,
-             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
-             test-milvus-2-5, test-milvus-2-3,
+             test-elasticsearch-9, test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-6, test-milvus-2-5, test-milvus-2-3,
              test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
              test-tidb-8, test-tidb-7, test-tidb-6,
              test-minio-2025, test-minio-2024 ]
@@ -1013,8 +1117,8 @@ jobs:
     needs: [ terraform-init-k8s, test-kubeblocks,
              test-nebula-3-8, test-nebula-3-5,
              test-etcd-3-6, test-etcd-3-5,
-             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
-             test-milvus-2-5, test-milvus-2-3,
+             test-elasticsearch-9, test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-6, test-milvus-2-5, test-milvus-2-3,
              test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
              test-tidb-8, test-tidb-7, test-tidb-6,
              test-minio-2025, test-minio-2024 ]
@@ -1037,8 +1141,8 @@ jobs:
     needs: [ terraform-init-k8s, test-kubeblocks,
              test-nebula-3-8, test-nebula-3-5,
              test-etcd-3-6, test-etcd-3-5,
-             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
-             test-milvus-2-5, test-milvus-2-3,
+             test-elasticsearch-9, test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-6, test-milvus-2-5, test-milvus-2-3,
              test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
              test-tidb-8, test-tidb-7, test-tidb-6,
              test-minio-2025, test-minio-2024 ]
@@ -1061,8 +1165,8 @@ jobs:
     needs: [ terraform-init-k8s, test-kubeblocks,
              test-nebula-3-8, test-nebula-3-5,
              test-etcd-3-6, test-etcd-3-5,
-             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
-             test-milvus-2-5, test-milvus-2-3,
+             test-elasticsearch-9, test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-6, test-milvus-2-5, test-milvus-2-3,
              test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
              test-tidb-8, test-tidb-7, test-tidb-6,
              test-minio-2025, test-minio-2024 ]
@@ -1074,30 +1178,6 @@ jobs:
       test-type: "32"
       test-type-name: "zookeeper-3-6"
       test-args: "--service-version 3.6 ${{ inputs.ARGS }}"
-      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
-      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
-      branch-name: ${{ inputs.BRANCH_NAME }}
-      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
-    secrets: inherit
-
-  test-zookeeper-3-4:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'zookeeper')) }}
-    needs: [ terraform-init-k8s, test-kubeblocks,
-             test-nebula-3-8, test-nebula-3-5,
-             test-etcd-3-6, test-etcd-3-5,
-             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
-             test-milvus-2-5, test-milvus-2-3,
-             test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
-             test-tidb-8, test-tidb-7, test-tidb-6,
-             test-minio-2025, test-minio-2024 ]
-    uses: ./.github/workflows/kbcli-test.yml
-    with:
-      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
-      region: ${{ inputs.REGION }}
-      release-version: "${{ inputs.KB_VERSION }}"
-      test-type: "32"
-      test-type-name: "zookeeper-3-4"
-      test-args: "--service-version 3.4 ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
       branch-name: ${{ inputs.BRANCH_NAME }}
@@ -1223,6 +1303,40 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-starrocks-ent-4-0:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks-ent')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "45"
+      test-type-name: "starrocks-ent-4-0"
+      test-args: "--service-version 4.0 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-starrocks-ent-3-5:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks-ent')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "45"
+      test-type-name: "starrocks-ent-3-5"
+      test-args: "--service-version 3.5 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   test-starrocks-ent-3-4:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'starrocks-ent')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
@@ -1308,13 +1422,37 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-rabbitmq-4-3:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks,
+             test-nebula-3-8, test-nebula-3-5,
+             test-etcd-3-6, test-etcd-3-5,
+             test-elasticsearch-9, test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-6, test-milvus-2-5, test-milvus-2-3,
+             test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
+             test-tidb-8, test-tidb-7, test-tidb-6,
+             test-minio-2025, test-minio-2024 ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "53"
+      test-type-name: "rabbitmq-4-3"
+      test-args: "--service-versin 4.3 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   test-rabbitmq-4-2:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'rabbitmq')) }}
     needs: [ terraform-init-k8s, test-kubeblocks,
              test-nebula-3-8, test-nebula-3-5,
              test-etcd-3-6, test-etcd-3-5,
-             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
-             test-milvus-2-5, test-milvus-2-3,
+             test-elasticsearch-9, test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-6, test-milvus-2-5, test-milvus-2-3,
              test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
              test-tidb-8, test-tidb-7, test-tidb-6,
              test-minio-2025, test-minio-2024 ]
@@ -1337,8 +1475,8 @@ jobs:
     needs: [ terraform-init-k8s, test-kubeblocks,
              test-nebula-3-8, test-nebula-3-5,
              test-etcd-3-6, test-etcd-3-5,
-             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
-             test-milvus-2-5, test-milvus-2-3,
+             test-elasticsearch-9, test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-6, test-milvus-2-5, test-milvus-2-3,
              test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
              test-tidb-8, test-tidb-7, test-tidb-6,
              test-minio-2025, test-minio-2024 ]
@@ -1361,8 +1499,8 @@ jobs:
     needs: [ terraform-init-k8s, test-kubeblocks,
              test-nebula-3-8, test-nebula-3-5,
              test-etcd-3-6, test-etcd-3-5,
-             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
-             test-milvus-2-5, test-milvus-2-3,
+             test-elasticsearch-9, test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-6, test-milvus-2-5, test-milvus-2-3,
              test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
              test-tidb-8, test-tidb-7, test-tidb-6,
              test-minio-2025, test-minio-2024 ]
@@ -1385,8 +1523,8 @@ jobs:
     needs: [ terraform-init-k8s, test-kubeblocks,
              test-nebula-3-8, test-nebula-3-5,
              test-etcd-3-6, test-etcd-3-5,
-             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
-             test-milvus-2-5, test-milvus-2-3,
+             test-elasticsearch-9, test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-6, test-milvus-2-5, test-milvus-2-3,
              test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
              test-tidb-8, test-tidb-7, test-tidb-6,
              test-minio-2025, test-minio-2024 ]
@@ -1409,8 +1547,8 @@ jobs:
     needs: [ terraform-init-k8s, test-kubeblocks,
              test-nebula-3-8, test-nebula-3-5,
              test-etcd-3-6, test-etcd-3-5,
-             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
-             test-milvus-2-5, test-milvus-2-3,
+             test-elasticsearch-9, test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-6, test-milvus-2-5, test-milvus-2-3,
              test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
              test-tidb-8, test-tidb-7, test-tidb-6,
              test-minio-2025, test-minio-2024 ]
@@ -1433,8 +1571,8 @@ jobs:
     needs: [ terraform-init-k8s, test-kubeblocks,
              test-nebula-3-8, test-nebula-3-5,
              test-etcd-3-6, test-etcd-3-5,
-             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
-             test-milvus-2-5, test-milvus-2-3,
+             test-elasticsearch-9, test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-6, test-milvus-2-5, test-milvus-2-3,
              test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
              test-tidb-8, test-tidb-7, test-tidb-6,
              test-minio-2025, test-minio-2024 ]
@@ -1457,8 +1595,8 @@ jobs:
     needs: [ terraform-init-k8s, test-kubeblocks,
              test-nebula-3-8, test-nebula-3-5,
              test-etcd-3-6, test-etcd-3-5,
-             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
-             test-milvus-2-5, test-milvus-2-3,
+             test-elasticsearch-9, test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-6, test-milvus-2-5, test-milvus-2-3,
              test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
              test-tidb-8, test-tidb-7, test-tidb-6,
              test-minio-2025, test-minio-2024 ]
@@ -1481,8 +1619,8 @@ jobs:
     needs: [ terraform-init-k8s, test-kubeblocks,
              test-nebula-3-8, test-nebula-3-5,
              test-etcd-3-6, test-etcd-3-5,
-             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
-             test-milvus-2-5, test-milvus-2-3,
+             test-elasticsearch-9, test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-6, test-milvus-2-5, test-milvus-2-3,
              test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
              test-tidb-8, test-tidb-7, test-tidb-6,
              test-minio-2025, test-minio-2024 ]
@@ -1505,8 +1643,8 @@ jobs:
     needs: [ terraform-init-k8s, test-kubeblocks,
              test-nebula-3-8, test-nebula-3-5,
              test-etcd-3-6, test-etcd-3-5,
-             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
-             test-milvus-2-5, test-milvus-2-3,
+             test-elasticsearch-9, test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-milvus-2-6, test-milvus-2-5, test-milvus-2-3,
              test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
              test-tidb-8, test-tidb-7, test-tidb-6,
              test-minio-2025, test-minio-2024 ]
@@ -1592,6 +1730,23 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-nacos-3-2:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'nacos')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "71"
+      test-type-name: "nacos-3-2"
+      test-args: "--service-version 3.2 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   test-nacos-3-1:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'nacos')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
@@ -1631,23 +1786,24 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       test-date: ${{ steps.upload_test_result.outputs.test-date }}
-    needs: [ test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15, test-postgresql-14, test-postgresql-12,
+    needs: [ test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15,
+             test-postgresql-14, test-postgresql-13, test-postgresql-12,
              test-kafka-combined, test-kafka-separated,
              test-nebula-3-8, test-nebula-3-5,
              test-etcd-3-6, test-etcd-3-5,
              test-asmysql-8-4, test-asmysql-8-0, test-asmysql-5-7,
-             test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
+             test-elasticsearch-9, test-elasticsearch-8, test-elasticsearch-7, test-elasticsearch-6,
              test-tdengine-3-3-8, test-tdengine-3-3-7, test-tdengine-3-3-6,
-             test-milvus-2-5, test-milvus-2-3,
+             test-milvus-2-6, test-milvus-2-5, test-milvus-2-3,
              test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
              test-tidb-8, test-tidb-7, test-tidb-6,
              test-doris-4, test-doris-2,
              test-oceanbase-ent-distribution, test-oceanbase-ent-replication,
-             test-starrocks-ent-3-4, test-starrocks-ent-3-3, test-starrocks-ent-3-2,
+             test-starrocks-ent-4-0, test-starrocks-ent-3-5, test-starrocks-ent-3-4, test-starrocks-ent-3-3, test-starrocks-ent-3-2,
              test-minio-2025, test-minio-2024,
              test-kingbase-9, test-kingbase-8,
              test-hive-4-0, test-hive-3-1,
-             test-nacos-3-1, test-nacos-2-4 ]
+             test-nacos-3-2, test-nacos-3-1, test-nacos-2-4 ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1675,6 +1831,9 @@ jobs:
             TEST_RESULT+=$(eval "$cmd")
             TEST_RESULT+="##postgresql-14|${{ needs.test-postgresql-14.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-postgresql-14.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##postgresql-13|${{ needs.test-postgresql-13.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-postgresql-13.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
             TEST_RESULT+="##postgresql-12|${{ needs.test-postgresql-12.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-postgresql-12.outputs.test-result-report }}\" "
@@ -1716,6 +1875,9 @@ jobs:
             TEST_RESULT+=$(eval "$cmd")
           fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"milvus"* ]]; then
+            TEST_RESULT+="##milvus-2-6|${{ needs.test-milvus-2-6.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-milvus-2-6.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
             TEST_RESULT+="##milvus-2-5|${{ needs.test-milvus-2-5.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-milvus-2-5.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
@@ -1735,6 +1897,9 @@ jobs:
             TEST_RESULT+=$(eval "$cmd")
           fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"elasticsearch"* ]]; then
+            TEST_RESULT+="##elasticsearch-9|${{ needs.test-elasticsearch-9.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-elasticsearch-9.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
             TEST_RESULT+="##elasticsearch-8|${{ needs.test-elasticsearch-8.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-elasticsearch-8.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
@@ -1784,6 +1949,12 @@ jobs:
             TEST_RESULT+=$(eval "$cmd")
           fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"starrocks-ent"* ]]; then
+            TEST_RESULT+="##starrocks-ent-4-0|${{ needs.test-starrocks-ent-4-0.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-starrocks-ent-4-0.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##starrocks-ent-3-5|${{ needs.test-starrocks-ent-3-5.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-starrocks-ent-3-5.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
             TEST_RESULT+="##starrocks-ent-3-4|${{ needs.test-starrocks-ent-3-4.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-starrocks-ent-3-4.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
@@ -1819,6 +1990,9 @@ jobs:
             TEST_RESULT+=$(eval "$cmd")
           fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"nacos"* ]]; then
+            TEST_RESULT+="##nacos-3-2|${{ needs.test-nacos-3-2.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-nacos-3-2.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
             TEST_RESULT+="##nacos-3-1|${{ needs.test-nacos-3-1.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-nacos-3-1.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
@@ -1918,7 +2092,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       test-date: ${{ steps.upload_test_result.outputs.test-date }}
-    needs: [ test-redis-8-6, test-redis-8-4, test-redis-8-2, test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2,
+    needs: [ test-redis-8-10, test-redis-8-8, test-redis-8-6, test-redis-8-4, test-redis-8-2, test-redis-8-0, test-redis-7-4, test-redis-7-2, test-redis-7-0, test-redis-6-2,
              test-redis-cluster-8-6, test-redis-cluster-8-4, test-redis-cluster-8-2, test-redis-cluster-8-0, test-redis-cluster-7-4, test-redis-cluster-7-2, test-redis-cluster-7-0 ]
     steps:
       - uses: actions/checkout@v4
@@ -1933,6 +2107,12 @@ jobs:
           cmd_head="bash .github/utils/utils.sh --type 36 --test-result "
           TEST_RESULT=""
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"redis|"* || "$TEST_TYPE" == *"redis" ]]; then
+            TEST_RESULT+="##redis-8-10|${{ needs.test-redis-8-10.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-8-10.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##redis-8-8|${{ needs.test-redis-8-8.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-redis-8-8.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
             TEST_RESULT+="##redis-8-6|${{ needs.test-redis-8-6.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-redis-8-6.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
@@ -2213,8 +2393,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       test-date: ${{ steps.upload_test_result.outputs.test-date }}
-    needs: [ test-zookeeper-3-9, test-zookeeper-3-8, test-zookeeper-3-7, test-zookeeper-3-6, test-zookeeper-3-4,
-             test-rabbitmq-4-2, test-rabbitmq-4-1, test-rabbitmq-4-0, test-rabbitmq-3-13, test-rabbitmq-3-12,
+    needs: [ test-zookeeper-3-9, test-zookeeper-3-8, test-zookeeper-3-7, test-zookeeper-3-6,
+             test-rabbitmq-4-3, test-rabbitmq-4-2, test-rabbitmq-4-1, test-rabbitmq-4-0, test-rabbitmq-3-13, test-rabbitmq-3-12,
              test-rabbitmq-3-11, test-rabbitmq-3-10, test-rabbitmq-3-9, test-rabbitmq-3-8 ]
     steps:
       - uses: actions/checkout@v4
@@ -2241,11 +2421,11 @@ jobs:
             TEST_RESULT+="##zookeeper-3-6|${{ needs.test-zookeeper-3-6.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-zookeeper-3-6.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
-            TEST_RESULT+="##zookeeper-3-4|${{ needs.test-zookeeper-3-4.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-zookeeper-3-4.outputs.test-result-report }}\" "
-            TEST_RESULT+=$(eval "$cmd")
           fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"rabbitmq"* ]]; then
+            TEST_RESULT+="##rabbitmq-4-3|${{ needs.test-rabbitmq-4-3.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-rabbitmq-4-3.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
             TEST_RESULT+="##rabbitmq-4-2|${{ needs.test-rabbitmq-4-2.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-rabbitmq-4-2.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
