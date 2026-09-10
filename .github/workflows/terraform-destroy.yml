@@ -100,6 +100,7 @@ jobs:
           path: ${{ steps.get_deploy_path.outputs.deploy-path }}
 
       - name: terraform destroy
+        continue-on-error: true
         run: |
           cd ${{ steps.get_deploy_path.outputs.deploy-path }}
           bash run.sh --type 2
