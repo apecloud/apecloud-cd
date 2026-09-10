@@ -275,6 +275,7 @@ send_cherry_pick_message() {
 }
 
 trigger_release() {
+    read -r CONTENT <<< "$CONTENT"
     echo "CONTENT:$CONTENT"
     dispatches_url=$GITHUB_API/repos/$GITHUB_REPO/actions/workflows/release-version.yml/dispatches
 
