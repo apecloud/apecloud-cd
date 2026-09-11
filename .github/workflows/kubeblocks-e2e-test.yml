@@ -748,6 +748,57 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-pulsar-4:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pulsar')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "8"
+      test-type-name: "pulsar-4"
+      test-args: "--service-version 4 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-pulsar-3:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pulsar')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "8"
+      test-type-name: "pulsar-3"
+      test-args: "--service-version 3 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-pulsar-2:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'pulsar')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "8"
+      test-type-name: "pulsar-2"
+      test-args: "--service-version 2 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   test-nebula-3-8:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'nebula')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
@@ -1184,6 +1235,57 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-mariadb-12:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mariadb')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "33"
+      test-type-name: "mariadb-12"
+      test-args: "--service-version 12 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-mariadb-11:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mariadb')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "33"
+      test-type-name: "mariadb-11"
+      test-args: "--service-version 11 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-mariadb-10:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mariadb')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "33"
+      test-type-name: "mariadb-10"
+      test-args: "--service-version 10 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   test-tidb-8:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'tidb')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
@@ -1229,6 +1331,57 @@ jobs:
       test-type: "34"
       test-type-name: "tidb-6"
       test-args: "--service-version 6 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-oracle-23:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oracle')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "36"
+      test-type-name: "oracle-23"
+      test-args: "--service-version 23 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-oracle-19:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oracle')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "36"
+      test-type-name: "oracle-19"
+      test-args: "--service-version 19 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-oracle-12:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oracle')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "36"
+      test-type-name: "oracle-12"
+      test-args: "--service-version 12 ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
       branch-name: ${{ inputs.BRANCH_NAME }}
@@ -1696,6 +1849,57 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-mssql-2025:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mssql')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "60"
+      test-type-name: "mssql-2025"
+      test-args: "--service-version 2025 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-mssql-2022:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mssql')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "60"
+      test-type-name: "mssql-2022"
+      test-args: "--service-version 2022 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-mssql-2019:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'mssql')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "60"
+      test-type-name: "mssql-2019"
+      test-args: "--service-version 2019 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   test-hive-4-0:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'hive')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
@@ -1781,6 +1985,40 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-selectdb-4:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'selectdb')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "74"
+      test-type-name: "selectdb-4"
+      test-args: "--service-version 4 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-selectdb-3:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'selectdb')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "74"
+      test-type-name: "selectdb-3"
+      test-args: "--service-version 3 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   send-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
@@ -1789,6 +2027,7 @@ jobs:
     needs: [ test-postgresql-18, test-postgresql-17, test-postgresql-16, test-postgresql-15,
              test-postgresql-14, test-postgresql-13, test-postgresql-12,
              test-kafka-combined, test-kafka-separated,
+             test-pulsar-4, test-pulsar-3, test-pulsar-2,
              test-nebula-3-8, test-nebula-3-5,
              test-etcd-3-6, test-etcd-3-5,
              test-asmysql-8-4, test-asmysql-8-0, test-asmysql-5-7,
@@ -1796,14 +2035,18 @@ jobs:
              test-tdengine-3-3-8, test-tdengine-3-3-7, test-tdengine-3-3-6,
              test-milvus-2-6, test-milvus-2-5, test-milvus-2-3,
              test-clickhouse-25, test-clickhouse-24, test-clickhouse-22,
+             test-mariadb-12, test-mariadb-11, test-mariadb-10,
              test-tidb-8, test-tidb-7, test-tidb-6,
+             test-oracle-23, test-oracle-19, test-oracle-12,
              test-doris-4, test-doris-2,
              test-oceanbase-ent-distribution, test-oceanbase-ent-replication,
              test-starrocks-ent-4-0, test-starrocks-ent-3-5, test-starrocks-ent-3-4, test-starrocks-ent-3-3, test-starrocks-ent-3-2,
              test-minio-2025, test-minio-2024,
              test-kingbase-9, test-kingbase-8,
+             test-mssql-2025, test-mssql-2022, test-mssql-2019,
              test-hive-4-0, test-hive-3-1,
-             test-nacos-3-2, test-nacos-3-1, test-nacos-2-4 ]
+             test-nacos-3-2, test-nacos-3-1, test-nacos-2-4,
+             test-selectdb-4, test-selectdb-3 ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1845,6 +2088,17 @@ jobs:
             TEST_RESULT+=$(eval "$cmd")
             TEST_RESULT+="##kafka-separated|${{ needs.test-kafka-separated.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-kafka-separated.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"pulsar"* ]]; then
+            TEST_RESULT+="##pulsar-4|${{ needs.test-pulsar-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-pulsar-4.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##pulsar-3|${{ needs.test-pulsar-3.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-pulsar-3.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##pulsar-2|${{ needs.test-pulsar-2.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-pulsar-2.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
           fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"nebula"* ]]; then
@@ -1896,6 +2150,17 @@ jobs:
             cmd="${cmd_head} \"${{ needs.test-clickhouse-22.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
           fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mariadb"* ]]; then
+            TEST_RESULT+="##mariadb-12|${{ needs.test-mariadb-12.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mariadb-12.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mariadb-11|${{ needs.test-mariadb-11.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mariadb-11.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mariadb-10|${{ needs.test-mariadb-10.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mariadb-10.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"elasticsearch"* ]]; then
             TEST_RESULT+="##elasticsearch-9|${{ needs.test-elasticsearch-9.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-elasticsearch-9.outputs.test-result-report }}\" "
@@ -1930,6 +2195,17 @@ jobs:
             TEST_RESULT+=$(eval "$cmd")
             TEST_RESULT+="##tidb-6|${{ needs.test-tidb-6.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-tidb-6.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oracle"* ]]; then
+            TEST_RESULT+="##oracle-23|${{ needs.test-oracle-23.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-oracle-23.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##oracle-19|${{ needs.test-oracle-19.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-oracle-19.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##oracle-12|${{ needs.test-oracle-12.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-oracle-12.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
           fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"doris"* ]]; then
@@ -1981,6 +2257,17 @@ jobs:
             cmd="${cmd_head} \"${{ needs.test-kingbase-8.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
           fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"mssql"* ]]; then
+            TEST_RESULT+="##mssql-2025|${{ needs.test-mssql-2025.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mssql-2025.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mssql-2022|${{ needs.test-mssql-2022.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mssql-2022.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##mssql-2019|${{ needs.test-mssql-2019.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-mssql-2019.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"hive"* ]]; then
             TEST_RESULT+="##hive-4-0|${{ needs.test-hive-4-0.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-hive-4-0.outputs.test-result-report }}\" "
@@ -1998,6 +2285,14 @@ jobs:
             TEST_RESULT+=$(eval "$cmd")
             TEST_RESULT+="##nacos-2-4|${{ needs.test-nacos-2-4.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-nacos-2-4.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+          fi
+          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"selectdb"* ]]; then
+            TEST_RESULT+="##selectdb-4|${{ needs.test-selectdb-4.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-selectdb-4.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##selectdb-3|${{ needs.test-selectdb-3.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-selectdb-3.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
           fi
           
