@@ -2125,7 +2125,7 @@ jobs:
     secrets: inherit
 
   check-kubeblocks-e2e-test:
-    if: ${{ always() && needs.terraform-init-k8s.result == 'success' && needs.terraform-destroy-k8s.result == 'success' && ! contains(inputs.KB_VERSION, 'alpha')}}
+    if: ${{ always() && needs.terraform-init-k8s.result == 'success' && needs.terraform-destroy-k8s.result == 'success' && inputs.KB_PRE_VERSION == '' && ! contains(inputs.KB_VERSION, 'alpha')}}
     needs: [ terraform-init-k8s, terraform-destroy-k8s ]
     runs-on: ubuntu-latest
     outputs:
@@ -2136,10 +2136,11 @@ jobs:
         run: |
           TEST_TYPE="${{ inputs.TEST_TYPE }}"
           CHECK_RESULT="0"
+          KB_PRE_VERSION="${{ inputs.KB_PRE_VERSION }}"
           KUBEBLOCKS_VERSION="${{ inputs.KB_VERSION }}"
           KUBEBLOCKS_E2E_TEST_VERSION="${{ vars.KUBEBLOCKS_E2E_TEST_VERSION }}"
           KUBEBLOCKS_E2E_TEST_SKIP="${{ vars.KUBEBLOCKS_E2E_TEST_SKIP }}"
-          if [[ -z "${TEST_TYPE}" || (-n "${KUBEBLOCKS_E2E_TEST_SKIP}" 
+          if [[ -z "${TEST_TYPE}" || -n "${KB_PRE_VERSION}" || (-n "${KUBEBLOCKS_E2E_TEST_SKIP}" 
               && ("${TEST_TYPE}" == "${KUBEBLOCKS_E2E_TEST_SKIP}"* || "${TEST_TYPE}" == *"|${KUBEBLOCKS_E2E_TEST_SKIP}"*)) ]]; then
               CHECK_RESULT="0"
               echo "CHECK_RESULT1: ${CHECK_RESULT}"
