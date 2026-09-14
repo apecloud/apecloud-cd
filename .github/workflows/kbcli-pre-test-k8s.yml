@@ -1866,18 +1866,6 @@ jobs:
                   cmd="${cmd_head} \"${{ needs.selectdb-pre.outputs.test-result-report }}\" "
                   TEST_RESULT+=$(eval "$cmd")
               fi
-
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"selectdb"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##selectdb-pre|${{ needs.selectdb-pre.outputs.test-result }}"
-                  cmd="${cmd_head} \"${{ needs.selectdb-pre.outputs.test-result-report }}\" "
-                  TEST_RESULT+=$(eval "$cmd")
-              fi
-
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"selectdb"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##selectdb-pre|${{ needs.selectdb-pre.outputs.test-result }}"
-                  cmd="${cmd_head} \"${{ needs.selectdb-pre.outputs.test-result-report }}\" "
-                  TEST_RESULT+=$(eval "$cmd")
-              fi
           
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"victoria-logs"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##victoria-logs-pre|${{ needs.victoria-logs-pre.outputs.test-result }}"
