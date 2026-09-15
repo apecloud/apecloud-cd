@@ -1592,7 +1592,7 @@ jobs:
       release-version: "${{ inputs.KB_VERSION }}"
       test-type: "53"
       test-type-name: "rabbitmq-4-3"
-      test-args: "--service-versin 4.3 ${{ inputs.ARGS }}"
+      test-args: "--service-version 4.3 ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
       branch-name: ${{ inputs.BRANCH_NAME }}
