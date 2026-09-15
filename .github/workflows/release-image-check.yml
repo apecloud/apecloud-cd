@@ -48,6 +48,11 @@ on:
         type: string
         required: false
         default: ''
+      NODE_VERSION:
+        description: "Install the specify version of node"
+        type: string
+        required: false
+        default: ''
       ENABLE_SUBMODULE:
         description: "Enable checkout submodule  (default: false)"
         type: boolean
@@ -101,6 +106,12 @@ jobs:
         uses: Gr1N/setup-poetry@v8
         with:
           poetry-version: "${{ inputs.POETRY_VERSION }}"
+
+      - name: Setup Node.js
+        if: inputs.NODE_VERSION
+        uses: actions/setup-node@v3
+        with:
+          node-version: "${{ inputs.NODE_VERSION }}"
 
       - name: make pre
         if: inputs.MAKE_OPS_PRE
