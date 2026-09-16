@@ -305,7 +305,6 @@ trigger_release() {
     read -r CONTENT <<< "$CONTENT"
     echo "CONTENT:$CONTENT"
     dispatches_url=$GITHUB_API/repos/$GITHUB_REPO/actions/workflows/release-version.yml/dispatches
-    dispatches_url=""
     if [[ "$CONTENT" == "do"*"release" ]]; then
         release_next_available_tag_2 "$dispatches_url"
     else
