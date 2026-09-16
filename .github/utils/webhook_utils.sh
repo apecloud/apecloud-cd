@@ -96,9 +96,11 @@ check_release_version(){
 check_release_version_2(){
     TMP_TAG_NAME=""
     for content in $(echo "$CONTENT"); do
+        echo "content:${content}"
         if [[ "$content" == "v"*"."* || "$content" == "release-"*"."* || "$content" == *"."* ]]; then
             TMP_TAG_NAME=$content
         fi
+        echo "TMP_TAG_NAME:${TMP_TAG_NAME}"
         if [[ -n "$TMP_TAG_NAME" ]]; then
             if [[ "$TMP_TAG_NAME" == "release-"*"."* ]]; then
                 TMP_BRANCH_NAME="${TMP_TAG_NAME}"
@@ -107,7 +109,9 @@ check_release_version_2(){
                 TMP_BRANCH_NAME="release-${TMP_TAG_NAME/v/}"
             fi
             branch_url=$GITHUB_API/repos/$GITHUB_REPO/branches/$TMP_BRANCH_NAME
+            echo "branch_url:${branch_url}"
             branch_info=$( gh_curl -s $branch_url | (grep  $TMP_BRANCH_NAME || true) )
+            echo "branch_info:${branch_info}"
             if [[ -n "$branch_info" ]]; then
                 BRANCH_NAME=$TMP_BRANCH_NAME
                 TAG_NAME=$TMP_TAG_NAME
@@ -155,6 +159,8 @@ release_next_available_tag_2() {
     if [[ "$TAG_NAME" != "v"* ]]; then
         v_major_minor="v$TAG_NAME"
     fi
+    echo "TAG_NAME:${TAG_NAME}"
+    echo "v_major_minor:${v_major_minor}"
     release_limit=100
     if [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.4" ]]; then
         release_limit=100
@@ -189,7 +195,7 @@ release_next_available_tag_2() {
             get_next_available_tag "$rc_type" ${release_limit}
         ;;
     esac
-
+    echo "RELEASE_VERSION:${RELEASE_VERSION}"
     if [[ -n "$RELEASE_VERSION" ]];then
         gh_curl -X POST $dispatches_url -d '{"ref":"'$BRANCH_NAME'","inputs":{"release_version":"'$RELEASE_VERSION'"}}'
     fi
