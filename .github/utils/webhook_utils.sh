@@ -156,14 +156,20 @@ release_next_available_tag_2() {
         v_major_minor="v$TAG_NAME"
     fi
     release_limit=100
-    if [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.1" ]]; then
+    if [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.4" ]]; then
         release_limit=100
-    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.0" ]]; then
+    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.3" ]]; then
         release_limit=200
-    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v1.1" ]]; then
+    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.2" ]]; then
         release_limit=500
-    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v1.0" ]]; then
+    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.1" ]]; then
+        release_limit=1000
+    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.0" ]]; then
         release_limit=2000
+    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v1.1" ]]; then
+        release_limit=3000
+    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v1.0" ]]; then
+        release_limit=4000
     fi
     echo "release_limit:${release_limit}"
     stable_type="$v_major_minor."

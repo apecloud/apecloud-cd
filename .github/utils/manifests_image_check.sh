@@ -20,6 +20,18 @@ main() {
     fi
 
     for image in $( echo "$images" ); do
+        case "${image}" in
+            *apecloud/apiserver:*alpha*|\
+            *apecloud/cr4w:*alpha*|\
+            *apecloud/kb-cloud-hook:*alpha*|\
+            *apecloud/kb-cloud-docs:*alpha*|\
+            *apecloud/kb-cloud-installer:*alpha*|\
+            *apecloud/kubeblocks-installer:*alpha*|\
+            *apecloud/kubeblocks-console:*alpha*)
+                echo "$(tput -T xterm setaf 3)skip check alpha image: ${image}$(tput -T xterm sgr0)"
+                continue
+                ;;
+        esac
         repository=""
 
         if [[ "${image}" == "apecloud/"* && -n "${IMAGE_REGISTRY}" ]]; then
