@@ -211,9 +211,9 @@ release_next_available_tag_2() {
         ;;
     esac
     echo "RELEASE_VERSION:${RELEASE_VERSION}"
-#     if [[ -n "$RELEASE_VERSION" ]];then
-#         gh_curl -X POST $dispatches_url -d '{"ref":"'$BRANCH_NAME'","inputs":{"release_version":"'$RELEASE_VERSION'"}}'
-#     fi
+    if [[ -n "$RELEASE_VERSION" ]];then
+        gh_curl -X POST $dispatches_url -d '{"ref":"'$BRANCH_NAME'","inputs":{"release_version":"'$RELEASE_VERSION'"}}'
+    fi
 }
 
 usage_message() {
