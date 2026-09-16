@@ -96,11 +96,10 @@ check_release_version(){
 check_release_version_2(){
     TMP_TAG_NAME=""
     for content in $(echo "$CONTENT"); do
-        echo "content:${content}"
         if [[ "$content" == "v"*"."* || "$content" == "release-"*"."* || "$content" == *"."* ]]; then
             TMP_TAG_NAME=$content
+            echo "TMP_TAG_NAME:${TMP_TAG_NAME}"
         fi
-        echo "TMP_TAG_NAME:${TMP_TAG_NAME}"
         if [[ -n "$TMP_TAG_NAME" ]]; then
             if [[ "$TMP_TAG_NAME" == "release-"*"."* ]]; then
                 TMP_BRANCH_NAME="${TMP_TAG_NAME}"
@@ -109,7 +108,6 @@ check_release_version_2(){
                 TMP_BRANCH_NAME="release-${TMP_TAG_NAME/v/}"
             fi
             branch_url=$GITHUB_API/repos/$GITHUB_REPO/branches/$TMP_BRANCH_NAME
-            echo "branch_url:${branch_url}"
             branch_info=$( gh_curl -s $branch_url | (grep  $TMP_BRANCH_NAME || true) )
             echo "branch_info:${branch_info}"
             if [[ -n "$branch_info" ]]; then
@@ -153,29 +151,46 @@ release_next_available_tag() {
 }
 
 release_next_available_tag_2() {
+    CURRENT_TAG_NAME="${TAG_NAME}"
+    echo "CURRENT_TAG_NAME:${CURRENT_TAG_NAME}"
     check_release_version_2
     dispatches_url=$1
     v_major_minor="$TAG_NAME"
     if [[ "$TAG_NAME" != "v"* ]]; then
         v_major_minor="v$TAG_NAME"
     fi
-    echo "TAG_NAME:${TAG_NAME}"
     echo "v_major_minor:${v_major_minor}"
-    release_limit=100
-    if [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.4" ]]; then
-        release_limit=100
-    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.3" ]]; then
-        release_limit=200
-    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.2" ]]; then
-        release_limit=500
-    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.1" ]]; then
-        release_limit=1000
-    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.0" ]]; then
-        release_limit=2000
-    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v1.1" ]]; then
+   release_limit=100
+    if [[ "${GITHUB_REPO}" == "apecloud/apecloud" ]]; then
+        versions=()
+        if [[ -z "${RELEASE_VERSION_1:-}" ]]; then
+            mm="${CURRENT_TAG_NAME#v}"
+            major="${mm%%.*}"
+            minor="${mm#*.}"
+            minor="${minor%%.*}"
+            for _ in 1 2 3 4 5; do
+                [[ -z "$major" || -z "$minor" || ${minor} -lt 0 ]] && break
+                versions+=("v${major}.${minor}")
+                minor=$((minor - 1))
+            done
+        else
+            for i in 1 2 3 4 5; do
+                n="RELEASE_VERSION_$i"
+                [[ -n "${!n:-}" ]] && versions+=("${!n}")
+            done
+        fi
         release_limit=3000
-    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v1.0" ]]; then
-        release_limit=4000
+        limits=(100 200 500 1000 2000)
+        idx=0
+        if [[ ${#versions[@]} -gt 0 ]]; then
+            while IFS= read -r ver; do
+                if [[ "v${ver#v}" == "$v_major_minor" ]]; then
+                    release_limit=${limits[$idx]}
+                    break
+                fi
+                idx=$((idx + 1))
+            done < <(printf '%s\n' "${versions[@]}" | sort -V -r)
+        fi
     fi
     echo "release_limit:${release_limit}"
     stable_type="$v_major_minor."
@@ -196,9 +211,9 @@ release_next_available_tag_2() {
         ;;
     esac
     echo "RELEASE_VERSION:${RELEASE_VERSION}"
-    if [[ -n "$RELEASE_VERSION" ]];then
-        gh_curl -X POST $dispatches_url -d '{"ref":"'$BRANCH_NAME'","inputs":{"release_version":"'$RELEASE_VERSION'"}}'
-    fi
+#     if [[ -n "$RELEASE_VERSION" ]];then
+#         gh_curl -X POST $dispatches_url -d '{"ref":"'$BRANCH_NAME'","inputs":{"release_version":"'$RELEASE_VERSION'"}}'
+#     fi
 }
 
 usage_message() {
@@ -290,7 +305,7 @@ trigger_release() {
     read -r CONTENT <<< "$CONTENT"
     echo "CONTENT:$CONTENT"
     dispatches_url=$GITHUB_API/repos/$GITHUB_REPO/actions/workflows/release-version.yml/dispatches
-
+    dispatches_url=""
     if [[ "$CONTENT" == "do"*"release" ]]; then
         release_next_available_tag_2 "$dispatches_url"
     else
