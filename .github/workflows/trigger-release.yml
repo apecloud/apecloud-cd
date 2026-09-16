@@ -31,6 +31,11 @@ run-name: release:${{ inputs.trigger-content }}
 env:
   GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
   RELEASE_BOT_WEBHOOK: ${{ secrets.RELEASE_BOT_WEBHOOK }}
+  RELEASE_VERSION_1: v${{ vars.CURRENT_RELEASE_VERSION }}
+  RELEASE_VERSION_2: ${{ vars.IDC_RELEASE_VERSION }}
+  RELEASE_VERSION_3: ${{ vars.IDC1_RELEASE_VERSION }}
+  RELEASE_VERSION_4: ${{ vars.IDC2_RELEASE_VERSION }}
+  RELEASE_VERSION_5: ${{ vars.IDC4_RELEASE_VERSION }}
 
 jobs:
   trigger-release:
@@ -44,6 +49,12 @@ jobs:
           ref: ${{ inputs.APECD_REF }}
 
       - name: trigger release
+        env:
+          RELEASE_VERSION_1: "${{ env.RELEASE_VERSION_1 }}"
+          RELEASE_VERSION_2: "${{ env.RELEASE_VERSION_2 }}"
+          RELEASE_VERSION_3: "${{ env.RELEASE_VERSION_3 }}"
+          RELEASE_VERSION_4: "${{ env.RELEASE_VERSION_4 }}"
+          RELEASE_VERSION_5: "${{ env.RELEASE_VERSION_5 }}"
         id: get_release_version
         run: |
           bash apecloud-cd/.github/utils/webhook_utils.sh \
