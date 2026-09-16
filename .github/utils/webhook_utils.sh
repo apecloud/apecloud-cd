@@ -158,11 +158,11 @@ release_next_available_tag_2() {
     release_limit=100
     if [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.4" ]]; then
         release_limit=100
-    if [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.3" ]]; then
+    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.3" ]]; then
         release_limit=200
-    if [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.2" ]]; then
+    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.2" ]]; then
         release_limit=500
-    if [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.1" ]]; then
+    elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.1" ]]; then
         release_limit=1000
     elif [[ "${GITHUB_REPO}" == "apecloud/apecloud" && "${v_major_minor}" == "v2.0" ]]; then
         release_limit=2000
