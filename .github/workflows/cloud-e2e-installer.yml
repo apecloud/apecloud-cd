@@ -176,6 +176,41 @@ jobs:
                   -n "$ns" --dry-run=client -o yaml | kubectl apply -f -
           done
 
+      - name: install Traefik 39.0.9 on k3s 1.22
+        if: ${{ matrix.k3s-version == 'v1.22' }}
+        run: |
+          KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
+          kubectl -n kube-system delete helmchart.helm.cattle.io traefik traefik-crd --ignore-not-found
+          kubectl delete ingressclass traefik --ignore-not-found
+          for i in {1..30}; do
+              if ! kubectl -n kube-system get pods -o name 2>/dev/null | grep -q traefik; then
+                  break
+              fi
+              sleep 2
+          done
+          helm repo add traefik https://traefik.github.io/charts --force-update
+          helm upgrade --install traefik traefik/traefik \
+              --namespace kb-cloud \
+              --create-namespace \
+              --version 39.0.9 \
+              --set image.registry=docker.io \
+              --set image.repository=traefik \
+              --set-json 'deployment.imagePullSecrets=[{"name":"'${KB_ADDON_SECRET_NAME}'"}]' \
+              --set logs.access.enabled=true \
+              --set logs.access.format=json \
+              --set ingressClass.enabled=true \
+              --set ingressClass.name=traefik \
+              --set ingressClass.isDefaultClass=false \
+              --set deployment.kind=DaemonSet \
+              --set hostNetwork=false \
+              --set service.type=ClusterIP \
+              --set ports.web.hostPort=80 \
+              --set ports.web.exposedPort=80 \
+              --set ports.websecure.hostPort=443 \
+              --set ports.websecure.exposedPort=443 \
+              --wait --timeout 30m --atomic
+          kubectl wait --for=condition=Established crd/middlewares.traefik.io --timeout=300s
+
       - name: install kb cloud
         run: |
           KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
@@ -539,6 +574,41 @@ jobs:
                   --docker-email="" \
                   -n "$ns" --dry-run=client -o yaml | kubectl apply -f -
           done
+
+      - name: install Traefik 39.0.9 on k3s 1.22
+        if: ${{ inputs.K3S_VERSION == '1.22' }}
+        run: |
+          KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
+          kubectl -n kube-system delete helmchart.helm.cattle.io traefik traefik-crd --ignore-not-found
+          kubectl delete ingressclass traefik --ignore-not-found
+          for i in {1..30}; do
+              if ! kubectl -n kube-system get pods -o name 2>/dev/null | grep -q traefik; then
+                  break
+              fi
+              sleep 2
+          done
+          helm repo add traefik https://traefik.github.io/charts --force-update
+          helm upgrade --install traefik traefik/traefik \
+              --namespace kb-cloud \
+              --create-namespace \
+              --version 39.0.9 \
+              --set image.registry=docker.io \
+              --set image.repository=traefik \
+              --set-json 'deployment.imagePullSecrets=[{"name":"'${KB_ADDON_SECRET_NAME}'"}]' \
+              --set logs.access.enabled=true \
+              --set logs.access.format=json \
+              --set ingressClass.enabled=true \
+              --set ingressClass.name=traefik \
+              --set ingressClass.isDefaultClass=false \
+              --set deployment.kind=DaemonSet \
+              --set hostNetwork=false \
+              --set service.type=ClusterIP \
+              --set ports.web.hostPort=80 \
+              --set ports.web.exposedPort=80 \
+              --set ports.websecure.hostPort=443 \
+              --set ports.websecure.exposedPort=443 \
+              --wait --timeout 30m --atomic
+          kubectl wait --for=condition=Established crd/middlewares.traefik.io --timeout=300s
 
       - name: install kb cloud with ${{ steps.cloud_pre_version.outputs.cloud-pre-version }}
         run: |
