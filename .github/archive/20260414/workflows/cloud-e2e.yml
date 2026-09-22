@@ -1110,7 +1110,7 @@ jobs:
           
           python3 .github/utils/send_mesage.py \
               --send-type ginkgo \
-              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+              --url "${{ vars.CICD_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
           
@@ -1125,7 +1125,7 @@ jobs:
           
               python3 .github/utils/send_mesage.py \
                   --send-type summary \
-                  --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+                  --url "${{ vars.CICD_WEBHOOK }}" \
                   --title "$TEST_TITLE_SUMMARY" \
                   --result "$API_COVERAGE_SUMMARY_TMP"
           fi
@@ -1148,7 +1148,7 @@ jobs:
           
               python3 .github/utils/send_mesage.py \
                   --send-type "engine-summary" \
-                  --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+                  --url "${{ vars.CICD_WEBHOOK }}" \
                   --title "$TEST_TITLE_ENGINE_SUMMARY" \
                   --result "$ENGINE_API_SUMMARY_TMP"
           fi

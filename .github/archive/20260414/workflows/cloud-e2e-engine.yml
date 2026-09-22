@@ -542,7 +542,7 @@ jobs:
           
           python3 .github/utils/send_mesage.py \
               --send-type ginkgo \
-              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+              --url "${{ vars.CICD_WEBHOOK }}" \
               --title "$TEST_TITLE" \
               --result "${TEST_RESULT_ALL}"
           
@@ -565,7 +565,7 @@ jobs:
           
                           python3 .github/utils/send_mesage.py \
                               --send-type "engine-summary" \
-                              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+                              --url "${{ vars.CICD_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
                       fi
@@ -584,7 +584,7 @@ jobs:
           
                           python3 .github/utils/send_mesage.py \
                               --send-type "engine-summary" \
-                              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+                              --url "${{ vars.CICD_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
                       fi
@@ -603,7 +603,7 @@ jobs:
           
                           python3 .github/utils/send_mesage.py \
                               --send-type "engine-summary" \
-                              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+                              --url "${{ vars.CICD_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
                       fi
@@ -622,7 +622,7 @@ jobs:
           
                           python3 .github/utils/send_mesage.py \
                               --send-type "engine-summary" \
-                              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+                              --url "${{ vars.CICD_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
                       fi
@@ -641,7 +641,7 @@ jobs:
           
                           python3 .github/utils/send_mesage.py \
                               --send-type "engine-summary" \
-                              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+                              --url "${{ vars.CICD_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
                       fi
@@ -660,7 +660,7 @@ jobs:
           
                           python3 .github/utils/send_mesage.py \
                               --send-type "engine-summary" \
-                              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+                              --url "${{ vars.CICD_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
                       fi
@@ -679,7 +679,7 @@ jobs:
           
                           python3 .github/utils/send_mesage.py \
                               --send-type "engine-summary" \
-                              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+                              --url "${{ vars.CICD_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
                       fi
@@ -698,7 +698,7 @@ jobs:
           
                           python3 .github/utils/send_mesage.py \
                               --send-type "engine-summary" \
-                              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+                              --url "${{ vars.CICD_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
                       fi
@@ -717,7 +717,7 @@ jobs:
           
                           python3 .github/utils/send_mesage.py \
                               --send-type "engine-summary" \
-                              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+                              --url "${{ vars.CICD_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
                       fi
@@ -736,7 +736,7 @@ jobs:
           
                           python3 .github/utils/send_mesage.py \
                               --send-type "engine-summary" \
-                              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+                              --url "${{ vars.CICD_WEBHOOK }}" \
                               --title "$TEST_TITLE_ENGINE_SUMMARY" \
                               --result "$ENGINE_SUMMARY_TMP"
                       fi
