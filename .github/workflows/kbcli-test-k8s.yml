@@ -1552,7 +1552,7 @@ jobs:
              test-clickhouse, test-opensearch, test-vllm, test-orioledb, test-vanilla-pg,
              test-ggml, test-zookeeper, test-mariadb , test-tidb, test-xinference, test-opengauss, test-influxdb,
              test-flink, test-solr, test-mogdb, test-yashandb, test-redis-cluster,test-dmdb, test-minio,
-             test-orchestrator, test-loki, test-rocketmq, test-greatsql ]
+             test-orchestrator, test-loki, test-rocketmq, test-greatsql, test-seaweedfs, test-valkey ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1795,6 +1795,16 @@ jobs:
               cmd="${cmd_head} \"${{ needs.test-asmysql-orc-proxy.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"seaweedfs"* ]]; then
+              TEST_RESULT+="##seaweedfs|${{ needs.test-seaweedfs.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-seaweedfs.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"valkey"* ]]; then
+              TEST_RESULT+="##valkey|${{ needs.test-valkey.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-valkey.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
           fi
           
           if [[ "${TEST_RESULT_TMP}" == "${TEST_RESULT}" ]]; then
@@ -1886,7 +1896,7 @@ jobs:
     needs: [ check-send-message, get-result, test-tdengine, test-oracle, test-doris, test-oceanbase-ent, test-starrocks-ent,
              test-camellia-redis-proxy, test-gaussdb, test-damengdb, test-kingbase, test-vastbase,
              test-mssql, test-goldendb, test-tdsql, test-greatdb, test-hadoop, test-hive, test-oceanbase-proxy,
-             test-nacos, test-vault, test-foundationdb, test-selectdb, test-he3sql, test-rustfs, test-seaweedfs, test-valkey,
+             test-nacos, test-vault, test-foundationdb, test-selectdb, test-he3sql, test-rustfs,
              test-elasticsearch, test-milvus, test-mongodb, test-rabbitmq, test-victoria-metrics,
              test-victoria-logs ]
     steps:
@@ -2048,16 +2058,6 @@ jobs:
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"rustfs"* ]]; then
               TEST_RESULT+="##rustfs|${{ needs.test-rustfs.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-rustfs.outputs.test-result-report }}\" "
-              TEST_RESULT+=$(eval "$cmd")
-            fi
-            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"seaweedfs"* ]]; then
-              TEST_RESULT+="##seaweedfs|${{ needs.test-seaweedfs.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-seaweedfs.outputs.test-result-report }}\" "
-              TEST_RESULT+=$(eval "$cmd")
-            fi
-            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"valkey"* ]]; then
-              TEST_RESULT+="##valkey|${{ needs.test-valkey.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-valkey.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
           fi
