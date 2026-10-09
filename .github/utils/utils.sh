@@ -1298,9 +1298,14 @@ get_delete_release() {
 }
 
 get_cloud_delete_release() {
+    # Keep the 3 most recently published alpha tags.
     release_list=$( gh release list --repo $GITHUB_REPO --limit 1000 --json tagName,publishedAt \
-        | jq -r '.[] | select(.publishedAt < (now - 7*86400 | todateiso8601)) | .tagName' \
-        | (grep -E "alpha|beta" || true) | sort -uV )
+        | jq -r '([.[] | select(.tagName | test("alpha"))] | sort_by(.publishedAt) | .[-3:] | map(.tagName)) as $keep
+            | .[]
+            | select(.publishedAt < (now - 7*86400 | todateiso8601))
+            | .tagName
+            | select(test("alpha|beta") and (. as $t | $keep | index($t) | not))' \
+        | sort -uV )
     for tag in $( echo "$release_list" ) ;do
         if [[ -z "$DELETE_RELEASE" ]]; then
             DELETE_RELEASE="$tag"
