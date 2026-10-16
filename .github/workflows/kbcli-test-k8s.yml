@@ -1527,8 +1527,8 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
-  test-poladrdb-pg:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'poladrdb-pg')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
+  test-polardb-pg:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'polardb-pg')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
@@ -1537,7 +1537,7 @@ jobs:
       release-version: "${{ inputs.KB_VERSION }}"
       previous-version: "${{ inputs.KB_PRE_VERSION }}"
       test-type: "80"
-      test-type-name: "poladrdb-pg"
+      test-type-name: "polardb-pg"
       test-args: "${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
@@ -1570,7 +1570,7 @@ jobs:
              test-clickhouse, test-opensearch, test-vllm, test-orioledb, test-vanilla-pg,
              test-ggml, test-zookeeper, test-mariadb , test-tidb, test-xinference, test-opengauss, test-influxdb,
              test-flink, test-solr, test-mogdb, test-yashandb, test-redis-cluster,test-dmdb, test-minio,
-             test-orchestrator, test-loki, test-rocketmq, test-greatsql, test-seaweedfs, test-valkey, test-poladrdb-pg ]
+             test-orchestrator, test-loki, test-rocketmq, test-greatsql, test-seaweedfs, test-valkey, test-polardb-pg ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1823,9 +1823,9 @@ jobs:
               cmd="${cmd_head} \"${{ needs.test-valkey.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
-            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"poladrdb-pg"* ]]; then
-              TEST_RESULT+="##poladrdb-pg|${{ needs.test-poladrdb-pg.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-poladrdb-pg.outputs.test-result-report }}\" "
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"polardb-pg"* ]]; then
+              TEST_RESULT+="##polardb-pg|${{ needs.test-polardb-pg.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-polardb-pg.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
           fi

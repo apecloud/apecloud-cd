@@ -1355,8 +1355,8 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
-  poladrdb-pg-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'poladrdb-pg')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+  polardb-pg-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'polardb-pg')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/kbcli-test-pre.yml
     with:
@@ -1364,7 +1364,7 @@ jobs:
       region: ${{ inputs.region }}
       release-version: "${{ inputs.previous-version }}"
       test-type: "80"
-      test-type-name: "poladrdb-pg-pre"
+      test-type-name: "polardb-pg-pre"
       test-args: "${{ inputs.test-args }}"
       k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
       artifact-name: ${{ inputs.artifact-name }}
@@ -1744,7 +1744,7 @@ jobs:
              oceanbase-ent-pre, starrocks-ent-pre, rabbitmq-pre, victoria-metrics-pre, gaussdb-pre,
              damengdb-pre, kingbase-pre, vastbase-pre, mssql-pre, oceanbase-proxy-pre, goldendb-pre,
              tdsql-pre, greatdb-pre, victoria-logs-pre, doris-pre, hadoop-pre, hive-pre, nacos-pre,
-             vault-pre, foundationdb-pre, selectdb-pre, he3sql-pre, rustfs-pre, seaweedfs-pre, valkey-pre, poladrdb-pg-pre ]
+             vault-pre, foundationdb-pre, selectdb-pre, he3sql-pre, rustfs-pre, seaweedfs-pre, valkey-pre, polardb-pg-pre ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1945,9 +1945,9 @@ jobs:
                   cmd="${cmd_head} \"${{ needs.valkey-pre.outputs.test-result-report }}\" "
                   TEST_RESULT+=$(eval "$cmd")
               fi
-              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"poladrdb-pg"* ]]; then
-                  TEST_RESULT="${TEST_RESULT}##poladrdb-pg-pre|${{ needs.poladrdb-pg-pre.outputs.test-result }}"
-                  cmd="${cmd_head} \"${{ needs.poladrdb-pg-pre.outputs.test-result-report }}\" "
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"polardb-pg"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##polardb-pg-pre|${{ needs.polardb-pg-pre.outputs.test-result }}"
+                  cmd="${cmd_head} \"${{ needs.polardb-pg-pre.outputs.test-result-report }}\" "
                   TEST_RESULT+=$(eval "$cmd")
               fi
           fi
