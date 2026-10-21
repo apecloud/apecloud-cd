@@ -1832,7 +1832,7 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
-  test-kingbase-9:
+  test-kingbase-9-3:
     if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'kingbase')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/kbcli-test.yml
@@ -1841,8 +1841,25 @@ jobs:
       region: ${{ inputs.REGION }}
       release-version: "${{ inputs.KB_VERSION }}"
       test-type: "58"
-      test-type-name: "kingbase-9"
-      test-args: "--service-version 9 ${{ inputs.ARGS }}"
+      test-type-name: "kingbase-9-3"
+      test-args: "--service-version 9.3 ${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-kingbase-9-2:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'kingbase')) }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      test-type: "58"
+      test-type-name: "kingbase-9-2"
+      test-args: "--service-version 9.2 ${{ inputs.ARGS }}"
       k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
       artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
       branch-name: ${{ inputs.BRANCH_NAME }}
@@ -2093,7 +2110,7 @@ jobs:
              test-oceanbase-ent-distribution, test-oceanbase-ent-replication, test-oceanbase-ent-1f, test-oceanbase-ent-2f1a,
              test-starrocks-ent-4-0, test-starrocks-ent-3-5, test-starrocks-ent-3-4, test-starrocks-ent-3-3, test-starrocks-ent-3-2,
              test-minio-2025, test-minio-2024,
-             test-kingbase-9, test-kingbase-8,
+             test-kingbase-9-3, test-kingbase-9-2, test-kingbase-8,
              test-mssql-2025, test-mssql-2022, test-mssql-2019,
              test-rocketmq-dledger, test-rocketmq-master-slave,
              test-hive-4-0, test-hive-3-1,
@@ -2305,8 +2322,11 @@ jobs:
             TEST_RESULT+=$(eval "$cmd")
           fi
           if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"kingbase"* ]]; then
-            TEST_RESULT+="##kingbase-9|${{ needs.test-kingbase-9.outputs.test-result }}"
-            cmd="${cmd_head} \"${{ needs.test-kingbase-9.outputs.test-result-report }}\" "
+            TEST_RESULT+="##kingbase-9-3|${{ needs.test-kingbase-9-3.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-kingbase-9-3.outputs.test-result-report }}\" "
+            TEST_RESULT+=$(eval "$cmd")
+            TEST_RESULT+="##kingbase-9-2|${{ needs.test-kingbase-9-2.outputs.test-result }}"
+            cmd="${cmd_head} \"${{ needs.test-kingbase-9-2.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
             TEST_RESULT+="##kingbase-8|${{ needs.test-kingbase-8.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-kingbase-8.outputs.test-result-report }}\" "
