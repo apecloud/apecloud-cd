@@ -125,7 +125,14 @@ check_image() {
 check_image_exists() {
     image=$1
     skipArm=$2
-    tag=${image##*:}
+    # Classify the tag, not the digest suffix of a name:tag@sha256:... reference.
+    # Strip the registry/repository too, so a registry port is not read as a tag.
+    local name_without_digest=${image%%@*}
+    local last_component=${name_without_digest##*/}
+    local tag=""
+    if [[ "$last_component" == *:* ]]; then
+        tag=${last_component##*:}
+    fi
     for i in {1..5}; do
         case $tag in
             *arm64*|*amd64*|*arm*|*amd*)
