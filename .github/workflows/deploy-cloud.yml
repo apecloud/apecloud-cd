@@ -65,7 +65,7 @@ jobs:
       contents: 'read'
       id-token: 'write'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.tag_name }}
       cloud-env-name: ${{ steps.cloud_env.outputs.cloud_env_name }}
@@ -244,7 +244,7 @@ jobs:
       id-token: 'write'
     needs: [ deploy-cloud ]
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -314,7 +314,7 @@ jobs:
       id-token: 'write'
     needs: [ deploy-cloud ]
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Checkout apecloud Code
         uses: actions/checkout@v4
