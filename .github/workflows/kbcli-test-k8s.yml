@@ -132,9 +132,10 @@ jobs:
                       break
                   fi
                   case "${test_type}" in
-                      camellia-redis-proxy|damengdb|doris|elasticsearch|foundationdb|gaussdb|gbase|goldendb|greatdb|hadoop|hive|\
-                      kingbase|milvus|mongodb|mssql|mysql|nacos|oceanbase-ent|oceanbase-proxy|oracle|rabbitmq|rustfs|selectdb|he3sql|\
-                      starrocks-ent|tdengine|tdengine-ent|tdsql|vastbase|vault|victoria-logs|victoria-metrics)
+                      camellia-redis-proxy|damengdb|doris|elasticsearch|foundationdb|gaussdb|gbase|goldendb|greatdb|\
+                      hadoop|hive|kingbase|milvus|mongodb|mssql|mysql|nacos|oceanbase-ent|oceanbase-pingan|\
+                      oceanbase-proxy|oracle|pgpool|polardb-pg|rabbitmq|rustfs|selectdb|he3sql|starrocks-ent|\
+                      tdengine|tdengine-ent|tdsql|vastbase|vault|victoria-logs|victoria-metrics)
                           SEND_MESSAGE_ENT=1
                       ;;
                       *)
@@ -1563,6 +1564,24 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-oceanbase-pingan:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oceanbase-pingan')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "82"
+      test-type-name: "oceanbase-pingan"
+      test-args: "${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   get-result:
     if: ${{ always() }}
     runs-on: ubuntu-latest
@@ -1588,8 +1607,7 @@ jobs:
              test-clickhouse, test-opensearch, test-vllm, test-orioledb, test-vanilla-pg,
              test-ggml, test-zookeeper, test-mariadb , test-tidb, test-xinference, test-opengauss, test-influxdb,
              test-flink, test-solr, test-mogdb, test-yashandb, test-redis-cluster,test-dmdb, test-minio,
-             test-orchestrator, test-loki, test-rocketmq, test-greatsql, test-seaweedfs, test-valkey,
-             test-polardb-pg, test-pgpool ]
+             test-orchestrator, test-loki, test-rocketmq, test-greatsql, test-seaweedfs, test-valkey ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1842,16 +1860,6 @@ jobs:
               cmd="${cmd_head} \"${{ needs.test-valkey.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
-            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"polardb-pg"* ]]; then
-              TEST_RESULT+="##polardb-pg|${{ needs.test-polardb-pg.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-polardb-pg.outputs.test-result-report }}\" "
-              TEST_RESULT+=$(eval "$cmd")
-            fi
-            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"pgpool"* ]]; then
-              TEST_RESULT+="##pgpool|${{ needs.test-pgpool.outputs.test-result }}"
-              cmd="${cmd_head} \"${{ needs.test-pgpool.outputs.test-result-report }}\" "
-              TEST_RESULT+=$(eval "$cmd")
-            fi
           fi
           
           if [[ "${TEST_RESULT_TMP}" == "${TEST_RESULT}" ]]; then
@@ -1940,12 +1948,12 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       test-date: ${{ steps.upload_test_result.outputs.test-date }}
-    needs: [ check-send-message, get-result, test-tdengine, test-oracle, test-doris, test-oceanbase-ent, test-starrocks-ent,
-             test-camellia-redis-proxy, test-gaussdb, test-damengdb, test-kingbase, test-vastbase,
+    needs: [ check-send-message, get-result, test-tdengine, test-oracle, test-doris, test-oceanbase-ent,
+             test-starrocks-ent, test-camellia-redis-proxy, test-gaussdb, test-damengdb, test-kingbase, test-vastbase,
              test-mssql, test-goldendb, test-tdsql, test-greatdb, test-hadoop, test-hive, test-oceanbase-proxy,
              test-nacos, test-vault, test-foundationdb, test-selectdb, test-he3sql, test-rustfs,
              test-elasticsearch, test-milvus, test-mongodb, test-rabbitmq, test-victoria-metrics,
-             test-victoria-logs ]
+             test-victoria-logs, test-polardb-pg, test-pgpool, test-oceanbase-pingan ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -2105,6 +2113,21 @@ jobs:
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"rustfs"* ]]; then
               TEST_RESULT+="##rustfs|${{ needs.test-rustfs.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-rustfs.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"polardb-pg"* ]]; then
+              TEST_RESULT+="##polardb-pg|${{ needs.test-polardb-pg.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-polardb-pg.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"pgpool"* ]]; then
+              TEST_RESULT+="##pgpool|${{ needs.test-pgpool.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-pgpool.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase-pingan"* ]]; then
+              TEST_RESULT+="##oceanbase-pingan|${{ needs.test-oceanbase-pingan.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-oceanbase-pingan.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
           fi
