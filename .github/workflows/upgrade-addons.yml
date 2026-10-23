@@ -6,12 +6,12 @@ on:
       CLOUD_ENV_NAME:
         description: "The cloud env name of deploy"
         type: string
-        required: false
+        required: true
         default: ''
       VERSION:
-        description: "The tag name of image"
+        description: "The version of cloud"
         type: string
-        required: false
+        required: true
         default: ''
       APECD_REF:
         description: "The branch name of apecloud-cd"
@@ -23,12 +23,12 @@ on:
       CLOUD_ENV_NAME:
         description: "The cloud env name of deploy"
         type: string
-        required: false
+        required: true
         default: ''
       VERSION:
-        description: "The tag name of image"
+        description: "The version of cloud"
         type: string
-        required: false
+        required: true
         default: ''
       APECD_REF:
         description: "The branch name of apecloud-cd"
