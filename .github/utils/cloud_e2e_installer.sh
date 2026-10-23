@@ -24,7 +24,10 @@ log_error_pods_once() {
 }
 
 log_current_error_pods() {
-    kubectl get pods -A --no-headers 2>/dev/null | awk '$4 ~ /Error|CrashLoop|ImagePull|ErrImage|Evicted|OOMKilled/' | log_error_pods_once
+    local pods
+    pods=$(kubectl get pods -A --no-headers 2>/dev/null | awk '$4 ~ /Error|CrashLoop|ImagePull|ErrImage|Evicted|OOMKilled/' || true)
+    [[ -z "${pods}" ]] && return 0
+    log_error_pods_once <<< "${pods}"
 }
 
 update_kb_monitor_resources() {
@@ -99,10 +102,17 @@ check_oteld_resources() {
 }
 
 if [[ "${1:-}" == "--self-check" ]]; then
-    kubectl() { echo "kubectl $*"; true; }
+    kubectl() {
+        if [[ "$1" == "get" ]]; then
+            echo "kb-system bad-pod 0/1 Error 0 1m"
+            echo "kb-system other 0/1 CrashLoopBackOff 1 1m"
+            return 0
+        fi
+        echo "kubectl $*"
+        true
+    }
     logged_error_pods=" "
-    out=$(printf '%s
-' "kb-system bad-pod 0/1 Error 0 1m" "kb-system bad-pod 0/1 Error 0 2m" "kb-system other 0/1 CrashLoopBackOff 1 1m" | log_error_pods_once)
+    out=$(log_current_error_pods; log_current_error_pods)
     n=$(echo "${out}" | grep -c "pod kb-system/bad-pod describe" || true)
     [[ "${n}" -eq 1 ]] || { echo "bad-pod describe count ${n}"; echo "${out}"; exit 1; }
     echo "${out}" | grep -q "pod kb-system/other describe" || { echo "missing other describe"; exit 1; }
