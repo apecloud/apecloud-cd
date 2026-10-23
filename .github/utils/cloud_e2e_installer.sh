@@ -3,8 +3,33 @@
 set +e
 set -o nounset
 
+logged_error_pods=" "
+
+log_error_pods_once() {
+    local line ns name key
+    while IFS= read -r line; do
+        [[ -z "${line}" ]] && continue
+        ns=$(awk '{print $1}' <<< "${line}")
+        name=$(awk '{print $2}' <<< "${line}")
+        key="${ns}/${name}"
+        if [[ "${logged_error_pods}" == *" ${key} "* ]]; then
+            continue
+        fi
+        logged_error_pods="${logged_error_pods}${key} "
+        echo "==================== pod ${key} describe ===================="
+        kubectl describe pod -n "${ns}" "${name}" || true
+        echo "==================== pod ${key} logs ===================="
+        kubectl logs --tail 100 -n "${ns}" "${name}" --all-containers || true
+    done
+}
+
+log_current_error_pods() {
+    kubectl get pods -A --no-headers 2>/dev/null | awk '$4 ~ /Error|CrashLoop|ImagePull|ErrImage|Evicted|OOMKilled/' | log_error_pods_once
+}
+
 update_kb_monitor_resources() {
     while true; do
+        log_current_error_pods
         gemini_monitor_deploy=$(helm list -n kb-system | (grep "kb-monitor" | grep "deployed" || true))
         if [[ -z "${gemini_monitor_deploy}" ]]; then
             echo "Waiting for Gemini monitor to be ready..."
@@ -14,6 +39,7 @@ update_kb_monitor_resources() {
 
         gemini_monitor_version="$(helm get metadata -n kb-system kb-monitor | (grep "VERSION:" | grep -v "APP_VERSION:" || true ) | awk '{print $2}')"
         if [[ -z "${gemini_monitor_version}" ]]; then
+            echo "Waiting for Gemini monitor to be ready..."
             sleep 5
             continue
         fi
@@ -71,6 +97,19 @@ check_oteld_resources() {
         patch_oteld_resources
     fi
 }
+
+if [[ "${1:-}" == "--self-check" ]]; then
+    kubectl() { echo "kubectl $*"; true; }
+    logged_error_pods=" "
+    out=$(printf '%s
+' "kb-system bad-pod 0/1 Error 0 1m" "kb-system bad-pod 0/1 Error 0 2m" "kb-system other 0/1 CrashLoopBackOff 1 1m" | log_error_pods_once)
+    n=$(echo "${out}" | grep -c "pod kb-system/bad-pod describe" || true)
+    [[ "${n}" -eq 1 ]] || { echo "bad-pod describe count ${n}"; echo "${out}"; exit 1; }
+    echo "${out}" | grep -q "pod kb-system/other describe" || { echo "missing other describe"; exit 1; }
+    echo "${out}" | grep -q "pod kb-system/bad-pod logs" || { echo "missing logs"; exit 1; }
+    echo "self-check ok"
+    exit 0
+fi
 
 update_kb_monitor_resources
 check_oteld_resources
