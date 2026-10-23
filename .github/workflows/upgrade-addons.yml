@@ -64,8 +64,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
-      - name: Checkout Code
+      - name: Checkout apecloud Code
         uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud
+          ref: ${{ inputs.VERSION }}
+          token: ${{ env.GITHUB_TOKEN }}
 
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
