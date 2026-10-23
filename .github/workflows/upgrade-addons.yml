@@ -1,0 +1,125 @@
+name: Upgrade Addons
+
+on:
+  workflow_dispatch:
+    inputs:
+      CLOUD_ENV_NAME:
+        description: "The cloud env name of deploy"
+        type: string
+        required: false
+        default: ''
+      VERSION:
+        description: "The tag name of image"
+        type: string
+        required: false
+        default: ''
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+  workflow_call:
+    inputs:
+      CLOUD_ENV_NAME:
+        description: "The cloud env name of deploy"
+        type: string
+        required: false
+        default: ''
+      VERSION:
+        description: "The tag name of image"
+        type: string
+        required: false
+        default: ''
+      APECD_REF:
+        description: "The branch name of apecloud-cd"
+        type: string
+        required: false
+        default: 'main'
+
+run-name: upgrade addons ${{ inputs.CLOUD_ENV_NAME }} ${{ inputs.VERSION }}
+
+env:
+  ACK_KUBECONFIG_DEV: ${{ secrets.ACK_KUBECONFIG_DEV }}
+  IDC_KUBECONFIG: ${{ secrets.IDC_KUBECONFIG }}
+  IDC_KUBECONFIG_1: ${{ secrets.IDC_KUBECONFIG_1 }}
+  IDC_KUBECONFIG_2: ${{ secrets.IDC_KUBECONFIG_2 }}
+  IDC_KUBECONFIG_4: ${{ secrets.IDC_KUBECONFIG_4 }}
+  VKE_KUBECONFIG: ${{ secrets.VKE_KUBECONFIG }}
+  VKE_KUBECONFIG_22: ${{ secrets.VKE_KUBECONFIG_22 }}
+  VKE_KUBECONFIG_23: ${{ secrets.VKE_KUBECONFIG_23 }}
+  GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  CLOUD_ENV_NAME: ${{ inputs.CLOUD_ENV_NAME }}
+  RELEASE_VERSION: ${{ inputs.VERSION }}
+  JIHULAB_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
+  JIHULAB_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
+  CHART_PROJECT_ID: ${{ secrets.GITLAB_PROJECT_ID }}
+  HELM_VERSION: "v3.16.3"
+  KUBECTL_VERSION: "v1.28.3"
+
+jobs:
+  upgrade-addons:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - uses: azure/setup-kubectl@v3
+        with:
+          version: "${{ env.KUBECTL_VERSION }}"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Configure Context ${{ inputs.CLOUD_ENV_NAME }}
+        run: |
+          mkdir -p $HOME/.kube
+          touch $HOME/.kube/config
+          CLOUD_ENV_NAME="${{ inputs.CLOUD_ENV_NAME }}"
+          case "$CLOUD_ENV_NAME" in
+              dev)
+                  echo '${{ env.ACK_KUBECONFIG_DEV }}' > $HOME/.kube/config
+              ;;
+              idc)
+                  echo '${{ env.IDC_KUBECONFIG }}' > $HOME/.kube/config
+              ;;
+              idc1)
+                  echo '${{ env.IDC_KUBECONFIG_1 }}' > $HOME/.kube/config
+              ;;
+              idc2)
+                  echo '${{ env.IDC_KUBECONFIG_2 }}' > $HOME/.kube/config
+              ;;
+              idc4)
+                  echo '${{ env.IDC_KUBECONFIG_4 }}' > $HOME/.kube/config
+              ;;
+              vke)
+                  echo '${{ env.VKE_KUBECONFIG }}' > $HOME/.kube/config
+              ;;
+              vke22)
+                  echo '${{ env.VKE_KUBECONFIG_22 }}' > $HOME/.kube/config
+              ;;
+              vke23)
+                  echo '${{ env.VKE_KUBECONFIG_23 }}' > $HOME/.kube/config
+              ;;
+              *)
+                  echo '${{ env.ACK_KUBECONFIG }}' > $HOME/.kube/config
+              ;;
+          esac
+          chmod 600 $HOME/.kube/config
+
+      - name: Upgrade Addon
+        run: |
+          MANIFESTS_FILE="./manifests/deploy-manifests.yaml"
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_charts_addon_upgrade.sh "${MANIFESTS_FILE}"
