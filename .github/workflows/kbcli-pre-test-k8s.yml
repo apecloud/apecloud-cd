@@ -1372,6 +1372,23 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
+  pgpool-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'pgpool')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/kbcli-test-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "81"
+      test-type-name: "pgpool-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
   check-send-message:
     if: ${{ inputs.previous-version }}
     runs-on: ubuntu-latest
@@ -1740,11 +1757,12 @@ jobs:
   send-message-ent:
     if: ${{ always() && inputs.previous-version && needs.check-send-message.outputs.send-message-ent == '1' }}
     runs-on: ubuntu-latest
-    needs: [ check-send-message, install-kubeblocks-pre, mongodb-pre, milvus-pre, elasticsearch-pre, tdengine-pre, oracle-pre,
-             oceanbase-ent-pre, starrocks-ent-pre, rabbitmq-pre, victoria-metrics-pre, gaussdb-pre,
+    needs: [ check-send-message, install-kubeblocks-pre, mongodb-pre, milvus-pre, elasticsearch-pre, tdengine-pre,
+             oracle-pre, oceanbase-ent-pre, starrocks-ent-pre, rabbitmq-pre, victoria-metrics-pre, gaussdb-pre,
              damengdb-pre, kingbase-pre, vastbase-pre, mssql-pre, oceanbase-proxy-pre, goldendb-pre,
              tdsql-pre, greatdb-pre, victoria-logs-pre, doris-pre, hadoop-pre, hive-pre, nacos-pre,
-             vault-pre, foundationdb-pre, selectdb-pre, he3sql-pre, rustfs-pre, seaweedfs-pre, valkey-pre, polardb-pg-pre ]
+             vault-pre, foundationdb-pre, selectdb-pre, he3sql-pre, rustfs-pre, seaweedfs-pre, valkey-pre,
+             polardb-pg-pre, pgpool-pre ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1948,6 +1966,11 @@ jobs:
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"polardb-pg"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##polardb-pg-pre|${{ needs.polardb-pg-pre.outputs.test-result }}"
                   cmd="${cmd_head} \"${{ needs.polardb-pg-pre.outputs.test-result-report }}\" "
+                  TEST_RESULT+=$(eval "$cmd")
+              fi
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"pgpool"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##pgpool-pre|${{ needs.pgpool-pre.outputs.test-result }}"
+                  cmd="${cmd_head} \"${{ needs.pgpool-pre.outputs.test-result-report }}\" "
                   TEST_RESULT+=$(eval "$cmd")
               fi
           fi
