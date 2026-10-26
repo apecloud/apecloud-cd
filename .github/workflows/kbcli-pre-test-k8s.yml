@@ -1406,6 +1406,23 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
+  dolphindb-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'dolphindb')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/kbcli-test-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "83"
+      test-type-name: "dolphindb-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
   check-send-message:
     if: ${{ inputs.previous-version }}
     runs-on: ubuntu-latest
@@ -1426,7 +1443,7 @@ jobs:
                       break
                   fi
                   case "${test_type}" in
-                      camellia-redis-proxy|damengdb|doris|elasticsearch|foundationdb|gaussdb|gbase|goldendb|greatdb|\
+                      camellia-redis-proxy|damengdb|dolphindb|doris|elasticsearch|foundationdb|gaussdb|gbase|goldendb|greatdb|\
                       hadoop|hive|kingbase|milvus|mongodb|mssql|mysql|nacos|oceanbase-ent|oceanbase-pingan|\
                       oceanbase-proxy|oracle|pgpool|polardb-pg|rabbitmq|rustfs|selectdb|he3sql|starrocks-ent|\
                       tdengine|tdengine-ent|tdsql|vastbase|vault|victoria-logs|victoria-metrics)
@@ -1780,7 +1797,7 @@ jobs:
              damengdb-pre, kingbase-pre, vastbase-pre, mssql-pre, oceanbase-proxy-pre, goldendb-pre,
              tdsql-pre, greatdb-pre, victoria-logs-pre, doris-pre, hadoop-pre, hive-pre, nacos-pre,
              vault-pre, foundationdb-pre, selectdb-pre, he3sql-pre, rustfs-pre, seaweedfs-pre, valkey-pre,
-             polardb-pg-pre, pgpool-pre, oceanbase-pingan-pre  ]
+             polardb-pg-pre, pgpool-pre, oceanbase-pingan-pre, dolphindb-pre  ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1994,6 +2011,11 @@ jobs:
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase-pingan"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##oceanbase-pingan-pre|${{ needs.oceanbase-pingan-pre.outputs.test-result }}"
                   cmd="${cmd_head} \"${{ needs.oceanbase-pingan-pre.outputs.test-result-report }}\" "
+                  TEST_RESULT+=$(eval "$cmd")
+              fi
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"dolphindb"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##dolphindb-pre|${{ needs.dolphindb-pre.outputs.test-result }}"
+                  cmd="${cmd_head} \"${{ needs.dolphindb-pre.outputs.test-result-report }}\" "
                   TEST_RESULT+=$(eval "$cmd")
               fi
           fi
