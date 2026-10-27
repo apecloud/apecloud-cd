@@ -133,7 +133,7 @@ jobs:
                   fi
                   case "${test_type}" in
                       camellia-redis-proxy|damengdb|dolphindb|doris|elasticsearch|foundationdb|gaussdb|gbase|goldendb|greatdb|\
-                      hadoop|hive|kingbase|milvus|mongodb|mssql|mysql|nacos|oceanbase-ent|oceanbase-pingan|\
+                      hadoop|hive|kingbase|milvus|mongodb|mssql|mysql|nacos|oceanbase-ent|oceanbase-pingan|oceanbase-ocp|\
                       oceanbase-proxy|oracle|pgpool|polardb-pg|rabbitmq|rustfs|selectdb|he3sql|starrocks-ent|\
                       tdengine|tdengine-ent|tdsql|vastbase|vault|victoria-logs|victoria-metrics)
                           SEND_MESSAGE_ENT=1
@@ -1600,6 +1600,24 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-oceanbase-ocp:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'oceanbase-ocp')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "84"
+      test-type-name: "oceanbase-ocp"
+      test-args: "${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   get-result:
     if: ${{ always() }}
     runs-on: ubuntu-latest
@@ -1971,7 +1989,7 @@ jobs:
              test-mssql, test-goldendb, test-tdsql, test-greatdb, test-hadoop, test-hive, test-oceanbase-proxy,
              test-nacos, test-vault, test-foundationdb, test-selectdb, test-he3sql, test-rustfs,
              test-elasticsearch, test-milvus, test-mongodb, test-rabbitmq, test-victoria-metrics,
-             test-victoria-logs, test-polardb-pg, test-pgpool, test-oceanbase-pingan, test-dolphindb ]
+             test-victoria-logs, test-polardb-pg, test-pgpool, test-oceanbase-pingan, test-dolphindb, test-oceanbase-ocp ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -2146,6 +2164,11 @@ jobs:
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase-pingan"* ]]; then
               TEST_RESULT+="##oceanbase-pingan|${{ needs.test-oceanbase-pingan.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-oceanbase-pingan.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
+            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"oceanbase-ocp"* ]]; then
+              TEST_RESULT+="##oceanbase-ocp|${{ needs.test-oceanbase-ocp.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-oceanbase-ocp.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"dolphindb"* ]]; then
