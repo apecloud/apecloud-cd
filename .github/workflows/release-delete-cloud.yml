@@ -16,7 +16,7 @@ on:
         required: false
         default: 'main'
 
-run-name: delete cloud release:${{ inputs.VERSION }}
+run-name: delete cloud release:${{ inputs.VERSION || github.event.repository.updated_at }}
 
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
