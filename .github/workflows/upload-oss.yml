@@ -1,0 +1,89 @@
+name: Upload File To OSS
+
+on:
+  workflow_dispatch:
+    inputs:
+      DOWNLOAD_URL:
+        description: "The file download URL"
+        type: string
+        required: true
+
+run-name: upload oss ${{ inputs.DOWNLOAD_URL }}
+
+env:
+  OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
+  OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
+  OSS_ENDPOINT: "oss-cn-zhangjiakou.aliyuncs.com"
+  OSS_BUCKET: "apecloud-oss"
+  OSS_DIR: "download"
+
+jobs:
+  upload-oss:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: manyuanrong/setup-ossutil@v2.0
+        with:
+          access-key-id: "${{ env.OSS_KEY_ID }}"
+          access-key-secret: "${{ env.OSS_KEY_SECRET }}"
+          endpoint: "${{ env.OSS_ENDPOINT }}"
+
+      - name: Download and upload to oss
+        env:
+          DOWNLOAD_URL: ${{ inputs.DOWNLOAD_URL }}
+        run: |
+          case "${DOWNLOAD_URL}" in
+              http://*|https://*) ;;
+              *)
+                  echo "DOWNLOAD_URL must be http(s)" >&2
+                  exit 1
+                  ;;
+          esac
+          name="${DOWNLOAD_URL%%\?*}"
+          name="${name%%#*}"
+          name="${name##*/}"
+          if [[ -z "${name}" || "${name}" == "." || "${name}" == ".." ]]; then
+              echo "cannot get filename from DOWNLOAD_URL" >&2
+              exit 1
+          fi
+          curl -fL -o "${name}" "${DOWNLOAD_URL}"
+          ossutil cp -rf "./${name}" "oss://${OSS_BUCKET}/${OSS_DIR}/${name}"
+          url="http://${OSS_BUCKET}.${OSS_ENDPOINT}/${OSS_DIR}/${name}"
+          echo "upload ${name} to ${url}"
+          echo "${url}" >> "$GITHUB_STEP_SUMMARY"
+
+  upload-result:
+    runs-on: ubuntu-latest
+    needs: [ upload-oss ]
+    if: ${{ always() }}
+    outputs:
+      oss-url: ${{ steps.get_upload_result.outputs.oss-url }}
+      upload-result: ${{ steps.get_upload_result.outputs.upload-result }}
+    steps:
+      - name: get upload result
+        id: get_upload_result
+        env:
+          DOWNLOAD_URL: ${{ inputs.DOWNLOAD_URL }}
+        run: |
+          result="error"
+          name="${DOWNLOAD_URL%%\?*}"
+          name="${name%%#*}"
+          name="${name##*/}"
+          url="${name}"
+          if [[ "${{ needs.upload-oss.result }}" == "success" ]]; then
+              result="success"
+              url="http://${{ env.OSS_BUCKET }}.${{ env.OSS_ENDPOINT }}/${{ env.OSS_DIR }}/${name}"
+          fi
+          echo "upload-result=${result}" >> "$GITHUB_OUTPUT"
+          echo "oss-url=${url}" >> "$GITHUB_OUTPUT"
+
+  send-message:
+    needs: [ upload-result ]
+    if: ${{ always() }}
+    uses: ./.github/workflows/feishui-message.yml
+    with:
+      TYPE: "2"
+      CONTENT: "upload oss ${{ needs.upload-result.outputs.oss-url }} ${{ needs.upload-result.outputs.upload-result }}"
+      BOT_TYPE: "specify"
+      BOT_WEBHOOK: "${{ vars.CICD_WEBHOOK }}"
+    secrets: inherit
