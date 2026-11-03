@@ -1461,10 +1461,10 @@ jobs:
                   fi
                   case "${test_type}" in
                       camellia-redis-proxy|damengdb|dolphindb|doris|elasticsearch|foundationdb|gaussdb|\
-                      goldendb|greatdb|hadoop|he3sql|hive|kingbase|mariadb|milvus|mongodb|mssql|mysql|\
-                      nacos|oceanbase-ent|oceanbase-ocp|oceanbase-pingan|oceanbase-proxy|oracle|pgpool|\
-                      polardb-pg|rabbitmq|rustfs|selectdb|starrocks-ent|tdengine|tdsql|vastbase|vault|\
-                      victoria-logs|victoria-metrics)
+                      goldendb|greatdb|hadoop|he3sql|hive|kingbase|mariadb|milvus|mongodb|mongodb-shard|\
+                      mssql|asmysql|asmysql-proxy|asmysql-orc|asmysql-orc-proxy|nacos|oceanbase-ent|\
+                      oceanbase-ocp|oceanbase-pingan|oceanbase-proxy|oracle|pgpool|polardb-pg|rabbitmq|\
+                      rustfs|selectdb|starrocks-ent|tdengine|tdsql|vastbase|vault|victoria-logs|victoria-metrics)
                           SEND_MESSAGE_ENT=1
                       ;;
                       *)
