@@ -132,10 +132,11 @@ jobs:
                       break
                   fi
                   case "${test_type}" in
-                      camellia-redis-proxy|damengdb|dolphindb|doris|elasticsearch|foundationdb|gaussdb|gbase|goldendb|greatdb|\
-                      hadoop|hive|kingbase|milvus|mongodb|mssql|mysql|nacos|oceanbase-ent|oceanbase-pingan|oceanbase-ocp|\
-                      oceanbase-proxy|oracle|pgpool|polardb-pg|rabbitmq|rustfs|selectdb|he3sql|starrocks-ent|\
-                      tdengine|tdengine-ent|tdsql|vastbase|vault|victoria-logs|victoria-metrics)
+                      camellia-redis-proxy|damengdb|dolphindb|doris|elasticsearch|foundationdb|gaussdb|\
+                      goldendb|greatdb|hadoop|he3sql|hive|kingbase|mariadb|milvus|mongodb|mssql|mysql|\
+                      nacos|oceanbase-ent|oceanbase-ocp|oceanbase-pingan|oceanbase-proxy|oracle|pgpool|\
+                      polardb-pg|rabbitmq|rustfs|selectdb|starrocks-ent|tdengine|tdsql|vastbase|vault|\
+                      victoria-logs|victoria-metrics)
                           SEND_MESSAGE_ENT=1
                       ;;
                       *)
