@@ -34,8 +34,8 @@ prepare_cloud_check() {
         return 1
     fi
     cloud_version=$(yq e '."kubeblocks-cloud"[0].version' "${MANIFESTS_FILE}") || return 1
-    if [[ "$(yq e '."kubeblocks-cloud"[0].version | tag' "${MANIFESTS_FILE}")" != "!!str" || -z "${cloud_version}" || "${cloud_version}" =~ [[:space:]] ]]; then
-        echo "Explicit Cloud checks require a nonempty string manifest version without whitespace" >&2
+    if [[ "$(yq e '."kubeblocks-cloud"[0].version | tag' "${MANIFESTS_FILE}")" != "!!str" || -z "${cloud_version}" || "${cloud_version}" =~ [[:space:]\|] ]]; then
+        echo "Explicit Cloud checks require a nonempty string manifest version without whitespace or | separators" >&2
         return 1
     fi
     if [[ -n "${CLOUD_CHART_VERSION}" && "${cloud_version}" != "${CLOUD_CHART_VERSION}" ]]; then
