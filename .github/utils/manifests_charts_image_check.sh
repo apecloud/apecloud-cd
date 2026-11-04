@@ -224,9 +224,29 @@ check_images() {
             version_args=()
         fi
         echo "${log_prefix} helm template ${chart_name_tmp} ${chart_ref} ${version_args[*]} ${set_values_tmp}"
+        ret_tmp=0
+        if [[ "${chart_name_tmp}" == "kubeblocks-cloud" && -n "${CLOUD_CHART_VERSION}" ]]; then
+            helm show chart "${chart_ref}" "${version_args[@]}" > "${helm_stdout}" 2> "${helm_stderr}"
+            ret_tmp=$?
+            if [[ $ret_tmp -eq 0 ]]; then
+                local selected_version
+                selected_version=$(yq e '.version' "${helm_stdout}")
+                if [[ "${selected_version#v}" != "${CLOUD_CHART_VERSION#v}" ]]; then
+                    check_result_tmp="${log_prefix} Selected Chart version ${selected_version} does not match requested version ${CLOUD_CHART_VERSION}"
+                    echo "${check_result_tmp}"
+                    echo "${check_result_tmp}" >> check_manifest_result
+                    echo "1" > "fail-${chart_name_tmp}-${chart_version_tmp}.flag"
+                    echo 1 > exit_result
+                    rm -f "${helm_stdout}" "${helm_stderr}"
+                    return
+                fi
+            fi
+        fi
         # Keep render failures separate from empty image lists.
-        helm template "${chart_name_tmp}" "${chart_ref}" "${version_args[@]}" ${set_values_tmp} > "${helm_stdout}" 2> "${helm_stderr}"
-        ret_tmp=$?
+        if [[ $ret_tmp -eq 0 ]]; then
+            helm template "${chart_name_tmp}" "${chart_ref}" "${version_args[@]}" ${set_values_tmp} > "${helm_stdout}" 2> "${helm_stderr}"
+            ret_tmp=$?
+        fi
         if [[ $ret_tmp -ne 0 ]]; then
             # Check for deterministic errors that should not be retried
             if grep -q "not found in" "${helm_stderr}" 2>/dev/null; then
