@@ -191,6 +191,15 @@ sys.exit(subprocess.call([os.environ['REAL_HELM'], *args]))
         self.manifest = {}
         self.assert_fails('exactly one kubeblocks-cloud')
 
+    def test_source_rejects_invalid_manifest_versions_before_rendering(self):
+        for version in ('', None, '  ', 'v9.1.0 v9.2.0', [], {}, 91):
+            with self.subTest(version=version):
+                self.manifest['kubeblocks-cloud'][0]['version'] = version
+                self.assert_fails('nonempty string manifest version')
+                self.assertFalse(any(c[0] == 'template' for c in self.calls()))
+        del self.manifest['kubeblocks-cloud'][0]['version']
+        self.assert_fails('nonempty string manifest version')
+
 
 class WorkflowContractTests(unittest.TestCase):
     def test_modes_are_exposed_for_both_workflow_entrypoints(self):
