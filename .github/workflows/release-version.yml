@@ -8,11 +8,6 @@ on:
         type: string
         required: false
         default: ''
-      SOURCE_REF:
-        description: 'Exact checked source ref to publish; empty preserves branch selection'
-        type: string
-        required: false
-        default: ''
       CONTENT:
         description: 'the request content'
         type: string
@@ -57,11 +52,6 @@ on:
     inputs:
       RELEASE_VERSION:
         description: 'The version of release'
-        required: false
-        default: ''
-      SOURCE_REF:
-        description: 'Exact checked source ref to publish; empty preserves branch selection'
-        type: string
         required: false
         default: ''
       CONTENT:
@@ -176,7 +166,7 @@ jobs:
         if: ${{ inputs.RELEASE_VERSION == '' && env.CUR_BRANCH != '' }}
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.SOURCE_REF || env.CUR_BRANCH }}
+          ref: ${{ env.CUR_BRANCH == github.ref_name && github.sha || env.CUR_BRANCH }}
           fetch-depth: 0
           token: ${{ env.GH_TOKEN }}
 
@@ -184,7 +174,6 @@ jobs:
         if: ${{ inputs.RELEASE_VERSION != '' || env.CUR_BRANCH == '' }}
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.SOURCE_REF || github.ref_name }}
           fetch-depth: 0
           token: ${{ env.GH_TOKEN }}
 
