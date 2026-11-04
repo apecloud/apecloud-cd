@@ -3,6 +3,62 @@ MANIFESTS_FILE=${1:-""}
 ADD_CHART=${2:-"true"}
 CHECK_ENGINE_FILE=${3:-"./fountain/hack/check-engine-images.py"}
 SKIP_DELETE_FILE=${4:-""}
+CLOUD_CHART_PATH=${CLOUD_CHART_PATH:-""}
+CLOUD_CHART_VERSION=${CLOUD_CHART_VERSION:-""}
+
+
+prepare_cloud_check() {
+    if [[ -z "${CLOUD_CHART_PATH}" && -z "${CLOUD_CHART_VERSION}" ]]; then
+        return 0
+    fi
+    if [[ -n "${CLOUD_CHART_PATH}" && -n "${CLOUD_CHART_VERSION}" ]]; then
+        echo "CLOUD_CHART_PATH and CLOUD_CHART_VERSION are mutually exclusive" >&2
+        return 1
+    fi
+    if [[ ! -f "${MANIFESTS_FILE}" ]]; then
+        echo "Manifest file does not exist: ${MANIFESTS_FILE}" >&2
+        return 1
+    fi
+    local cloud_count cloud_version
+    cloud_count=$(yq e '."kubeblocks-cloud" | length' "${MANIFESTS_FILE}") || return 1
+    if [[ "${cloud_count}" != "1" ]]; then
+        echo "Explicit Cloud checks require exactly one kubeblocks-cloud manifest entry" >&2
+        return 1
+    fi
+    if ! is_chart_enabled kubeblocks-cloud; then
+        echo "The requested Cloud check cannot be disabled in deploy-values.yaml" >&2
+        return 1
+    fi
+    if [[ -n "${SKIP_DELETE_FILE}" && "${SKIP_DELETE_FILE}" != "kubeblocks-cloud" ]]; then
+        echo "The chart filter excludes the requested Cloud check" >&2
+        return 1
+    fi
+    cloud_version=$(yq e '."kubeblocks-cloud"[0].version' "${MANIFESTS_FILE}") || return 1
+    if [[ -n "${CLOUD_CHART_VERSION}" && "${cloud_version}" != "${CLOUD_CHART_VERSION}" ]]; then
+        echo "Published Cloud version ${CLOUD_CHART_VERSION} does not match manifest version ${cloud_version}" >&2
+        return 1
+    fi
+    if [[ -n "${CLOUD_CHART_PATH}" ]]; then
+        if [[ ! -f "${CLOUD_CHART_PATH}/Chart.yaml" || ! -f "${CLOUD_CHART_PATH}/Chart.lock" ]]; then
+            echo "Source Cloud Chart requires Chart.yaml and Chart.lock: ${CLOUD_CHART_PATH}" >&2
+            return 1
+        fi
+        if [[ "$(yq e '.name' "${CLOUD_CHART_PATH}/Chart.yaml")" != "kubeblocks-cloud" ]]; then
+            echo "Source Chart must be named kubeblocks-cloud" >&2
+            return 1
+        fi
+        # Register the source Chart's repositories before resolving its locked dependencies.
+        local dependency_name dependency_repository
+        while IFS=$'\t' read -r dependency_name dependency_repository; do
+            case "${dependency_repository}" in
+                http://*|https://*)
+                    helm repo add "manifest-source-${dependency_name}" "${dependency_repository}" --force-update || return 1
+                    ;;
+            esac
+        done < <(yq e '.dependencies[] | [.name, .repository] | @tsv' "${CLOUD_CHART_PATH}/Chart.yaml")
+        helm dependency build "${CLOUD_CHART_PATH}" || return 1
+    fi
+}
 
 
 is_chart_enabled() {
@@ -147,16 +203,22 @@ check_images() {
         if [[ "$is_enterprise_tmp" == "true" ]]; then
             template_repo="${KB_ENT_REPO_NAME}"
         fi
-        echo "${log_prefix} helm template ${chart_name_tmp} ${template_repo}/${chart_name_tmp} --version ${chart_version_tmp} ${set_values_tmp}"
-        # Run helm template separately to capture its real exit code and stderr
-        helm template ${chart_name_tmp} ${template_repo}/${chart_name_tmp} --version ${chart_version_tmp} ${set_values_tmp}             > "${helm_stdout}" 2> "${helm_stderr}"
+        local chart_ref="${template_repo}/${chart_name_tmp}"
+        local version_args=(--version "${chart_version_tmp}")
+        if [[ "${chart_name_tmp}" == "kubeblocks-cloud" && -n "${CLOUD_CHART_PATH}" ]]; then
+            chart_ref="${CLOUD_CHART_PATH}"
+            version_args=()
+        fi
+        echo "${log_prefix} helm template ${chart_name_tmp} ${chart_ref} ${version_args[*]} ${set_values_tmp}"
+        # Keep render failures separate from empty image lists.
+        helm template "${chart_name_tmp}" "${chart_ref}" "${version_args[@]}" ${set_values_tmp} > "${helm_stdout}" 2> "${helm_stderr}"
         ret_tmp=$?
         if [[ $ret_tmp -ne 0 ]]; then
             # Check for deterministic errors that should not be retried
             if grep -q "not found in" "${helm_stderr}" 2>/dev/null; then
                 # Charts whose versions may be periodically cleaned up from
                 # the repo — "not found" is expected, warn and skip instead of failing.
-                local skippable_not_found="kubeblocks-cloud|ingress-nginx|metallb|metrics-server|cert-manager|csi-driver-nfs"
+                local skippable_not_found="ingress-nginx|metallb|metrics-server|cert-manager|csi-driver-nfs"
                 if [[ "|${skippable_not_found}|" == *"|${chart_name_tmp}|"* && "${chart_type_tmp}" != "engine" ]]; then
                     echo "${log_prefix} $(tput -T xterm setaf 3)Chart version not found in repo (version may have been cleaned up, skipping).$(tput -T xterm sgr0)"
                     rm -f "${helm_stdout}" "${helm_stderr}"
@@ -204,12 +266,14 @@ check_images() {
 
             case $chart_name_tmp in
                 kubeblocks-cloud)
-                    # skip check cloud release images
-                    case $repository in
-                        */openconsole:*|*/kubeblocks-console:*|*/apiserver:*|*/cr4w:*|*/kb-cloud-hook:*|*/kb-cloud-docs:*|*/kubeblocks-installer:*)
-                            repository=""
-                        ;;
-                    esac
+                    # Source checks run before the Cloud application images are released.
+                    if [[ -z "${CLOUD_CHART_VERSION}" ]]; then
+                        case $repository in
+                            */openconsole:*|*/kubeblocks-console:*|*/apiserver:*|*/cr4w:*|*/kb-cloud-hook:*|*/kb-cloud-docs:*|*/kubeblocks-installer:*)
+                                repository=""
+                            ;;
+                        esac
+                    fi
                 ;;
                 kubeblocks)
                     case $repository in
@@ -389,13 +453,16 @@ check_charts_images() {
             else
                 case $chart_name in
                     kubeblocks-cloud)
-                        set_values="${set_values} --set images.apiserver.tag=${chart_version} "
-                        set_values="${set_values} --set images.cr4w.tag=${chart_version} "
-                        set_values="${set_values} --set images.openconsole.tag=${chart_version} "
-                        set_values="${set_values} --set images.openconsoleAdmin.tag=${chart_version} "
-                        set_values="${set_values} --set images.console.tag=${chart_version} "
-                        set_values="${set_values} --set images.hook.tag=${chart_version} "
-                        set_values="${set_values} --set images.docs.tag=${chart_version} "
+                        # Published checks inspect the artifact's own image tags.
+                        if [[ -z "${CLOUD_CHART_VERSION}" ]]; then
+                            set_values="${set_values} --set images.apiserver.tag=${chart_version} "
+                            set_values="${set_values} --set images.cr4w.tag=${chart_version} "
+                            set_values="${set_values} --set images.openconsole.tag=${chart_version} "
+                            set_values="${set_values} --set images.openconsoleAdmin.tag=${chart_version} "
+                            set_values="${set_values} --set images.console.tag=${chart_version} "
+                            set_values="${set_values} --set images.hook.tag=${chart_version} "
+                            set_values="${set_values} --set images.docs.tag=${chart_version} "
+                        fi
                         set_values="${set_values} --set onlyNewConsole=true "
                     ;;
                     ingress-nginx)
@@ -465,6 +532,7 @@ main() {
         KB_REPO_URL="https://jihulab.com/api/v4/projects/150246/packages/helm/stable"
     fi
 
+    prepare_cloud_check || exit 1
     check_charts_images
 }
 

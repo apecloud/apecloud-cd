@@ -23,6 +23,16 @@ on:
         type: string
         required: false
         default: 'main'
+      CLOUD_CHART_PATH:
+        description: "Source Cloud Chart directory; empty uses the published Chart"
+        type: string
+        required: false
+        default: ''
+      CLOUD_CHART_VERSION:
+        description: "Exact published Cloud version; must match the manifest and excludes source mode"
+        type: string
+        required: false
+        default: ''
       CHECK_ENGINE_FILE:
         description: "The file path of check engine image script"
         type: string
@@ -50,6 +60,16 @@ on:
         type: string
         required: false
         default: 'main'
+      CLOUD_CHART_PATH:
+        description: "Source Cloud Chart directory; empty uses the published Chart"
+        type: string
+        required: false
+        default: ''
+      CLOUD_CHART_VERSION:
+        description: "Exact published Cloud version; must match the manifest and excludes source mode"
+        type: string
+        required: false
+        default: ''
       CHECK_ENGINE_FILE:
         description: "The file path of check engine image script"
         type: string
@@ -108,17 +128,16 @@ jobs:
         run: pip3 install pyyaml
 
       - name: manifests images check
+        env:
+          MANIFESTS_FILE: ${{ inputs.MANIFESTS_FILE }}
+          CHECK_ENGINE_FILE: ${{ inputs.CHECK_ENGINE_FILE }}
+          CLOUD_CHART_PATH: ${{ inputs.CLOUD_CHART_PATH }}
+          CLOUD_CHART_VERSION: ${{ inputs.CLOUD_CHART_VERSION }}
         run: |
-          MANIFESTS_FILE="${{ inputs.MANIFESTS_FILE }}"
-          if [[ -z "${MANIFESTS_FILE}" ]]; then
-              MANIFESTS_FILE="${{ github.workspace }}/manifests/deploy-manifests.yaml"
-          fi
-          CHECK_ENGINE_FILE="${{ inputs.CHECK_ENGINE_FILE }}"
-          if [[ -z "${CHECK_ENGINE_FILE}" ]]; then
-              CHECK_ENGINE_FILE="${{ github.workspace }}/fountain/hack/check-engine-images.py"
-          fi
-          if [[ -n "${CHECK_ENGINE_FILE}" && -f "${CHECK_ENGINE_FILE}" ]]; then
-              bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_charts_image_check.sh "${MANIFESTS_FILE}" "true" "${CHECK_ENGINE_FILE}" 
+          MANIFESTS_FILE="${MANIFESTS_FILE:-${GITHUB_WORKSPACE}/manifests/deploy-manifests.yaml}"
+          CHECK_ENGINE_FILE="${CHECK_ENGINE_FILE:-${GITHUB_WORKSPACE}/fountain/hack/check-engine-images.py}"
+          if [[ -f "${CHECK_ENGINE_FILE}" ]]; then
+              bash "${GITHUB_WORKSPACE}/apecloud-cd/.github/utils/manifests_charts_image_check.sh" "${MANIFESTS_FILE}" "true" "${CHECK_ENGINE_FILE}"
           else
-              bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_charts_image_check.sh "${MANIFESTS_FILE}"
+              bash "${GITHUB_WORKSPACE}/apecloud-cd/.github/utils/manifests_charts_image_check.sh" "${MANIFESTS_FILE}"
           fi

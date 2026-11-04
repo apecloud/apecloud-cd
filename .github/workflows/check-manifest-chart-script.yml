@@ -1,0 +1,41 @@
+name: Check Manifest Chart Script
+
+on:
+  pull_request:
+    paths:
+      - '.github/utils/manifests_charts_image_check.sh'
+      - '.github/utils/test_manifests_charts_image_check.py'
+      - '.github/workflows/manifests-charts-image-check.yml'
+      - '.github/workflows/release-version.yml'
+      - '.github/workflows/check-manifest-chart-script.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v3
+        with:
+          version: v3.16.3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install yq
+        env:
+          YQ_VERSION: v4.44.3
+        run: |
+          mkdir -p "${RUNNER_TEMP}/manifest-test-bin"
+          curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" -o "${RUNNER_TEMP}/manifest-test-bin/yq"
+          chmod +x "${RUNNER_TEMP}/manifest-test-bin/yq"
+          echo "${RUNNER_TEMP}/manifest-test-bin" >> "${GITHUB_PATH}"
+      - name: Check script and offline contracts
+        run: |
+          command -v helm
+          command -v yq
+          bash -n .github/utils/manifests_charts_image_check.sh
+          shellcheck --severity=error .github/utils/manifests_charts_image_check.sh
+          python3 .github/utils/test_manifests_charts_image_check.py
