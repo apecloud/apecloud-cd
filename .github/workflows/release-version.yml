@@ -216,7 +216,7 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ env.GH_TOKEN }}
-          branch: support/auto-update-manifests-file-version-${{ env.RELEASE_COMMIT }}
+          branch: refs/heads/support/auto-update-manifests-file-version-${{ env.RELEASE_COMMIT }}
 
 #      - name: auto create pr head new branch
 #        if: ${{ github.repository == 'apecloud/apecloud' && needs.get-version.outputs.release-branch == 'main' && steps.get_release_commit.outputs.file_changes && !contains(inputs.RELEASE_VERSION, 'alpha') && !contains(inputs.CONTENT, 'alpha') }}

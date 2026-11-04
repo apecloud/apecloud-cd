@@ -42,6 +42,16 @@ prepare_cloud_check() {
         echo "Published Cloud version ${CLOUD_CHART_VERSION} does not match manifest version ${cloud_version}" >&2
         return 1
     fi
+    if [[ -n "${CLOUD_CHART_VERSION}" ]]; then
+        local number='(0|[1-9][0-9]*)'
+        local prerelease='(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)'
+        local exact_version="^v?${number}\.${number}\.${number}(-${prerelease}(\.${prerelease})*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$"
+        # Helm also accepts ranges in --version; published checks require one artifact.
+        if [[ ! "${CLOUD_CHART_VERSION}" =~ ${exact_version} ]]; then
+            echo "Published Cloud checks require an exact semantic version: ${CLOUD_CHART_VERSION}" >&2
+            return 1
+        fi
+    fi
     if [[ -n "${CLOUD_CHART_PATH}" ]]; then
         if [[ ! -f "${CLOUD_CHART_PATH}/Chart.yaml" || ! -f "${CLOUD_CHART_PATH}/Chart.lock" ]]; then
             echo "Source Cloud Chart requires Chart.yaml and Chart.lock: ${CLOUD_CHART_PATH}" >&2
