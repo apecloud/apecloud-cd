@@ -31,6 +31,28 @@ add_chart_repo() {
     helm repo update ${KB_ENT_REPO_NAME}
 }
 
+cache_addon_chart() (
+    set -euo pipefail
+    name="$1" version="$2" container="" archive=""
+    image="apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com/apecloud/apecloud-addon-charts:${name}-${version}"
+    trap 'if [[ -n "$container" ]]; then docker rm -v "$container" >/dev/null; fi; rm -f "$archive"' EXIT
+
+    mkdir -p charts
+    rm -f "charts/${name}-${version}.tgz"
+    archive=$(mktemp "charts/.${name}-${version}.XXXXXX")
+    docker pull "$image"
+    image_id=$(docker image inspect --format '{{.Id}}' "$image")
+    container=$(docker create "$image_id" /bin/true)
+    docker cp "${container}:/charts/${name}-${version}.tgz" "$archive"
+    metadata=$(helm show chart "$archive")
+    if [[ "$(yq e '.name' <<< "$metadata")" != "$name" || "$(yq e '.version' <<< "$metadata")" != "$version" ]]; then
+        echo "Unexpected Chart identity in ${image}; expected ${name} ${version}" >&2
+        exit 1
+    fi
+    # The existing Python checker reads this cache before consulting Helm repos.
+    mv "$archive" "charts/${name}-${version}.tgz"
+)
+
 check_service_version_images() {
     service_versions_tmp=${1:-""}
     chart_version_tmp=${2:-""}
@@ -39,7 +61,19 @@ check_service_version_images() {
 
     if [[ ! -f "${CHECK_ENGINE_FILE}" ]]; then
         echo "$(tput -T xterm setaf 1)Check engine file not exist, please check$(tput -T xterm sgr0)"
+        echo "Missing engine checker: ${CHECK_ENGINE_FILE}" >> check_manifest_result
+        echo 1 > exit_result
         return
+    fi
+
+    rm -f "images-${chart_name_tmp}-${chart_version_tmp}.yaml"
+    cache_addon_chart "$chart_name_tmp" "$chart_version_tmp"
+    if [[ $? -ne 0 ]]; then
+        check_result_tmp="Failed to extract ${chart_name_tmp} ${chart_version_tmp} Chart from addon image"
+        echo "$check_result_tmp" | tee -a check_manifest_result
+        echo 1 > "fail-${chart_name_tmp}-${chart_version_tmp}.flag"
+        echo 1 > exit_result
+        return 1
     fi
 
     # Export env vars so Python script uses the same repos and credentials as Bash
@@ -68,7 +102,6 @@ check_service_version_images() {
             fi
             if [[ -z "${SKIP_DELETE_FILE}" || "${check_engine_result_file}" != *"${SKIP_DELETE_FILE}"* ]]; then
                 rm -rf ${check_engine_result_file}
-                rm -rf charts/${chart_name_tmp}-${chart_version_tmp}.tgz
             fi
         fi
         repository=""
@@ -109,6 +142,10 @@ check_service_version_images() {
         check_failed=1
         sleep 1
     done
+
+    if [[ -z "${SKIP_DELETE_FILE}" || "images-${chart_name_tmp}-${chart_version_tmp}.yaml" != *"${SKIP_DELETE_FILE}"* ]]; then
+        rm -f "charts/${chart_name_tmp}-${chart_version_tmp}.tgz"
+    fi
 
     if [[ $check_failed -eq 1 ]]; then
         local log_prefix="[$chart_name_tmp/$chart_version_tmp]"

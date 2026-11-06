@@ -107,6 +107,13 @@ jobs:
       - name: Install pyyaml
         run: pip3 install pyyaml
 
+      - name: Login to Addon chart registry
+        uses: docker/login-action@v2
+        with:
+          registry: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
+          username: ${{ secrets.ALIYUN_REGISTRY_USER }}
+          password: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
+
       - name: manifests images check
         run: |
           MANIFESTS_FILE="${{ inputs.MANIFESTS_FILE }}"
