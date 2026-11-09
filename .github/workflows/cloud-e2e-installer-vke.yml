@@ -380,8 +380,10 @@ jobs:
               echo "export ${key}"
           done
           ns="${K8S_NAMESPACE:-kubeblocks-cloud-ns}"
-          if [[ -z "${BASE_URL:-}" || -z "${TEST_PASSWORD:-}" ]]; then
-              echo "E2E_ENV_VARS_VKE is missing click test settings"
+          ADMIN_PASSWORD="$(kubectl get secret -n kb-cloud apiserver -o jsonpath='{.data.DEFAULT_ADMIN_PASSWORD}' | base64 -d)"
+          export ADMIN_PASSWORD
+          if [[ -z "${BASE_URL:-}" || -z "${TEST_PASSWORD:-}" || -z "${ADMIN_PASSWORD}" ]]; then
+              echo "click test settings or DEFAULT_ADMIN_PASSWORD is missing"
               exit 1
           fi
           
