@@ -1,4 +1,4 @@
-name: Cloud E2E Installer
+name: Cloud E2E Installer VKE
 
 on:
   workflow_dispatch:
