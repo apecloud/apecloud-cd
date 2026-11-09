@@ -37,12 +37,14 @@ env:
   ALIYUN_REGISTRY_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
   ALIYUN_REGISTRY_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
   KB_ADDON_SECRET_NAME: "kb-addon-test-registry-key"
+  FQDN_DOMAIN: "vke.kubeblocks.com"
+  CLOUD_USER_NAME: "vke-test"
 
 jobs:
   installer-test:
     name: installer-test-vke
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
     outputs:
       installer-result-vke: ${{ steps.install_kb_cloud.outputs.installer-result-vke }}
       bootstrapper-result-vke: ${{ steps.deploy_kb_cloud_env.outputs.bootstrapper-result-vke }}
@@ -92,6 +94,7 @@ jobs:
 
       - name: install kb cloud
         run: |
+          FQDN_DOMAIN="${{ env.FQDN_DOMAIN }}"
           CLOUD_VERSION="${{ inputs.CLOUD_VERSION }}"
           KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
           ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
@@ -103,7 +106,7 @@ jobs:
               --version ${CLOUD_VERSION} \
               --set image.registry="${ALIYUN_REGISTRY_URL}" \
               --set version=${CLOUD_VERSION} \
-              --set fqdn.domain=vke.kubeblocks.com \
+              --set fqdn.domain="${FQDN_DOMAIN}" \
               --set image.pullSecrets[0].name=${KB_ADDON_SECRET_NAME}
 
       - name: check kb-cloud-installer pod Completed
@@ -166,6 +169,7 @@ jobs:
 
       - name: deploy KB Cloud Env
         run: |
+          CLOUD_USER_NAME="${{ env.CLOUD_USER_NAME }}"
           CLOUD_LICENSE="${{ env.CLOUD_LICENSE }}"
           CLOUD_VERSION="${{ inputs.CLOUD_VERSION }}"
           CLOUD_KUBECONFIG="${{ env.CLOUD_KUBECONFIG }}"
@@ -179,7 +183,8 @@ jobs:
             --version ${CLOUD_VERSION} \
             --set image.registry="${ALIYUN_REGISTRY_URL}" \
             --set license="${CLOUD_LICENSE}" \
-            --set kubeconfig="${CLOUD_KUBECONFIG}"
+            --set kubeconfig="${CLOUD_KUBECONFIG}" \
+            --set user.name="${CLOUD_USER_NAME}"
 
       - name: check kb-cloud-bootstrapper pod Completed
         id: deploy_kb_cloud_env
@@ -293,8 +298,98 @@ jobs:
               echo bootstrapper-result-vke="${bootstrapper_result}" >> $GITHUB_OUTPUT
           fi
 
-  send-message:
+  engine-test:
     needs: [ installer-test ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout testinfra Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/testinfra
+          path: ./
+          token: ${{ env.GH_TOKEN }}
+
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.30.4"
+
+      - name: Configure Context VKE
+        run: |
+          mkdir -p $HOME/.kube
+          touch $HOME/.kube/config
+          echo '${{ env.VKE_KUBECONFIG }}' > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+          E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_VKE }}"
+          echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
+
+      - name: run click test
+        run: |
+          set -o pipefail
+          unset KUBECONFIG
+          CLOUD_VERSION=${{ inputs.CLOUD_VERSION }}
+          run_file_log="run_e2e_test_result.log"
+          touch "${run_file_log}"
+          if [[ -z "${CLOUD_VERSION}" ]]; then
+              echo "Release version is required"
+              exit 1
+          fi
+          
+          for env_vars in $(echo "${E2E_ENV_VARS}" | sed 's/|/ /g'); do
+              eval_cmd="export $env_vars"
+              echo "$eval_cmd"
+              eval "$eval_cmd"
+          done
+          FQDN_DOMAIN="${{ env.FQDN_DOMAIN }}"
+          CLOUD_USER_NAME="${{ env.CLOUD_USER_NAME }}"
+          export BASE_URL="http://${FQDN_DOMAIN}/console"
+          export ADMIN_URL="http://${FQDN_DOMAIN}/admin"
+          export TEST_USERNAME="${CLOUD_USER_NAME}"
+          export ENV_NAME="${CLOUD_USER_NAME}"
+          export PLATFORM_VERSION="${CLOUD_VERSION%%.*}.$(printf '%s' "$CLOUD_VERSION" | cut -d. -f2)"
+          
+          bash test/cloud/test_cloud_e2e_web_click_tests.sh \
+              --test-type click \
+              --pod-index "01" \
+              --cloud-version "${CLOUD_VERSION}" | tee -a "${run_file_log}"
+          
+          pod_line="$(grep '\[CLOUD-E2E-WEB-TEST-POD-NAME\]' "${run_file_log}" | tail -n 1 || true)"
+          pod_name="${pod_line#*"[CLOUD-E2E-WEB-TEST-POD-NAME]"}"
+          if [[ -z "${pod_name}" ]] || ! kubectl get pod -n default "${pod_name}" >/dev/null 2>&1; then
+              echo "click test pod was not created"
+              exit 1
+          fi
+          echo "CLOUD_E2E_TEST_POD_NAME=${pod_name}" >> "$GITHUB_ENV"
+
+      - name: Waiting for click test
+        run: |
+          set -o nounset
+          pod_name="${CLOUD_E2E_TEST_POD_NAME}"
+          while true; do
+              phase="$(kubectl get pod -n default "${pod_name}" -o jsonpath='{.status.phase}')"
+              if [[ "${phase}" == "Succeeded" || "${phase}" == *"Failed"* || "${phase}" == *"Error"* ]]; then
+                  break
+              fi
+              echo "click test pod ${pod_name} is ${phase}"
+              kubectl logs -n default "${pod_name}" --tail=5 || true
+              sleep 30
+          done
+          exit_code="$(kubectl get pod -n default "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.terminated.exitCode}')"
+          echo "click test exit code: ${exit_code}"
+          kubectl logs -n default "${pod_name}" --tail=80
+          if [[ "${exit_code}" != "0" ]]; then
+              exit 1
+          fi
+
+  send-message:
+    needs: [ installer-test, engine-test ]
     runs-on: ubuntu-latest
     if: ${{ always() }}
     steps:
@@ -342,7 +437,7 @@ jobs:
               --result "$TEST_RESULT"
 
   destroy-env:
-    needs: [ installer-test ]
+    needs: [ engine-test ]
     runs-on: ubuntu-latest
     if: ${{ always() }}
     steps:
