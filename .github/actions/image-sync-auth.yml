@@ -4,6 +4,3 @@ docker.io:
 apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com:
   username: "${ALIYUN_USER}"
   password: "${ALIYUN_PASSWORD}"
-infracreate-registry.cn-zhangjiakou.cr.aliyuncs.com:
-  username: "${ALIYUN_USER_NEW}"
-  password: "${ALIYUN_PASSWORD_NEW}"
