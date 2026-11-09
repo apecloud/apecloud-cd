@@ -37,12 +37,14 @@ env:
   ALIYUN_REGISTRY_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
   ALIYUN_REGISTRY_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
   KB_ADDON_SECRET_NAME: "kb-addon-test-registry-key"
+  FQDN_DOMAIN: "vke.kubeblocks.com"
+  CLOUD_USER_NAME: "vke-test"
 
 jobs:
   installer-test:
     name: installer-test-vke
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
     outputs:
       installer-result-vke: ${{ steps.install_kb_cloud.outputs.installer-result-vke }}
       bootstrapper-result-vke: ${{ steps.deploy_kb_cloud_env.outputs.bootstrapper-result-vke }}
@@ -92,6 +94,7 @@ jobs:
 
       - name: install kb cloud
         run: |
+          FQDN_DOMAIN="${{ env.FQDN_DOMAIN }}"
           CLOUD_VERSION="${{ inputs.CLOUD_VERSION }}"
           KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
           ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
@@ -103,7 +106,8 @@ jobs:
               --version ${CLOUD_VERSION} \
               --set image.registry="${ALIYUN_REGISTRY_URL}" \
               --set version=${CLOUD_VERSION} \
-              --set fqdn.domain=vke.kubeblocks.com \
+              --set fqdn.domain="${FQDN_DOMAIN}" \
+              --set ingress.className=nginx \
               --set image.pullSecrets[0].name=${KB_ADDON_SECRET_NAME}
 
       - name: check kb-cloud-installer pod Completed
@@ -166,6 +170,7 @@ jobs:
 
       - name: deploy KB Cloud Env
         run: |
+          CLOUD_USER_NAME="${{ env.CLOUD_USER_NAME }}"
           CLOUD_LICENSE="${{ env.CLOUD_LICENSE }}"
           CLOUD_VERSION="${{ inputs.CLOUD_VERSION }}"
           CLOUD_KUBECONFIG="${{ env.CLOUD_KUBECONFIG }}"
@@ -179,7 +184,8 @@ jobs:
             --version ${CLOUD_VERSION} \
             --set image.registry="${ALIYUN_REGISTRY_URL}" \
             --set license="${CLOUD_LICENSE}" \
-            --set kubeconfig="${CLOUD_KUBECONFIG}"
+            --set kubeconfig="${CLOUD_KUBECONFIG}" \
+            --set user.name="${CLOUD_USER_NAME}"
 
       - name: check kb-cloud-bootstrapper pod Completed
         id: deploy_kb_cloud_env
@@ -293,8 +299,148 @@ jobs:
               echo bootstrapper-result-vke="${bootstrapper_result}" >> $GITHUB_OUTPUT
           fi
 
-  send-message:
+  engine-test:
     needs: [ installer-test ]
+    runs-on: ubuntu-latest
+    outputs:
+      click-result-vke: ${{ steps.wait_click.outputs.click-result-vke }}
+    steps:
+      - name: Checkout testinfra Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/testinfra
+          path: ./
+          token: ${{ env.GH_TOKEN }}
+
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: ./apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.30.4"
+
+      - name: Configure Context VKE
+        run: |
+          mkdir -p $HOME/.kube
+          touch $HOME/.kube/config
+          echo '${{ env.VKE_KUBECONFIG }}' > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+          E2E_ENV_VARS="${{ vars.E2E_ENV_VARS_VKE }}"
+          echo E2E_ENV_VARS="$E2E_ENV_VARS" >> $GITHUB_ENV
+
+      - name: prepare click test namespace
+        run: |
+          ns="kubeblocks-cloud-ns"
+          KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
+          ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
+          ALIYUN_REGISTRY_USER="${{ env.ALIYUN_REGISTRY_USER }}"
+          ALIYUN_REGISTRY_PASSWORD="${{ env.ALIYUN_REGISTRY_PASSWORD }}"
+          kubectl create namespace "$ns" --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create secret docker-registry "${KB_ADDON_SECRET_NAME}" \
+              --docker-server="${ALIYUN_REGISTRY_URL}" \
+              --docker-username="${ALIYUN_REGISTRY_USER}" \
+              --docker-password="${ALIYUN_REGISTRY_PASSWORD}" \
+              --docker-email="" \
+              -n "$ns" --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f - <<EOF
+          apiVersion: v1
+          kind: ServiceAccount
+          metadata:
+            name: e2e-test-sa
+            namespace: ${ns}
+          imagePullSecrets:
+            - name: ${KB_ADDON_SECRET_NAME}
+          EOF
+
+      - name: run click test
+        run: |
+          set -o pipefail
+          export KUBECONFIG="$HOME/.kube/config"
+          ns="kubeblocks-cloud-ns"
+          CLOUD_VERSION=${{ inputs.CLOUD_VERSION }}
+          run_file_log="run_e2e_test_result.log"
+          touch "${run_file_log}"
+          if [[ -z "${CLOUD_VERSION}" ]]; then
+              echo "Release version is required"
+              exit 1
+          fi
+          
+          IFS='|' read -ra pairs <<< "${E2E_ENV_VARS}"
+          for pair in "${pairs[@]}"; do
+              [[ -n "${pair}" ]] || continue
+              key=${pair%%=*}
+              val=${pair#*=}
+              printf -v "$key" '%s' "$val"
+              export "$key"
+              echo "export ${key}"
+          done
+          ns="${K8S_NAMESPACE:-kubeblocks-cloud-ns}"
+          ADMIN_PASSWORD="$(kubectl get secret -n kb-cloud apiserver -o jsonpath='{.data.DEFAULT_ADMIN_PASSWORD}' | base64 -d)"
+          export ADMIN_PASSWORD
+          if [[ -z "${BASE_URL:-}" || -z "${TEST_PASSWORD:-}" || -z "${ADMIN_PASSWORD}" ]]; then
+              echo "click test settings or DEFAULT_ADMIN_PASSWORD is missing"
+              exit 1
+          fi
+          
+          bash test/cloud/test_cloud_e2e_web_click_tests.sh \
+              --test-type click \
+              --namespace "${ns}" \
+              --pod-index "01" \
+              --cloud-version "${CLOUD_VERSION}" | tee -a "${run_file_log}"
+          
+          pod_line="$(grep '\[CLOUD-E2E-WEB-TEST-POD-NAME\]' "${run_file_log}" | tail -n 1 || true)"
+          pod_name="${pod_line#*"[CLOUD-E2E-WEB-TEST-POD-NAME]"}"
+          if [[ -z "${pod_name}" ]] || ! kubectl get pod -n "${ns}" "${pod_name}" >/dev/null 2>&1; then
+              echo "click test pod was not created in ${ns}"
+              kubectl get pods -n "${ns}" || true
+              exit 1
+          fi
+          echo "CLOUD_E2E_TEST_POD_NAME=${pod_name}" >> "$GITHUB_ENV"
+
+      - name: Waiting for click test
+        id: wait_click
+        run: |
+          set -o nounset
+          ns="kubeblocks-cloud-ns"
+          pod_name="${CLOUD_E2E_TEST_POD_NAME}"
+          result="[FAILED]"
+          write_result() {
+              echo "click-result-vke=${result}" >> "$GITHUB_OUTPUT"
+          }
+          while true; do
+              phase="$(kubectl get pod -n "${ns}" "${pod_name}" -o jsonpath='{.status.phase}')"
+              reason="$(kubectl get pod -n "${ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.waiting.reason}')"
+              if [[ "${phase}" == "Succeeded" || "${phase}" == "Failed" ]]; then
+                  break
+              fi
+              case "${reason}" in
+                  ImagePullBackOff|ErrImagePull|CreateContainerConfigError|InvalidImageName)
+                      echo "click test pod ${pod_name} is ${phase}/${reason}"
+                      kubectl describe pod -n "${ns}" "${pod_name}" || true
+                      write_result
+                      exit 1
+                      ;;
+              esac
+              echo "click test pod ${pod_name} is ${phase}"
+              kubectl logs -n "${ns}" "${pod_name}" --tail=5 || true
+              sleep 30
+          done
+          exit_code="$(kubectl get pod -n "${ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.terminated.exitCode}')"
+          echo "click test exit code: ${exit_code}"
+          kubectl logs -n "${ns}" "${pod_name}" --tail=80 || true
+          if [[ "${exit_code}" == "0" ]]; then
+              result="[PASSED]"
+          fi
+          write_result
+          [[ "${result}" == "[PASSED]" ]]
+
+  send-message:
+    needs: [ installer-test, engine-test ]
     runs-on: ubuntu-latest
     if: ${{ always() }}
     steps:
@@ -319,8 +465,18 @@ jobs:
               BOOTSTRAPPER_RESULT_VKE="[FAILED]"
           fi
           
+          CLICK_RESULT="${{ needs.engine-test.outputs.click-result-vke }}"
+          if [[ -z "${CLICK_RESULT}" ]]; then
+              if [[ "${{ needs.engine-test.result }}" == "skipped" ]]; then
+                  CLICK_RESULT="[SKIPPED]"
+              else
+                  CLICK_RESULT="[FAILED]"
+              fi
+          fi
+          
           TEST_RESULT="installer-test-vke|vke|installer-${CLOUD_VERSION}|${INSTALLER_RESULT_VKE}"
           TEST_RESULT="${TEST_RESULT}##installer-test-vke|vke|bootstrapper-${CLOUD_VERSION}|${BOOTSTRAPPER_RESULT_VKE}"
+          TEST_RESULT="${TEST_RESULT}##engine-test|vke|click-${CLOUD_VERSION}|${CLICK_RESULT}"
           
           echo "TEST_RESULT:${TEST_RESULT}" 
           
@@ -342,7 +498,7 @@ jobs:
               --result "$TEST_RESULT"
 
   destroy-env:
-    needs: [ installer-test ]
+    needs: [ engine-test ]
     runs-on: ubuntu-latest
     if: ${{ always() }}
     steps:
