@@ -33,10 +33,9 @@ env:
   VKE_KUBECONFIG: ${{ secrets.VKE_KUBECONFIG }}
   CLOUD_LICENSE: ${{ secrets.CLOUD_LICENSE }}
   CLOUD_KUBECONFIG: ${{ secrets.CLOUD_KUBECONFIG }}
-  DOCKER_REGISTRY_URL: docker.io
-  DOCKER_REGISTRY_URL_INDEX: "https://index.docker.io/v1/"
-  DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
-  DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+  ALIYUN_REGISTRY_URL: apecloud-registry.cn-zhangjiakou.cr.aliyuncs.com
+  ALIYUN_REGISTRY_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+  ALIYUN_REGISTRY_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
   KB_ADDON_SECRET_NAME: "kb-addon-test-registry-key"
 
 jobs:
@@ -75,18 +74,18 @@ jobs:
       - name: create secret ${{ env.KB_ADDON_SECRET_NAME }}
         run: |
           KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
-          DOCKER_REGISTRY_URL_INDEX="${{ env.DOCKER_REGISTRY_URL_INDEX }}"
-          DOCKER_REGISTRY_USER="${{ env.DOCKER_REGISTRY_USER }}"
-          DOCKER_REGISTRY_PASSWORD="${{ env.DOCKER_REGISTRY_PASSWORD }}"
+          ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
+          ALIYUN_REGISTRY_USER="${{ env.ALIYUN_REGISTRY_USER }}"
+          ALIYUN_REGISTRY_PASSWORD="${{ env.ALIYUN_REGISTRY_PASSWORD }}"
           
           for ns in kb-cloud kb-system; do
               if ! kubectl get namespace "$ns" >/dev/null 2>&1; then
                   kubectl create namespace "$ns"
               fi
               kubectl create secret docker-registry "${KB_ADDON_SECRET_NAME}" \
-                  --docker-server="${DOCKER_REGISTRY_URL_INDEX}" \
-                  --docker-username="${DOCKER_REGISTRY_USER}" \
-                  --docker-password="${DOCKER_REGISTRY_PASSWORD}" \
+                  --docker-server="${ALIYUN_REGISTRY_URL}" \
+                  --docker-username="${ALIYUN_REGISTRY_USER}" \
+                  --docker-password="${ALIYUN_REGISTRY_PASSWORD}" \
                   --docker-email="" \
                   -n "$ns" --dry-run=client -o yaml | kubectl apply -f -
           done
@@ -95,13 +94,14 @@ jobs:
         run: |
           CLOUD_VERSION="${{ inputs.CLOUD_VERSION }}"
           KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
+          ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
           helm repo add kb-chart https://apecloud.github.io/helm-charts
           
           helm install installer kb-chart/kb-cloud-installer \
               --namespace kb-cloud \
               --create-namespace \
               --version ${CLOUD_VERSION} \
-              --set image.registry="docker.io" \
+              --set image.registry="${ALIYUN_REGISTRY_URL}" \
               --set version=${CLOUD_VERSION} \
               --set fqdn.domain=vke.kubeblocks.com \
               --set image.pullSecrets[0].name=${KB_ADDON_SECRET_NAME}
@@ -169,6 +169,7 @@ jobs:
           CLOUD_LICENSE="${{ env.CLOUD_LICENSE }}"
           CLOUD_VERSION="${{ inputs.CLOUD_VERSION }}"
           CLOUD_KUBECONFIG="${{ env.CLOUD_KUBECONFIG }}"
+          ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
           echo "deploy KB Cloud Env"
           
           helm repo update kb-chart
@@ -176,7 +177,7 @@ jobs:
             --namespace kb-system \
             --create-namespace \
             --version ${CLOUD_VERSION} \
-            --set image.registry="docker.io" \
+            --set image.registry="${ALIYUN_REGISTRY_URL}" \
             --set license="${CLOUD_LICENSE}" \
             --set kubeconfig="${CLOUD_KUBECONFIG}"
 
