@@ -312,13 +312,6 @@ jobs:
           path: ./
           token: ${{ env.GH_TOKEN }}
 
-      - name: Checkout apecloud-cd Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud-cd
-          path: ./apecloud-cd
-          ref: ${{ inputs.APECD_REF }}
-
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3
         with:
@@ -335,24 +328,24 @@ jobs:
 
       - name: prepare click test namespace
         run: |
-          ns="kubeblocks-cloud-ns"
           KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
           ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
           ALIYUN_REGISTRY_USER="${{ env.ALIYUN_REGISTRY_USER }}"
           ALIYUN_REGISTRY_PASSWORD="${{ env.ALIYUN_REGISTRY_PASSWORD }}"
-          kubectl create namespace "$ns" --dry-run=client -o yaml | kubectl apply -f -
+          test_ns="kubeblocks-cloud-ns"
+          kubectl create namespace "${test_ns}" --dry-run=client -o yaml | kubectl apply -f -
           kubectl create secret docker-registry "${KB_ADDON_SECRET_NAME}" \
               --docker-server="${ALIYUN_REGISTRY_URL}" \
               --docker-username="${ALIYUN_REGISTRY_USER}" \
               --docker-password="${ALIYUN_REGISTRY_PASSWORD}" \
               --docker-email="" \
-              -n "$ns" --dry-run=client -o yaml | kubectl apply -f -
+              -n "${test_ns}" --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f - <<EOF
           apiVersion: v1
           kind: ServiceAccount
           metadata:
             name: e2e-test-sa
-            namespace: ${ns}
+            namespace: ${test_ns}
           imagePullSecrets:
             - name: ${KB_ADDON_SECRET_NAME}
           EOF
@@ -361,7 +354,7 @@ jobs:
         run: |
           set -o pipefail
           export KUBECONFIG="$HOME/.kube/config"
-          ns="kubeblocks-cloud-ns"
+          test_ns="default"
           CLOUD_VERSION=${{ inputs.CLOUD_VERSION }}
           run_file_log="run_e2e_test_result.log"
           touch "${run_file_log}"
@@ -370,16 +363,25 @@ jobs:
               exit 1
           fi
           
-          IFS='|' read -ra pairs <<< "${E2E_ENV_VARS}"
-          for pair in "${pairs[@]}"; do
-              [[ -n "${pair}" ]] || continue
-              key=${pair%%=*}
-              val=${pair#*=}
-              printf -v "$key" '%s' "$val"
-              export "$key"
-              echo "export ${key}"
+          for env_vars in $(echo "${E2E_ENV_VARS}" | sed 's/|/ /g'); do
+              eval_cmd="export $env_vars"
+              echo "$eval_cmd"
+              eval "$eval_cmd"
           done
-          ns="${K8S_NAMESPACE:-kubeblocks-cloud-ns}"
+          # overwrite env
+          FQDN_DOMAIN="${{ env.FQDN_DOMAIN }}"
+          CLOUD_USER_NAME="${{ env.CLOUD_USER_NAME }}"
+          export BASE_URL="http://${FQDN_DOMAIN}/console"
+          export ADMIN_URL="http://${FQDN_DOMAIN}/admin"
+          export TEST_USERNAME="${CLOUD_USER_NAME}"
+          export ENV_NAME="${CLOUD_USER_NAME}"
+          platfrom_version_tmp="${CLOUD_VERSION}"
+          if [[ "${platfrom_version_tmp}" == "v"* ]]; then
+              platfrom_version_tmp="${platfrom_version_tmp/v/}"
+          fi
+          export PLATFORM_VERSION="${platfrom_version_tmp%%.*}.$(printf '%s' "$platfrom_version_tmp" | cut -d. -f2)"
+          
+          test_ns="${K8S_NAMESPACE:-kubeblocks-cloud-ns}"
           ADMIN_PASSWORD="$(kubectl get secret -n kb-cloud apiserver -o jsonpath='{.data.DEFAULT_ADMIN_PASSWORD}' | base64 -d)"
           export ADMIN_PASSWORD
           if [[ -z "${BASE_URL:-}" || -z "${TEST_PASSWORD:-}" || -z "${ADMIN_PASSWORD}" ]]; then
@@ -389,15 +391,15 @@ jobs:
           
           bash test/cloud/test_cloud_e2e_web_click_tests.sh \
               --test-type click \
-              --namespace "${ns}" \
+              --namespace "${test_ns}" \
               --pod-index "01" \
               --cloud-version "${CLOUD_VERSION}" | tee -a "${run_file_log}"
           
           pod_line="$(grep '\[CLOUD-E2E-WEB-TEST-POD-NAME\]' "${run_file_log}" | tail -n 1 || true)"
           pod_name="${pod_line#*"[CLOUD-E2E-WEB-TEST-POD-NAME]"}"
-          if [[ -z "${pod_name}" ]] || ! kubectl get pod -n "${ns}" "${pod_name}" >/dev/null 2>&1; then
-              echo "click test pod was not created in ${ns}"
-              kubectl get pods -n "${ns}" || true
+          if [[ -z "${pod_name}" ]] || ! kubectl get pod -n "${test_ns}" "${pod_name}" >/dev/null 2>&1; then
+              echo "click test pod was not created in ${test_ns}"
+              kubectl get pods -n "${test_ns}" || true
               exit 1
           fi
           echo "CLOUD_E2E_TEST_POD_NAME=${pod_name}" >> "$GITHUB_ENV"
@@ -406,33 +408,33 @@ jobs:
         id: wait_click
         run: |
           set -o nounset
-          ns="kubeblocks-cloud-ns"
+          test_ns="kubeblocks-cloud-ns"
           pod_name="${CLOUD_E2E_TEST_POD_NAME}"
           result="[FAILED]"
           write_result() {
               echo "click-result-vke=${result}" >> "$GITHUB_OUTPUT"
           }
           while true; do
-              phase="$(kubectl get pod -n "${ns}" "${pod_name}" -o jsonpath='{.status.phase}')"
-              reason="$(kubectl get pod -n "${ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.waiting.reason}')"
+              phase="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.phase}')"
+              reason="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.waiting.reason}')"
               if [[ "${phase}" == "Succeeded" || "${phase}" == "Failed" ]]; then
                   break
               fi
               case "${reason}" in
                   ImagePullBackOff|ErrImagePull|CreateContainerConfigError|InvalidImageName)
                       echo "click test pod ${pod_name} is ${phase}/${reason}"
-                      kubectl describe pod -n "${ns}" "${pod_name}" || true
+                      kubectl describe pod -n "${test_ns}" "${pod_name}" || true
                       write_result
                       exit 1
                       ;;
               esac
               echo "click test pod ${pod_name} is ${phase}"
-              kubectl logs -n "${ns}" "${pod_name}" --tail=5 || true
+              kubectl logs -n "${test_ns}" "${pod_name}" --tail=5 || true
               sleep 30
           done
-          exit_code="$(kubectl get pod -n "${ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.terminated.exitCode}')"
+          exit_code="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.terminated.exitCode}')"
           echo "click test exit code: ${exit_code}"
-          kubectl logs -n "${ns}" "${pod_name}" --tail=80 || true
+          kubectl logs -n "${test_ns}" "${pod_name}" --tail=80 || true
           if [[ "${exit_code}" == "0" ]]; then
               result="[PASSED]"
           fi
@@ -497,34 +499,34 @@ jobs:
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
 
-  destroy-env:
-    needs: [ engine-test ]
-    runs-on: ubuntu-latest
-    if: ${{ always() }}
-    steps:
-      - name: Checkout apecloud-cd Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud-cd
-          ref: ${{ inputs.APECD_REF }}
-
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: "v1.30.4"
-
-      - name: Install Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: "v3.16.3"
-
-      - name: Configure Context VKE
-        run: |
-          mkdir -p $HOME/.kube
-          touch $HOME/.kube/config
-          echo '${{ env.VKE_KUBECONFIG }}' > $HOME/.kube/config
-          chmod 600 $HOME/.kube/config
-
-      - name: destroy cloud env
-        run: |
-          bash .github/utils/cloud_env_destroy.sh
+#  destroy-env:
+#    needs: [ engine-test ]
+#    runs-on: ubuntu-latest
+#    if: ${{ always() }}
+#    steps:
+#      - name: Checkout apecloud-cd Code
+#        uses: actions/checkout@v4
+#        with:
+#          repository: apecloud/apecloud-cd
+#          ref: ${{ inputs.APECD_REF }}
+#
+#      - name: Setup kubectl
+#        uses: azure/setup-kubectl@v3
+#        with:
+#          version: "v1.30.4"
+#
+#      - name: Install Helm
+#        uses: azure/setup-helm@v3
+#        with:
+#          version: "v3.16.3"
+#
+#      - name: Configure Context VKE
+#        run: |
+#          mkdir -p $HOME/.kube
+#          touch $HOME/.kube/config
+#          echo '${{ env.VKE_KUBECONFIG }}' > $HOME/.kube/config
+#          chmod 600 $HOME/.kube/config
+#
+#      - name: destroy cloud env
+#        run: |
+#          bash .github/utils/cloud_env_destroy.sh
