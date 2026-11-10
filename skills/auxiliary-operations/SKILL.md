@@ -31,7 +31,7 @@ Key inputs:
 - `REPEAT_MIGRATE`: whether to repeat migration.
 - `MIGRATE_VERSION`: target `schema_migrations` version.
 
-After `up`, the job checks final `public.class` rows with the caller's `apiserver/pkg/migration/check_class_spec.sql`.
+After `up`, the job checks final `public.class` rows with the caller's `.github/utils/check_class_spec.sql`.
 
 Common use case: apply schema migrations for cloud-control or other Go services before release.
 
