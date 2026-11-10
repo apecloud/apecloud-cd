@@ -596,15 +596,15 @@ jobs:
           CLOUD_VERSION="${{ inputs.CLOUD_VERSION }}"
           TEST_RESULT=""
           echo "get installer test result"
-#          INSTALLER_RESULT_VKE="${{ needs.installer-test.outputs.installer-result-vke }}"
-#          if [[ -z "${INSTALLER_RESULT_VKE}" ]]; then
-#              INSTALLER_RESULT_VKE="[FAILED]"
-#          fi
-#
-#          BOOTSTRAPPER_RESULT_VKE="${{ needs.installer-test.outputs.bootstrapper-result-vke }}"
-#          if [[ -z "${BOOTSTRAPPER_RESULT_VKE}" ]]; then
-#              BOOTSTRAPPER_RESULT_VKE="[FAILED]"
-#          fi
+          # INSTALLER_RESULT_VKE="${{ needs.installer-test.outputs.installer-result-vke }}"
+          # if [[ -z "${INSTALLER_RESULT_VKE}" ]]; then
+          #     INSTALLER_RESULT_VKE="[FAILED]"
+          # fi
+
+          # BOOTSTRAPPER_RESULT_VKE="${{ needs.installer-test.outputs.bootstrapper-result-vke }}"
+          # if [[ -z "${BOOTSTRAPPER_RESULT_VKE}" ]]; then
+          #     BOOTSTRAPPER_RESULT_VKE="[FAILED]"
+          # fi
 
           CLICK_RESULT="${{ needs.click-result.outputs.click-result-vke }}"
           if [[ -z "${CLICK_RESULT}" ]]; then
