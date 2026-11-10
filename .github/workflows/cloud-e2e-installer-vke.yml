@@ -303,8 +303,8 @@ jobs:
     needs: [ installer-test ]
     runs-on: ubuntu-latest
     outputs:
-      click-result-vke: ${{ steps.wait_click.outputs.click-result-vke }}
-      click-engines-vke: ${{ steps.click_logs.outputs.click-engines-vke }}
+      click-pod-name: ${{ steps.run_click.outputs.click-pod-name }}
+      click-check-completed: ${{ steps.wait_click.outputs.click-check-completed }}
     steps:
       - name: Checkout testinfra Code
         uses: actions/checkout@v4
@@ -352,6 +352,7 @@ jobs:
           EOF
 
       - name: run click test
+        id: run_click
         run: |
           set -o pipefail
           export KUBECONFIG="$HOME/.kube/config"
@@ -417,6 +418,7 @@ jobs:
               exit 1
           fi
           echo "CLOUD_E2E_TEST_POD_NAME=${pod_name}" >> "$GITHUB_ENV"
+          echo "click-pod-name=${pod_name}" >> "$GITHUB_OUTPUT"
 
       - name: Waiting for click test
         id: wait_click
@@ -424,36 +426,106 @@ jobs:
           set -o nounset
           test_ns="kubeblocks-cloud-ns"
           pod_name="${CLOUD_E2E_TEST_POD_NAME}"
-          result="[FAILED]"
-          write_result() {
-              echo "click-result-vke=${result}" >> "$GITHUB_OUTPUT"
-          }
+          CHECK_COMPLETED="false"
+          START_TIME=$(date +%s)
+          # Stay under the 6h job cap so this step can hand off before GitHub kills it.
+          MAX_WAIT_SECONDS=18000
           while true; do
               phase="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.phase}')"
               reason="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.waiting.reason}')"
               if [[ "${phase}" == "Succeeded" || "${phase}" == "Failed" ]]; then
+                  CHECK_COMPLETED="true"
                   break
               fi
               case "${reason}" in
                   ImagePullBackOff|ErrImagePull|CreateContainerConfigError|InvalidImageName)
                       echo "click test pod ${pod_name} is ${phase}/${reason}"
                       kubectl describe pod -n "${test_ns}" "${pod_name}" || true
-                      write_result
+                      echo "click-check-completed=false" >> "$GITHUB_OUTPUT"
                       exit 1
                       ;;
               esac
+              ELAPSED=$(($(date +%s) - START_TIME))
+              if [[ ${ELAPSED} -gt ${MAX_WAIT_SECONDS} ]]; then
+                  echo "Reached max wait time in engine-test, handing over to click-result"
+                  break
+              fi
               echo "click test pod ${pod_name} is ${phase}"
               kubectl logs -n "${test_ns}" "${pod_name}" --tail=1 || true
               sleep 30
           done
-          exit_code="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.terminated.exitCode}')"
-          echo "click test exit code: ${exit_code}"
-          kubectl logs -n "${test_ns}" "${pod_name}" --tail=80 || true
-          if [[ "${exit_code}" == "0" ]]; then
-              result="[PASSED]"
+          echo "click-check-completed=${CHECK_COMPLETED}" >> "$GITHUB_OUTPUT"
+
+  click-result:
+    needs: [ engine-test ]
+    if: ${{ always() && needs.engine-test.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    outputs:
+      click-result-vke: ${{ steps.click_logs.outputs.click-result-vke }}
+      click-engines-vke: ${{ steps.click_logs.outputs.click-engines-vke }}
+    steps:
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.30.4"
+
+      - name: Configure Context VKE
+        run: |
+          mkdir -p $HOME/.kube
+          touch $HOME/.kube/config
+          echo '${{ env.VKE_KUBECONFIG }}' > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Continue Waiting for click test
+        run: |
+          set -o nounset
+          test_ns="kubeblocks-cloud-ns"
+          pod_name="${{ needs.engine-test.outputs.click-pod-name }}"
+          CHECK_COMPLETED="${{ needs.engine-test.outputs.click-check-completed }}"
+          echo "CLOUD_E2E_TEST_POD_NAME=${pod_name}" >> "$GITHUB_ENV"
+          if [[ -z "${pod_name}" ]]; then
+              echo "click test pod name is empty, cannot continue waiting"
+              exit 1
           fi
-          write_result
-          [[ "${result}" == "[PASSED]" ]]
+          phase="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.phase}' || true)"
+          reason="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.waiting.reason}' || true)"
+          case "${reason}" in
+              ImagePullBackOff|ErrImagePull|CreateContainerConfigError|InvalidImageName)
+                  echo "click test pod ${pod_name} is ${phase}/${reason}"
+                  kubectl describe pod -n "${test_ns}" "${pod_name}" || true
+                  exit 1
+                  ;;
+          esac
+          if [[ "${CHECK_COMPLETED}" == "true" || "${phase}" == "Succeeded" || "${phase}" == "Failed" ]]; then
+              echo "click test pod ${pod_name} is already ${phase}"
+              exit 0
+          fi
+          START_TIME=$(date +%s)
+          MAX_WAIT_SECONDS=18000
+          while true; do
+              phase="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.phase}')"
+              reason="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.waiting.reason}')"
+              if [[ "${phase}" == "Succeeded" || "${phase}" == "Failed" ]]; then
+                  echo "click test pod ${pod_name} is ${phase}"
+                  break
+              fi
+              case "${reason}" in
+                  ImagePullBackOff|ErrImagePull|CreateContainerConfigError|InvalidImageName)
+                      echo "click test pod ${pod_name} is ${phase}/${reason}"
+                      kubectl describe pod -n "${test_ns}" "${pod_name}" || true
+                      exit 1
+                      ;;
+              esac
+              ELAPSED=$(($(date +%s) - START_TIME))
+              if [[ ${ELAPSED} -gt ${MAX_WAIT_SECONDS} ]]; then
+                  echo "Timeout waiting for click test in click-result"
+                  exit 1
+              fi
+              echo "click test pod ${pod_name} is ${phase}"
+              kubectl logs -n "${test_ns}" "${pod_name}" --tail=1 || true
+              sleep 30
+          done
 
       - name: Checkout apecloud-cd Code
         if: always()
@@ -472,6 +544,7 @@ jobs:
           test_ns="kubeblocks-cloud-ns"
           pod_name="${CLOUD_E2E_TEST_POD_NAME:-}"
           log_file="click-test-pod.log"
+          result="[FAILED]"
           : > "${log_file}"
           if [[ -z "${pod_name}" ]]; then
               echo "click test pod name is empty"
@@ -479,7 +552,13 @@ jobs:
               kubectl get pod -n "${test_ns}" "${pod_name}" -o wide || true
               echo "==================== pod ${pod_name} logs ===================="
               kubectl logs -n "${test_ns}" "${pod_name}" | tee "${log_file}" || true
+              exit_code="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.terminated.exitCode}' || true)"
+              echo "click test exit code: ${exit_code}"
+              if [[ "${exit_code}" == "0" ]]; then
+                  result="[PASSED]"
+              fi
           fi
+          echo "click-result-vke=${result}" >> "$GITHUB_OUTPUT"
 
           parser="apecloud-cd/.github/utils/click_engine_results.py"
           if [[ ! -f "${parser}" ]]; then
@@ -498,10 +577,10 @@ jobs:
           echo "click-engines-vke=${engines}" >> "$GITHUB_OUTPUT"
           echo "==================== click engine results ===================="
           echo "${engines:-<none>}"
-          exit 0
+          [[ "${result}" == "[PASSED]" ]]
 
   send-message:
-    needs: [ installer-test, engine-test ]
+    needs: [ installer-test, click-result ]
     runs-on: ubuntu-latest
     if: ${{ always() }}
     steps:
@@ -526,16 +605,16 @@ jobs:
               BOOTSTRAPPER_RESULT_VKE="[FAILED]"
           fi
 
-          CLICK_RESULT="${{ needs.engine-test.outputs.click-result-vke }}"
+          CLICK_RESULT="${{ needs.click-result.outputs.click-result-vke }}"
           if [[ -z "${CLICK_RESULT}" ]]; then
-              if [[ "${{ needs.engine-test.result }}" == "skipped" ]]; then
+              if [[ "${{ needs.click-result.result }}" == "skipped" || "${{ needs.engine-test.result }}" == "skipped" ]]; then
                   CLICK_RESULT="[SKIPPED]"
               else
                   CLICK_RESULT="[FAILED]"
               fi
           fi
 
-          CLICK_ENGINES="${{ needs.engine-test.outputs.click-engines-vke }}"
+          CLICK_ENGINES="${{ needs.click-result.outputs.click-engines-vke }}"
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
 
@@ -558,7 +637,7 @@ jobs:
 
           INSTALLER_RESULT="installer-test-vke|vke|installer-${CLOUD_VERSION}|${INSTALLER_RESULT_VKE}"
           INSTALLER_RESULT="${INSTALLER_RESULT}##installer-test-vke|vke|bootstrapper-${CLOUD_VERSION}|${BOOTSTRAPPER_RESULT_VKE}"
-          INSTALLER_RESULT="${INSTALLER_RESULT}##engine-test|vke|click-${CLOUD_VERSION}|${CLICK_RESULT}"
+          INSTALLER_RESULT="${INSTALLER_RESULT}##click-result|vke|click-${CLOUD_VERSION}|${CLICK_RESULT}"
           send_card "[${CLOUD_VERSION}] Cloud Installer & Upgrade [${date_ret}]" "${INSTALLER_RESULT}"
 
           if [[ -n "${CLICK_ENGINES}" ]]; then
@@ -573,9 +652,9 @@ jobs:
                       [[ "${engine}" =~ ^[A-Za-z0-9_./-]+$ ]] || continue
                       [[ "${detail}" =~ ^\[(PASSED|FAILED|SKIPPED)\]$ ]] || continue
                       if [[ -z "${GROUP_RESULT}" ]]; then
-                          GROUP_RESULT="engine-test|vke|${engine}|${detail}"
+                          GROUP_RESULT="click-result|vke|${engine}|${detail}"
                       else
-                          GROUP_RESULT="${GROUP_RESULT}##engine-test|vke|${engine}|${detail}"
+                          GROUP_RESULT="${GROUP_RESULT}##click-result|vke|${engine}|${detail}"
                       fi
                   done
                   [[ -z "${GROUP_RESULT}" ]] && continue
@@ -584,7 +663,7 @@ jobs:
           fi
 
 #  destroy-env:
-#    needs: [ engine-test ]
+#    needs: [ click-result ]
 #    runs-on: ubuntu-latest
 #    if: ${{ always() }}
 #    steps:
