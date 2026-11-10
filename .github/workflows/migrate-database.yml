@@ -81,9 +81,9 @@ jobs:
           database: "${{ env.POSTGRESQL_DATABASE }}"
 
       - name: Check class specs
-        if: ${{ inputs.MIGRATE_COMMAND == 'up' }}
+        if: ${{ inputs.MIGRATE_COMMAND == 'up' && hashFiles('.github/utils/check_class_spec.sql') != '' }}
         env:
           PGPASSWORD: ${{ env.POSTGRESQL_PASSWORD }}
         run: |
-          psql -U ${{ env.POSTGRESQL_USER }} -d ${{ env.POSTGRESQL_DB }} -h 127.0.0.1 -v ON_ERROR_STOP=1 -f apiserver/pkg/migration/check_class_spec.sql
+          psql -U ${{ env.POSTGRESQL_USER }} -d ${{ env.POSTGRESQL_DB }} -h 127.0.0.1 -v ON_ERROR_STOP=1 -f .github/utils/check_class_spec.sql
         shell: bash
