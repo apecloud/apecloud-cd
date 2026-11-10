@@ -388,6 +388,19 @@ jobs:
               echo "click test settings or DEFAULT_ADMIN_PASSWORD is missing"
               exit 1
           fi
+
+          # Pod cannot reach the VKE public API. Same cert works on the in-cluster Service.
+          pod_kubeconfig="$(mktemp)"
+          cp "$HOME/.kube/config" "${pod_kubeconfig}"
+          cluster_name="$(KUBECONFIG="${pod_kubeconfig}" kubectl config view --minify -o jsonpath='{.clusters[0].name}')"
+          KUBECONFIG="${pod_kubeconfig}" kubectl config set-cluster "${cluster_name}" --server=https://kubernetes.default.svc >/dev/null
+          server="$(KUBECONFIG="${pod_kubeconfig}" kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')"
+          if [[ "${server}" != "https://kubernetes.default.svc" ]]; then
+              echo "pod kubeconfig server was not rewritten: ${server}"
+              exit 1
+          fi
+          echo "pod kubeconfig server: ${server}"
+          export k8s_config_path="${pod_kubeconfig}"
           
           bash test/cloud/test_cloud_e2e_web_click_tests.sh \
               --test-type click \
