@@ -28,6 +28,8 @@ def colorize_status(status_str):
         status_str = status_str.replace(f"[PASSED]", f"<font color='green'>[PASSED]</font>")
     elif "[FAILED]" in status_str:
         status_str = status_str.replace(f"[FAILED]", f"<font color='red'>[FAILED]</font>")
+    elif "[SKIPPED]" in status_str:
+        status_str = status_str.replace("[SKIPPED]", "<font color='grey'>[SKIPPED]</font>")
     else:
         pattern = r'(\d+)(Passed|Failed)'
         matches = re.findall(pattern, status_str)
