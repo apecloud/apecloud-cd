@@ -41,266 +41,266 @@ env:
   CLOUD_USER_NAME: "vke-test"
 
 jobs:
-#  installer-test:
-#    name: installer-test-vke
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 30
-#    outputs:
-#      installer-result-vke: ${{ steps.install_kb_cloud.outputs.installer-result-vke }}
-#      bootstrapper-result-vke: ${{ steps.deploy_kb_cloud_env.outputs.bootstrapper-result-vke }}
-#    steps:
-#      - name: Checkout apecloud-cd Code
-#        uses: actions/checkout@v4
-#        with:
-#          repository: apecloud/apecloud-cd
-#          path: apecloud-cd
-#          ref: ${{ inputs.APECD_REF }}
-#
-#      - name: Setup kubectl
-#        uses: azure/setup-kubectl@v3
-#        with:
-#          version: "v1.30.4"
-#
-#      - name: Install Helm
-#        uses: azure/setup-helm@v3
-#        with:
-#          version: "v3.16.3"
-#
-#      - name: Configure Context VKE
-#        run: |
-#          mkdir -p $HOME/.kube
-#          touch $HOME/.kube/config
-#          echo '${{ env.VKE_KUBECONFIG }}' > $HOME/.kube/config
-#          chmod 600 $HOME/.kube/config
-#
-#      - name: create secret ${{ env.KB_ADDON_SECRET_NAME }}
-#        run: |
-#          KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
-#          ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
-#          ALIYUN_REGISTRY_USER="${{ env.ALIYUN_REGISTRY_USER }}"
-#          ALIYUN_REGISTRY_PASSWORD="${{ env.ALIYUN_REGISTRY_PASSWORD }}"
-#
-#          for ns in kb-cloud kb-system; do
-#              if ! kubectl get namespace "$ns" >/dev/null 2>&1; then
-#                  kubectl create namespace "$ns"
-#              fi
-#              kubectl create secret docker-registry "${KB_ADDON_SECRET_NAME}" \
-#                  --docker-server="${ALIYUN_REGISTRY_URL}" \
-#                  --docker-username="${ALIYUN_REGISTRY_USER}" \
-#                  --docker-password="${ALIYUN_REGISTRY_PASSWORD}" \
-#                  --docker-email="" \
-#                  -n "$ns" --dry-run=client -o yaml | kubectl apply -f -
-#          done
-#
-#      - name: install kb cloud
-#        run: |
-#          FQDN_DOMAIN="${{ env.FQDN_DOMAIN }}"
-#          CLOUD_VERSION="${{ inputs.CLOUD_VERSION }}"
-#          KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
-#          ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
-#          helm repo add kb-chart https://apecloud.github.io/helm-charts
-#
-#          helm install installer kb-chart/kb-cloud-installer \
-#              --namespace kb-cloud \
-#              --create-namespace \
-#              --version ${CLOUD_VERSION} \
-#              --set image.registry="${ALIYUN_REGISTRY_URL}" \
-#              --set version=${CLOUD_VERSION} \
-#              --set fqdn.domain="${FQDN_DOMAIN}" \
-#              --set ingress.className=nginx \
-#              --set image.pullSecrets[0].name=${KB_ADDON_SECRET_NAME}
-#
-#      - name: check kb-cloud-installer pod Completed
-#        id: install_kb_cloud
-#        run: |
-#          sleep 10
-#          check_status=0
-#          for i in {1..200}; do
-#              if kubectl get pods -n kb-cloud | grep "kb-cloud-installer" | grep Completed ; then
-#                  echo "KB Cloud is ready"
-#                  check_status=1
-#                  break
-#              fi
-#              echo "Waiting for KB Cloud to be ready..."
-#              kubectl get pods -n kb-cloud
-#              echo ""
-#              sleep 5
-#          done
-#
-#          installer_result="[PASSED]"
-#          if [[ $check_status -eq 0 ]]; then
-#              echo "KB Cloud is not ready"
-#              installer_result="[FAILED]"
-#
-#              echo installer-result-vke="${installer_result}" >> $GITHUB_OUTPUT
-#
-#              set +e
-#              set -o nounset
-#              installer_pods=$(kubectl get pods -n kb-cloud | (grep "kb-cloud-installer" || true) )
-#              echo "installer pod: $installer_pods"
-#              installer_pod_names="$(echo "${installer_pods}" | awk '{print $1}')"
-#              for installer_pod_name in $(echo "${installer_pod_names}"); do
-#                  echo "==================== pod ${installer_pod_name} logs ===================="
-#                  kubectl logs --tail 100 -n kb-cloud ${installer_pod_name}
-#              done
-#
-#              echo "describe image pull error installer pod"
-#              installer_error_pods=$(kubectl get pods -n kb-cloud | (grep "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')
-#              echo "installer image pull error pod: ${installer_error_pods}"
-#              for installer_error_pod in $(echo "${installer_error_pods}"); do
-#                  echo "==================== pod ${installer_error_pod} describe ===================="
-#                  kubectl describe pod -n kb-cloud ${installer_error_pod}
-#                  echo ""
-#              done
-#
-#              # logs kb-cloud error pod
-#              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" || true) | awk '{print $1}')
-#              echo "kb-cloud error pod: $kb_cloud_error_pods"
-#              for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
-#                  echo "==================== pod ${kb_cloud_error_pod} logs ===================="
-#                  kubectl logs --tail 100 -n kb-cloud ${kb_cloud_error_pod}
-#                  echo ""
-#              done
-#
-#              set -e
-#              exit 1
-#          else
-#              echo installer-result-vke="${installer_result}" >> $GITHUB_OUTPUT
-#          fi
-#
-#      - name: deploy KB Cloud Env
-#        run: |
-#          CLOUD_USER_NAME="${{ env.CLOUD_USER_NAME }}"
-#          CLOUD_LICENSE="${{ env.CLOUD_LICENSE }}"
-#          CLOUD_VERSION="${{ inputs.CLOUD_VERSION }}"
-#          CLOUD_KUBECONFIG="${{ env.CLOUD_KUBECONFIG }}"
-#          ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
-#          echo "deploy KB Cloud Env"
-#
-#          helm repo update kb-chart
-#          helm install bootstrapper kb-chart/kb-cloud-bootstrapper \
-#            --namespace kb-system \
-#            --create-namespace \
-#            --version ${CLOUD_VERSION} \
-#            --set image.registry="${ALIYUN_REGISTRY_URL}" \
-#            --set license="${CLOUD_LICENSE}" \
-#            --set kubeconfig="${CLOUD_KUBECONFIG}" \
-#            --set user.name="${CLOUD_USER_NAME}"
-#
-#      - name: check kb-cloud-bootstrapper pod Completed
-#        id: deploy_kb_cloud_env
-#        run: |
-#          sleep 10
-#          check_status=0
-#          patch_sa_flag=0
-#
-#          cloud_e2e_installer_script="${{ github.workspace }}/apecloud-cd/.github/utils/cloud_e2e_installer.sh"
-#          if [[ -f "${cloud_e2e_installer_script}" ]]; then
-#              echo "update kb-monitor resources"
-#              bash ${cloud_e2e_installer_script} &
-#          fi
-#
-#          for i in {1..240}; do
-#              if kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" | grep Completed ; then
-#                  echo "KB Cloud Env is ready"
-#                  check_status=1
-#                  break
-#              fi
-#              echo "Waiting for KB Cloud Env to be ready..."
-#              kubectl get pods -n kb-system
-#              KUBEBLOCKS_SAS=$(kubectl get serviceaccounts -n kb-system | (grep "kubeblocks" || true) | awk '{print $1}')
-#              if [[ -n "${KUBEBLOCKS_SAS}" && ${patch_sa_flag} -eq 0 ]]; then
-#                  for kb_sa in $(echo "${KUBEBLOCKS_SAS}"); do
-#                      echo "patch serviceaccount ${kb_sa}..."
-#                      for i in {1..5}; do
-#                          kubectl patch -p '{"imagePullSecrets":[{"name":"kb-addon-test-registry-key"}]}' \
-#                            --type=merge serviceaccount -n kb-system "${kb_sa}"
-#                          patch_ret=$?
-#                          if [[ $patch_ret -eq 0 ]]; then
-#                              echo "$(tput -T xterm setaf 2)patch serviceaccount ${kb_sa} success $(tput -T xterm sgr0)"
-#                              patch_sa_flag=1
-#                              break
-#                          fi
-#                          echo "Waiting for patch serviceaccount ${kb_sa}..."
-#                          sleep 1
-#                      done
-#                  done
-#              fi
-#              echo ""
-#              sleep 5
-#          done
-#
-#          bootstrapper_result="[PASSED]"
-#          if [[ $check_status -eq 0 ]]; then
-#              echo "==================== describe node ===================="
-#              kubectl describe node
-#              df -h
-#              echo "KB Cloud Env is not ready"
-#              bootstrapper_result="[FAILED]"
-#
-#              echo bootstrapper-result-vke="${bootstrapper_result}" >> $GITHUB_OUTPUT
-#
-#              bootstrapper_pods=$(kubectl get pods -n kb-system | (grep "kb-cloud-bootstrapper" || true) )
-#              echo "bootstrapper pod: $bootstrapper_pods"
-#              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | grep -v "ImagePull" | awk '{print $1}')"
-#              for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
-#                  echo "==================== pod ${bootstrapper_pod_name} logs ===================="
-#                  kubectl logs --tail 100 -n kb-system ${bootstrapper_pod_name}
-#              done
-#
-#              # describe image pull error bootstrapper pod
-#              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | (egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')"
-#              for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
-#                  echo "==================== pod ${bootstrapper_pod_name} describe ===================="
-#                  kubectl describe pod -n kb-system ${bootstrapper_pod_name}
-#              done
-#
-#              # logs kb-system error pod
-#              set +e
-#              set -o nounset
-#              kb_system_error_pods=$(kubectl get pods -n kb-system | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Evicted" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" || true) | awk '{print $1}')
-#              echo "kb-system error pod: $kb_system_error_pods"
-#              for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
-#                  echo "==================== pod ${kb_system_error_pod} logs ===================="
-#                  kubectl logs --tail 100 -n kb-system ${kb_system_error_pod}
-#                  echo ""
-#              done
-#
-#              # describe image pull error kb-system pod
-#              kb_system_error_pods=$(kubectl get pods -n kb-system | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')
-#              echo "kb-system image pull error pod: $kb_system_error_pods"
-#              for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
-#                  echo "==================== pod ${kb_system_error_pod} describe ===================="
-#                  kubectl describe pod -n kb-system ${kb_system_error_pod}
-#                  echo ""
-#              done
-#
-#              # logs kb-cloud error pod
-#              kb_system_error_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Evicted" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" || true) | awk '{print $1}')
-#              echo "kb-cloud error pod: $kb_system_error_pods"
-#              for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
-#                  echo "==================== pod ${kb_system_error_pod} logs ===================="
-#                  kubectl logs --tail 100 -n kb-cloud ${kb_system_error_pod}
-#                  echo ""
-#              done
-#
-#              # describe image pull error kb-cloud pod
-#              kb_system_error_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')
-#              echo "kb-cloud image pull error pod: $kb_system_error_pods"
-#              for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
-#                  echo "==================== pod ${kb_system_error_pod} describe ===================="
-#                  kubectl describe pod -n kb-cloud ${kb_system_error_pod}
-#                  echo ""
-#              done
-#
-#              set -e
-#              exit 1
-#          else
-#              echo bootstrapper-result-vke="${bootstrapper_result}" >> $GITHUB_OUTPUT
-#          fi
+  installer-test:
+    name: installer-test-vke
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      installer-result-vke: ${{ steps.install_kb_cloud.outputs.installer-result-vke }}
+      bootstrapper-result-vke: ${{ steps.deploy_kb_cloud_env.outputs.bootstrapper-result-vke }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.30.4"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "v3.16.3"
+
+      - name: Configure Context VKE
+        run: |
+          mkdir -p $HOME/.kube
+          touch $HOME/.kube/config
+          echo '${{ env.VKE_KUBECONFIG }}' > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: create secret ${{ env.KB_ADDON_SECRET_NAME }}
+        run: |
+          KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
+          ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
+          ALIYUN_REGISTRY_USER="${{ env.ALIYUN_REGISTRY_USER }}"
+          ALIYUN_REGISTRY_PASSWORD="${{ env.ALIYUN_REGISTRY_PASSWORD }}"
+
+          for ns in kb-cloud kb-system; do
+              if ! kubectl get namespace "$ns" >/dev/null 2>&1; then
+                  kubectl create namespace "$ns"
+              fi
+              kubectl create secret docker-registry "${KB_ADDON_SECRET_NAME}" \
+                  --docker-server="${ALIYUN_REGISTRY_URL}" \
+                  --docker-username="${ALIYUN_REGISTRY_USER}" \
+                  --docker-password="${ALIYUN_REGISTRY_PASSWORD}" \
+                  --docker-email="" \
+                  -n "$ns" --dry-run=client -o yaml | kubectl apply -f -
+          done
+
+      - name: install kb cloud
+        run: |
+          FQDN_DOMAIN="${{ env.FQDN_DOMAIN }}"
+          CLOUD_VERSION="${{ inputs.CLOUD_VERSION }}"
+          KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
+          ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
+          helm repo add kb-chart https://apecloud.github.io/helm-charts
+
+          helm install installer kb-chart/kb-cloud-installer \
+              --namespace kb-cloud \
+              --create-namespace \
+              --version ${CLOUD_VERSION} \
+              --set image.registry="${ALIYUN_REGISTRY_URL}" \
+              --set version=${CLOUD_VERSION} \
+              --set fqdn.domain="${FQDN_DOMAIN}" \
+              --set ingress.className=nginx \
+              --set image.pullSecrets[0].name=${KB_ADDON_SECRET_NAME}
+
+      - name: check kb-cloud-installer pod Completed
+        id: install_kb_cloud
+        run: |
+          sleep 10
+          check_status=0
+          for i in {1..200}; do
+              if kubectl get pods -n kb-cloud | grep "kb-cloud-installer" | grep Completed ; then
+                  echo "KB Cloud is ready"
+                  check_status=1
+                  break
+              fi
+              echo "Waiting for KB Cloud to be ready..."
+              kubectl get pods -n kb-cloud
+              echo ""
+              sleep 5
+          done
+
+          installer_result="[PASSED]"
+          if [[ $check_status -eq 0 ]]; then
+              echo "KB Cloud is not ready"
+              installer_result="[FAILED]"
+
+              echo installer-result-vke="${installer_result}" >> $GITHUB_OUTPUT
+
+              set +e
+              set -o nounset
+              installer_pods=$(kubectl get pods -n kb-cloud | (grep "kb-cloud-installer" || true) )
+              echo "installer pod: $installer_pods"
+              installer_pod_names="$(echo "${installer_pods}" | awk '{print $1}')"
+              for installer_pod_name in $(echo "${installer_pod_names}"); do
+                  echo "==================== pod ${installer_pod_name} logs ===================="
+                  kubectl logs --tail 100 -n kb-cloud ${installer_pod_name}
+              done
+
+              echo "describe image pull error installer pod"
+              installer_error_pods=$(kubectl get pods -n kb-cloud | (grep "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')
+              echo "installer image pull error pod: ${installer_error_pods}"
+              for installer_error_pod in $(echo "${installer_error_pods}"); do
+                  echo "==================== pod ${installer_error_pod} describe ===================="
+                  kubectl describe pod -n kb-cloud ${installer_error_pod}
+                  echo ""
+              done
+
+              # logs kb-cloud error pod
+              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" || true) | awk '{print $1}')
+              echo "kb-cloud error pod: $kb_cloud_error_pods"
+              for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
+                  echo "==================== pod ${kb_cloud_error_pod} logs ===================="
+                  kubectl logs --tail 100 -n kb-cloud ${kb_cloud_error_pod}
+                  echo ""
+              done
+
+              set -e
+              exit 1
+          else
+              echo installer-result-vke="${installer_result}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: deploy KB Cloud Env
+        run: |
+          CLOUD_USER_NAME="${{ env.CLOUD_USER_NAME }}"
+          CLOUD_LICENSE="${{ env.CLOUD_LICENSE }}"
+          CLOUD_VERSION="${{ inputs.CLOUD_VERSION }}"
+          CLOUD_KUBECONFIG="${{ env.CLOUD_KUBECONFIG }}"
+          ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
+          echo "deploy KB Cloud Env"
+
+          helm repo update kb-chart
+          helm install bootstrapper kb-chart/kb-cloud-bootstrapper \
+            --namespace kb-system \
+            --create-namespace \
+            --version ${CLOUD_VERSION} \
+            --set image.registry="${ALIYUN_REGISTRY_URL}" \
+            --set license="${CLOUD_LICENSE}" \
+            --set kubeconfig="${CLOUD_KUBECONFIG}" \
+            --set user.name="${CLOUD_USER_NAME}"
+
+      - name: check kb-cloud-bootstrapper pod Completed
+        id: deploy_kb_cloud_env
+        run: |
+          sleep 10
+          check_status=0
+          patch_sa_flag=0
+
+          cloud_e2e_installer_script="${{ github.workspace }}/apecloud-cd/.github/utils/cloud_e2e_installer.sh"
+          if [[ -f "${cloud_e2e_installer_script}" ]]; then
+              echo "update kb-monitor resources"
+              bash ${cloud_e2e_installer_script} &
+          fi
+
+          for i in {1..240}; do
+              if kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" | grep Completed ; then
+                  echo "KB Cloud Env is ready"
+                  check_status=1
+                  break
+              fi
+              echo "Waiting for KB Cloud Env to be ready..."
+              kubectl get pods -n kb-system
+              KUBEBLOCKS_SAS=$(kubectl get serviceaccounts -n kb-system | (grep "kubeblocks" || true) | awk '{print $1}')
+              if [[ -n "${KUBEBLOCKS_SAS}" && ${patch_sa_flag} -eq 0 ]]; then
+                  for kb_sa in $(echo "${KUBEBLOCKS_SAS}"); do
+                      echo "patch serviceaccount ${kb_sa}..."
+                      for i in {1..5}; do
+                          kubectl patch -p '{"imagePullSecrets":[{"name":"kb-addon-test-registry-key"}]}' \
+                            --type=merge serviceaccount -n kb-system "${kb_sa}"
+                          patch_ret=$?
+                          if [[ $patch_ret -eq 0 ]]; then
+                              echo "$(tput -T xterm setaf 2)patch serviceaccount ${kb_sa} success $(tput -T xterm sgr0)"
+                              patch_sa_flag=1
+                              break
+                          fi
+                          echo "Waiting for patch serviceaccount ${kb_sa}..."
+                          sleep 1
+                      done
+                  done
+              fi
+              echo ""
+              sleep 5
+          done
+
+          bootstrapper_result="[PASSED]"
+          if [[ $check_status -eq 0 ]]; then
+              echo "==================== describe node ===================="
+              kubectl describe node
+              df -h
+              echo "KB Cloud Env is not ready"
+              bootstrapper_result="[FAILED]"
+
+              echo bootstrapper-result-vke="${bootstrapper_result}" >> $GITHUB_OUTPUT
+
+              bootstrapper_pods=$(kubectl get pods -n kb-system | (grep "kb-cloud-bootstrapper" || true) )
+              echo "bootstrapper pod: $bootstrapper_pods"
+              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | grep -v "ImagePull" | awk '{print $1}')"
+              for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
+                  echo "==================== pod ${bootstrapper_pod_name} logs ===================="
+                  kubectl logs --tail 100 -n kb-system ${bootstrapper_pod_name}
+              done
+
+              # describe image pull error bootstrapper pod
+              bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | (egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')"
+              for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
+                  echo "==================== pod ${bootstrapper_pod_name} describe ===================="
+                  kubectl describe pod -n kb-system ${bootstrapper_pod_name}
+              done
+
+              # logs kb-system error pod
+              set +e
+              set -o nounset
+              kb_system_error_pods=$(kubectl get pods -n kb-system | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Evicted" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" || true) | awk '{print $1}')
+              echo "kb-system error pod: $kb_system_error_pods"
+              for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
+                  echo "==================== pod ${kb_system_error_pod} logs ===================="
+                  kubectl logs --tail 100 -n kb-system ${kb_system_error_pod}
+                  echo ""
+              done
+
+              # describe image pull error kb-system pod
+              kb_system_error_pods=$(kubectl get pods -n kb-system | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')
+              echo "kb-system image pull error pod: $kb_system_error_pods"
+              for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
+                  echo "==================== pod ${kb_system_error_pod} describe ===================="
+                  kubectl describe pod -n kb-system ${kb_system_error_pod}
+                  echo ""
+              done
+
+              # logs kb-cloud error pod
+              kb_system_error_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Evicted" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" || true) | awk '{print $1}')
+              echo "kb-cloud error pod: $kb_system_error_pods"
+              for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
+                  echo "==================== pod ${kb_system_error_pod} logs ===================="
+                  kubectl logs --tail 100 -n kb-cloud ${kb_system_error_pod}
+                  echo ""
+              done
+
+              # describe image pull error kb-cloud pod
+              kb_system_error_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')
+              echo "kb-cloud image pull error pod: $kb_system_error_pods"
+              for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
+                  echo "==================== pod ${kb_system_error_pod} describe ===================="
+                  kubectl describe pod -n kb-cloud ${kb_system_error_pod}
+                  echo ""
+              done
+
+              set -e
+              exit 1
+          else
+              echo bootstrapper-result-vke="${bootstrapper_result}" >> $GITHUB_OUTPUT
+          fi
 
   engine-test:
-#    needs: [ installer-test ]
+    needs: [ installer-test ]
     runs-on: ubuntu-latest
     outputs:
       click-pod-name: ${{ steps.run_click.outputs.click-pod-name }}
@@ -580,8 +580,7 @@ jobs:
           [[ "${result}" == "[PASSED]" ]]
 
   send-message:
-#    needs: [ installer-test, click-result ]
-    needs: [ click-result ]
+    needs: [ installer-test, click-result ]
     runs-on: ubuntu-latest
     if: ${{ always() }}
     steps:
@@ -596,15 +595,15 @@ jobs:
           CLOUD_VERSION="${{ inputs.CLOUD_VERSION }}"
           TEST_RESULT=""
           echo "get installer test result"
-          # INSTALLER_RESULT_VKE="${{ needs.installer-test.outputs.installer-result-vke }}"
-          # if [[ -z "${INSTALLER_RESULT_VKE}" ]]; then
-          #     INSTALLER_RESULT_VKE="[FAILED]"
-          # fi
+          INSTALLER_RESULT_VKE="${{ needs.installer-test.outputs.installer-result-vke }}"
+          if [[ -z "${INSTALLER_RESULT_VKE}" ]]; then
+              INSTALLER_RESULT_VKE="[FAILED]"
+          fi
 
-          # BOOTSTRAPPER_RESULT_VKE="${{ needs.installer-test.outputs.bootstrapper-result-vke }}"
-          # if [[ -z "${BOOTSTRAPPER_RESULT_VKE}" ]]; then
-          #     BOOTSTRAPPER_RESULT_VKE="[FAILED]"
-          # fi
+          BOOTSTRAPPER_RESULT_VKE="${{ needs.installer-test.outputs.bootstrapper-result-vke }}"
+          if [[ -z "${BOOTSTRAPPER_RESULT_VKE}" ]]; then
+              BOOTSTRAPPER_RESULT_VKE="[FAILED]"
+          fi
 
           CLICK_RESULT="${{ needs.click-result.outputs.click-result-vke }}"
           if [[ -z "${CLICK_RESULT}" ]]; then
@@ -663,34 +662,34 @@ jobs:
               done < <(python3 .github/utils/click_engine_results.py --group "${CLICK_ENGINES}")
           fi
 
-#  destroy-env:
-#    needs: [ click-result ]
-#    runs-on: ubuntu-latest
-#    if: ${{ always() }}
-#    steps:
-#      - name: Checkout apecloud-cd Code
-#        uses: actions/checkout@v4
-#        with:
-#          repository: apecloud/apecloud-cd
-#          ref: ${{ inputs.APECD_REF }}
-#
-#      - name: Setup kubectl
-#        uses: azure/setup-kubectl@v3
-#        with:
-#          version: "v1.30.4"
-#
-#      - name: Install Helm
-#        uses: azure/setup-helm@v3
-#        with:
-#          version: "v3.16.3"
-#
-#      - name: Configure Context VKE
-#        run: |
-#          mkdir -p $HOME/.kube
-#          touch $HOME/.kube/config
-#          echo '${{ env.VKE_KUBECONFIG }}' > $HOME/.kube/config
-#          chmod 600 $HOME/.kube/config
-#
-#      - name: destroy cloud env
-#        run: |
-#          bash .github/utils/cloud_env_destroy.sh
+  destroy-env:
+    needs: [ click-result ]
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.30.4"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "v3.16.3"
+
+      - name: Configure Context VKE
+        run: |
+          mkdir -p $HOME/.kube
+          touch $HOME/.kube/config
+          echo '${{ env.VKE_KUBECONFIG }}' > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: destroy cloud env
+        run: |
+          bash .github/utils/cloud_env_destroy.sh
