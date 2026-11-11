@@ -13,6 +13,11 @@ on:
         type: string
         required: false
         default: 'main'
+      REDEPLOY:
+        description: "Redeploy env before tests. false runs tests on the existing env."
+        type: boolean
+        required: false
+        default: true
   workflow_call:
     inputs:
       CLOUD_VERSION:
@@ -25,6 +30,11 @@ on:
         type: string
         required: false
         default: 'main'
+      REDEPLOY:
+        description: "Redeploy env before tests. false runs tests on the existing env."
+        type: boolean
+        required: false
+        default: true
 
 run-name: Cloud Installer E2e Test Version:${{ inputs.CLOUD_VERSION }}
 
@@ -43,7 +53,7 @@ env:
 jobs:
   destroy-env:
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    if: ${{ inputs.REDEPLOY }}
     steps:
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -333,6 +343,7 @@ jobs:
 
   engine-test:
     needs: [ installer-test ]
+    if: ${{ !cancelled() && (needs.installer-test.result == 'success' || (needs.installer-test.result == 'skipped' && inputs.REDEPLOY == false)) }}
     runs-on: ubuntu-latest
     outputs:
       click-pod-name: ${{ steps.run_click.outputs.click-pod-name }}
@@ -435,6 +446,11 @@ jobs:
           fi
           echo "pod kubeconfig server: ${server}"
           export k8s_config_path="${pod_kubeconfig}"
+          # Slot probe only sees nodes that already exist. VKE grows the pool
+          # after Pods go Pending, so do not wait for free_slots.
+          export CLICK_NO_DYNAMIC_SLOTS=1
+          export CLICK_MAX_ACTIVE=32
+          export CLICK_STAGGER=30
           
           bash test/cloud/test_cloud_e2e_web_click_tests.sh \
               --test-type click \
@@ -451,6 +467,14 @@ jobs:
           fi
           echo "CLOUD_E2E_TEST_POD_NAME=${pod_name}" >> "$GITHUB_ENV"
           echo "click-pod-name=${pod_name}" >> "$GITHUB_OUTPUT"
+          pod_args="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.spec.containers[0].args}')"
+          case "${pod_args}" in
+              *--no-dynamic-slots*--max-active*32*--stagger*30*) ;;
+              *)
+                  echo "click pod is still on dynamic slot gating: ${pod_args}"
+                  exit 1
+                  ;;
+          esac
 
       - name: Waiting for click test
         id: wait_click
@@ -627,14 +651,19 @@ jobs:
           CLOUD_VERSION="${{ inputs.CLOUD_VERSION }}"
           TEST_RESULT=""
           echo "get installer test result"
-          INSTALLER_RESULT_VKE="${{ needs.installer-test.outputs.installer-result-vke }}"
-          if [[ -z "${INSTALLER_RESULT_VKE}" ]]; then
-              INSTALLER_RESULT_VKE="[FAILED]"
-          fi
+          if [[ "${{ inputs.REDEPLOY }}" == "false" ]]; then
+              INSTALLER_RESULT_VKE="[SKIPPED]"
+              BOOTSTRAPPER_RESULT_VKE="[SKIPPED]"
+          else
+              INSTALLER_RESULT_VKE="${{ needs.installer-test.outputs.installer-result-vke }}"
+              if [[ -z "${INSTALLER_RESULT_VKE}" ]]; then
+                  INSTALLER_RESULT_VKE="[FAILED]"
+              fi
 
-          BOOTSTRAPPER_RESULT_VKE="${{ needs.installer-test.outputs.bootstrapper-result-vke }}"
-          if [[ -z "${BOOTSTRAPPER_RESULT_VKE}" ]]; then
-              BOOTSTRAPPER_RESULT_VKE="[FAILED]"
+              BOOTSTRAPPER_RESULT_VKE="${{ needs.installer-test.outputs.bootstrapper-result-vke }}"
+              if [[ -z "${BOOTSTRAPPER_RESULT_VKE}" ]]; then
+                  BOOTSTRAPPER_RESULT_VKE="[FAILED]"
+              fi
           fi
 
           CLICK_RESULT="${{ needs.click-result.outputs.click-result-vke }}"
