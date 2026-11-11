@@ -685,7 +685,7 @@ jobs:
                   --run-id "$GITHUB_RUN_ID" )
               echo "TEST_RESULT:${result}"
               python3 .github/utils/send_mesage.py \
-                  --send-type installer \
+                  --send-type installer-version \
                   --url "${{ vars.CICD_WEBHOOK }}" \
                   --title "${title}" \
                   --result "${result}"
