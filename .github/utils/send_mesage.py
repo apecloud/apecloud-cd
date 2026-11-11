@@ -462,25 +462,32 @@ def send_e2e_message(url_v, result_v, title_v):
 
 
 def _split_test_version(label):
-    # engine/1.2.3, or installer-v2.3.73 / click-v2.3.73-beta.1
+    # engine/mode/1.2.3, engine/1.2.3, or installer-v2.3.73
     if "/" in label:
-        name, version = label.split("/", 1)
-        return name, version
+        parts = label.split("/")
+        version = parts[-1] if re.fullmatch(r"v?\d+(?:\.\d+)+", parts[-1]) else ""
+        body = parts[:-1] if version else parts
+        name = body[0] if body else label
+        mode = "/".join(body[1:]) if len(body) > 1 else ""
+        return name, mode, version
     matched = re.match(r"^(.*?)-(v\d.*)$", label)
     if matched:
-        return matched.group(1), matched.group(2)
-    return label, ""
+        return matched.group(1), "", matched.group(2)
+    return label, "", ""
 
 
 def _check_installer_version_split():
     cases = {
-        "postgresql/18.6.0": ("postgresql", "18.6.0"),
-        "polardb-pg/2.0.16": ("polardb-pg", "2.0.16"),
-        "installer-v2.3.73": ("installer", "v2.3.73"),
-        "bootstrapper-v2.3.73": ("bootstrapper", "v2.3.73"),
-        "click-v2.3.73-beta.1": ("click", "v2.3.73-beta.1"),
-        "oracle": ("oracle", ""),
-        "victoria_metrics/1.0.0": ("victoria_metrics", "1.0.0"),
+        "postgresql/18.6.0": ("postgresql", "", "18.6.0"),
+        "polardb-pg/2.0.16": ("polardb-pg", "", "2.0.16"),
+        "oracle/主备/19.3.0": ("oracle", "主备", "19.3.0"),
+        "hive/集群版": ("hive", "集群版", ""),
+        "kafka/Zookeeper模式/2.8.2": ("kafka", "Zookeeper模式", "2.8.2"),
+        "installer-v2.3.73": ("installer", "", "v2.3.73"),
+        "bootstrapper-v2.3.73": ("bootstrapper", "", "v2.3.73"),
+        "click-v2.3.73-beta.1": ("click", "", "v2.3.73-beta.1"),
+        "oracle": ("oracle", "", ""),
+        "victoria_metrics/1.0.0": ("victoria_metrics", "", "1.0.0"),
     }
     for raw, expected in cases.items():
         got = _split_test_version(raw)
@@ -488,115 +495,65 @@ def _check_installer_version_split():
     print("ok")
 
 
+def _md_col(content, weight):
+    return {
+        "tag": "column",
+        "width": "weighted",
+        "weight": weight,
+        "vertical_align": "top",
+        "elements": [{
+            "tag": "markdown",
+            "content": content,
+            "text_align": "center",
+        }],
+    }
+
+
 def send_installer_message(url_v, result_v, title_v, version_column=False):
     print("send message")
     version_header = "**Version**" if version_column else "**K8s Version**"
-    json_results = []
-    json_ret = {
-        "tag": "column_set",
-        "flex_mode": "none",
-        "background_style": "grey",
-        "columns": [
-            {
-                "tag": "column",
-                "width": "weighted",
-                "weight": 2,
-                "vertical_align": "top",
-                "elements": [
-                    {
-                        "tag": "markdown",
-                        "content": "**Test Type**",
-                        "text_align": "center"
-                    }
-                ]
-            },
-            {
-                "tag": "column",
-                "width": "weighted",
-                "weight": 1,
-                "vertical_align": "top",
-                "elements": [
-                    {
-                        "tag": "markdown",
-                        "content": version_header,
-                        "text_align": "center"
-                    }
-                ]
-            },
-            {
-                "tag": "column",
-                "width": "weighted",
-                "weight": 1,
-                "vertical_align": "top",
-                "elements": [
-                    {
-                        "tag": "markdown",
-                        "content": "**Test Result**",
-                        "text_align": "center"
-                    }
-                ]
-            }
-        ]
-    }
-    json_results.append(json_ret)
-
+    parsed = []
     if result_v:
-        result_array = result_v.split("##")
-        for results in result_array:
-            if results:
-                ret = results.split("|")
-                ret_4 = colorize_status(ret[2])
-                version_cell, test_type = ret[0], ret[1]
-                if version_column:
-                    test_type, version_cell = _split_test_version(ret[1])
+        for results in result_v.split("##"):
+            if not results:
+                continue
+            ret = results.split("|")
+            status = colorize_status(ret[2])
+            if version_column:
+                test_type, mode, version_cell = _split_test_version(ret[1])
+            else:
+                test_type, mode, version_cell = ret[1], "", ret[0]
+            if mode:
+                if "[PASSED]" in ret[2]:
+                    mode = "<font color='green'>" + mode + "</font>"
+                elif "[FAILED]" in ret[2]:
+                    mode = "<font color='red'>" + mode + "</font>"
+                elif "[SKIPPED]" in ret[2]:
+                    mode = "<font color='grey'>" + mode + "</font>"
+            parsed.append((test_type, mode, version_cell, status, ret[-1]))
+    show_mode = version_column and any(mode for _name, mode, _version, _status, _url in parsed)
 
-                json_ret = {
-                    "tag": "column_set",
-                    "flex_mode": "none",
-                    "background_style": "default",
-                    "columns": [
-                        {
-                            "tag": "column",
-                            "width": "weighted",
-                            "weight": 2,
-                            "vertical_align": "top",
-                            "elements": [
-                                {
-                                    "tag": "markdown",
-                                    "content": "<a href='" + ret[-1] + "'>" + test_type + "</a>",
-                                    "text_align": "center"
-                                }
-                            ]
-                        },
-                        {
-                            "tag": "column",
-                            "width": "weighted",
-                            "weight": 1,
-                            "vertical_align": "top",
-                            "elements": [
-                                {
-                                    "tag": "markdown",
-                                    "content": "<font color='orange'>" + version_cell + "</font>",
-                                    "text_align": "center"
-                                }
-                            ]
-                        },
-                        {
-                            "tag": "column",
-                            "width": "weighted",
-                            "weight": 1,
-                            "vertical_align": "top",
-                            "elements": [
-                                {
-                                    "tag": "markdown",
-                                    "content": ret_4,
-                                    "text_align": "center"
-                                }
-                            ]
-                        }
-                    ],
-                }
-                json_results.append(json_ret)
+    def row(cells, background):
+        return {
+            "tag": "column_set",
+            "flex_mode": "none",
+            "background_style": background,
+            "columns": [_md_col(content, weight) for content, weight in cells],
+        }
+
+    header = [("**Test Type**", 2), (version_header, 1), ("**Test Result**", 1)]
+    if show_mode:
+        header.insert(1, ("**Mode**", 2))
+    json_results = [row(header, "grey")]
+    for test_type, mode, version_cell, status, url in parsed:
+        cells = [
+            ("<a href='" + url + "'>" + test_type + "</a>", 2),
+            ("<font color='orange'>" + version_cell + "</font>", 1),
+            (status, 1),
+        ]
+        if show_mode:
+            cells.insert(1, (mode, 2))
+        json_results.append(row(cells, "default"))
 
     card = json.dumps({
         "header": {
