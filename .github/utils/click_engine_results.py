@@ -17,21 +17,19 @@ SPEC_RE = re.compile(rf"^({ENGINE})\s+(.+?)\s+(PASSED|FAILED|NO-RUN)\s+\d+\s*$")
 SAFE_RE = re.compile(r"^[\w./|;\[\]-]*$")
 _VERSION_RE = re.compile(r"v?\d+(?:\.\d+)+")
 
-# Mirrors ENGINE_FEATURES sections. Offline engines are omitted; a result
-# for an unknown name still goes out under 其他.
 ENGINE_GROUPS = (
-    ("关系型", (
+    ("Relational", (
         "mysql", "mariadb", "postgresql", "polardb-pg", "oracle", "sqlserver",
         "damengdb", "kingbase", "oceanbase", "tidb", "gaussdb", "vastbase",
         "greatdb", "he3sql",
     )),
     ("NoSQL", ("mongodb", "redis", "valkey", "elasticsearch")),
-    ("分析/时序", (
+    ("Analytics", (
         "clickhouse", "starrocks", "doris", "selectdb", "influxdb",
         "victoria_metrics", "tdengine",
     )),
-    ("消息队列", ("kafka", "rabbitmq", "pulsar", "rocketmq")),
-    ("存储/中间件", (
+    ("Messaging", ("kafka", "rabbitmq", "pulsar", "rocketmq")),
+    ("Storage", (
         "minio", "rustfs", "seaweedfs", "foundationdb", "milvus", "nebula",
         "qdrant", "zookeeper", "etcd", "loki", "hadoop", "hive", "nacos",
         "camellia_redis_proxy", "victoria_logs",
@@ -160,14 +158,14 @@ def parse_click_engines(text):
 
 def group_click_rows(text):
     buckets = {name: [] for name, _members in ENGINE_GROUPS}
-    buckets["其他"] = []
+    buckets["Other"] = []
     for row in text.split(";"):
         row = row.strip()
         if not row or "|" not in row:
             continue
         engine = row.split("|", 1)[0].split("/", 1)[0]
-        buckets[_GROUP_OF.get(engine, "其他")].append(row)
-    order = [name for name, _members in ENGINE_GROUPS] + ["其他"]
+        buckets[_GROUP_OF.get(engine, "Other")].append(row)
+    order = [name for name, _members in ENGINE_GROUPS] + ["Other"]
     return [(name, ";".join(buckets[name])) for name in order if buckets[name]]
 
 
@@ -253,13 +251,13 @@ DONE kafka (2 mode(s)) ver=2.8.2 exit=1 total=28 pass=22 fail=1 skip=5
         "mysql/8.0.46|[PASSED];redis|[FAILED];minio|[PASSED];greatsql|[FAILED]"
     )
     assert grouped == [
-        ("关系型", "mysql/8.0.46|[PASSED]"),
+        ("Relational", "mysql/8.0.46|[PASSED]"),
         ("NoSQL", "redis|[FAILED]"),
-        ("存储/中间件", "minio|[PASSED]"),
-        ("其他", "greatsql|[FAILED]"),
+        ("Storage", "minio|[PASSED]"),
+        ("Other", "greatsql|[FAILED]"),
     ]
     assert group_click_rows("oracle/主备/19.3.0|[FAILED];oracle/单机/19.3.0|[PASSED]") == [
-        ("关系型", "oracle/主备/19.3.0|[FAILED];oracle/单机/19.3.0|[PASSED]"),
+        ("Relational", "oracle/主备/19.3.0|[FAILED];oracle/单机/19.3.0|[PASSED]"),
     ]
     assert sum(len(members) for _name, members in ENGINE_GROUPS) == 44
     assert group_click_rows("") == []
