@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Turn click-test pod logs into one Feishu row per engine.
+"""Turn click-test pod logs into one Feishu row per engine mode.
 
 Output is a single line, safe to inject into a shell double-quoted string:
-  mysql/8.0.46|[PASSED];postgresql|[FAILED]
+  mysql/主备/8.0.46|[PASSED];oracle/主备/19.3.0|[FAILED]
 """
 
 import re
@@ -13,8 +13,9 @@ PLAN_RE = re.compile(rf"^\s+- ({ENGINE}) slots=")
 START_RE = re.compile(rf"^START ({ENGINE}) pid=")
 DONE_RE = re.compile(rf"^DONE ({ENGINE})\b.*\bver=(\S*) exit=(-?\d+)\b")
 WATCHDOG_RE = re.compile(rf"^WATCHDOG DONE ({ENGINE})\b")
-SPEC_RE = re.compile(rf"^({ENGINE})\s+.+?\s+(PASSED|FAILED|NO-RUN)\s+\d+\s*$")
-SAFE_RE = re.compile(r"^[A-Za-z0-9_./|;\[\]-]*$")
+SPEC_RE = re.compile(rf"^({ENGINE})\s+(.+?)\s+(PASSED|FAILED|NO-RUN)\s+\d+\s*$")
+SAFE_RE = re.compile(r"^[\w./|;\[\]-]*$")
+_VERSION_RE = re.compile(r"v?\d+(?:\.\d+)+")
 
 # Mirrors ENGINE_FEATURES sections. Offline engines are omitted; a result
 # for an unknown name still goes out under 其他.
@@ -41,6 +42,35 @@ _GROUP_OF = {
     for name, members in ENGINE_GROUPS
     for engine in members
 }
+
+
+def _clean_mode(mode):
+    return re.sub(r"[^\w.-]+", "", mode)
+
+
+def _split_spec(spec):
+    compact = re.sub(r"\s+", "", spec)
+    matched = re.match(r"^(.*?)/(?:[^/]+/)*?(" + _VERSION_RE.pattern + r")$", compact)
+    if not matched:
+        return _clean_mode(compact), ""
+    return _clean_mode(matched.group(1)), matched.group(2)
+
+
+def _mode_status(result, exit_code):
+    if result == "PASSED":
+        return "PASSED"
+    if result == "NO-RUN" and exit_code in (None, 0):
+        return "SKIPPED"
+    return "FAILED"
+
+
+def _label(engine, mode, version):
+    parts = [engine]
+    if mode:
+        parts.append(mode)
+    if version:
+        parts.append(version)
+    return "/".join(parts)
 
 
 def parse_click_engines(text):
@@ -87,10 +117,10 @@ def parse_click_engines(text):
             continue
         spec = SPEC_RE.match(line)
         if spec and not line[:1].isdigit():
-            engine, result = spec.group(1), spec.group(2)
+            engine, spec_text, result = spec.group(1), spec.group(2), spec.group(3)
             # Ignore the discovery list and other prose; spec rows have no timestamp.
             if engine in seen or engine in started:
-                specs.setdefault(engine, []).append(result)
+                specs.setdefault(engine, []).append((_split_spec(spec_text), result))
             continue
         if "环境不可用" in line and "跳过剩余" in line:
             hold = True
@@ -99,12 +129,15 @@ def parse_click_engines(text):
 
     rows = []
     for engine in planned:
+        spec_rows = specs.get(engine) or []
+        if spec_rows and engine not in watchdog:
+            exit_code = done_exit.get(engine)
+            for (mode, spec_version), result in spec_rows:
+                version = spec_version or versions.get(engine, "")
+                rows.append(f"{_label(engine, mode, version)}|[{_mode_status(result, exit_code)}]")
+            continue
         if engine in watchdog:
             status = "FAILED"
-        elif specs.get(engine):
-            ok = all(item == "PASSED" for item in specs[engine])
-            exit_code = done_exit.get(engine)
-            status = "PASSED" if ok and exit_code in (None, 0) else "FAILED"
         elif engine in done_exit:
             status = "PASSED" if done_exit[engine] == 0 else "FAILED"
         elif engine not in started and hold:
@@ -176,9 +209,41 @@ DONE postgresql (1 mode(s)) ver=16.2 exit=1 total=10 pass=1 fail=2 skip=0
 环境不可用：跳过剩余 1 个引擎
 WATCHDOG DONE kafka killed after 99s (0 combo(s) recorded, 1 timeout)
 """
-    assert parse_click_engines(mysql) == "mysql/8.0.46|[PASSED]"
+    assert parse_click_engines(mysql) == (
+        "mysql/主备/8.0.46|[PASSED];mysql/单机/8.0.46|[PASSED]"
+    )
     assert parse_click_engines(many) == (
-        "mysql/8.0.46|[PASSED];postgresql/16.2|[FAILED];redis|[SKIPPED];kafka|[FAILED]"
+        "mysql/主备/8.0.46|[PASSED];postgresql/单机/16.2|[FAILED];redis|[SKIPPED];kafka|[FAILED]"
+    )
+    polardb = """
+plan:
+  - polardb-pg slots=4 modes=replication,standalone
+START polardb-pg pid=9
+polardb-pg                       主备 / pg/2.0.16                   PASSED     2
+polardb-pg                       单机 / pg/2.0.16                   PASSED     2
+DONE polardb-pg (2 mode(s)) ver=2.0.16 exit=0 total=12 pass=7 fail=0 skip=3
+"""
+    hive = """
+plan:
+  - hive slots=33 modes=default
+START hive pid=1
+hive                             集群版                              NO-RUN     0
+DONE hive (1 mode(s)) ver= exit=2 total=1 pass=0 fail=0 skip=1
+"""
+    kafka = """
+plan:
+  - kafka slots=13 modes=combined,zookeeper-mode
+START kafka pid=1
+kafka                            组合/3.9.0                         FAILED     0
+kafka                            Zookeeper模式/2.8.2                FAILED     0
+DONE kafka (2 mode(s)) ver=2.8.2 exit=1 total=28 pass=22 fail=1 skip=5
+"""
+    assert parse_click_engines(polardb) == (
+        "polardb-pg/主备/2.0.16|[PASSED];polardb-pg/单机/2.0.16|[PASSED]"
+    )
+    assert parse_click_engines(hive) == "hive/集群版|[FAILED]"
+    assert parse_click_engines(kafka) == (
+        "kafka/组合/3.9.0|[FAILED];kafka/Zookeeper模式/2.8.2|[FAILED]"
     )
     assert parse_click_engines("DONE $(rm -rf) (1 mode(s)) ver=1 exit=0\n") == ""
     assert parse_click_engines("") == ""
@@ -192,6 +257,9 @@ WATCHDOG DONE kafka killed after 99s (0 combo(s) recorded, 1 timeout)
         ("NoSQL", "redis|[FAILED]"),
         ("存储/中间件", "minio|[PASSED]"),
         ("其他", "greatsql|[FAILED]"),
+    ]
+    assert group_click_rows("oracle/主备/19.3.0|[FAILED];oracle/单机/19.3.0|[PASSED]") == [
+        ("关系型", "oracle/主备/19.3.0|[FAILED];oracle/单机/19.3.0|[PASSED]"),
     ]
     assert sum(len(members) for _name, members in ENGINE_GROUPS) == 44
     assert group_click_rows("") == []

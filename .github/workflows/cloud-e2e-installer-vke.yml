@@ -705,7 +705,11 @@ jobs:
                       [[ -z "${row}" ]] && continue
                       engine="${row%%|*}"
                       detail="${row#*|}"
-                      [[ "${engine}" =~ ^[A-Za-z0-9_./-]+$ ]] || continue
+                      # Mode names are not ASCII. Reject shell metacharacters only.
+                      case "${engine}" in
+                        *'$'*|*' '*|*'`'*|*'"'*|*"'"*|*'|'*|*';'*|*'>'*|*'<'*|*')'*|*'('*|*'&'*|*\\*) continue ;;
+                        '') continue ;;
+                      esac
                       [[ "${detail}" =~ ^\[(PASSED|FAILED|SKIPPED)\]$ ]] || continue
                       if [[ -z "${GROUP_RESULT}" ]]; then
                           GROUP_RESULT="click-result|vke|${engine}|${detail}"
