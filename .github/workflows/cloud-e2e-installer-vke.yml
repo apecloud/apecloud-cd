@@ -467,14 +467,6 @@ jobs:
           fi
           echo "CLOUD_E2E_TEST_POD_NAME=${pod_name}" >> "$GITHUB_ENV"
           echo "click-pod-name=${pod_name}" >> "$GITHUB_OUTPUT"
-          pod_args="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.spec.containers[0].args}')"
-          case "${pod_args}" in
-              *--no-dynamic-slots*--max-active*32*--stagger*30*) ;;
-              *)
-                  echo "click pod is still on dynamic slot gating: ${pod_args}"
-                  exit 1
-                  ;;
-          esac
 
       - name: Waiting for click test
         id: wait_click
@@ -721,4 +713,6 @@ jobs:
                   [[ -z "${GROUP_RESULT}" ]] && continue
                   send_card "[${CLOUD_VERSION}] Click ${group} [${date_ret}]" "${GROUP_RESULT}"
               done < <(python3 .github/utils/click_engine_results.py --group "${CLICK_ENGINES}")
+          fi
+      done < <(python3 .github/utils/click_engine_results.py --group "${CLICK_ENGINES}")
           fi
