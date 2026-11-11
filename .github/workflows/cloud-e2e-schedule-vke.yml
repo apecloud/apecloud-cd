@@ -1,0 +1,36 @@
+name: Cloud E2E Schedule VKE
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 19 * * 6' # Runs at 3:00 UTC on Sun
+
+jobs:
+  get-cloud-version:
+    runs-on: ubuntu-latest
+    outputs:
+      cloud-version: ${{ steps.get-cloud-version.outputs.cloud-version }}
+    steps:
+      - name: get latest stable version
+        id: get-cloud-version
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          CLOUD_VERSION=$(gh release list --repo apecloud/apecloud --limit 100 | awk '{print $2}' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+          if [[ -z "${CLOUD_VERSION}" ]]; then
+            echo "no stable release"
+            exit 1
+          fi
+          echo "CLOUD_VERSION:${CLOUD_VERSION}"
+          echo "cloud-version=${CLOUD_VERSION}" >> "$GITHUB_OUTPUT"
+
+  e2e-web-click-tests:
+    needs: [ get-cloud-version ]
+    uses: ./.github/workflows/trigger-workflow.yml
+    with:
+      GITHUB_REPO: "apecloud/apecloud-cd"
+      BRANCH_NAME: "main"
+      WORKFLOW_ID: "cloud-e2e-installer-vke.yml"
+      APECD_REF: "main"
+      EXTRA_ARGS: "CLOUD_VERSION=${{ needs.get-cloud-version.outputs.cloud-version }}#REDEPLOY=true"
+    secrets: inherit
