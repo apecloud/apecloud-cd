@@ -473,6 +473,7 @@ jobs:
           START_TIME=$(date +%s)
           # Stay under the 6h job cap so this step can hand off before GitHub kills it.
           MAX_WAIT_SECONDS=18000
+          reported_running="false"
           while true; do
               phase="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.phase}')"
               reason="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.waiting.reason}')"
@@ -493,9 +494,12 @@ jobs:
                   echo "Reached max wait time in engine-test, handing over to click-result"
                   break
               fi
-              echo "click test pod ${pod_name} is ${phase}"
-              kubectl logs -n "${test_ns}" "${pod_name}" --tail=1 || true
-              sleep 30
+              if [[ "${phase}" != "Running" || "${reported_running}" != "true" ]]; then
+                  echo "click test pod ${pod_name} is ${phase}"
+                  kubectl logs -n "${test_ns}" "${pod_name}" --tail=1 || true
+              fi
+              [[ "${phase}" == "Running" ]] && reported_running="true" || reported_running="false"
+              sleep 5
           done
           echo "click-check-completed=${CHECK_COMPLETED}" >> "$GITHUB_OUTPUT"
 
@@ -546,6 +550,7 @@ jobs:
           fi
           START_TIME=$(date +%s)
           MAX_WAIT_SECONDS=18000
+          reported_running="false"
           while true; do
               phase="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.phase}')"
               reason="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.waiting.reason}')"
@@ -565,9 +570,12 @@ jobs:
                   echo "Timeout waiting for click test in click-result"
                   exit 1
               fi
-              echo "click test pod ${pod_name} is ${phase}"
-              kubectl logs -n "${test_ns}" "${pod_name}" --tail=1 || true
-              sleep 30
+              if [[ "${phase}" != "Running" || "${reported_running}" != "true" ]]; then
+                  echo "click test pod ${pod_name} is ${phase}"
+                  kubectl logs -n "${test_ns}" "${pod_name}" --tail=1 || true
+              fi
+              [[ "${phase}" == "Running" ]] && reported_running="true" || reported_running="false"
+              sleep 5
           done
 
       - name: Checkout apecloud-cd Code
