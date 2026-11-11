@@ -41,7 +41,39 @@ env:
   CLOUD_USER_NAME: "vke-test"
 
 jobs:
+  destroy-env:
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+      - name: Checkout apecloud-cd Code
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.30.4"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "v3.16.3"
+
+      - name: Configure Context VKE
+        run: |
+          mkdir -p $HOME/.kube
+          touch $HOME/.kube/config
+          echo '${{ env.VKE_KUBECONFIG }}' > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: destroy cloud env
+        run: |
+          bash .github/utils/cloud_env_destroy.sh
+
   installer-test:
+    needs: [ destroy-env ]
     name: installer-test-vke
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -79,7 +111,7 @@ jobs:
           ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
           ALIYUN_REGISTRY_USER="${{ env.ALIYUN_REGISTRY_USER }}"
           ALIYUN_REGISTRY_PASSWORD="${{ env.ALIYUN_REGISTRY_PASSWORD }}"
-          
+
           for ns in kb-cloud kb-system; do
               if ! kubectl get namespace "$ns" >/dev/null 2>&1; then
                   kubectl create namespace "$ns"
@@ -99,7 +131,7 @@ jobs:
           KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
           ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
           helm repo add kb-chart https://apecloud.github.io/helm-charts
-          
+
           helm install installer kb-chart/kb-cloud-installer \
               --namespace kb-cloud \
               --create-namespace \
@@ -126,14 +158,14 @@ jobs:
               echo ""
               sleep 5
           done
-          
+
           installer_result="[PASSED]"
           if [[ $check_status -eq 0 ]]; then
               echo "KB Cloud is not ready"
               installer_result="[FAILED]"
-              
+
               echo installer-result-vke="${installer_result}" >> $GITHUB_OUTPUT
-          
+
               set +e
               set -o nounset
               installer_pods=$(kubectl get pods -n kb-cloud | (grep "kb-cloud-installer" || true) )
@@ -142,7 +174,7 @@ jobs:
               for installer_pod_name in $(echo "${installer_pod_names}"); do
                   echo "==================== pod ${installer_pod_name} logs ===================="
                   kubectl logs --tail 100 -n kb-cloud ${installer_pod_name}
-              done 
+              done
 
               echo "describe image pull error installer pod"
               installer_error_pods=$(kubectl get pods -n kb-cloud | (grep "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')
@@ -152,8 +184,8 @@ jobs:
                   kubectl describe pod -n kb-cloud ${installer_error_pod}
                   echo ""
               done
-          
-              # logs kb-cloud error pod 
+
+              # logs kb-cloud error pod
               kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" || true) | awk '{print $1}')
               echo "kb-cloud error pod: $kb_cloud_error_pods"
               for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
@@ -161,7 +193,7 @@ jobs:
                   kubectl logs --tail 100 -n kb-cloud ${kb_cloud_error_pod}
                   echo ""
               done
-          
+
               set -e
               exit 1
           else
@@ -176,7 +208,7 @@ jobs:
           CLOUD_KUBECONFIG="${{ env.CLOUD_KUBECONFIG }}"
           ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
           echo "deploy KB Cloud Env"
-          
+
           helm repo update kb-chart
           helm install bootstrapper kb-chart/kb-cloud-bootstrapper \
             --namespace kb-system \
@@ -193,13 +225,13 @@ jobs:
           sleep 10
           check_status=0
           patch_sa_flag=0
-          
+
           cloud_e2e_installer_script="${{ github.workspace }}/apecloud-cd/.github/utils/cloud_e2e_installer.sh"
           if [[ -f "${cloud_e2e_installer_script}" ]]; then
               echo "update kb-monitor resources"
               bash ${cloud_e2e_installer_script} &
           fi
-          
+
           for i in {1..240}; do
               if kubectl get pods -n kb-system | grep "kb-cloud-bootstrapper" | grep Completed ; then
                   echo "KB Cloud Env is ready"
@@ -229,7 +261,7 @@ jobs:
               echo ""
               sleep 5
           done
-          
+
           bootstrapper_result="[PASSED]"
           if [[ $check_status -eq 0 ]]; then
               echo "==================== describe node ===================="
@@ -237,25 +269,25 @@ jobs:
               df -h
               echo "KB Cloud Env is not ready"
               bootstrapper_result="[FAILED]"
-              
+
               echo bootstrapper-result-vke="${bootstrapper_result}" >> $GITHUB_OUTPUT
-          
+
               bootstrapper_pods=$(kubectl get pods -n kb-system | (grep "kb-cloud-bootstrapper" || true) )
               echo "bootstrapper pod: $bootstrapper_pods"
               bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | grep -v "ImagePull" | awk '{print $1}')"
               for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
                   echo "==================== pod ${bootstrapper_pod_name} logs ===================="
                   kubectl logs --tail 100 -n kb-system ${bootstrapper_pod_name}
-              done 
-          
+              done
+
               # describe image pull error bootstrapper pod
               bootstrapper_pod_names="$(echo "${bootstrapper_pods}" | (egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')"
               for bootstrapper_pod_name in $(echo "${bootstrapper_pod_names}"); do
                   echo "==================== pod ${bootstrapper_pod_name} describe ===================="
                   kubectl describe pod -n kb-system ${bootstrapper_pod_name}
-              done 
-          
-              # logs kb-system error pod 
+              done
+
+              # logs kb-system error pod
               set +e
               set -o nounset
               kb_system_error_pods=$(kubectl get pods -n kb-system | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Evicted" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" || true) | awk '{print $1}')
@@ -265,7 +297,7 @@ jobs:
                   kubectl logs --tail 100 -n kb-system ${kb_system_error_pod}
                   echo ""
               done
-          
+
               # describe image pull error kb-system pod
               kb_system_error_pods=$(kubectl get pods -n kb-system | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')
               echo "kb-system image pull error pod: $kb_system_error_pods"
@@ -274,8 +306,8 @@ jobs:
                   kubectl describe pod -n kb-system ${kb_system_error_pod}
                   echo ""
               done
-          
-              # logs kb-cloud error pod 
+
+              # logs kb-cloud error pod
               kb_system_error_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Evicted" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" || true) | awk '{print $1}')
               echo "kb-cloud error pod: $kb_system_error_pods"
               for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
@@ -283,7 +315,7 @@ jobs:
                   kubectl logs --tail 100 -n kb-cloud ${kb_system_error_pod}
                   echo ""
               done
-          
+
               # describe image pull error kb-cloud pod
               kb_system_error_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-bootstrapper" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')
               echo "kb-cloud image pull error pod: $kb_system_error_pods"
@@ -292,7 +324,7 @@ jobs:
                   kubectl describe pod -n kb-cloud ${kb_system_error_pod}
                   echo ""
               done
-          
+
               set -e
               exit 1
           else
@@ -303,7 +335,8 @@ jobs:
     needs: [ installer-test ]
     runs-on: ubuntu-latest
     outputs:
-      click-result-vke: ${{ steps.wait_click.outputs.click-result-vke }}
+      click-pod-name: ${{ steps.run_click.outputs.click-pod-name }}
+      click-check-completed: ${{ steps.wait_click.outputs.click-check-completed }}
     steps:
       - name: Checkout testinfra Code
         uses: actions/checkout@v4
@@ -311,13 +344,6 @@ jobs:
           repository: apecloud/testinfra
           path: ./
           token: ${{ env.GH_TOKEN }}
-
-      - name: Checkout apecloud-cd Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud-cd
-          path: ./apecloud-cd
-          ref: ${{ inputs.APECD_REF }}
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3
@@ -335,33 +361,34 @@ jobs:
 
       - name: prepare click test namespace
         run: |
-          ns="kubeblocks-cloud-ns"
           KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
           ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
           ALIYUN_REGISTRY_USER="${{ env.ALIYUN_REGISTRY_USER }}"
           ALIYUN_REGISTRY_PASSWORD="${{ env.ALIYUN_REGISTRY_PASSWORD }}"
-          kubectl create namespace "$ns" --dry-run=client -o yaml | kubectl apply -f -
+          test_ns="kubeblocks-cloud-ns"
+          kubectl create namespace "${test_ns}" --dry-run=client -o yaml | kubectl apply -f -
           kubectl create secret docker-registry "${KB_ADDON_SECRET_NAME}" \
               --docker-server="${ALIYUN_REGISTRY_URL}" \
               --docker-username="${ALIYUN_REGISTRY_USER}" \
               --docker-password="${ALIYUN_REGISTRY_PASSWORD}" \
               --docker-email="" \
-              -n "$ns" --dry-run=client -o yaml | kubectl apply -f -
+              -n "${test_ns}" --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f - <<EOF
           apiVersion: v1
           kind: ServiceAccount
           metadata:
             name: e2e-test-sa
-            namespace: ${ns}
+            namespace: ${test_ns}
           imagePullSecrets:
             - name: ${KB_ADDON_SECRET_NAME}
           EOF
 
       - name: run click test
+        id: run_click
         run: |
           set -o pipefail
           export KUBECONFIG="$HOME/.kube/config"
-          ns="kubeblocks-cloud-ns"
+          test_ns="default"
           CLOUD_VERSION=${{ inputs.CLOUD_VERSION }}
           run_file_log="run_e2e_test_result.log"
           touch "${run_file_log}"
@@ -370,77 +397,222 @@ jobs:
               exit 1
           fi
           
-          IFS='|' read -ra pairs <<< "${E2E_ENV_VARS}"
-          for pair in "${pairs[@]}"; do
-              [[ -n "${pair}" ]] || continue
-              key=${pair%%=*}
-              val=${pair#*=}
-              printf -v "$key" '%s' "$val"
-              export "$key"
-              echo "export ${key}"
+          for env_vars in $(echo "${E2E_ENV_VARS}" | sed 's/|/ /g'); do
+              eval_cmd="export $env_vars"
+              echo "$eval_cmd"
+              eval "$eval_cmd"
           done
-          ns="${K8S_NAMESPACE:-kubeblocks-cloud-ns}"
+          # overwrite env
+          FQDN_DOMAIN="${{ env.FQDN_DOMAIN }}"
+          CLOUD_USER_NAME="${{ env.CLOUD_USER_NAME }}"
+          export BASE_URL="http://${FQDN_DOMAIN}/console"
+          export ADMIN_URL="http://${FQDN_DOMAIN}/admin"
+          export TEST_USERNAME="${CLOUD_USER_NAME}"
+          export ENV_NAME="${CLOUD_USER_NAME}"
+          platfrom_version_tmp="${CLOUD_VERSION}"
+          if [[ "${platfrom_version_tmp}" == "v"* ]]; then
+              platfrom_version_tmp="${platfrom_version_tmp/v/}"
+          fi
+          export PLATFORM_VERSION="${platfrom_version_tmp%%.*}.$(printf '%s' "$platfrom_version_tmp" | cut -d. -f2)"
+          
+          test_ns="${K8S_NAMESPACE:-kubeblocks-cloud-ns}"
           ADMIN_PASSWORD="$(kubectl get secret -n kb-cloud apiserver -o jsonpath='{.data.DEFAULT_ADMIN_PASSWORD}' | base64 -d)"
           export ADMIN_PASSWORD
           if [[ -z "${BASE_URL:-}" || -z "${TEST_PASSWORD:-}" || -z "${ADMIN_PASSWORD}" ]]; then
               echo "click test settings or DEFAULT_ADMIN_PASSWORD is missing"
               exit 1
           fi
+
+          # Pod cannot reach the VKE public API. Same cert works on the in-cluster Service.
+          pod_kubeconfig="$(mktemp)"
+          cp "$HOME/.kube/config" "${pod_kubeconfig}"
+          cluster_name="$(KUBECONFIG="${pod_kubeconfig}" kubectl config view --minify -o jsonpath='{.clusters[0].name}')"
+          KUBECONFIG="${pod_kubeconfig}" kubectl config set-cluster "${cluster_name}" --server=https://kubernetes.default.svc >/dev/null
+          server="$(KUBECONFIG="${pod_kubeconfig}" kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')"
+          if [[ "${server}" != "https://kubernetes.default.svc" ]]; then
+              echo "pod kubeconfig server was not rewritten: ${server}"
+              exit 1
+          fi
+          echo "pod kubeconfig server: ${server}"
+          export k8s_config_path="${pod_kubeconfig}"
           
           bash test/cloud/test_cloud_e2e_web_click_tests.sh \
               --test-type click \
-              --namespace "${ns}" \
+              --namespace "${test_ns}" \
               --pod-index "01" \
               --cloud-version "${CLOUD_VERSION}" | tee -a "${run_file_log}"
           
           pod_line="$(grep '\[CLOUD-E2E-WEB-TEST-POD-NAME\]' "${run_file_log}" | tail -n 1 || true)"
           pod_name="${pod_line#*"[CLOUD-E2E-WEB-TEST-POD-NAME]"}"
-          if [[ -z "${pod_name}" ]] || ! kubectl get pod -n "${ns}" "${pod_name}" >/dev/null 2>&1; then
-              echo "click test pod was not created in ${ns}"
-              kubectl get pods -n "${ns}" || true
+          if [[ -z "${pod_name}" ]] || ! kubectl get pod -n "${test_ns}" "${pod_name}" >/dev/null 2>&1; then
+              echo "click test pod was not created in ${test_ns}"
+              kubectl get pods -n "${test_ns}" || true
               exit 1
           fi
           echo "CLOUD_E2E_TEST_POD_NAME=${pod_name}" >> "$GITHUB_ENV"
+          echo "click-pod-name=${pod_name}" >> "$GITHUB_OUTPUT"
 
       - name: Waiting for click test
         id: wait_click
         run: |
           set -o nounset
-          ns="kubeblocks-cloud-ns"
+          test_ns="kubeblocks-cloud-ns"
           pod_name="${CLOUD_E2E_TEST_POD_NAME}"
-          result="[FAILED]"
-          write_result() {
-              echo "click-result-vke=${result}" >> "$GITHUB_OUTPUT"
-          }
+          CHECK_COMPLETED="false"
+          START_TIME=$(date +%s)
+          # Stay under the 6h job cap so this step can hand off before GitHub kills it.
+          MAX_WAIT_SECONDS=18000
           while true; do
-              phase="$(kubectl get pod -n "${ns}" "${pod_name}" -o jsonpath='{.status.phase}')"
-              reason="$(kubectl get pod -n "${ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.waiting.reason}')"
+              phase="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.phase}')"
+              reason="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.waiting.reason}')"
               if [[ "${phase}" == "Succeeded" || "${phase}" == "Failed" ]]; then
+                  CHECK_COMPLETED="true"
                   break
               fi
               case "${reason}" in
                   ImagePullBackOff|ErrImagePull|CreateContainerConfigError|InvalidImageName)
                       echo "click test pod ${pod_name} is ${phase}/${reason}"
-                      kubectl describe pod -n "${ns}" "${pod_name}" || true
-                      write_result
+                      kubectl describe pod -n "${test_ns}" "${pod_name}" || true
+                      echo "click-check-completed=false" >> "$GITHUB_OUTPUT"
                       exit 1
                       ;;
               esac
+              ELAPSED=$(($(date +%s) - START_TIME))
+              if [[ ${ELAPSED} -gt ${MAX_WAIT_SECONDS} ]]; then
+                  echo "Reached max wait time in engine-test, handing over to click-result"
+                  break
+              fi
               echo "click test pod ${pod_name} is ${phase}"
-              kubectl logs -n "${ns}" "${pod_name}" --tail=5 || true
+              kubectl logs -n "${test_ns}" "${pod_name}" --tail=1 || true
               sleep 30
           done
-          exit_code="$(kubectl get pod -n "${ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.terminated.exitCode}')"
-          echo "click test exit code: ${exit_code}"
-          kubectl logs -n "${ns}" "${pod_name}" --tail=80 || true
-          if [[ "${exit_code}" == "0" ]]; then
-              result="[PASSED]"
+          echo "click-check-completed=${CHECK_COMPLETED}" >> "$GITHUB_OUTPUT"
+
+  click-result:
+    needs: [ engine-test ]
+    if: ${{ always() && needs.engine-test.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    outputs:
+      click-result-vke: ${{ steps.click_logs.outputs.click-result-vke }}
+      click-engines-vke: ${{ steps.click_logs.outputs.click-engines-vke }}
+    steps:
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.30.4"
+
+      - name: Configure Context VKE
+        run: |
+          mkdir -p $HOME/.kube
+          touch $HOME/.kube/config
+          echo '${{ env.VKE_KUBECONFIG }}' > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Continue Waiting for click test
+        run: |
+          set -o nounset
+          test_ns="kubeblocks-cloud-ns"
+          pod_name="${{ needs.engine-test.outputs.click-pod-name }}"
+          CHECK_COMPLETED="${{ needs.engine-test.outputs.click-check-completed }}"
+          echo "CLOUD_E2E_TEST_POD_NAME=${pod_name}" >> "$GITHUB_ENV"
+          if [[ -z "${pod_name}" ]]; then
+              echo "click test pod name is empty, cannot continue waiting"
+              exit 1
           fi
-          write_result
+          phase="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.phase}' || true)"
+          reason="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.waiting.reason}' || true)"
+          case "${reason}" in
+              ImagePullBackOff|ErrImagePull|CreateContainerConfigError|InvalidImageName)
+                  echo "click test pod ${pod_name} is ${phase}/${reason}"
+                  kubectl describe pod -n "${test_ns}" "${pod_name}" || true
+                  exit 1
+                  ;;
+          esac
+          if [[ "${CHECK_COMPLETED}" == "true" || "${phase}" == "Succeeded" || "${phase}" == "Failed" ]]; then
+              echo "click test pod ${pod_name} is already ${phase}"
+              exit 0
+          fi
+          START_TIME=$(date +%s)
+          MAX_WAIT_SECONDS=18000
+          while true; do
+              phase="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.phase}')"
+              reason="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.waiting.reason}')"
+              if [[ "${phase}" == "Succeeded" || "${phase}" == "Failed" ]]; then
+                  echo "click test pod ${pod_name} is ${phase}"
+                  break
+              fi
+              case "${reason}" in
+                  ImagePullBackOff|ErrImagePull|CreateContainerConfigError|InvalidImageName)
+                      echo "click test pod ${pod_name} is ${phase}/${reason}"
+                      kubectl describe pod -n "${test_ns}" "${pod_name}" || true
+                      exit 1
+                      ;;
+              esac
+              ELAPSED=$(($(date +%s) - START_TIME))
+              if [[ ${ELAPSED} -gt ${MAX_WAIT_SECONDS} ]]; then
+                  echo "Timeout waiting for click test in click-result"
+                  exit 1
+              fi
+              echo "click test pod ${pod_name} is ${phase}"
+              kubectl logs -n "${test_ns}" "${pod_name}" --tail=1 || true
+              sleep 30
+          done
+
+      - name: Checkout apecloud-cd Code
+        if: always()
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          ref: ${{ github.sha }}
+          path: apecloud-cd
+          token: ${{ env.GH_TOKEN }}
+
+      - name: Output click test pod logs
+        id: click_logs
+        if: always()
+        run: |
+          test_ns="kubeblocks-cloud-ns"
+          pod_name="${CLOUD_E2E_TEST_POD_NAME:-}"
+          log_file="click-test-pod.log"
+          result="[FAILED]"
+          : > "${log_file}"
+          if [[ -z "${pod_name}" ]]; then
+              echo "click test pod name is empty"
+          else
+              kubectl get pod -n "${test_ns}" "${pod_name}" -o wide || true
+              echo "==================== pod ${pod_name} logs ===================="
+              kubectl logs -n "${test_ns}" "${pod_name}" | tee "${log_file}" || true
+              exit_code="$(kubectl get pod -n "${test_ns}" "${pod_name}" -o jsonpath='{.status.containerStatuses[0].state.terminated.exitCode}' || true)"
+              echo "click test exit code: ${exit_code}"
+              if [[ "${exit_code}" == "0" ]]; then
+                  result="[PASSED]"
+              fi
+          fi
+          echo "click-result-vke=${result}" >> "$GITHUB_OUTPUT"
+
+          parser="apecloud-cd/.github/utils/click_engine_results.py"
+          if [[ ! -f "${parser}" ]]; then
+              parser="/tmp/click_engine_results.py"
+              ref="${{ inputs.APECD_REF }}"
+              enc=$(python3 -c 'import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=""))' "${ref}")
+              gh api -H "Accept: application/vnd.github.raw" \
+                  "/repos/apecloud/apecloud-cd/contents/.github/utils/click_engine_results.py?ref=${enc}" \
+                  > "${parser}" || true
+          fi
+          engines=""
+          if [[ -s "${log_file}" && -f "${parser}" ]] && grep -q 'def parse_click_engines' "${parser}"; then
+              engines="$(python3 "${parser}" "${log_file}" || true)"
+              engines="${engines//$'\n'/}"
+          fi
+          echo "click-engines-vke=${engines}" >> "$GITHUB_OUTPUT"
+          echo "==================== click engine results ===================="
+          echo "${engines:-<none>}"
           [[ "${result}" == "[PASSED]" ]]
 
   send-message:
-    needs: [ installer-test, engine-test ]
+    needs: [ installer-test, click-result ]
     runs-on: ubuntu-latest
     if: ${{ always() }}
     steps:
@@ -459,72 +631,65 @@ jobs:
           if [[ -z "${INSTALLER_RESULT_VKE}" ]]; then
               INSTALLER_RESULT_VKE="[FAILED]"
           fi
-          
+
           BOOTSTRAPPER_RESULT_VKE="${{ needs.installer-test.outputs.bootstrapper-result-vke }}"
           if [[ -z "${BOOTSTRAPPER_RESULT_VKE}" ]]; then
               BOOTSTRAPPER_RESULT_VKE="[FAILED]"
           fi
-          
-          CLICK_RESULT="${{ needs.engine-test.outputs.click-result-vke }}"
+
+          CLICK_RESULT="${{ needs.click-result.outputs.click-result-vke }}"
           if [[ -z "${CLICK_RESULT}" ]]; then
-              if [[ "${{ needs.engine-test.result }}" == "skipped" ]]; then
+              if [[ "${{ needs.click-result.result }}" == "skipped" || "${{ needs.engine-test.result }}" == "skipped" ]]; then
                   CLICK_RESULT="[SKIPPED]"
               else
                   CLICK_RESULT="[FAILED]"
               fi
           fi
-          
-          TEST_RESULT="installer-test-vke|vke|installer-${CLOUD_VERSION}|${INSTALLER_RESULT_VKE}"
-          TEST_RESULT="${TEST_RESULT}##installer-test-vke|vke|bootstrapper-${CLOUD_VERSION}|${BOOTSTRAPPER_RESULT_VKE}"
-          TEST_RESULT="${TEST_RESULT}##engine-test|vke|click-${CLOUD_VERSION}|${CLICK_RESULT}"
-          
-          echo "TEST_RESULT:${TEST_RESULT}" 
-          
-          TEST_RESULT=$( bash .github/utils/utils.sh --type 38 \
-              --github-repo "${{ github.repository }}" \
-              --github-token "${{ env.GH_TOKEN }}" \
-              --test-result "${TEST_RESULT}" \
-              --run-id "$GITHUB_RUN_ID" )
-          echo "TEST_RESULT:$TEST_RESULT"
-          
+
+          CLICK_ENGINES="${{ needs.click-result.outputs.click-engines-vke }}"
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
-          TEST_TITLE="[${CLOUD_VERSION}] Cloud Installer & Upgrade [${date_ret}]"
-          
-          python3 .github/utils/send_mesage.py \
-              --send-type installer \
-              --url "${{ vars.CICD_WEBHOOK }}" \
-              --title "$TEST_TITLE" \
-              --result "$TEST_RESULT"
 
-  destroy-env:
-    needs: [ engine-test ]
-    runs-on: ubuntu-latest
-    if: ${{ always() }}
-    steps:
-      - name: Checkout apecloud-cd Code
-        uses: actions/checkout@v4
-        with:
-          repository: apecloud/apecloud-cd
-          ref: ${{ inputs.APECD_REF }}
+          send_card() {
+              local title="$1"
+              local result="$2"
+              echo "TEST_RESULT:${result}"
+              result=$( bash .github/utils/utils.sh --type 38 \
+                  --github-repo "${{ github.repository }}" \
+                  --github-token "${{ env.GH_TOKEN }}" \
+                  --test-result "${result}" \
+                  --run-id "$GITHUB_RUN_ID" )
+              echo "TEST_RESULT:${result}"
+              python3 .github/utils/send_mesage.py \
+                  --send-type installer \
+                  --url "${{ vars.CICD_WEBHOOK }}" \
+                  --title "${title}" \
+                  --result "${result}"
+          }
 
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: "v1.30.4"
+          INSTALLER_RESULT="installer-test-vke|vke|installer-${CLOUD_VERSION}|${INSTALLER_RESULT_VKE}"
+          INSTALLER_RESULT="${INSTALLER_RESULT}##installer-test-vke|vke|bootstrapper-${CLOUD_VERSION}|${BOOTSTRAPPER_RESULT_VKE}"
+          INSTALLER_RESULT="${INSTALLER_RESULT}##click-result|vke|click-${CLOUD_VERSION}|${CLICK_RESULT}"
+          send_card "[${CLOUD_VERSION}] Cloud Installer & Upgrade [${date_ret}]" "${INSTALLER_RESULT}"
 
-      - name: Install Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: "v3.16.3"
-
-      - name: Configure Context VKE
-        run: |
-          mkdir -p $HOME/.kube
-          touch $HOME/.kube/config
-          echo '${{ env.VKE_KUBECONFIG }}' > $HOME/.kube/config
-          chmod 600 $HOME/.kube/config
-
-      - name: destroy cloud env
-        run: |
-          bash .github/utils/cloud_env_destroy.sh
+          if [[ -n "${CLICK_ENGINES}" ]]; then
+              while IFS=$'\t' read -r group rows; do
+                  [[ -z "${group}" || -z "${rows}" ]] && continue
+                  GROUP_RESULT=""
+                  IFS=';' read -ra click_rows <<< "${rows}"
+                  for row in "${click_rows[@]}"; do
+                      [[ -z "${row}" ]] && continue
+                      engine="${row%%|*}"
+                      detail="${row#*|}"
+                      [[ "${engine}" =~ ^[A-Za-z0-9_./-]+$ ]] || continue
+                      [[ "${detail}" =~ ^\[(PASSED|FAILED|SKIPPED)\]$ ]] || continue
+                      if [[ -z "${GROUP_RESULT}" ]]; then
+                          GROUP_RESULT="click-result|vke|${engine}|${detail}"
+                      else
+                          GROUP_RESULT="${GROUP_RESULT}##click-result|vke|${engine}|${detail}"
+                      fi
+                  done
+                  [[ -z "${GROUP_RESULT}" ]] && continue
+                  send_card "[${CLOUD_VERSION}] Click ${group} [${date_ret}]" "${GROUP_RESULT}"
+              done < <(python3 .github/utils/click_engine_results.py --group "${CLICK_ENGINES}")
+          fi
