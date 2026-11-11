@@ -446,12 +446,7 @@ jobs:
           fi
           echo "pod kubeconfig server: ${server}"
           export k8s_config_path="${pod_kubeconfig}"
-          # Slot probe only sees nodes that already exist. VKE grows the pool
-          # after Pods go Pending, so do not wait for free_slots.
-          export CLICK_NO_DYNAMIC_SLOTS=1
-          export CLICK_MAX_ACTIVE=32
-          export CLICK_STAGGER=30
-          
+
           bash test/cloud/test_cloud_e2e_web_click_tests.sh \
               --test-type click \
               --namespace "${test_ns}" \
@@ -713,6 +708,4 @@ jobs:
                   [[ -z "${GROUP_RESULT}" ]] && continue
                   send_card "[${CLOUD_VERSION}] Click ${group} [${date_ret}]" "${GROUP_RESULT}"
               done < <(python3 .github/utils/click_engine_results.py --group "${CLICK_ENGINES}")
-          fi
-      done < <(python3 .github/utils/click_engine_results.py --group "${CLICK_ENGINES}")
           fi
