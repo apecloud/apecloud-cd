@@ -461,8 +461,36 @@ def send_e2e_message(url_v, result_v, title_v):
     print(response.text)
 
 
-def send_installer_message(url_v, result_v, title_v):
+def _split_test_version(label):
+    # engine/1.2.3, or installer-v2.3.73 / click-v2.3.73-beta.1
+    if "/" in label:
+        name, version = label.split("/", 1)
+        return name, version
+    matched = re.match(r"^(.*?)-(v\d.*)$", label)
+    if matched:
+        return matched.group(1), matched.group(2)
+    return label, ""
+
+
+def _check_installer_version_split():
+    cases = {
+        "postgresql/18.6.0": ("postgresql", "18.6.0"),
+        "polardb-pg/2.0.16": ("polardb-pg", "2.0.16"),
+        "installer-v2.3.73": ("installer", "v2.3.73"),
+        "bootstrapper-v2.3.73": ("bootstrapper", "v2.3.73"),
+        "click-v2.3.73-beta.1": ("click", "v2.3.73-beta.1"),
+        "oracle": ("oracle", ""),
+        "victoria_metrics/1.0.0": ("victoria_metrics", "1.0.0"),
+    }
+    for raw, expected in cases.items():
+        got = _split_test_version(raw)
+        assert got == expected, (raw, got)
+    print("ok")
+
+
+def send_installer_message(url_v, result_v, title_v, version_column=False):
     print("send message")
+    version_header = "**Version**" if version_column else "**K8s Version**"
     json_results = []
     json_ret = {
         "tag": "column_set",
@@ -490,7 +518,7 @@ def send_installer_message(url_v, result_v, title_v):
                 "elements": [
                     {
                         "tag": "markdown",
-                        "content": "**K8s Version**",
+                        "content": version_header,
                         "text_align": "center"
                     }
                 ]
@@ -518,6 +546,9 @@ def send_installer_message(url_v, result_v, title_v):
             if results:
                 ret = results.split("|")
                 ret_4 = colorize_status(ret[2])
+                version_cell, test_type = ret[0], ret[1]
+                if version_column:
+                    test_type, version_cell = _split_test_version(ret[1])
 
                 json_ret = {
                     "tag": "column_set",
@@ -532,7 +563,7 @@ def send_installer_message(url_v, result_v, title_v):
                             "elements": [
                                 {
                                     "tag": "markdown",
-                                    "content": "<a href='" + ret[-1] + "'>" + ret[1] + "</a>",
+                                    "content": "<a href='" + ret[-1] + "'>" + test_type + "</a>",
                                     "text_align": "center"
                                 }
                             ]
@@ -545,7 +576,7 @@ def send_installer_message(url_v, result_v, title_v):
                             "elements": [
                                 {
                                     "tag": "markdown",
-                                    "content": "<font color='orange'>" + ret[0] + "</font>",
+                                    "content": "<font color='orange'>" + version_cell + "</font>",
                                     "text_align": "center"
                                 }
                             ]
@@ -2037,6 +2068,10 @@ def parse_result(result_v):
 
 
 if __name__ == '__main__':
+    import sys
+    if "--check" in sys.argv:
+        _check_installer_version_split()
+        raise SystemExit(0)
     args = parse_cli_args()
     title = args.title
     result = args.result
@@ -2051,6 +2086,8 @@ if __name__ == '__main__':
         send_e2e_message(url, result, title)
     elif send_type == "installer":
         send_installer_message(url, result, title)
+    elif send_type == "installer-version":
+        send_installer_message(url, result, title, version_column=True)
     elif send_type == "ginkgo":
         send_ginkgo_message(url, result, title)
     elif send_type == "summary":
