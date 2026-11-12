@@ -498,8 +498,8 @@ jobs:
               fi
               if [[ "${phase}" != "Running" || "${reported_running}" != "true" ]]; then
                   echo "click test pod ${pod_name} is ${phase}"
-                  kubectl logs -n "${test_ns}" "${pod_name}" --tail=1 || true
               fi
+              kubectl logs -n "${test_ns}" "${pod_name}" --tail=1 || true
               [[ "${phase}" == "Running" ]] && reported_running="true" || reported_running="false"
               sleep 5
           done
@@ -574,8 +574,8 @@ jobs:
               fi
               if [[ "${phase}" != "Running" || "${reported_running}" != "true" ]]; then
                   echo "click test pod ${pod_name} is ${phase}"
-                  kubectl logs -n "${test_ns}" "${pod_name}" --tail=1 || true
               fi
+              kubectl logs -n "${test_ns}" "${pod_name}" --tail=1 || true
               [[ "${phase}" == "Running" ]] && reported_running="true" || reported_running="false"
               sleep 5
           done
@@ -715,6 +715,15 @@ jobs:
                       [[ "${detail}" =~ ^\[(PASSED|FAILED|SKIPPED)\]$ ]] || continue
                       if [[ -z "${GROUP_RESULT}" ]]; then
                           GROUP_RESULT="click-result|vke|${engine}|${detail}"
+                      else
+                          GROUP_RESULT="${GROUP_RESULT}##click-result|vke|${engine}|${detail}"
+                      fi
+                  done
+                  [[ -z "${GROUP_RESULT}" ]] && continue
+                  send_card "[${CLOUD_VERSION}] Click ${group} [${date_ret}]" "${GROUP_RESULT}"
+              done < <(python3 .github/utils/click_engine_results.py --group "${CLICK_ENGINES}")
+          fi
+"
                       else
                           GROUP_RESULT="${GROUP_RESULT}##click-result|vke|${engine}|${detail}"
                       fi
