@@ -447,10 +447,12 @@ jobs:
           echo "pod kubeconfig server: ${server}"
           export k8s_config_path="${pod_kubeconfig}"
 
+          export TZ='Asia/Shanghai'
+          date_index=$(date +%Y%m%d)
           bash test/cloud/test_cloud_e2e_web_click_tests.sh \
               --test-type click \
               --namespace "${test_ns}" \
-              --pod-index "01" \
+              --pod-index "${date_index}" \
               --cloud-version "${CLOUD_VERSION}" | tee -a "${run_file_log}"
           
           pod_line="$(grep '\[CLOUD-E2E-WEB-TEST-POD-NAME\]' "${run_file_log}" | tail -n 1 || true)"
@@ -496,8 +498,8 @@ jobs:
               fi
               if [[ "${phase}" != "Running" || "${reported_running}" != "true" ]]; then
                   echo "click test pod ${pod_name} is ${phase}"
-                  kubectl logs -n "${test_ns}" "${pod_name}" --tail=1 || true
               fi
+              kubectl logs -n "${test_ns}" "${pod_name}" --tail=1 || true
               [[ "${phase}" == "Running" ]] && reported_running="true" || reported_running="false"
               sleep 5
           done
@@ -572,8 +574,8 @@ jobs:
               fi
               if [[ "${phase}" != "Running" || "${reported_running}" != "true" ]]; then
                   echo "click test pod ${pod_name} is ${phase}"
-                  kubectl logs -n "${test_ns}" "${pod_name}" --tail=1 || true
               fi
+              kubectl logs -n "${test_ns}" "${pod_name}" --tail=1 || true
               [[ "${phase}" == "Running" ]] && reported_running="true" || reported_running="false"
               sleep 5
           done
@@ -686,7 +688,7 @@ jobs:
               echo "TEST_RESULT:${result}"
               python3 .github/utils/send_mesage.py \
                   --send-type installer-version \
-                  --url "${{ vars.CICD_WEBHOOK }}" \
+                  --url "${{ vars.CLOUD_E2E_WEB_BOT_WEBHOOK }}" \
                   --title "${title}" \
                   --result "${result}"
           }
