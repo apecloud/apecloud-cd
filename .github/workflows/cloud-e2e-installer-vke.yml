@@ -723,12 +723,3 @@ jobs:
                   send_card "[${CLOUD_VERSION}] Click ${group} [${date_ret}]" "${GROUP_RESULT}"
               done < <(python3 .github/utils/click_engine_results.py --group "${CLICK_ENGINES}")
           fi
-"
-                      else
-                          GROUP_RESULT="${GROUP_RESULT}##click-result|vke|${engine}|${detail}"
-                      fi
-                  done
-                  [[ -z "${GROUP_RESULT}" ]] && continue
-                  send_card "[${CLOUD_VERSION}] Click ${group} [${date_ret}]" "${GROUP_RESULT}"
-              done < <(python3 .github/utils/click_engine_results.py --group "${CLICK_ENGINES}")
-          fi
