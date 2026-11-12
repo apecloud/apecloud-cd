@@ -14,6 +14,7 @@ START_RE = re.compile(rf"^START ({ENGINE}) pid=")
 DONE_RE = re.compile(rf"^DONE ({ENGINE})\b.*\bver=(\S*) exit=(-?\d+)\b")
 WATCHDOG_RE = re.compile(rf"^WATCHDOG DONE ({ENGINE})\b")
 SPEC_RE = re.compile(rf"^({ENGINE})\s+(.+?)\s+(PASSED|FAILED|NO-RUN)\s+\d+\s*$")
+LOGIN_FAIL_RE = re.compile(rf"登录失败 \(({ENGINE})/([^/\s]+)/([^)\s]+)\)")
 SAFE_RE = re.compile(r"^[\w./|;\[\]-]*$")
 _VERSION_RE = re.compile(r"v?\d+(?:\.\d+)+")
 
@@ -79,6 +80,7 @@ def parse_click_engines(text):
     done_exit = {}
     versions = {}
     specs = {}
+    login_failed = {}
     hold = False
 
     def add_planned(engine):
@@ -98,6 +100,7 @@ def parse_click_engines(text):
             add_planned(engine)
             started.add(engine)
             specs[engine] = []
+            login_failed.pop(engine, None)
             continue
         done = DONE_RE.match(line)
         if done:
@@ -120,32 +123,56 @@ def parse_click_engines(text):
             if engine in seen or engine in started:
                 specs.setdefault(engine, []).append((_split_spec(spec_text), result))
             continue
+        login_fail = LOGIN_FAIL_RE.search(line)
+        if login_fail:
+            engine, _version, mode_key = login_fail.groups()
+            add_planned(engine)
+            modes = login_failed.setdefault(engine, [])
+            if mode_key not in modes:
+                modes.append(mode_key)
+            continue
         if "环境不可用" in line and "跳过剩余" in line:
             hold = True
         elif "不再启动新引擎" in line:
             hold = True
+
+    def unrun_rows(engine, covered):
+        found = []
+        for mode_key in login_failed.get(engine, []):
+            mode = "" if mode_key == "default" else _clean_mode(mode_key)
+            if mode and mode in covered:
+                continue
+            if not mode and covered:
+                continue
+            found.append(f"{_label(engine, mode, '')}|[FAILED]")
+        return found
 
     rows = []
     for engine in planned:
         spec_rows = specs.get(engine) or []
         if spec_rows and engine not in watchdog:
             exit_code = done_exit.get(engine)
+            covered = set()
             for (mode, spec_version), result in spec_rows:
                 version = spec_version or versions.get(engine, "")
                 rows.append(f"{_label(engine, mode, version)}|[{_mode_status(result, exit_code)}]")
+                if mode:
+                    covered.add(mode)
+            rows.extend(unrun_rows(engine, covered))
+            continue
+        missed = unrun_rows(engine, set())
+        if missed and engine not in watchdog:
+            rows.extend(missed)
             continue
         if engine in watchdog:
             status = "FAILED"
         elif engine in done_exit:
-            status = "PASSED" if done_exit[engine] == 0 else "FAILED"
+            # A DONE line without a result row did not run. Do not call that success.
+            status = "FAILED"
         elif engine not in started and hold:
             status = "SKIPPED"
         else:
-            # Started, or planned and the pod ended without a DONE line.
-            if engine not in started and engine not in done_exit and not specs.get(engine):
-                status = "FAILED"
-            else:
-                status = "FAILED"
+            status = "FAILED"
         version = versions.get(engine, "")
         label = f"{engine}/{version}" if version else engine
         rows.append(f"{label}|[{status}]")
@@ -244,6 +271,15 @@ DONE kafka (2 mode(s)) ver=2.8.2 exit=1 total=28 pass=22 fail=1 skip=5
         "kafka/组合/3.9.0|[FAILED];kafka/Zookeeper模式/2.8.2|[FAILED]"
     )
     assert parse_click_engines("DONE $(rm -rf) (1 mode(s)) ver=1 exit=0\n") == ""
+    assert parse_click_engines("START quiet pid=1\nDONE quiet (0 mode(s)) ver= exit=0\n") == "quiet|[FAILED]"
+    missed = """
+START kafka pid=1
+2026-11-12 13:27:42,164 ERROR 登录失败 (kafka/默认/combined)
+kafka                            分离/3.9.0                         PASSED     0
+PLAYWRIGHT TEST BROKEN, CODE: 2
+DONE kafka (1 mode(s)) ver=3.9.0 exit=2 total=27 pass=24 fail=0 skip=3
+"""
+    assert parse_click_engines(missed) == "kafka/分离/3.9.0|[PASSED];kafka/combined|[FAILED]"
     assert parse_click_engines("") == ""
     # A spec line before the engine is planned must not invent a row.
     assert parse_click_engines("notanengine spec PASSED 0\n") == ""
