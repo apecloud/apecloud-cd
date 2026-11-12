@@ -18,6 +18,11 @@ on:
         type: boolean
         required: false
         default: true
+      TEST_ENGINES:
+        description: "Comma-separated test engines. Empty keeps the default engine selection."
+        type: string
+        required: false
+        default: ''
   workflow_call:
     inputs:
       CLOUD_VERSION:
@@ -35,6 +40,11 @@ on:
         type: boolean
         required: false
         default: true
+      TEST_ENGINES:
+        description: "Comma-separated test engines. Empty keeps the default engine selection."
+        type: string
+        required: false
+        default: ''
 
 run-name: Cloud Installer E2e Test Version:${{ inputs.CLOUD_VERSION }}
 
@@ -425,6 +435,11 @@ jobs:
               platfrom_version_tmp="${platfrom_version_tmp/v/}"
           fi
           export PLATFORM_VERSION="${platfrom_version_tmp%%.*}.$(printf '%s' "$platfrom_version_tmp" | cut -d. -f2)"
+          TEST_ENGINES="${{ inputs.TEST_ENGINES }}"
+          if [[ -n "${TEST_ENGINES}" ]]; then
+              echo "export TEST_ENGINES=${TEST_ENGINES}"
+              export TEST_ENGINES="${TEST_ENGINES}"
+          fi
           
           test_ns="${K8S_NAMESPACE:-kubeblocks-cloud-ns}"
           ADMIN_PASSWORD="$(kubectl get secret -n kb-cloud apiserver -o jsonpath='{.data.DEFAULT_ADMIN_PASSWORD}' | base64 -d)"
