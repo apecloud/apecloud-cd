@@ -688,7 +688,7 @@ jobs:
               echo "TEST_RESULT:${result}"
               python3 .github/utils/send_mesage.py \
                   --send-type installer-version \
-                  --url "${{ vars.CLOUD_E2E_WEB_BOT_WEBHOOK }}" \
+                  --url "${{ vars.CICD_WEBHOOK }}" \
                   --title "${title}" \
                   --result "${result}"
           }
