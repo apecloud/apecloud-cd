@@ -461,15 +461,17 @@ def send_e2e_message(url_v, result_v, title_v):
     print(response.text)
 
 
+_VERSION_TOKEN = re.compile(r"v?\d+(?:\.\d+)+(?:[-+][A-Za-z0-9.]+)*")
+
+
 def _split_test_version(label):
-    # engine/mode/1.2.3, engine/1.2.3, or installer-v2.3.73
+    # engine/mode/1.2.3, engine/mode/4.4.2-BP3, engine/1.2.3, or installer-v2.3.73
     if "/" in label:
         parts = label.split("/")
-        version = parts[-1] if re.fullmatch(r"v?\d+(?:\.\d+)+", parts[-1]) else ""
-        body = parts[:-1] if version else parts
-        name = body[0] if body else label
-        mode = "/".join(body[1:]) if len(body) > 1 else ""
-        return name, mode, version
+        version_at = next((i for i, part in enumerate(parts) if _VERSION_TOKEN.fullmatch(part)), None)
+        if version_at is None:
+            return parts[0], "/".join(parts[1:]), ""
+        return parts[0], "/".join(parts[1:version_at]), "/".join(parts[version_at:])
     matched = re.match(r"^(.*?)-(v\d.*)$", label)
     if matched:
         return matched.group(1), "", matched.group(2)
@@ -488,6 +490,13 @@ def _check_installer_version_split():
         "click-v2.3.73-beta.1": ("click", "", "v2.3.73-beta.1"),
         "oracle": ("oracle", "", ""),
         "victoria_metrics/1.0.0": ("victoria_metrics", "", "1.0.0"),
+        "oceanbase/1F/4.4.2-BP3": ("oceanbase", "1F", "4.4.2-BP3"),
+        "vastbase/单机/3.0.9-2": ("vastbase", "单机", "3.0.9-2"),
+        "doris/disaggregated/4.1.4-1": ("doris", "disaggregated", "4.1.4-1"),
+        "milvus/分布式2.6/2.6.17": ("milvus", "分布式2.6", "2.6.17"),
+        "oceanbase/1F/4.4.2-BP3/4.2.1-BP7-Hotfix2": (
+            "oceanbase", "1F", "4.4.2-BP3/4.2.1-BP7-Hotfix2",
+        ),
     }
     for raw, expected in cases.items():
         got = _split_test_version(raw)

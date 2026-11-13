@@ -3,7 +3,7 @@ name: Cloud E2E Schedule VKE
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 20 * * 0' # Runs at 4:00 UTC on Mon
+    - cron: '0 21 * * 0' # Runs at 5:00 UTC on Mon
 
 jobs:
   get-cloud-version:

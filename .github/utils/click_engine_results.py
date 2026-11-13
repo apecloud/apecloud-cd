@@ -16,7 +16,7 @@ WATCHDOG_RE = re.compile(rf"^WATCHDOG DONE ({ENGINE})\b")
 SPEC_RE = re.compile(rf"^({ENGINE})\s+(.+?)\s+(PASSED|FAILED|NO-RUN)\s+\d+\s*$")
 LOGIN_FAIL_RE = re.compile(rf"登录失败 \(({ENGINE})/([^/\s]+)/([^)\s]+)\)")
 SAFE_RE = re.compile(r"^[\w./|;\[\]-]*$")
-_VERSION_RE = re.compile(r"v?\d+(?:\.\d+)+")
+_VERSION_RE = re.compile(r"v?\d+(?:\.\d+)+(?:[-+][A-Za-z0-9.]+)*")
 
 ENGINE_GROUPS = (
     ("Relational", (
@@ -48,11 +48,14 @@ def _clean_mode(mode):
 
 
 def _split_spec(spec):
-    compact = re.sub(r"\s+", "", spec)
-    matched = re.match(r"^(.*?)/(?:[^/]+/)*?(" + _VERSION_RE.pattern + r")$", compact)
-    if not matched:
-        return _clean_mode(compact), ""
-    return _clean_mode(matched.group(1)), matched.group(2)
+    parts = [part for part in re.sub(r"\s+", "", spec).split("/") if part]
+    for index, part in enumerate(parts):
+        if not _VERSION_RE.fullmatch(part):
+            continue
+        # First segment is the mode. Drop a component token such as pg/2.0.16.
+        mode = _clean_mode(parts[0]) if index else ""
+        return mode, "/".join(parts[index:])
+    return _clean_mode("".join(parts)), ""
 
 
 def _mode_status(result, exit_code):
@@ -269,6 +272,26 @@ DONE kafka (2 mode(s)) ver=2.8.2 exit=1 total=28 pass=22 fail=1 skip=5
     assert parse_click_engines(hive) == "hive/集群版|[FAILED]"
     assert parse_click_engines(kafka) == (
         "kafka/组合/3.9.0|[FAILED];kafka/Zookeeper模式/2.8.2|[FAILED]"
+    )
+    suffixed = """
+plan:
+  - oceanbase slots=2 modes=1f
+  - vastbase slots=1 modes=standalone
+  - doris slots=1 modes=disaggregated
+START oceanbase pid=1
+oceanbase                        1F/4.4.2-BP3                   PASSED     0
+DONE oceanbase (1 mode(s)) ver=4.2.1-BP7-Hotfix2 exit=0 total=1 pass=1 fail=0 skip=0
+START vastbase pid=1
+vastbase                         单机/3.0.9-2                   PASSED     0
+DONE vastbase (1 mode(s)) ver=3.0.9-2 exit=0 total=1 pass=1 fail=0 skip=0
+START doris pid=1
+doris                            disaggregated/4.1.4-1          FAILED     0
+DONE doris (1 mode(s)) ver=4.1.4-1 exit=1 total=1 pass=0 fail=1 skip=0
+"""
+    assert parse_click_engines(suffixed) == (
+        "oceanbase/1F/4.4.2-BP3|[PASSED];"
+        "vastbase/单机/3.0.9-2|[PASSED];"
+        "doris/disaggregated/4.1.4-1|[FAILED]"
     )
     assert parse_click_engines("DONE $(rm -rf) (1 mode(s)) ver=1 exit=0\n") == ""
     assert parse_click_engines("START quiet pid=1\nDONE quiet (0 mode(s)) ver= exit=0\n") == "quiet|[FAILED]"
