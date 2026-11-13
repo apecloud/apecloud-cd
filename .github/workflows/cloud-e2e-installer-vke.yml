@@ -701,6 +701,16 @@ jobs:
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
 
+          WEBHOOK_TYPE="${{ vars.WEBHOOK_TYPE }}"
+          case "${WEBHOOK_TYPE}" in
+            CLOUD_E2E_WEB_BOT_WEBHOOK)
+              WEBHOOK_URL="${{ vars.CLOUD_E2E_WEB_BOT_WEBHOOK }}"
+              ;;
+            *)
+              WEBHOOK_URL="${{ vars.CICD_WEBHOOK }}"
+              ;;
+          esac
+
           send_card() {
               local title="$1"
               local result="$2"
@@ -713,7 +723,7 @@ jobs:
               echo "TEST_RESULT:${result}"
               python3 .github/utils/send_mesage.py \
                   --send-type installer-version \
-                  --url "${{ vars.CICD_WEBHOOK }}" \
+                  --url "${WEBHOOK_URL}" \
                   --title "${title}" \
                   --result "${result}"
           }
