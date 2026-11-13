@@ -59,6 +59,11 @@ env:
   KB_ADDON_SECRET_NAME: "kb-addon-test-registry-key"
   FQDN_DOMAIN: "vke.kubeblocks.com"
   CLOUD_USER_NAME: "vke-test"
+  OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
+  OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
+  OSS_ENDPOINT: "oss-cn-zhangjiakou.aliyuncs.com"
+  OSS_BUCKET: "apecloud-oss"
+  OSS_PREFIX: "test/reports/kbcloud/click/"
 
 jobs:
   destroy-env:
@@ -464,6 +469,11 @@ jobs:
 
           export TZ='Asia/Shanghai'
           date_index=$(date +%Y%m%d)
+          export OSS_KEY_ID="${OSS_KEY_ID}"
+          export OSS_KEY_SECRET="${OSS_KEY_SECRET}"
+          export OSS_ENDPOINT="${OSS_ENDPOINT}"
+          export OSS_BUCKET="${OSS_BUCKET}"
+          export OSS_PREFIX="${OSS_PREFIX}"
           bash test/cloud/test_cloud_e2e_web_click_tests.sh \
               --test-type click \
               --namespace "${test_ns}" \
