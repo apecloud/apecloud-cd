@@ -1,0 +1,27 @@
+name: Check Helm image utilities
+
+on:
+  pull_request:
+    paths:
+      - '.github/utils/helm_image_check.sh'
+      - '.github/utils/tests/test_helm_image_check.py'
+      - '.github/workflows/check-helm-image-utils.yml'
+  push:
+    paths:
+      - '.github/utils/helm_image_check.sh'
+      - '.github/utils/tests/test_helm_image_check.py'
+      - '.github/workflows/check-helm-image-utils.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  image-reference-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - run: bash -n .github/utils/helm_image_check.sh
+      - run: python3 -m unittest discover -s .github/utils/tests -v
