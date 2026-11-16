@@ -1,6 +1,7 @@
 #!/bin/bash
 MANIFESTS_FILE=${1:-""}
 RELEASE_VERSION=${2:-""}
+CLOUD_SUFFIX="${3:-${CLOUD_SUFFIX:-false}}"
 
 # update_addon_chart_version() {
 #     if [[ ! -f "${MANIFESTS_FILE}" ]]; then
@@ -81,6 +82,45 @@ update_oteld_version() {
     fi
 }
 
+update_addon_chart_cloud_suffix() {
+    local charts_name chart_name chart_versions chart_version chart_index
+    local is_addon engine_type manifests_images manifests_image image_num
+    local chart_ref secure_image new_image
+    charts_name=$(yq e 'to_entries|map(.key)|.[]' "${MANIFESTS_FILE}")
+    for chart_name in ${charts_name}; do
+        if [[ -z "${chart_name}" || "${chart_name}" == "#"* ]]; then
+            continue
+        fi
+        chart_versions=$(yq e '[.'${chart_name}'[].version] | join("|")' ${MANIFESTS_FILE})
+        chart_index=0
+        for chart_version in $(echo "${chart_versions}" | sed 's/|/ /g'); do
+            is_addon=$(yq e ".${chart_name}[${chart_index}].isAddon" "${MANIFESTS_FILE}")
+            engine_type=$(yq e ".${chart_name}[${chart_index}].type" "${MANIFESTS_FILE}")
+            if [[ "${is_addon}" != "true" || "${engine_type}" != "engine" ]]; then
+                chart_index=$((chart_index + 1))
+                continue
+            fi
+            # Build the tag from the component name and version. Do not parse the old tag.
+            chart_ref="apecloud/apecloud-addon-charts:${chart_name}-${chart_version}"
+            secure_image="apecloud/apecloud-addon-charts:${chart_name}-secure-${chart_version}"
+            new_image="${chart_ref}-${RELEASE_VERSION}"
+            manifests_images=$(yq e ".${chart_name}[${chart_index}].images[]" "${MANIFESTS_FILE}")
+            image_num=0
+            for manifests_image in ${manifests_images}; do
+                if [[ "${manifests_image}" == "null" || "${manifests_image}" == "${secure_image}" ]]; then
+                    image_num=$((image_num + 1))
+                    continue
+                fi
+                if [[ "${manifests_image}" == "${chart_ref}" || "${manifests_image}" == "${chart_ref}-"* ]]; then
+                    yq e -i ".${chart_name}[${chart_index}].images[${image_num}]=\"${new_image}\"" "${MANIFESTS_FILE}"
+                fi
+                image_num=$((image_num + 1))
+            done
+            chart_index=$((chart_index + 1))
+        done
+    done
+}
+
 update_manifests_file_version() {
     echo "MANIFESTS_FILE:${MANIFESTS_FILE}"
     if [[ ! -f "${MANIFESTS_FILE}" ]]; then
@@ -102,7 +142,10 @@ update_manifests_file_version() {
 
     echo "KUBEBLOCKS_VERSION:${KUBEBLOCKS_VERSION}"
     charts_name=("kubeblocks-cloud" "kb-cloud-installer")
-    update_images=("openconsole" "kubeblocks-console" "apiserver" "cubetran-front" "cr4w" "kubeblocks-installer" "dms" "servicemirror" "kb-cloud-hook" "kb-cloud-docs" "apecloud-addon-charts")
+    update_images=("openconsole" "kubeblocks-console" "apiserver" "cubetran-front" "cr4w" "kubeblocks-installer" "dms" "servicemirror" "kb-cloud-hook" "kb-cloud-docs")
+    if [[ "${CLOUD_SUFFIX}" != "true" ]]; then
+        update_images+=("apecloud-addon-charts")
+    fi
     for chart_name in "${charts_name[@]}"; do
         if [[ "${chart_name}" == "kb-cloud-installer" ]]; then
             yq e -i ".${chart_name}[0].version=\"${RELEASE_VERSION_TMP}\"" "${MANIFESTS_FILE}"
@@ -163,6 +206,10 @@ update_manifests_file_version() {
             ((image_num++))
         done
     done
+
+    if [[ "${CLOUD_SUFFIX}" == "true" ]]; then
+        update_addon_chart_cloud_suffix
+    fi
 
     # update_addon_chart_version
 

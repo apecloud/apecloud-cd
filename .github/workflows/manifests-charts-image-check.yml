@@ -28,6 +28,11 @@ on:
         type: string
         required: false
         default: ''
+      CLOUD_SUFFIX:
+        description: "Enable addon chart image tags that include the Cloud release version"
+        type: boolean
+        required: false
+        default: false
   workflow_call:
     inputs:
       MANIFESTS_FILE:
@@ -55,6 +60,11 @@ on:
         type: string
         required: false
         default: ''
+      CLOUD_SUFFIX:
+        description: "Enable addon chart image tags that include the Cloud release version"
+        type: boolean
+        required: false
+        default: false
 
 
 run-name: check charts images
@@ -109,6 +119,7 @@ jobs:
 
       - name: manifests images check
         run: |
+          export CLOUD_SUFFIX="${{ inputs.CLOUD_SUFFIX }}"
           MANIFESTS_FILE="${{ inputs.MANIFESTS_FILE }}"
           if [[ -z "${MANIFESTS_FILE}" ]]; then
               MANIFESTS_FILE="${{ github.workspace }}/manifests/deploy-manifests.yaml"

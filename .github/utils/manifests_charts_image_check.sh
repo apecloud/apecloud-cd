@@ -3,6 +3,7 @@ MANIFESTS_FILE=${1:-""}
 ADD_CHART=${2:-"true"}
 CHECK_ENGINE_FILE=${3:-"./fountain/hack/check-engine-images.py"}
 SKIP_DELETE_FILE=${4:-""}
+CLOUD_SUFFIX="${CLOUD_SUFFIX:-false}"
 
 
 is_chart_enabled() {
@@ -288,7 +289,83 @@ check_images() {
     done
 }
 
+check_addon_charts_cloud_tag() {
+    local cloud_version charts_name chart_name chart_versions chart_version chart_index
+    local is_addon engine_type chart_images cloud_images
+    local chart_ref expected_image image_found manifests_image failed
+    failed=0
+    cloud_version=$(yq e '.kubeblocks-cloud[0].version' "${MANIFESTS_FILE}")
+    if [[ -z "${cloud_version}" || "${cloud_version}" == "null" ]]; then
+        check_result_tmp="$(tput -T xterm setaf 1)Not found kubeblocks-cloud version in manifests file:${MANIFESTS_FILE}$(tput -T xterm sgr0)"
+        echo "${check_result_tmp}"
+        echo "${check_result_tmp}" >> check_manifest_result
+        echo 1 > exit_result
+        return
+    fi
+    cloud_images=$(yq e '.kubeblocks-cloud[0].images[]' "${MANIFESTS_FILE}" 2>/dev/null || true)
+    charts_name=$(yq e "to_entries|map(.key)|.[]"  ${MANIFESTS_FILE})
+    for chart_name in $(echo "$charts_name"); do
+        if [[ -z "$chart_name" || "$chart_name" == "#"* || "$chart_name" == "kata" ]]; then
+            continue
+        fi
+        if ! is_chart_enabled "$chart_name"; then
+            continue
+        fi
+        if [[ "$chart_name" == "apecloud-mysql" || "$chart_name" == "mogdb" || "$chart_name" == "greatsql" ]]; then
+            continue
+        fi
+        chart_versions=$(yq e '[.'${chart_name}'[].version] | join("|")' ${MANIFESTS_FILE})
+        chart_index=0
+        for chart_version in $(echo "$chart_versions" | sed 's/|/ /g'); do
+            is_addon=$(yq e "."${chart_name}"[${chart_index}].isAddon" "${MANIFESTS_FILE}")
+            engine_type=$(yq e "."${chart_name}"[${chart_index}].type" "${MANIFESTS_FILE}")
+            if [[ "${is_addon}" == "true" && "${engine_type}" == "engine" ]]; then
+                chart_ref="apecloud/apecloud-addon-charts:${chart_name}-${chart_version}"
+                expected_image="${chart_ref}-${cloud_version}"
+                chart_images=$(yq e "."${chart_name}"[${chart_index}].images[]" "${MANIFESTS_FILE}" 2>/dev/null || true)
+                image_found=0
+                for manifests_image in ${chart_images}; do
+                    if [[ "${manifests_image}" == "${expected_image}" ]]; then
+                        image_found=1
+                        break
+                    fi
+                done
+                if [[ ${image_found} -eq 0 ]]; then
+                    failed=1
+                    check_result_tmp="$(tput -T xterm setaf 1)Not found ${chart_name} ${chart_version} image:${expected_image} in manifests file:${MANIFESTS_FILE}$(tput -T xterm sgr0)"
+                    echo "${check_result_tmp}"
+                    CHECK_RESULTS="$(cat check_manifest_result)"
+                    if [[ "${CHECK_RESULTS}" != *"${check_result_tmp}"* ]]; then
+                        echo "${check_result_tmp}" >> check_manifest_result
+                    fi
+                    echo 1 > exit_result
+                fi
+                for manifests_image in ${cloud_images}; do
+                    if [[ "${manifests_image}" == "${chart_ref}" || "${manifests_image}" == "${chart_ref}-"* ]]; then
+                        failed=1
+                        check_result_tmp="$(tput -T xterm setaf 1)Found ${chart_name} ${chart_version} image:${manifests_image} in kubeblocks-cloud, expected it on the addon version$(tput -T xterm sgr0)"
+                        echo "${check_result_tmp}"
+                        CHECK_RESULTS="$(cat check_manifest_result)"
+                        if [[ "${CHECK_RESULTS}" != *"${check_result_tmp}"* ]]; then
+                            echo "${check_result_tmp}" >> check_manifest_result
+                        fi
+                        echo 1 > exit_result
+                    fi
+                done
+            fi
+            chart_index=$(( $chart_index + 1 ))
+        done
+    done
+    if [[ ${failed} -eq 0 ]]; then
+        echo "$(tput -T xterm setaf 2)Check addon charts images success$(tput -T xterm sgr0)"
+    fi
+}
+
 check_addon_charts_images() {
+    if [[ "${CLOUD_SUFFIX}" == "true" ]]; then
+        check_addon_charts_cloud_tag
+        return
+    fi
     chart_version_tmp=${1:-""}
     chart_name_tmp=${2:-""}
     chart_images_tmp=${3:-""}
@@ -468,4 +545,6 @@ main() {
     check_charts_images
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi
