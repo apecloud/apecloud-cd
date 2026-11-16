@@ -63,6 +63,11 @@ on:
         type: string
         required: false
         default: ''
+      CLOUD_SUFFIX:
+        description: "Enable addon chart image tags that include the Cloud release version"
+        type: boolean
+        required: false
+        default: false
   workflow_call:
     inputs:
       MANIFESTS_FILE:
@@ -125,6 +130,11 @@ on:
         type: string
         required: false
         default: ''
+      CLOUD_SUFFIX:
+        description: "Enable addon chart image tags that include the Cloud release version"
+        type: boolean
+        required: false
+        default: false
 
 
 run-name: save chart ${{ inputs.CHARTS_NAME }} ${{ inputs.RELEASE_VERSION }}
@@ -218,7 +228,7 @@ jobs:
           fi
 
           echo "update manifests version to ${RELEASE_VERSION}"
-          bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_version_update.sh "${MANIFESTS_FILE}" "${RELEASE_VERSION}"
+          bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_version_update.sh "${MANIFESTS_FILE}" "${RELEASE_VERSION}" "${{ inputs.CLOUD_SUFFIX }}"
 
           RESOLVE_MANIFESTS_SCRIPT="${{ inputs.RESOLVE_MANIFESTS_SCRIPT }}"
           if [[ "${ADDON_SECURE_DELIVERY_ENABLED}" == "true" ]]; then

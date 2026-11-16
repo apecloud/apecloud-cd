@@ -38,6 +38,11 @@ on:
         type: string
         required: false
         default: ''
+      CLOUD_SUFFIX:
+        description: "Enable addon chart image tags that include the Cloud release version"
+        type: boolean
+        required: false
+        default: false
     outputs:
       release-version:
         description: "release version"
@@ -81,6 +86,11 @@ on:
         type: string
         required: false
         default: ''
+      CLOUD_SUFFIX:
+        description: "Enable addon chart image tags that include the Cloud release version"
+        type: boolean
+        required: false
+        default: false
 
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -196,7 +206,7 @@ jobs:
               COMMIT_SHA="$(git rev-parse HEAD)"
               
               echo "update manifests version to ${RELEASE_VERSION}"
-              bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_version_update.sh "${MANIFESTS_FILE}" "${RELEASE_VERSION}"
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/manifests_version_update.sh "${MANIFESTS_FILE}" "${RELEASE_VERSION}" "${{ inputs.CLOUD_SUFFIX }}"
               echo "update manifests version to ${RELEASE_VERSION} done"
               
               FILE_CHANGES=`git diff --name-only ${COMMIT_SHA}`
