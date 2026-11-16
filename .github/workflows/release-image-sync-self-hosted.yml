@@ -148,6 +148,11 @@ on:
         type: string
         required: false
         default: ''
+      RUNS_ON:
+        description: "JSON array of runner labels for the image build job"
+        type: string
+        required: false
+        default: '["self-hosted","kubeblocks"]'
 
 
 env:
@@ -188,7 +193,7 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
-    runs-on: [ self-hosted, kubeblocks ]
+    runs-on: ${{ fromJSON(inputs.RUNS_ON) }}
     timeout-minutes: ${{ inputs.TIMEOUT_MINUTES }}
     outputs:
       tag-name: ${{ steps.get_tag_name.outputs.TAG-NAME }}
