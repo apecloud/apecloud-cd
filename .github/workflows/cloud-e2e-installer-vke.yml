@@ -746,7 +746,7 @@ jobs:
           INSTALLER_RESULT="installer-test-vke|vke|installer-${CLOUD_VERSION}|${INSTALLER_RESULT_VKE}"
           INSTALLER_RESULT="${INSTALLER_RESULT}##installer-test-vke|vke|bootstrapper-${CLOUD_VERSION}|${BOOTSTRAPPER_RESULT_VKE}"
           INSTALLER_RESULT="${INSTALLER_RESULT}##click-result|vke|click-${CLOUD_VERSION}|${CLICK_RESULT}"
-          send_card "[${CLOUD_VERSION}] Cloud Installer & Upgrade [${date_ret}]" "${INSTALLER_RESULT}"
+          send_card "[${CLOUD_VERSION}] Cloud Installer & Upgrade & Web Click Tests [${date_ret}]" "${INSTALLER_RESULT}"
 
           if [[ -n "${CLICK_ENGINES}" ]]; then
               while IFS=$'\t' read -r group rows; do
@@ -770,7 +770,7 @@ jobs:
                       fi
                   done
                   [[ -z "${GROUP_RESULT}" ]] && continue
-                  send_card "[${CLOUD_VERSION}] Click 创建,删除 ${group} [${date_ret}]" "${GROUP_RESULT}"
+                  send_card "[${CLOUD_VERSION}] Web Click Tests 创建,删除 ${group} [${date_ret}]" "${GROUP_RESULT}"
               done < <(python3 .github/utils/click_engine_results.py --group "${CLICK_ENGINES}")
           fi
 
@@ -1126,10 +1126,10 @@ jobs:
                       fi
                   done
                   [[ -z "${GROUP_RESULT}" ]] && continue
-                  send_card "[${CLOUD_VERSION}] Click 全量 ${group} [${date_ret}]" "${GROUP_RESULT}"
+                  send_card "[${CLOUD_VERSION}] Web Click Tests 全量 ${group} [${date_ret}]" "${GROUP_RESULT}"
                   sent=1
               done < <(python3 .github/utils/click_engine_results.py --group "${CLICK_ENGINES}")
           fi
           if [[ "${sent}" -eq 0 ]]; then
-              send_card "[${CLOUD_VERSION}] Click 全量 mysql,postgresql [${date_ret}]" "click-result|vke|mysql,postgresql|${RESULT}"
+              send_card "[${CLOUD_VERSION}] Web Click Tests 全量 mysql,postgresql [${date_ret}]" "click-result|vke|mysql,postgresql|${RESULT}"
           fi
