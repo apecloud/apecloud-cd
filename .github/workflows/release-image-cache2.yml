@@ -113,6 +113,11 @@ on:
         type: string
         required: false
         default: ''
+      MANIFEST_ADDONS:
+        description: "The addon chart versions from the release manifest"
+        type: string
+        required: false
+        default: ''
       CLOUD_SUFFIX:
         description: "Enable addon chart image tags that include the Cloud release version"
         type: boolean
@@ -226,6 +231,27 @@ jobs:
           fi
           echo TAG-NAME=$tag_name >> $GITHUB_OUTPUT
 
+      - name: Validate addon chart release inputs
+        if: ${{ inputs.CLOUD_SUFFIX && inputs.IMG == 'apecloud/apecloud-addon-charts' }}
+        run: |
+          if [[ -z "${{ inputs.MANIFEST_ADDONS }}" || ! "${{ inputs.VERSION }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$ ]]; then
+              echo "CLOUD_SUFFIX requires VERSION=v<major>.<minor>.<patch> and MANIFEST_ADDONS=addon:chartVersion|..."
+              exit 1
+          fi
+
+      - name: Prepare prebuilt addon charts
+        if: ${{ inputs.CLOUD_SUFFIX && inputs.IMG == 'apecloud/apecloud-addon-charts' && inputs.MANIFEST_ADDONS != '' }}
+        env:
+          CHART_ACCESS_USER: ${{ secrets.GITLAB_ACCESS_USER }}
+          CHART_ACCESS_TOKEN: ${{ secrets.GITLAB_ACCESS_TOKEN }}
+        run: |
+          bash "${{ github.workspace }}/apecloud-cd/.github/utils/prepare_addon_chart_packages.sh" \
+            "${{ inputs.MANIFEST_ADDONS }}" \
+            "${{ github.repository }}" \
+            "prebuilt-charts" \
+            ".addon-chart-metadata" \
+            "${{ inputs.ADD_ADDONS }}"
+
       - name: get image push tags
         id: get_image_push_tags
         run: |
@@ -235,11 +261,21 @@ jobs:
           
           DOCKER_REGISTRY_URL="${{ env.DOCKER_REGISTRY_URL }}"
           ALIYUN_REGISTRY_URL="${{ env.ALIYUN_REGISTRY_URL }}"
+          CLOUD_SUFFIX="${{ inputs.CLOUD_SUFFIX }}"
           
           DOCKERHUB_PUSH_TAGS="${DOCKER_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
           ALIYUN_PUSH_TAGS="${ALIYUN_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
           
-          if [[ "${IMAGE_TAG_NAME}" == "v"*"."*"."* && "${IMAGE_NAME}" == "apecloud/apecloud-addon-charts" && -d "addons" ]]; then
+          if [[ "${CLOUD_SUFFIX}" == "true" && "${IMAGE_TAG_NAME}" == "v"*"."*"."* && "${IMAGE_NAME}" == "apecloud/apecloud-addon-charts" && -d "addons" ]]; then
+              DOCKERHUB_PUSH_TAGS=""
+              ALIYUN_PUSH_TAGS=""
+              while IFS=$'\t' read -r addon_dir addon_chart_name addon_chart_version; do
+                  [[ -n "${addon_dir}" ]] || continue
+                  IMAGE_PUSH_TAG="${IMAGE_NAME}:${addon_chart_name}-${addon_chart_version}-${IMAGE_TAG_NAME}"
+                  DOCKERHUB_PUSH_TAGS="${DOCKERHUB_PUSH_TAGS:+${DOCKERHUB_PUSH_TAGS},}${DOCKER_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
+                  ALIYUN_PUSH_TAGS="${ALIYUN_PUSH_TAGS:+${ALIYUN_PUSH_TAGS},}${ALIYUN_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
+              done < .addon-chart-metadata
+          elif [[ "${IMAGE_TAG_NAME}" == "v"*"."*"."* && "${IMAGE_NAME}" == "apecloud/apecloud-addon-charts" && -d "addons" ]]; then
               add_addons="${{ inputs.ADD_ADDONS }}"
               if [[ -n "${add_addons}" && "${{ github.repository }}" == "apecloud/kubeblocks-addons" ]]; then
                   DOCKERHUB_PUSH_TAGS=""
