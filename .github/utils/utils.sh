@@ -571,6 +571,22 @@ get_kubeblocks_installer_suffix() {
     fi
 }
 
+get_cloud_addon_chart_images() {
+    local images_file="$1"
+    local source_version="$2"
+    local target_version="$3"
+
+    while IFS= read -r image; do
+        [[ "$image" == *"-${source_version}" ]] || continue
+        local image_name="${image%:*}"
+        local image_tag="${image##*:}"
+        printf '%s:%s-%s\n' \
+            "$image_name" \
+            "${image_tag%-${source_version}}" \
+            "$target_version"
+    done < "$images_file"
+}
+
 # ==================== Docker Hub deletion function ====================
 delete_docker_images_cloud() {
     local -a images=(
@@ -742,6 +758,27 @@ delete_docker_images_cloud() {
         fi
     done
     wait
+
+    if [[ -n "$IMAGES_LIST" && -f "$IMAGES_LIST" ]]; then
+        local source_version="${versions[0]}"
+        for version in "${versions[@]}"; do
+            if version_ge "$version" "v2.4.0-alpha.153"; then
+                while IFS= read -r image; do
+                    local full_image="docker.io/${image}"
+                    echo "delete $full_image"
+                    ((total_count++))
+                    if ! docker run --rm \
+                            apecloud/remove-dockerhub-tag \
+                            --user "$USER" \
+                            --password "$PASSWORD" \
+                            "$full_image"; then
+                        echo "error: failed to delete $full_image" >&2
+                        ((fail_count++))
+                    fi
+                done < <(get_cloud_addon_chart_images "$IMAGES_LIST" "$source_version" "$version")
+            fi
+        done
+    fi
 
     if [[ $fail_count -gt 0 ]]; then
         echo "$(tput -T xterm setaf 1)$fail_count/$total_count deletions failed$(tput -T xterm sgr0)"
@@ -930,6 +967,25 @@ delete_aliyun_images_generic_cloud() {
         fi
     done
     wait
+
+    if [[ -n "$IMAGES_LIST" && -f "$IMAGES_LIST" ]]; then
+        local source_version="${versions[0]}"
+        for version in "${versions[@]}"; do
+            if version_ge "$version" "v2.4.0-alpha.153"; then
+                while IFS= read -r image; do
+                    local full_image="${registry_domain}/${image}"
+                    echo "delete $full_image"
+                    ((total_count++))
+                    if ! skopeo delete \
+                            --creds "$USER:$PASSWORD" \
+                            "docker://${full_image}"; then
+                        echo "error: failed to delete ${full_image}" >&2
+                        ((fail_count++))
+                    fi
+                done < <(get_cloud_addon_chart_images "$IMAGES_LIST" "$source_version" "$version")
+            fi
+        done
+    fi
 
     if [[ $fail_count -gt 0 ]]; then
         echo "$(tput -T xterm setaf 1)$fail_count/$total_count deletions failed$(tput -T xterm sgr0)"

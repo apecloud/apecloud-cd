@@ -31,6 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       delete-version: ${{ steps.get_version.outputs.delete_version }}
+      delete-version-first: ${{ steps.get_version.outputs.delete_version_first }}
     steps:
       - name: Checkout apecloud-cd Code
         uses: actions/checkout@v4
@@ -47,8 +48,10 @@ jobs:
               DELETE_VERSION=$(bash .github/utils/utils.sh --type 48 \
                 --github-repo apecloud/apecloud)
           fi
+          DELETE_VERSION_FIRST="${DELETE_VERSION%%|*}"
           echo "delete version: $DELETE_VERSION"
           echo delete_version="$DELETE_VERSION" >> $GITHUB_OUTPUT
+          echo delete_version_first="$DELETE_VERSION_FIRST" >> $GITHUB_OUTPUT
 
   delete-release:
     permissions:
@@ -138,6 +141,19 @@ jobs:
           repository: apecloud/apecloud-cd
           ref: ${{ inputs.APECD_REF || 'main' }}
 
+      - name: Checkout apecloud
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud
+          path: apecloud
+          ref: ${{ needs.get-version.outputs.delete-version-first }}
+          token: ${{ env.GH_TOKEN }}
+
+      - name: Get addon chart images
+        run: |
+          yq e '.. | select(tag == "!!str" and test("^apecloud/apecloud-addon-charts:"))' \
+              apecloud/manifests/deploy-manifests.yaml | sort -u > addon-chart-images.txt
+
       - name: Delete DockerHub images
         run: |
           DOCKER_USER="${{ env.DOCKER_USER }}"
@@ -148,6 +164,7 @@ jobs:
               --type 50 \
               --user "${DOCKER_USER}" \
               --password "${DOCKER_PASSWORD}" \
+              --images-list "${{ github.workspace }}/addon-chart-images.txt" \
               --tag-name "${DELETE_VERSIONS}"
 
   delete-aliyun-image:
@@ -160,6 +177,19 @@ jobs:
           repository: apecloud/apecloud-cd
           path: apecloud-cd
           ref: ${{ inputs.APECD_REF || 'main' }}
+
+      - name: Checkout apecloud
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud
+          path: apecloud
+          ref: ${{ needs.get-version.outputs.delete-version-first }}
+          token: ${{ env.GH_TOKEN }}
+
+      - name: Get addon chart images
+        run: |
+          yq e '.. | select(tag == "!!str" and test("^apecloud/apecloud-addon-charts:"))' \
+              apecloud/manifests/deploy-manifests.yaml | sort -u > addon-chart-images.txt
 
       - name: Install skopeo
         run: |
@@ -175,6 +205,7 @@ jobs:
               --type 51 \
               --user "${ALIYUN_USER}" \
               --password "${ALIYUN_PASSWORD}" \
+              --images-list "${{ github.workspace }}/addon-chart-images.txt" \
               --tag-name "${DELETE_VERSIONS}"
 
   update-charts-index:
