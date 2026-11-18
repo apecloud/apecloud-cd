@@ -19,15 +19,20 @@ on:
         required: false
         default: true
       TEST_ENGINES:
-        description: "Comma-separated test engines. Empty keeps the default engine selection."
+        description: "Specify test engines. Empty keeps the default engine selection."
         type: string
         required: false
         default: ''
       CLICK_ALL:
-        description: "Pass --version all and --modes all. false keeps the launcher default."
+        description: "Test all versions and all modes. false keeps the launcher default."
         type: boolean
         required: false
         default: false
+      WEBHOOK_TYPE:
+        description: "Override the webhook type. Empty keeps the repository variable."
+        type: string
+        required: false
+        default: ''
   workflow_call:
     inputs:
       CLOUD_VERSION:
@@ -46,15 +51,20 @@ on:
         required: false
         default: true
       TEST_ENGINES:
-        description: "Comma-separated test engines. Empty keeps the default engine selection."
+        description: "Specify test engines. Empty keeps the default engine selection."
         type: string
         required: false
         default: ''
       CLICK_ALL:
-        description: "Pass --version all and --modes all. false keeps the launcher default."
+        description: "Test all versions and all modes. false keeps the launcher default."
         type: boolean
         required: false
         default: false
+      WEBHOOK_TYPE:
+        description: "Override the webhook type. Empty keeps the repository variable."
+        type: string
+        required: false
+        default: ''
 
 run-name: Cloud Installer E2e Test Version:${{ inputs.CLOUD_VERSION }}
 
@@ -716,7 +726,7 @@ jobs:
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
 
-          WEBHOOK_TYPE="${{ vars.WEBHOOK_TYPE }}"
+          WEBHOOK_TYPE="${{ inputs.WEBHOOK_TYPE || vars.WEBHOOK_TYPE }}"
           case "${WEBHOOK_TYPE}" in
             CLOUD_E2E_WEB_BOT_WEBHOOK)
               WEBHOOK_URL="${{ vars.CLOUD_E2E_WEB_BOT_WEBHOOK }}"
@@ -1077,7 +1087,7 @@ jobs:
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
 
-          WEBHOOK_TYPE="${{ vars.WEBHOOK_TYPE }}"
+          WEBHOOK_TYPE="${{ inputs.WEBHOOK_TYPE || vars.WEBHOOK_TYPE }}"
           case "${WEBHOOK_TYPE}" in
             CLOUD_E2E_WEB_BOT_WEBHOOK)
               WEBHOOK_URL="${{ vars.CLOUD_E2E_WEB_BOT_WEBHOOK }}"
