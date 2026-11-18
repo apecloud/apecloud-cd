@@ -240,15 +240,6 @@ jobs:
           ALIYUN_PUSH_TAGS="${ALIYUN_REGISTRY_URL}/${IMAGE_PUSH_TAG}"
           
           if [[ "${IMAGE_TAG_NAME}" == "v"*"."*"."* && "${IMAGE_NAME}" == "apecloud/apecloud-addon-charts" && -d "addons" ]]; then
-              if [[ "${{ inputs.CLOUD_SUFFIX }}" == "true" ]]; then
-                  source "${{ github.workspace }}/apecloud-cd/.github/utils/image_tag_released.sh"
-                  if [[ -n "${DOCKER_USER}" && -n "${DOCKER_PASSWORD}" ]]; then
-                      echo "${DOCKER_PASSWORD}" | docker login "${DOCKER_REGISTRY_URL}" --username "${DOCKER_USER}" --password-stdin
-                  fi
-                  if [[ -n "${ALIYUN_USER}" && -n "${ALIYUN_PASSWORD}" ]]; then
-                      echo "${ALIYUN_PASSWORD}" | docker login "${ALIYUN_REGISTRY_URL}" --username "${ALIYUN_USER}" --password-stdin
-                  fi
-              fi
               add_addons="${{ inputs.ADD_ADDONS }}"
               if [[ -n "${add_addons}" && "${{ github.repository }}" == "apecloud/kubeblocks-addons" ]]; then
                   DOCKERHUB_PUSH_TAGS=""
@@ -279,28 +270,6 @@ jobs:
                       fi
                       if [[ "${{ inputs.CLOUD_SUFFIX }}" == "true" ]]; then
                           IMAGE_PUSH_TAG="${IMAGE_NAME}:${addon_chart_name}-${addon_chart_version}-${IMAGE_TAG_NAME}"
-                          released_flag=0
-                          for registry_url in "${DOCKER_REGISTRY_URL}" "${ALIYUN_REGISTRY_URL}"; do
-                              if [[ "${registry_url}" == "${DOCKER_REGISTRY_URL}" && ( -z "${DOCKER_USER}" || -z "${DOCKER_PASSWORD}" ) ]]; then
-                                  continue
-                              fi
-                              if [[ "${registry_url}" == "${ALIYUN_REGISTRY_URL}" && ( -z "${ALIYUN_USER}" || -z "${ALIYUN_PASSWORD}" ) ]]; then
-                                  continue
-                              fi
-                              released_rc=0
-                              image_tag_released "${registry_url}/${IMAGE_PUSH_TAG}" || released_rc=$?
-                              if [[ "${released_rc}" -eq 0 ]]; then
-                                  echo "$(tput -T xterm setaf 1)::error title=Image ${IMAGE_PUSH_TAG} has been released and cannot be overwritten.$(tput -T xterm sgr0)"
-                                  released_flag=1
-                                  break
-                              fi
-                              if [[ "${released_rc}" -ne 1 ]]; then
-                                  exit 1
-                              fi
-                          done
-                          if [[ "${released_flag}" -eq 1 ]]; then
-                              continue
-                          fi
                       else
                           IMAGE_PUSH_TAG="${IMAGE_NAME}:${addon_chart_name}-${addon_chart_version}"
                           releases_notes_file="addons/${addon_dir}/releases_notes.yaml"
@@ -332,7 +301,7 @@ jobs:
                       fi
                   fi
               done
-          elif [[ "${{ inputs.CLOUD_SUFFIX }}" != "true" && "${IMAGE_NAME}" == "apecloud/apecloud-addon-charts" && -d "addons" ]]; then
+          elif [[ "${IMAGE_NAME}" == "apecloud/apecloud-addon-charts" && -d "addons" ]]; then
               addon_chart_name="${IMAGE_TAG_NAME%-[0-9]*}"
               addon_chart_file="addons/${addon_chart_name}/Chart.yaml"
               if [[ -f "${addon_chart_file}" ]]; then
