@@ -10,6 +10,10 @@ PREBUILT_DIR=${3:-prebuilt-charts}
 METADATA_FILE=${4:-.addon-chart-metadata}
 ADD_ADDONS_FILTER=${5:-}
 
+log() {
+    printf '[prepare-addon-chart-packages] %s\n' "$*"
+}
+
 normalize_version() {
     local version=${1:-}
     echo "${version#v}"
@@ -58,9 +62,11 @@ case "${REPOSITORY}" in
 esac
 
 if [[ -z "${MANIFEST_ADDONS}" ]]; then
+    log "no addon specs; nothing to prepare"
     exit 0
 fi
 
+log "repository=${REPOSITORY} prebuilt_dir=${PREBUILT_DIR} metadata=${METADATA_FILE}"
 mkdir -p "${PREBUILT_DIR}"
 : > "${METADATA_FILE}"
 : > "${PREBUILT_DIR}/.chart-names"
@@ -78,22 +84,27 @@ for addon_spec in "${addon_specs[@]}"; do
     if [[ "${addon_version_and_enterprise}" == *:* ]]; then
         has_enterprise_flag=1
         if [[ "${REPOSITORY}" == "apecloud/apecloud-addons" && "${is_enterprise}" != "1" ]]; then
+            log "skip ${addon_spec}: non-enterprise addon for ${REPOSITORY}"
             continue
         fi
         if [[ "${REPOSITORY}" == "apecloud/kubeblocks-addons" && "${is_enterprise}" != "0" ]]; then
+            log "skip ${addon_spec}: enterprise addon for ${REPOSITORY}"
             continue
         fi
     fi
     if [[ "${REPOSITORY}" == "apecloud/kubeblocks-addons" && -n "${ADD_ADDONS_FILTER}" ]]; then
         case "|${ADD_ADDONS_FILTER}|" in
             *"|${addon_name}|"*) ;;
-            *) continue ;;
+            *)
+                log "skip ${addon_spec}: excluded by ADD_ADDONS filter"
+                continue
+                ;;
         esac
     fi
     chart_dir=""
     if ! chart_dir=$(find_chart_dir "${addon_name}"); then
         if [[ "${has_enterprise_flag}" -eq 0 ]]; then
-            echo "skip ${addon_name}: not found in ${REPOSITORY}"
+            log "skip ${addon_name}: not found in ${REPOSITORY}"
             continue
         fi
         chart_name="${addon_name}"
@@ -108,12 +119,15 @@ for addon_spec in "${addon_specs[@]}"; do
         expected_version=$(normalize_version "${expected_version}")
     fi
 
+    log "resolve ${addon_spec}: chart=${chart_name} current=${current_version:-<missing>} expected=${expected_version} source=${chart_dir:-remote}"
     if [[ "${current_version}" == "${expected_version}" ]]; then
+        log "reuse checked-out chart ${chart_name}:${expected_version}"
         printf '%s\t%s\t%s\n' "${addon_name}" "${chart_name}" "${expected_version}" >> "${METADATA_FILE}"
         continue
     fi
 
     if [[ "${repo_ready}" -eq 0 ]]; then
+        log "add and update chart repository ${repo_name}"
         helm repo add "${repo_name}" "${repo_url}" \
             --username "${CHART_ACCESS_USER}" \
             --password "${CHART_ACCESS_TOKEN}" \
@@ -125,6 +139,7 @@ for addon_spec in "${addon_specs[@]}"; do
     package_path=""
     for attempt in $(seq 1 10); do
         download_dir=$(mktemp -d)
+        log "download ${repo_name}/${chart_name}:${expected_version} (attempt ${attempt}/10)"
         if helm pull "${repo_name}/${chart_name}" \
             --version "${expected_version}" \
             --destination "${download_dir}"; then
@@ -137,6 +152,7 @@ for addon_spec in "${addon_specs[@]}"; do
                 rm -rf "${download_dir}"
                 exit 1
             fi
+            log "downloaded $(basename "${package_path}") for ${addon_name}:${expected_version}"
             mv "${package_path}" "${PREBUILT_DIR}/"
             printf '%s\n' "${chart_name}" >> "${PREBUILT_DIR}/.chart-names"
             if [[ -n "${chart_dir}" ]]; then
@@ -155,5 +171,6 @@ for addon_spec in "${addon_specs[@]}"; do
         echo "failed to download ${chart_name}:${expected_version} after 10 retries" >&2
         exit 1
     fi
+    log "prepared ${addon_name}:${expected_version} -> ${PREBUILT_DIR}/${expected_package}"
     printf '%s\t%s\t%s\n' "${addon_name}" "${chart_name}" "${expected_version}" >> "${METADATA_FILE}"
 done
