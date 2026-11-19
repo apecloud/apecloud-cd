@@ -786,7 +786,7 @@ jobs:
 
   full-engine-test:
     needs: [ send-message, installer-test ]
-    if: ${{ !cancelled() && needs.send-message.result != 'skipped' && (needs.installer-test.result == 'success' || (needs.installer-test.result == 'skipped' && inputs.REDEPLOY == false)) }}
+    if: ${{ !cancelled() && inputs.CLICK_ALL && needs.send-message.result != 'skipped' && (needs.installer-test.result == 'success' || (needs.installer-test.result == 'skipped' && inputs.REDEPLOY == false)) }}
     name: full-mysql-postgresql
     runs-on: ubuntu-latest
     timeout-minutes: 360
@@ -948,7 +948,7 @@ jobs:
 
   full-click-result:
     needs: [ full-engine-test ]
-    if: ${{ always() && !cancelled() && needs.full-engine-test.result != 'skipped' }}
+    if: ${{ always() && inputs.CLICK_ALL && !cancelled() && needs.full-engine-test.result != 'skipped' }}
     name: full-click-result
     runs-on: ubuntu-latest
     timeout-minutes: 360
