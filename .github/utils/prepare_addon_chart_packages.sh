@@ -69,10 +69,19 @@ repo_url="https://jihulab.com/api/v4/projects/${project_id}/packages/helm/stable
 repo_ready=0
 
 IFS='|' read -ra addon_specs <<< "${MANIFEST_ADDONS}"
-found_chart_count=0
 for addon_spec in "${addon_specs[@]}"; do
     addon_name="${addon_spec%%:*}"
-    expected_version="${addon_spec#*:}"
+    addon_version_and_enterprise="${addon_spec#*:}"
+    expected_version="${addon_version_and_enterprise%%:*}"
+    is_enterprise="${addon_version_and_enterprise#*:}"
+    if [[ "${addon_version_and_enterprise}" == *:* ]]; then
+        if [[ "${REPOSITORY}" == "apecloud/apecloud-addons" && "${is_enterprise}" != "1" ]]; then
+            continue
+        fi
+        if [[ "${REPOSITORY}" == "apecloud/kubeblocks-addons" && "${is_enterprise}" != "0" ]]; then
+            continue
+        fi
+    fi
     if [[ "${REPOSITORY}" == "apecloud/kubeblocks-addons" && -n "${ADD_ADDONS_FILTER}" ]]; then
         case "|${ADD_ADDONS_FILTER}|" in
             *"|${addon_name}|"*) ;;
@@ -83,8 +92,6 @@ for addon_spec in "${addon_specs[@]}"; do
         echo "skip ${addon_name}: not found in ${REPOSITORY}"
         continue
     fi
-    found_chart_count=$((found_chart_count + 1))
-
     chart_name=$(chart_field "${chart_dir}" name)
     current_version=$(normalize_version "$(chart_field "${chart_dir}" version)")
     if [[ "${addon_spec}" != *:* ]]; then
@@ -133,8 +140,3 @@ for addon_spec in "${addon_specs[@]}"; do
     fi
     printf '%s\t%s\t%s\n' "$(basename "${chart_dir}")" "${chart_name}" "${expected_version}" >> "${METADATA_FILE}"
 done
-
-if [[ "${found_chart_count}" -eq 0 ]]; then
-    echo "no manifest addon belongs to ${REPOSITORY}" >&2
-    exit 1
-fi
