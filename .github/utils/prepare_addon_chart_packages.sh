@@ -74,7 +74,9 @@ for addon_spec in "${addon_specs[@]}"; do
     addon_version_and_enterprise="${addon_spec#*:}"
     expected_version="${addon_version_and_enterprise%%:*}"
     is_enterprise="${addon_version_and_enterprise#*:}"
+    has_enterprise_flag=0
     if [[ "${addon_version_and_enterprise}" == *:* ]]; then
+        has_enterprise_flag=1
         if [[ "${REPOSITORY}" == "apecloud/apecloud-addons" && "${is_enterprise}" != "1" ]]; then
             continue
         fi
@@ -88,12 +90,18 @@ for addon_spec in "${addon_specs[@]}"; do
             *) continue ;;
         esac
     fi
+    chart_dir=""
     if ! chart_dir=$(find_chart_dir "${addon_name}"); then
-        echo "skip ${addon_name}: not found in ${REPOSITORY}"
-        continue
+        if [[ "${has_enterprise_flag}" -eq 0 ]]; then
+            echo "skip ${addon_name}: not found in ${REPOSITORY}"
+            continue
+        fi
+        chart_name="${addon_name}"
+        current_version=""
+    else
+        chart_name=$(chart_field "${chart_dir}" name)
+        current_version=$(normalize_version "$(chart_field "${chart_dir}" version)")
     fi
-    chart_name=$(chart_field "${chart_dir}" name)
-    current_version=$(normalize_version "$(chart_field "${chart_dir}" version)")
     if [[ "${addon_spec}" != *:* ]]; then
         expected_version="${current_version}"
     else
@@ -101,7 +109,7 @@ for addon_spec in "${addon_specs[@]}"; do
     fi
 
     if [[ "${current_version}" == "${expected_version}" ]]; then
-        printf '%s\t%s\t%s\n' "$(basename "${chart_dir}")" "${chart_name}" "${expected_version}" >> "${METADATA_FILE}"
+        printf '%s\t%s\t%s\n' "${addon_name}" "${chart_name}" "${expected_version}" >> "${METADATA_FILE}"
         continue
     fi
 
@@ -123,8 +131,28 @@ for addon_spec in "${addon_specs[@]}"; do
             package_path=$(find "${download_dir}" -maxdepth 1 -type f -name '*.tgz' -print -quit)
         fi
         if [[ -n "${package_path}" ]]; then
+            expected_package="${chart_name}-${expected_version}.tgz"
+            if [[ "$(basename "${package_path}")" != "${expected_package}" ]]; then
+                echo "downloaded package $(basename "${package_path}") does not match ${expected_package}" >&2
+                rm -rf "${download_dir}"
+                exit 1
+            fi
+            package_chart_version=""
+            if ! package_chart_version=$(tar -xOzf "${package_path}" '*/Chart.yaml' 2>/dev/null | yq e '.version' -); then
+                echo "failed to read chart version from ${package_path}" >&2
+                rm -rf "${download_dir}"
+                exit 1
+            fi
+            if [[ "$(normalize_version "${package_chart_version}")" != "${expected_version}" ]]; then
+                echo "downloaded package ${package_path} contains version ${package_chart_version}, expected ${expected_version}" >&2
+                rm -rf "${download_dir}"
+                exit 1
+            fi
             mv "${package_path}" "${PREBUILT_DIR}/"
             printf '%s\n' "${chart_name}" >> "${PREBUILT_DIR}/.chart-names"
+            if [[ -n "${chart_dir}" ]]; then
+                mv "${chart_dir}" "${PREBUILT_DIR}/.source-$(basename "${chart_dir}")"
+            fi
             rm -rf "${download_dir}"
             break
         fi
@@ -138,5 +166,5 @@ for addon_spec in "${addon_specs[@]}"; do
         echo "failed to download ${chart_name}:${expected_version} after 10 retries" >&2
         exit 1
     fi
-    printf '%s\t%s\t%s\n' "$(basename "${chart_dir}")" "${chart_name}" "${expected_version}" >> "${METADATA_FILE}"
+    printf '%s\t%s\t%s\n' "${addon_name}" "${chart_name}" "${expected_version}" >> "${METADATA_FILE}"
 done
