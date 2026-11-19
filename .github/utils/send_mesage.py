@@ -1697,6 +1697,52 @@ def send_kbcli_message(url_v, result_v, title_v):
     res = requests.post(url=url_v, data=body, headers=headers)
     print(res.text)
 
+
+def send_installer_full_message(url_v, result_v, title_v):
+    """Send full Click rows with counts and the first failed case."""
+    print("send full installer message")
+    header = [
+        ("**Type**", 2),
+        ("**Pass|Fail|Skip**", 2),
+        ("**Version**", 1),
+        ("**Mode**", 2),
+        ("**First Failed Case**", 4),
+        ("**Result**", 1),
+    ]
+    elements = [{
+        "tag": "column_set",
+        "flex_mode": "none",
+        "background_style": "grey",
+        "columns": [_md_col(content, weight) for content, weight in header],
+    }]
+    for raw in result_v.split("##"):
+        fields = raw.split("|")
+        if len(fields) < 9:
+            continue
+        status = fields[7]
+        color = "green" if "[PASSED]" in status else "red" if "[FAILED]" in status else "grey"
+        url = fields[8]
+        type_cell = f"<a href='{url}'>{fields[0]}</a>" if url else fields[0]
+        count_cell = f"<font color='green'>{fields[1]}</font> | " \
+            f"<font color='red'>{fields[2]}</font> | " \
+            f"<font color='grey'>{fields[3]}</font>"
+        case_cell = fields[6] if fields[6] != "-" else ""
+        elements.append({
+            "tag": "column_set",
+            "flex_mode": "none",
+            "background_style": "default",
+            "columns": [
+                _md_col(type_cell, 2),
+                _md_col(count_cell, 2),
+                _md_col(f"<font color='{color}'>{fields[4]}</font>", 1),
+                _md_col(f"<font color='{color}'>{fields[5]}</font>", 2),
+                _md_col(f"<font color='red'>{case_cell}</font>", 4),
+                _md_col(f"<font color='{color}'>{status}</font>", 1),
+            ],
+        })
+    body = _serialize_feishu_card(title_v, elements)
+    _post_feishu_body(url_v, body)
+
 FEISHU_HARD_LIMIT_BYTES = 30_000
 FEISHU_TARGET_BYTES = int(os.getenv("FEISHU_TARGET_BYTES", "27000"))
 FEISHU_MAX_RETRIES = int(os.getenv("FEISHU_MAX_RETRIES", "3"))
@@ -2054,6 +2100,8 @@ if __name__ == '__main__':
         send_installer_message(url, result, title)
     elif send_type == "installer-version":
         send_installer_message(url, result, title, version_column=True)
+    elif send_type == "installer-full":
+        send_installer_full_message(url, result, title)
     elif send_type == "ginkgo":
         send_ginkgo_message(url, result, title)
     elif send_type == "summary":

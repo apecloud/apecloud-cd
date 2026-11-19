@@ -234,10 +234,18 @@ jobs:
       - name: Validate addon chart release inputs
         if: ${{ inputs.CLOUD_SUFFIX && inputs.IMG == 'apecloud/apecloud-addon-charts' }}
         run: |
-          if [[ -z "${{ inputs.MANIFEST_ADDONS }}" || ! "${{ inputs.VERSION }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$ ]]; then
-              echo "CLOUD_SUFFIX requires VERSION=v<major>.<minor>.<patch> and MANIFEST_ADDONS=addon:chartVersion|..."
+          manifest_addons="${{ inputs.MANIFEST_ADDONS }}"
+          if [[ -z "${manifest_addons}" || ! "${{ inputs.VERSION }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$ ]]; then
+              echo "CLOUD_SUFFIX requires VERSION=v<major>.<minor>.<patch> and MANIFEST_ADDONS=addon:chartVersion:enterpriseFlag|..."
               exit 1
           fi
+          IFS='|' read -ra addon_specs <<< "${manifest_addons}"
+          for addon_spec in "${addon_specs[@]}"; do
+              if [[ ! "${addon_spec}" =~ ^[^:|]+:[^:|]+:[01]$ ]]; then
+                  echo "invalid addon spec: ${addon_spec}; expected addon:chartVersion:enterpriseFlag where enterpriseFlag is 0 or 1"
+                  exit 1
+              fi
+          done
 
       - name: Prepare prebuilt addon charts
         if: ${{ inputs.CLOUD_SUFFIX && inputs.IMG == 'apecloud/apecloud-addon-charts' && inputs.MANIFEST_ADDONS != '' }}

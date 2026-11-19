@@ -1066,8 +1066,15 @@ jobs:
               engines="${engines//$'\n'/}"
           fi
           printf '%s\n' "${engines}" > click-engines.txt
+          full_rows=""
+          if [[ -s "${log_file}" && -f "${parser}" ]] && grep -q 'def parse_click_full_results' "${parser}"; then
+              full_rows="$(python3 "${parser}" --full "${log_file}" || true)"
+          fi
+          printf '%s\n' "${full_rows}" > click-full-results.txt
           echo "==================== full click engine results ===================="
           echo "${engines:-<none>}"
+          echo "==================== full click detailed results ================="
+          echo "${full_rows:-<none>}"
           [[ "${result}" == "[PASSED]" ]]
 
       - name: send full test result message
@@ -1079,10 +1086,10 @@ jobs:
           else
               RESULT="[FAILED]"
           fi
-          if [[ -f click-engines.txt ]]; then
-              CLICK_ENGINES="$(tr -d '\n' < click-engines.txt)"
+          if [[ -f click-full-results.txt ]]; then
+              FULL_ROWS="$(cat click-full-results.txt)"
           else
-              CLICK_ENGINES=""
+              FULL_ROWS=""
           fi
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
@@ -1100,46 +1107,39 @@ jobs:
           send_card() {
               local title="$1"
               local result="$2"
+              local send_type="${3:-installer-version}"
               echo "TEST_RESULT:${result}"
-              result=$( bash .github/utils/utils.sh --type 38 \
-                  --github-repo "${{ github.repository }}" \
-                  --github-token "${{ env.GH_TOKEN }}" \
-                  --test-result "${result}" \
-                  --run-id "$GITHUB_RUN_ID" )
+              if [[ "${send_type}" != "installer-full" ]]; then
+                  result=$( bash .github/utils/utils.sh --type 38 \
+                      --github-repo "${{ github.repository }}" \
+                      --github-token "${{ env.GH_TOKEN }}" \
+                      --test-result "${result}" \
+                      --run-id "$GITHUB_RUN_ID" )
+              fi
               echo "TEST_RESULT:${result}"
               python3 .github/utils/send_mesage.py \
-                  --send-type installer-version \
+                  --send-type "${send_type}" \
                   --url "${WEBHOOK_URL}" \
                   --title "${title}" \
                   --result "${result}"
           }
 
-          sent=0
-          if [[ -n "${CLICK_ENGINES}" && -f .github/utils/click_engine_results.py ]]; then
-              while IFS=$'\t' read -r group rows; do
-                  [[ -z "${group}" || -z "${rows}" ]] && continue
-                  GROUP_RESULT=""
-                  IFS=';' read -ra click_rows <<< "${rows}"
-                  for row in "${click_rows[@]}"; do
-                      [[ -z "${row}" ]] && continue
-                      engine="${row%%|*}"
-                      detail="${row#*|}"
-                      case "${engine}" in
-                        *'$'*|*' '*|*'`'*|*'"'*|*"'"*|*'|'*|*';'*|*'>'*|*'<'*|*')'*|*'('*|*'&'*|*\\*) continue ;;
-                        '') continue ;;
-                      esac
-                      [[ "${detail}" =~ ^\[(PASSED|FAILED|SKIPPED)\]$ ]] || continue
-                      if [[ -z "${GROUP_RESULT}" ]]; then
-                          GROUP_RESULT="click-result|vke|${engine}|${detail}"
-                      else
-                          GROUP_RESULT="${GROUP_RESULT}##click-result|vke|${engine}|${detail}"
-                      fi
-                  done
-                  [[ -z "${GROUP_RESULT}" ]] && continue
-                  send_card "[${CLOUD_VERSION}] Web Click Tests 全量 ${group} [${date_ret}]" "${GROUP_RESULT}"
-                  sent=1
-              done < <(python3 .github/utils/click_engine_results.py --group "${CLICK_ENGINES}")
-          fi
-          if [[ "${sent}" -eq 0 ]]; then
+          FULL_JOB_URL="$(TEST_RESULT=full-click-result bash .github/utils/utils.sh --type 44 \
+              --github-repo "${{ github.repository }}" \
+              --github-token "${{ env.GH_TOKEN }}" \
+              --run-id "$GITHUB_RUN_ID" | tail -n 1)"
+          FULL_RESULT=""
+          while IFS= read -r row; do
+              [[ -z "${row}" ]] && continue
+              row="${row}|${FULL_JOB_URL}"
+              if [[ -z "${FULL_RESULT}" ]]; then
+                  FULL_RESULT="${row}"
+              else
+                  FULL_RESULT="${FULL_RESULT}##${row}"
+              fi
+          done <<< "${FULL_ROWS}"
+          if [[ -n "${FULL_RESULT}" ]]; then
+              send_card "[${CLOUD_VERSION}] Web Click Tests 全量 [${date_ret}]" "${FULL_RESULT}" "installer-full"
+          else
               send_card "[${CLOUD_VERSION}] Web Click Tests 全量 mysql,postgresql [${date_ret}]" "click-result|vke|mysql,postgresql|${RESULT}"
           fi

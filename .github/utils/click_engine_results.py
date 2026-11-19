@@ -17,6 +17,17 @@ SPEC_RE = re.compile(rf"^({ENGINE})\s+(.+?)\s+(PASSED|FAILED|NO-RUN)\s+\d+\s*$")
 LOGIN_FAIL_RE = re.compile(rf"登录失败 \(({ENGINE})/([^/\s]+)/([^)\s]+)\)")
 SAFE_RE = re.compile(r"^[\w./|;\[\]-]*$")
 _VERSION_RE = re.compile(r"v?\d+(?:\.\d+)+(?:[-+][A-Za-z0-9.]+)*")
+MODE_SUMMARY_RE = re.compile(
+    r".*\[([^/\]]+)/([^\]]+)\].*?总计\s*(\d+)\s+通过\s*(\d+)\s+"
+    r"失败\s*(\d+)\s+异常\s*(\d+)\s+跳过\s*(\d+)"
+)
+REPORT_HEADER_RE = re.compile(
+    r"^([A-Za-z0-9_.-]+)/([^/\s]+)/([^\s]+)\s+failed=(\d+)"
+)
+REPORT_CASE_RE = re.compile(
+    r"^\s+(TC-[^|]+?)\s*\|\s*[^|]+\|\s*(.+?)\s*\|\s*(FAIL|BROKEN)\s*$"
+)
+MODE_ALIASES = {"主备": "replication", "单机": "standalone", "默认": "default", "集群版": "cluster"}
 
 ENGINE_GROUPS = (
     ("Relational", (
@@ -199,10 +210,102 @@ def group_click_rows(text):
     return [(name, ";".join(buckets[name])) for name in order if buckets[name]]
 
 
+def parse_click_full_results(text):
+    """Return engine|pass|fail|skip|version|mode|case|status rows."""
+    summaries = {}
+    order = []
+    first_failed = {}
+    current_report = None
+
+    for raw in text.splitlines():
+        line = raw.strip("\r")
+        summary = MODE_SUMMARY_RE.match(line)
+        if summary:
+            engine, mode, total, passed, failed, broken, skipped = summary.groups()
+            key = (engine.lower(), mode)
+            summaries[key] = {
+                "total": int(total),
+                "passed": int(passed),
+                "failed": int(failed) + int(broken),
+                "skipped": int(skipped),
+                "version": "",
+            }
+            if key not in order:
+                order.append(key)
+            current_report = None
+            continue
+
+        report = REPORT_HEADER_RE.match(line)
+        if report:
+            engine, mode, version, _failed = report.groups()
+            key = (engine.lower(), mode)
+            item = summaries.setdefault(key, {
+                "total": 0, "passed": 0, "failed": 0, "skipped": 0,
+                "version": version,
+            })
+            item["version"] = version
+            if key not in order:
+                order.append(key)
+            current_report = key
+            continue
+
+        case = REPORT_CASE_RE.match(line)
+        if case and current_report and current_report not in first_failed:
+            case_id, name, _status = case.groups()
+            first_failed[current_report] = f"{case_id.strip()}: {name.strip()}"
+
+    for label in parse_click_engines(text).split(";"):
+        if not label or "|" not in label:
+            continue
+        engine_mode, status = label.split("|", 1)
+        parts = engine_mode.split("/")
+        engine = parts[0].lower()
+        version_at = next((i for i, part in enumerate(parts[1:], 1)
+                           if _VERSION_RE.fullmatch(part)), None)
+        if version_at is None:
+            mode, version = "/".join(parts[1:]), ""
+        else:
+            mode, version = "/".join(parts[1:version_at]), "/".join(parts[version_at:])
+        mode = MODE_ALIASES.get(mode, mode)
+        key = (engine, mode)
+        item = summaries.setdefault(key, {
+            "total": 0, "passed": 0, "failed": 0, "skipped": 0,
+            "version": version,
+        })
+        item["version"] = item["version"] or version
+        if not item["total"]:
+            item["status"] = status
+        if key not in order:
+            order.append(key)
+
+    rows = []
+    for key in order:
+        engine, mode = key
+        item = summaries[key]
+        status = item.get("status")
+        if not status:
+            status = "[FAILED]" if item["failed"] else "[PASSED]" if item["passed"] else "[SKIPPED]"
+        rows.append("|".join((
+            engine,
+            str(item["passed"]),
+            str(item["failed"]),
+            str(item["skipped"]),
+            item["version"],
+            mode,
+            first_failed.get(key, "-"),
+            status,
+        )))
+    return "\n".join(rows)
+
+
 def main(argv):
     if len(argv) == 3 and argv[1] == "--group":
         for name, rows in group_click_rows(argv[2]):
             print(f"{name}\t{rows}")
+        return 0
+    if len(argv) == 3 and argv[1] == "--full":
+        with open(argv[2], encoding="utf-8", errors="replace") as handle:
+            print(parse_click_full_results(handle.read()))
         return 0
     if len(argv) != 2:
         print("usage: click_engine_results.py <pod-log>", file=sys.stderr)
@@ -320,6 +423,15 @@ DONE kafka (1 mode(s)) ver=3.9.0 exit=2 total=27 pass=24 fail=0 skip=3
     ]
     assert sum(len(members) for _name, members in ENGINE_GROUPS) == 44
     assert group_click_rows("") == []
+    full = """
+[MySQL/standalone] 完成 | 10s | 总计10 通过1 失败1 异常0 跳过8
+===== CLICK-REPORTS =====
+mysql/standalone/8.0.46 failed=1 broken=0
+  TC-ACCT-003 | P0 | 创建账号 | FAIL
+"""
+    assert parse_click_full_results(full) == (
+        "mysql|1|1|8|8.0.46|standalone|TC-ACCT-003: 创建账号|[FAILED]"
+    )
     print("ok")
 
 
