@@ -406,6 +406,30 @@ jobs:
               --ref-name "${REF_NAME}" \
               --is-ent "${IS_ERTERPRISE}"
 
+      - name: Validate prebuilt addon chart build context
+        if: ${{ inputs.CLOUD_SUFFIX && inputs.IMG == 'apecloud/apecloud-addon-charts' && inputs.MANIFEST_ADDONS != '' }}
+        shell: bash
+        run: |
+          set -o errexit
+          set -o nounset
+          set -o pipefail
+          [[ -f prebuilt-charts/.chart-names ]] || {
+              echo "missing prebuilt-charts/.chart-names" >&2
+              exit 1
+          }
+          while IFS=$'\t' read -r addon_name chart_name chart_version; do
+              [[ -n "${chart_name}" ]] || continue
+              if ! grep -Fxq "${chart_name}" prebuilt-charts/.chart-names; then
+                  continue
+              fi
+              package_path="prebuilt-charts/${chart_name}-${chart_version}.tgz"
+              if [[ ! -s "${package_path}" ]]; then
+                  echo "missing prebuilt chart in Docker build context: ${package_path}" >&2
+                  exit 1
+              fi
+              echo "Docker build context includes ${package_path} ($(wc -c < "${package_path}") bytes)"
+          done < .addon-chart-metadata
+
       - if: ${{ env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
         name: Login to Docker Hub
         uses: docker/login-action@v2
