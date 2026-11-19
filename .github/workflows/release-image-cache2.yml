@@ -199,18 +199,6 @@ jobs:
         with:
           poetry-version: "${{ inputs.POETRY_VERSION }}"
 
-      - name: Setup Python specify version
-        if: inputs.PYTHON_VERSION
-        uses: actions/setup-python@v4
-        with:
-          python-version: "${{ inputs.PYTHON_VERSION }}"
-
-      - name: Setup Poetry specify version
-        if: inputs.POETRY_VERSION
-        uses: Gr1N/setup-poetry@v8
-        with:
-          poetry-version: "${{ inputs.POETRY_VERSION }}"
-
       - name: git config
         if: inputs.GIT_CONFIG
         run: |
@@ -292,7 +280,6 @@ jobs:
               fi
               for addon_dir in $(ls addons); do
                   if [[ -n "${add_addons}" && "${{ github.repository }}" == "apecloud/kubeblocks-addons" ]]; then
-                      echo "add addon: ${add_addons}"
                       add_addons_flag=0
                       for add_addon in $(echo "$add_addons" | sed 's/|/ /g'); do
                           if [[ "${addon_dir}" == "${add_addon}" ]]; then
@@ -380,7 +367,6 @@ jobs:
       - name: Set registry and repository ${{ env.DOCKER_REGISTRY_URL }}
         if: ${{ (inputs.IMG == 'apecloud/apecloud-charts' || inputs.IMG == 'apecloud/apecloud-addon-charts') && env.DOCKER_USER != '' && env.DOCKER_PASSWORD != '' }}
         run: |
-          echo "set addons chart registry to apecloud and repogistory to ${{ env.DOCKER_REGISTRY_URL }}"
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
             "${{ env.DOCKER_REGISTRY_URL }}" "addons"
 
@@ -436,7 +422,6 @@ jobs:
       - name: Set registry and repository ${{ env.ALIYUN_REGISTRY_URL }}
         if: ${{ (inputs.IMG == 'apecloud/apecloud-charts' || inputs.IMG == 'apecloud/apecloud-addon-charts') && env.ALIYUN_USER != '' && env.ALIYUN_PASSWORD != '' }}
         run: |
-          echo "set addons chart registry to apecloud and repogistory to ${{ env.ALIYUN_REGISTRY_URL }}"
           bash ${{ github.workspace }}/apecloud-cd/.github/utils/set_registry_and_repo.sh \
             "${{ env.ALIYUN_REGISTRY_URL }}" "addons"
 
