@@ -465,7 +465,7 @@ jobs:
     uses: ./.github/workflows/feishui-message.yml
     with:
       TYPE: "2"
-      CONTENT: "release ${{ github.repository }} apecloud-addon-charts ${{ inputs.VERSION }} error"
+      CONTENT: "release ${{ github.event.repository.name }} apecloud-addon-charts image ${{ inputs.VERSION }} error"
       APECD_REF: ${{ inputs.APECD_REF }}
       BOT_TYPE: "specify"
       BOT_WEBHOOK: "${{ vars.CICD_WEBHOOK }}"

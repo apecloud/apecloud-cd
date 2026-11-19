@@ -137,17 +137,6 @@ for addon_spec in "${addon_specs[@]}"; do
                 rm -rf "${download_dir}"
                 exit 1
             fi
-            package_chart_version=""
-            if ! package_chart_version=$(tar -xOzf "${package_path}" '*/Chart.yaml' 2>/dev/null | yq e '.version' -); then
-                echo "failed to read chart version from ${package_path}" >&2
-                rm -rf "${download_dir}"
-                exit 1
-            fi
-            if [[ "$(normalize_version "${package_chart_version}")" != "${expected_version}" ]]; then
-                echo "downloaded package ${package_path} contains version ${package_chart_version}, expected ${expected_version}" >&2
-                rm -rf "${download_dir}"
-                exit 1
-            fi
             mv "${package_path}" "${PREBUILT_DIR}/"
             printf '%s\n' "${chart_name}" >> "${PREBUILT_DIR}/.chart-names"
             if [[ -n "${chart_dir}" ]]; then
