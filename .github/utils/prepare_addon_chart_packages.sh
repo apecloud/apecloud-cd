@@ -14,6 +14,23 @@ log() {
     printf '[prepare-addon-chart-packages] %s\n' "$*"
 }
 
+validate_prebuilt_packages() {
+    local addon_name chart_name chart_version package_path
+    [[ -f "${PREBUILT_DIR}/.chart-names" ]] || return 0
+
+    while IFS=$'\t' read -r addon_name chart_name chart_version; do
+        [[ -n "${chart_name}" ]] || continue
+        if grep -Fxq "${chart_name}" "${PREBUILT_DIR}/.chart-names"; then
+            package_path="${PREBUILT_DIR}/${chart_name}-${chart_version}.tgz"
+            if [[ ! -f "${package_path}" ]]; then
+                echo "missing prebuilt package for ${addon_name}: ${package_path}" >&2
+                return 1
+            fi
+            log "verified prebuilt package ${package_path}"
+        fi
+    done < "${METADATA_FILE}"
+}
+
 normalize_version() {
     local version=${1:-}
     echo "${version#v}"
@@ -174,3 +191,5 @@ for addon_spec in "${addon_specs[@]}"; do
     log "prepared ${addon_name}:${expected_version} -> ${PREBUILT_DIR}/${expected_package}"
     printf '%s\t%s\t%s\n' "${addon_name}" "${chart_name}" "${expected_version}" >> "${METADATA_FILE}"
 done
+
+validate_prebuilt_packages
