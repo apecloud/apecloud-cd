@@ -309,6 +309,7 @@ check_addon_charts_cloud_tag() {
             continue
         fi
         if ! is_chart_enabled "$chart_name"; then
+            echo "$(tput -T xterm setaf 3)Skip apecloud-addons-charts image check for ${chart_name}, enable is false in deploy-values.yaml$(tput -T xterm sgr0)"
             continue
         fi
         if [[ "$chart_name" == "apecloud-mysql" || "$chart_name" == "mogdb" || "$chart_name" == "greatsql" ]]; then
@@ -377,6 +378,7 @@ check_addon_charts_images() {
         fi
 
         if ! is_chart_enabled "$chart_name"; then
+            echo "$(tput -T xterm setaf 3)Skip apecloud-addons-charts image check for ${chart_name}, enable is false in deploy-values.yaml$(tput -T xterm sgr0)"
             continue
         fi
 
@@ -388,8 +390,8 @@ check_addon_charts_images() {
         for chart_version in $(echo "$chart_versions" | sed 's/|/ /g'); do
             engine_type=$(yq e "."${chart_name}"[${chart_index}].type"  ${MANIFESTS_FILE})
             if [[ "${engine_type}" == "engine" ]]; then
-            addon_charts_image="apecloud/apecloud-addon-charts:${chart_name}-${chart_version}"
-            addon_charts_images="${addon_charts_images}|${addon_charts_image}"
+                addon_charts_image="apecloud/apecloud-addon-charts:${chart_name}-${chart_version}"
+                addon_charts_images="${addon_charts_images}|${addon_charts_image}"
             fi
             chart_index=$(( $chart_index + 1 ))
         done
@@ -410,7 +412,8 @@ check_addon_charts_images() {
 
             if [[ $check_flag -eq 0 ]]; then
                 check_flag_all=1
-                check_result_tmp="$(tput -T xterm setaf 1)Not found ${chart_name_tmp} ${chart_version_tmp} image:$repository in manifests file:${MANIFESTS_FILE}$(tput -T xterm sgr0)"
+                # Use specific chart info in error for better debugging
+                check_result_tmp="$(tput -T xterm setaf 1)Not found apecloud-addons-charts image:${repository} (from enabled addon) in manifests file:${MANIFESTS_FILE}$(tput -T xterm sgr0)"
                 echo "${check_result_tmp}"
                 CHECK_RESULTS="$(cat check_manifest_result)"
                 if [[ "${CHECK_RESULTS}" != *"${check_result_tmp}"* ]]; then
