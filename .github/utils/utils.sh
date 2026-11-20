@@ -762,7 +762,7 @@ delete_docker_images_cloud() {
     if [[ -n "$IMAGES_LIST" && -f "$IMAGES_LIST" ]]; then
         local source_version="${versions[0]}"
         for version in "${versions[@]}"; do
-            if version_ge "$version" "v2.4.0-alpha.153"; then
+            if version_ge "$version" "v2.4.0-alpha.158"; then
                 while IFS= read -r image; do
                     local full_image="docker.io/${image}"
                     echo "delete $full_image"
@@ -971,7 +971,7 @@ delete_aliyun_images_generic_cloud() {
     if [[ -n "$IMAGES_LIST" && -f "$IMAGES_LIST" ]]; then
         local source_version="${versions[0]}"
         for version in "${versions[@]}"; do
-            if version_ge "$version" "v2.4.0-alpha.153"; then
+            if version_ge "$version" "v2.4.0-alpha.158"; then
                 while IFS= read -r image; do
                     local full_image="${registry_domain}/${image}"
                     echo "delete $full_image"
