@@ -11,16 +11,33 @@ jobs:
     outputs:
       cloud-version: ${{ steps.get-cloud-version.outputs.cloud-version }}
     steps:
-      - name: get latest stable version
+      - name: get latest stable version (with optional CURRENT_RELEASE_VERSION filter)
         id: get-cloud-version
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          CLOUD_VERSION=$(gh release list --repo apecloud/apecloud --limit 100 | awk '{print $2}' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+          PREFIX="${{ vars.CURRENT_RELEASE_VERSION }}"
+          echo "CURRENT_RELEASE_VERSION prefix: '${PREFIX:-<empty>}'"
+
+          if [[ -n "${PREFIX}" ]]; then
+            echo "Filtering releases starting with prefix: ${PREFIX}"
+            CLOUD_VERSION=$(gh release list --repo apecloud/apecloud --limit 100 \
+              | awk '{print $2}' \
+              | grep -E "^${PREFIX}(\.[0-9]+)+$" \
+              | head -n 1)
+          else
+            echo "No prefix set, getting latest stable version (original logic)"
+            CLOUD_VERSION=$(gh release list --repo apecloud/apecloud --limit 100 \
+              | awk '{print $2}' \
+              | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
+              | head -n 1)
+          fi
+
           if [[ -z "${CLOUD_VERSION}" ]]; then
-            echo "no stable release"
+            echo "ERROR: No stable release found"
             exit 1
           fi
+
           echo "CLOUD_VERSION:${CLOUD_VERSION}"
           echo "cloud-version=${CLOUD_VERSION}" >> "$GITHUB_OUTPUT"
 
