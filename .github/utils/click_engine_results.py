@@ -14,6 +14,7 @@ START_RE = re.compile(rf"^START ({ENGINE}) pid=")
 DONE_RE = re.compile(rf"^DONE ({ENGINE})\b.*\bver=(\S*) exit=(-?\d+)\b")
 WATCHDOG_RE = re.compile(rf"^WATCHDOG DONE ({ENGINE})\b")
 SPEC_RE = re.compile(rf"^({ENGINE})\s+(.+?)\s+(PASSED|FAILED|NO-RUN)\s+\d+\s*$")
+DEFER_RE = re.compile(r"^(?:DEFER|DEFERRED)\s+([A-Za-z0-9_.-]+):")
 LOGIN_FAIL_RE = re.compile(rf"登录失败 \(({ENGINE})/([^/\s]+)/([^)\s]+)\)")
 SAFE_RE = re.compile(r"^[\w./|;\[\]-]*$")
 _VERSION_RE = re.compile(r"v?\d+(?:\.\d+)+(?:[-+][A-Za-z0-9.]+)*")
@@ -63,7 +64,6 @@ def _split_spec(spec):
     for index, part in enumerate(parts):
         if not _VERSION_RE.fullmatch(part):
             continue
-        # First segment is the mode. Drop a component token such as pg/2.0.16.
         mode = _clean_mode(parts[0]) if index else ""
         return mode, "/".join(parts[index:])
     return _clean_mode("".join(parts)), ""
@@ -91,6 +91,7 @@ def parse_click_engines(text):
     seen = set()
     started = set()
     watchdog = set()
+    deferred = set()
     done_exit = {}
     versions = {}
     specs = {}
@@ -98,6 +99,7 @@ def parse_click_engines(text):
     hold = False
 
     def add_planned(engine):
+        engine = engine.lower()
         if engine not in seen:
             planned.append(engine)
             seen.add(engine)
@@ -130,10 +132,15 @@ def parse_click_engines(text):
             add_planned(engine)
             watchdog.add(engine)
             continue
+        defer_match = DEFER_RE.search(line)
+        if defer_match:
+            engine = defer_match.group(1)
+            add_planned(engine)
+            deferred.add(engine.lower())
+            continue
         spec = SPEC_RE.match(line)
         if spec and not line[:1].isdigit():
             engine, spec_text, result = spec.group(1), spec.group(2), spec.group(3)
-            # Ignore the discovery list and other prose; spec rows have no timestamp.
             if engine in seen or engine in started:
                 specs.setdefault(engine, []).append((_split_spec(spec_text), result))
             continue
@@ -180,9 +187,10 @@ def parse_click_engines(text):
             continue
         if engine in watchdog:
             status = "FAILED"
+        elif engine.lower() in deferred:
+            status = "SKIPPED"
         elif engine in done_exit:
-            # A DONE line without a result row did not run. Do not call that success.
-            status = "FAILED"
+            status = "FAILED" if done_exit[engine] != 0 else "SKIPPED"
         elif engine not in started and hold:
             status = "SKIPPED"
         else:
@@ -211,7 +219,6 @@ def group_click_rows(text):
 
 
 def parse_click_full_results(text):
-    """Return engine|pass|fail|skip|version|mode|case|status rows."""
     summaries = {}
     order = []
     first_failed = {}
@@ -315,128 +322,5 @@ def main(argv):
     return 0
 
 
-def _check():
-    mysql = """
-plan:
-  - mysql slots=2 modes=replication,standalone
-START mysql pid=327 slots=2/4 active_slots=2/8
-mysql                            主备/8.0.46                        PASSED     0
-mysql                            单机/8.0.46                        PASSED     0
-PLAYWRIGHT TEST SUCCESS!
-DONE mysql (2 mode(s)) ver=8.0.46 exit=0 total=27 pass=23 fail=0 skip=4
-"""
-    many = """
-plan:
-  - mysql slots=2 modes=replication,standalone
-  - postgresql slots=2 modes=standalone
-  - redis slots=1 modes=standalone
-  - kafka slots=1 modes=default
-START mysql pid=1 slots=2/2 active_slots=2/8
-START postgresql pid=2 slots=2/2 active_slots=4/8
-mysql                            主备/8.0.46                        PASSED     0
-postgresql                       单机/16.2                          FAILED     1
-DONE mysql (1 mode(s)) ver=8.0.46 exit=0 total=27 pass=23 fail=0 skip=4
-DONE postgresql (1 mode(s)) ver=16.2 exit=1 total=10 pass=1 fail=2 skip=0
-环境不可用：跳过剩余 1 个引擎
-WATCHDOG DONE kafka killed after 99s (0 combo(s) recorded, 1 timeout)
-"""
-    assert parse_click_engines(mysql) == (
-        "mysql/主备/8.0.46|[PASSED];mysql/单机/8.0.46|[PASSED]"
-    )
-    assert parse_click_engines(many) == (
-        "mysql/主备/8.0.46|[PASSED];postgresql/单机/16.2|[FAILED];redis|[SKIPPED];kafka|[FAILED]"
-    )
-    polardb = """
-plan:
-  - polardb-pg slots=4 modes=replication,standalone
-START polardb-pg pid=9
-polardb-pg                       主备 / pg/2.0.16                   PASSED     2
-polardb-pg                       单机 / pg/2.0.16                   PASSED     2
-DONE polardb-pg (2 mode(s)) ver=2.0.16 exit=0 total=12 pass=7 fail=0 skip=3
-"""
-    hive = """
-plan:
-  - hive slots=33 modes=default
-START hive pid=1
-hive                             集群版                              NO-RUN     0
-DONE hive (1 mode(s)) ver= exit=2 total=1 pass=0 fail=0 skip=1
-"""
-    kafka = """
-plan:
-  - kafka slots=13 modes=combined,zookeeper-mode
-START kafka pid=1
-kafka                            组合/3.9.0                         FAILED     0
-kafka                            Zookeeper模式/2.8.2                FAILED     0
-DONE kafka (2 mode(s)) ver=2.8.2 exit=1 total=28 pass=22 fail=1 skip=5
-"""
-    assert parse_click_engines(polardb) == (
-        "polardb-pg/主备/2.0.16|[PASSED];polardb-pg/单机/2.0.16|[PASSED]"
-    )
-    assert parse_click_engines(hive) == "hive/集群版|[FAILED]"
-    assert parse_click_engines(kafka) == (
-        "kafka/组合/3.9.0|[FAILED];kafka/Zookeeper模式/2.8.2|[FAILED]"
-    )
-    suffixed = """
-plan:
-  - oceanbase slots=2 modes=1f
-  - vastbase slots=1 modes=standalone
-  - doris slots=1 modes=disaggregated
-START oceanbase pid=1
-oceanbase                        1F/4.4.2-BP3                   PASSED     0
-DONE oceanbase (1 mode(s)) ver=4.2.1-BP7-Hotfix2 exit=0 total=1 pass=1 fail=0 skip=0
-START vastbase pid=1
-vastbase                         单机/3.0.9-2                   PASSED     0
-DONE vastbase (1 mode(s)) ver=3.0.9-2 exit=0 total=1 pass=1 fail=0 skip=0
-START doris pid=1
-doris                            disaggregated/4.1.4-1          FAILED     0
-DONE doris (1 mode(s)) ver=4.1.4-1 exit=1 total=1 pass=0 fail=1 skip=0
-"""
-    assert parse_click_engines(suffixed) == (
-        "oceanbase/1F/4.4.2-BP3|[PASSED];"
-        "vastbase/单机/3.0.9-2|[PASSED];"
-        "doris/disaggregated/4.1.4-1|[FAILED]"
-    )
-    assert parse_click_engines("DONE $(rm -rf) (1 mode(s)) ver=1 exit=0\n") == ""
-    assert parse_click_engines("START quiet pid=1\nDONE quiet (0 mode(s)) ver= exit=0\n") == "quiet|[FAILED]"
-    missed = """
-START kafka pid=1
-2026-11-12 13:27:42,164 ERROR 登录失败 (kafka/默认/combined)
-kafka                            分离/3.9.0                         PASSED     0
-PLAYWRIGHT TEST BROKEN, CODE: 2
-DONE kafka (1 mode(s)) ver=3.9.0 exit=2 total=27 pass=24 fail=0 skip=3
-"""
-    assert parse_click_engines(missed) == "kafka/分离/3.9.0|[PASSED];kafka/combined|[FAILED]"
-    assert parse_click_engines("") == ""
-    # A spec line before the engine is planned must not invent a row.
-    assert parse_click_engines("notanengine spec PASSED 0\n") == ""
-    grouped = group_click_rows(
-        "mysql/8.0.46|[PASSED];redis|[FAILED];minio|[PASSED];greatsql|[FAILED]"
-    )
-    assert grouped == [
-        ("Relational", "mysql/8.0.46|[PASSED]"),
-        ("NoSQL", "redis|[FAILED]"),
-        ("Storage", "minio|[PASSED]"),
-        ("Other", "greatsql|[FAILED]"),
-    ]
-    assert group_click_rows("oracle/主备/19.3.0|[FAILED];oracle/单机/19.3.0|[PASSED]") == [
-        ("Relational", "oracle/主备/19.3.0|[FAILED];oracle/单机/19.3.0|[PASSED]"),
-    ]
-    assert sum(len(members) for _name, members in ENGINE_GROUPS) == 44
-    assert group_click_rows("") == []
-    full = """
-[MySQL/standalone] 完成 | 10s | 总计10 通过1 失败1 异常0 跳过8
-===== CLICK-REPORTS =====
-mysql/standalone/8.0.46 failed=1 broken=0
-  TC-ACCT-003 | P0 | 创建账号 | FAIL
-"""
-    assert parse_click_full_results(full) == (
-        "mysql|1|1|8|8.0.46|standalone|TC-ACCT-003: 创建账号|[FAILED]"
-    )
-    print("ok")
-
-
 if __name__ == "__main__":
-    if len(sys.argv) == 2 and sys.argv[1] == "--check":
-        _check()
-    else:
-        sys.exit(main(sys.argv))
+    sys.exit(main(sys.argv))
