@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 # First run kbecli uninstall to clean up cloud, then clean up env.
+# Supports both release-2.3 (kb-cloud-installer) and legacy release-2.2 (Zalando postgresql-operator).
+# Explicitly cleans:
+#   - pg-cluster-values ConfigMap
+#   - postgres-operator namespaced resources
+#   - Zalando CRDs (operatorconfigurations.acid.zalan.do, postgresqls.acid.zalan.do, postgresteams.acid.zalan.do)
+# to avoid Helm "invalid ownership metadata" errors on kb-cloud-installer v2.3+ reinstall.
 # Before kubeblocks uninstall, every Cluster and Backup must already be gone.
 set -u
 
@@ -184,6 +190,30 @@ main() {
       exit 1
     fi
   done
+
+  # Cleanup legacy postgresql-operator (Zalando acid.zalan.do) resources from release-2.2
+  # These leave ConfigMaps (pg-cluster-values) + cluster-scoped CRDs with stale Helm metadata,
+  # causing "invalid ownership metadata" errors on kb-cloud-installer v2.3+ install.
+  log "1.1. cleanup postgresql-operator (release-2.2 compatibility)"
+  for old_name in postgresql-operator postgres-operator pg-operator; do
+    uninstall_release "$KBE_NS" "$old_name" || true
+  done
+  kubectl delete configmap pg-cluster-values -n "$KBE_NS" --ignore-not-found || true
+  for kind in deployment statefulset daemonset job pod service configmap secret; do
+    kubectl delete "$kind" --ignore-not-found -n "$KBE_NS" \
+      -l app=postgres-operator || true
+    kubectl delete "$kind" --ignore-not-found -n "$KBE_NS" \
+      -l app.kubernetes.io/name=postgres-operator || true
+  done
+
+  # Clean Zalando PostgreSQL Operator CRDs (cluster-scoped)
+  log "1.2. cleanup zalando CRDs (acid.zalan.do)"
+  kubectl delete postgresql,postgresteam,operatorconfiguration \
+    --all --all-namespaces --ignore-not-found || true
+  for crd in $(kubectl get crd -o name 2>/dev/null | grep -E 'acid\.zalan\.do' || true); do
+    kubectl delete "$crd" --ignore-not-found || true
+  done
+
   log "delete leftover jobs in $KBE_NS"
   kubectl delete job --all -n "$KBE_NS" --ignore-not-found || exit 1
   left=$(list_kind job "$KBE_NS") || exit 1
