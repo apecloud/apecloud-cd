@@ -1440,6 +1440,23 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
+  pgbouncer-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'pgbouncer')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/kbcli-test-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "85"
+      test-type-name: "pgbouncer-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
   check-send-message:
     if: ${{ inputs.previous-version }}
     runs-on: ubuntu-latest
@@ -1489,7 +1506,7 @@ jobs:
              tidb-pre, xinference-pre, opengauss-pre, influxdb-pre, flink-pre, mogdb-pre, redis-cluster-pre,
              dmdb-pre, minio-pre, solr-pre, yashandb-pre, orchestrator-pre, loki-pre, rocketmq-pre,
              greatsql-pre, mongodb-shard-pre, postgresql-etcd-pre, asmysql-proxy-pre, asmysql-orc-pre,
-             asmysql-orc-proxy-pre ]
+             asmysql-orc-proxy-pre, pgbouncer-pre ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1784,6 +1801,11 @@ jobs:
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"asmysql-orc-proxy|"* || "$TEST_TYPE" == *"asmysql-orc-proxy" ]]; then
                   TEST_RESULT="${TEST_RESULT}##asmysql-orc-proxy-pre|${{ needs.asmysql-orc-proxy-pre.outputs.test-result }}"
                   cmd="${cmd_head} \"${{ needs.asmysql-orc-proxy-pre.outputs.test-result-report }}\" "
+                  TEST_RESULT+=$(eval "$cmd")
+              fi
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"pgbouncer"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##pgbouncer-pre|${{ needs.pgbouncer-pre.outputs.test-result }}"
+                  cmd="${cmd_head} \"${{ needs.pgbouncer-pre.outputs.test-result-report }}\" "
                   TEST_RESULT+=$(eval "$cmd")
               fi
           fi
