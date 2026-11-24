@@ -23,8 +23,8 @@ on:
         type: string
         required: false
         default: ''
-      CLICK_ALL:
-        description: "Test all versions and all modes. false keeps the launcher default."
+      FULL_TEST:
+        description: "Enable engine full cases test."
         type: boolean
         required: false
         default: false
@@ -55,8 +55,8 @@ on:
         type: string
         required: false
         default: ''
-      CLICK_ALL:
-        description: "Test all versions and all modes. false keeps the launcher default."
+      FULL_TEST:
+        description: "Enable engine full cases test."
         type: boolean
         required: false
         default: false
@@ -494,16 +494,11 @@ jobs:
           export OSS_ENDPOINT="${OSS_ENDPOINT}"
           export OSS_BUCKET="${OSS_BUCKET}"
           export OSS_PREFIX="${OSS_PREFIX}"
-          click_all_arg=()
-          if [[ "${{ inputs.CLICK_ALL }}" == "true" ]]; then
-              click_all_arg=(--all)
-          fi
           bash test/cloud/test_cloud_e2e_web_click_tests.sh \
               --test-type click \
               --namespace "${test_ns}" \
               --pod-index "${date_index}" \
-              --cloud-version "${CLOUD_VERSION}" \
-              "${click_all_arg[@]}" | tee -a "${run_file_log}"
+              --cloud-version "${CLOUD_VERSION}" | tee -a "${run_file_log}"
           
           pod_line="$(grep '\[CLOUD-E2E-WEB-TEST-POD-NAME\]' "${run_file_log}" | tail -n 1 || true)"
           pod_name="${pod_line#*"[CLOUD-E2E-WEB-TEST-POD-NAME]"}"
@@ -786,7 +781,7 @@ jobs:
 
   full-engine-test:
     needs: [ send-message, installer-test ]
-    if: ${{ !cancelled() && inputs.CLICK_ALL && needs.send-message.result != 'skipped' && (needs.installer-test.result == 'success' || (needs.installer-test.result == 'skipped' && inputs.REDEPLOY == false)) }}
+    if: ${{ !cancelled() && inputs.FULL_TEST && needs.send-message.result != 'skipped' && (needs.installer-test.result == 'success' || (needs.installer-test.result == 'skipped' && inputs.REDEPLOY == false)) }}
     name: full-mysql-postgresql
     runs-on: ubuntu-latest
     timeout-minutes: 360
@@ -890,16 +885,11 @@ jobs:
           echo "pod kubeconfig server: ${server}"
           export k8s_config_path="${pod_kubeconfig}"
 
-          click_all_arg=()
-          if [[ "${{ inputs.CLICK_ALL }}" == "true" ]]; then
-              click_all_arg=(--all)
-          fi
           bash test/cloud/test_cloud_e2e_web_click_tests.sh \
               --test-type click \
               --namespace "${test_ns}" \
               --pod-index "full" \
-              --cloud-version "${CLOUD_VERSION}" \
-              "${click_all_arg[@]}" | tee -a "${run_file_log}"
+              --cloud-version "${CLOUD_VERSION}" | tee -a "${run_file_log}"
 
           pod_line="$(grep '\[CLOUD-E2E-WEB-TEST-POD-NAME\]' "${run_file_log}" | tail -n 1 || true)"
           pod_name="${pod_line#*"[CLOUD-E2E-WEB-TEST-POD-NAME]"}"
@@ -948,7 +938,7 @@ jobs:
 
   full-click-result:
     needs: [ full-engine-test ]
-    if: ${{ always() && inputs.CLICK_ALL && !cancelled() && needs.full-engine-test.result != 'skipped' }}
+    if: ${{ always() && inputs.FULL_TEST && !cancelled() && needs.full-engine-test.result != 'skipped' }}
     name: full-click-result
     runs-on: ubuntu-latest
     timeout-minutes: 360
