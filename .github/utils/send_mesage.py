@@ -1715,6 +1715,23 @@ def send_installer_full_message(url_v, result_v, title_v):
         "background_style": "grey",
         "columns": [_md_col(content, weight) for content, weight in header],
     }]
+    # Smart filtering for size limit: only send entries that actually failed (failed > 0)
+    # This prevents the 30KB Feishu limit while still showing all real problems
+    filtered_rows = []
+    for raw in result_v.split("##"):
+        fields = raw.split("|")
+        if len(fields) < 9:
+            continue
+        try:
+            fail_count = int(fields[2] or 0)
+            if fail_count == 0 and "0|0|0" not in raw:
+                continue  # skip pure summary/skipped rows
+        except ValueError:
+            pass
+        filtered_rows.append(raw)
+
+    result_v = "##".join(filtered_rows[:15])  # hard cap at 15 rows for safety
+
     for raw in result_v.split("##"):
         fields = raw.split("|")
         if len(fields) < 9:
@@ -1726,7 +1743,14 @@ def send_installer_full_message(url_v, result_v, title_v):
         count_cell = f"<font color='green'>{fields[1]}</font> | " \
             f"<font color='red'>{fields[2]}</font> | " \
             f"<font color='grey'>{fields[3]}</font>"
-        case_cell = fields[6] if fields[6] != "-" else ""
+        case_cell = fields[6] if fields[6] != "-" and fields[6] != "UI点击/基准测试/一致性失败 (详见报告)" else ""
+        # Truncate very long descriptions to keep Feishu card clean (weight=4 column)
+        if len(case_cell) > 45:
+            case_cell = case_cell[:42] + "..."
+        # If we have a real failure but no specific case, show a helpful generic message
+        if not case_cell and int(fields[2] or 0) > 0:
+            case_cell = "UI点击失败/基准测试异常 (详见报告)"
+
         elements.append({
             "tag": "column_set",
             "flex_mode": "none",
