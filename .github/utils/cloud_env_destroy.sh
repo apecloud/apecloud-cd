@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# First run kbecli uninstall to clean up cloud, then clean up env.
+# Clean click test leftovers, run kbecli uninstall to clean up cloud, then clean up env.
 # Supports both release-2.3 (kb-cloud-installer) and legacy release-2.2 (Zalando postgresql-operator).
 # Explicitly cleans:
+#   - click test pods and their kubeconfig/OSS secrets
 #   - pg-cluster-values ConfigMap
 #   - postgres-operator namespaced resources
 #   - Zalando CRDs (operatorconfigurations.acid.zalan.do, postgresqls.acid.zalan.do, postgresteams.acid.zalan.do)
@@ -149,6 +150,82 @@ delete_all_backups() {
   done
 }
 
+click_test_pod_names() {
+  local ns=$1 names labeled name
+  names=$(list_kind pod "$ns") || return 1
+  if ! labeled=$(kubectl get pod -n "$ns" -l click-tests/helper \
+    -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>&1); then
+    printf '%s\n' "$labeled" >&2
+    return 1
+  fi
+  {
+    # Older helpers did not have labels, so also match their stable name prefixes.
+    printf '%s\n' "$names" | while IFS= read -r name; do
+      [ -n "$name" ] || continue
+      case "$name" in
+        cloud-e2e-web-test-click-*|click-helper-*|click-dbc-*|click-kafka-ssl-*) printf '%s\n' "$name" ;;
+      esac
+    done
+    # The label also catches helpers whose names were truncated or otherwise changed.
+    printf '%s\n' "$labeled" | while IFS= read -r name; do
+      [ -n "$name" ] || continue
+      printf '%s\n' "$name"
+    done
+  } | sort -u
+}
+
+cleanup_click_test_resources() {
+  local ns=$CLOUD_NS names name deadline left namespace_error
+  if ! namespace_error=$(kubectl get namespace "$ns" 2>&1); then
+    case "$namespace_error" in
+      *NotFound*|*"not found"*)
+        log "skip $ns click test resources, namespace not found"
+        return 0
+        ;;
+      *)
+        printf '%s\n' "$namespace_error" >&2
+        return 1
+        ;;
+    esac
+  fi
+
+  names=$(click_test_pod_names "$ns") || return 1
+  if [ -z "$names" ]; then
+    log "skip $ns click test pods, none"
+  else
+    for name in $names; do
+      log "delete click test pod $ns/$name"
+      kubectl delete pod "$name" -n "$ns" --force --grace-period=0 --ignore-not-found || return 1
+    done
+    deadline=$((SECONDS + WAIT_SECONDS))
+    while true; do
+      left=$(click_test_pod_names "$ns") || return 1
+      if [ -z "$left" ]; then
+        log "$ns click test pods gone"
+        break
+      fi
+      if [ "$SECONDS" -ge "$deadline" ]; then
+        echo "still present: $ns click test pods" >&2
+        printf '%s\n' "$left" >&2
+        return 1
+      fi
+      sleep 5
+    done
+  fi
+
+  # The launcher leaves one kubeconfig Secret per test pod, even after the pod is gone.
+  # Older web click tests also created an OSS credentials Secret next to the pod.
+  names=$(list_kind secret "$ns") || return 1
+  for name in $names; do
+    case "$name" in
+      cloud-e2e-web-test-click-*-kube|cloud-e2e-web-test-click-*-oss)
+        log "delete click test secret $ns/$name"
+        kubectl delete secret "$name" -n "$ns" --ignore-not-found || return 1
+        ;;
+    esac
+  done
+}
+
 wipe_all_clusters() {
   local ns nss
   nss=$(namespaces_with cluster) || return 1
@@ -181,6 +258,9 @@ main() {
   ensure_cli kbecli v0.1.39 https://kubeblocks.io/installer/install_kbecli.sh || exit 1
 
   log "context $(kubectl config current-context)"
+
+  log "0. cleanup click test resources"
+  cleanup_click_test_resources || exit 1
 
   log "1. kbecli uninstall"
   kbecli uninstall --yes -n "$KBE_NS" || exit 1

@@ -558,6 +558,9 @@ jobs:
     outputs:
       click-result-vke: ${{ steps.click_logs.outputs.click-result-vke }}
       click-engines-vke: ${{ steps.click_logs.outputs.click-engines-vke }}
+      click-full-results-vke: ${{ steps.click_logs.outputs.click-full-results-vke }}
+      click-full-result-count-vke: ${{ steps.click_logs.outputs.click-full-result-count-vke }}
+      click-run-id-vke: ${{ steps.click_logs.outputs.click-run-id-vke }}
     steps:
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3
@@ -673,8 +676,19 @@ jobs:
               engines="${engines//$'\n'/}"
           fi
           echo "click-engines-vke=${engines}" >> "$GITHUB_OUTPUT"
+          full_rows=""
+          if [[ -s "${log_file}" && -f "${parser}" ]] && grep -q 'def parse_click_full_results' "${parser}"; then
+              full_rows="$(python3 "${parser}" --full "${log_file}" || true)"
+          fi
+          printf '%s\n' "${full_rows}" > click-full-results.txt
+          printf 'click-full-results-vke=%s\n' "${full_rows//$'\n'/'##'}" >> "$GITHUB_OUTPUT"
+          printf 'click-full-result-count-vke=%s\n' "$(grep -cve '^$' click-full-results.txt || true)" >> "$GITHUB_OUTPUT"
+          run_id="$(sed -n 's/.*START run_id=\([^ ]*\).*/\1/p' "${log_file}" | head -n 1)"
+          printf 'click-run-id-vke=%s\n' "${run_id}" >> "$GITHUB_OUTPUT"
           echo "==================== click engine results ===================="
           echo "${engines:-<none>}"
+          echo "==================== click detailed results ================="
+          echo "${full_rows:-<none>}"
           [[ "${result}" == "[PASSED]" ]]
 
   send-message:
@@ -718,6 +732,15 @@ jobs:
           fi
 
           CLICK_ENGINES="${{ needs.click-result.outputs.click-engines-vke }}"
+          CLICK_FULL_ROWS="${{ needs.click-result.outputs.click-full-results-vke }}"
+          CLICK_FULL_COUNT="${{ needs.click-result.outputs.click-full-result-count-vke }}"
+          CLICK_RUN_ID="${{ needs.click-result.outputs.click-run-id-vke }}"
+          # Job-output size is capped in UTF-16 code units. Fall back to compact
+          # rows rather than sending a truncated detailed card.
+          if [[ "${CLICK_FULL_COUNT}" =~ ^[0-9]+$ ]] && (( ${#CLICK_FULL_ROWS} * 2 > 90000 )); then
+              echo "Detailed click rows exceed the job-output limit; using compact results"
+              CLICK_FULL_ROWS=""
+          fi
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
 
@@ -734,18 +757,37 @@ jobs:
           send_card() {
               local title="$1"
               local result="$2"
+              local send_type="${3:-installer-version}"
               echo "TEST_RESULT:${result}"
-              result=$( bash .github/utils/utils.sh --type 38 \
-                  --github-repo "${{ github.repository }}" \
-                  --github-token "${{ env.GH_TOKEN }}" \
-                  --test-result "${result}" \
-                  --run-id "$GITHUB_RUN_ID" )
+              if [[ "${send_type}" != "installer-full" ]]; then
+                  result=$( bash .github/utils/utils.sh --type 38 \
+                      --github-repo "${{ github.repository }}" \
+                      --github-token "${{ env.GH_TOKEN }}" \
+                      --test-result "${result}" \
+                      --run-id "$GITHUB_RUN_ID" )
+              fi
               echo "TEST_RESULT:${result}"
               python3 .github/utils/send_mesage.py \
-                  --send-type installer-version \
+                  --send-type "${send_type}" \
                   --url "${WEBHOOK_URL}" \
                   --title "${title}" \
                   --result "${result}"
+          }
+
+          send_text_message() {
+              local summary="$1"
+              python3 - "${WEBHOOK_URL}" "${CLICK_RUN_ID}" "${summary}" <<'PY'
+          import json
+          import sys
+          import urllib.request
+
+          url, run_id, summary = sys.argv[1:]
+          text = f"Web Click Tests 创建,删除 测试结果\n运行: {run_id}\n{summary}"
+          body = json.dumps({"msg_type": "text", "content": {"text": text}}, ensure_ascii=False).encode()
+          request = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
+          with urllib.request.urlopen(request, timeout=30) as response:
+              print(response.read().decode())
+          PY
           }
 
           INSTALLER_RESULT="installer-test-vke|vke|installer-${CLOUD_VERSION}|${INSTALLER_RESULT_VKE}"
@@ -753,30 +795,55 @@ jobs:
           INSTALLER_RESULT="${INSTALLER_RESULT}##click-result|vke|click-${CLOUD_VERSION}|${CLICK_RESULT}"
           send_card "[${CLOUD_VERSION}] Cloud Installer & Upgrade & Web Click Tests [${date_ret}]" "${INSTALLER_RESULT}"
 
-          if [[ -n "${CLICK_ENGINES}" ]]; then
+          CLICK_JOB_URL=""
+          CLICK_SUMMARY=""
+          if [[ "${CLICK_RESULT}" != "[SKIPPED]" && "${{ needs.click-result.result }}" != "skipped" ]]; then
+              CLICK_JOB_URL="$(TEST_RESULT=click-result bash .github/utils/utils.sh --type 44 \
+                  --github-repo "${{ github.repository }}" \
+                  --github-token "${{ env.GH_TOKEN }}" \
+                  --run-id "$GITHUB_RUN_ID" | tail -n 1)"
+              CLICK_SUMMARY="$(python3 .github/utils/click_engine_results.py --summary "${CLICK_ENGINES}" "${CLICK_FULL_ROWS//##/$'\n'}")"
+          fi
+          CLICK_ROWS="${CLICK_FULL_ROWS:-${CLICK_ENGINES}}"
+          if [[ -n "${CLICK_ROWS}" ]]; then
               while IFS=$'\t' read -r group rows; do
                   [[ -z "${group}" || -z "${rows}" ]] && continue
                   GROUP_RESULT=""
                   IFS=';' read -ra click_rows <<< "${rows}"
                   for row in "${click_rows[@]}"; do
                       [[ -z "${row}" ]] && continue
+                      fields="${row}|"
+                      IFS='|' read -r engine passed failed skipped version mode first_case status url <<< "${fields}"
+                      # Detailed rows already contain the display mode and first failed case.
+                      if [[ "${engine}" =~ ^[A-Za-z0-9_.-]+$ ]] \
+                          && [[ "${passed}" =~ ^[0-9]+$ ]] \
+                          && [[ "${failed}" =~ ^[0-9]+$ ]] \
+                          && [[ "${skipped}" =~ ^[0-9]+$ ]] \
+                          && [[ "${status}" =~ ^\[(PASSED|FAILED|SKIPPED)\]$ ]]; then
+                          url="${url:-${CLICK_JOB_URL}}"
+                          GROUP_RESULT="${GROUP_RESULT:+${GROUP_RESULT}##}${engine}|${passed}|${failed}|${skipped}|${version}|${mode}|${first_case}|${status}|${url}"
+                          continue
+                      fi
+
+                      # Fallback for older parser/log formats with only mode status.
                       engine="${row%%|*}"
                       detail="${row#*|}"
                       # Mode names are not ASCII. Reject shell metacharacters only.
                       case "${engine}" in
-                        *'$'*|*' '*|*'`'*|*'"'*|*"'"*|*'|'*|*';'*|*'>'*|*'<'*|*')'*|*'('*|*'&'*|*\\*) continue ;;
-                        '') continue ;;
+                          *'$'*|*' '*|*'`'*|*'"'*|*"'"*|*'|'*|*';'*|*'>'*|*'<'*|*')'*|*'('*|*'&'*|*\\*) continue ;;
+                          '') continue ;;
                       esac
                       [[ "${detail}" =~ ^\[(PASSED|FAILED|SKIPPED)\]$ ]] || continue
-                      if [[ -z "${GROUP_RESULT}" ]]; then
-                          GROUP_RESULT="click-result|vke|${engine}|${detail}"
-                      else
-                          GROUP_RESULT="${GROUP_RESULT}##click-result|vke|${engine}|${detail}"
-                      fi
+                      GROUP_RESULT="${GROUP_RESULT:+${GROUP_RESULT}##}${engine}|${detail}"
                   done
                   [[ -z "${GROUP_RESULT}" ]] && continue
-                  send_card "[${CLOUD_VERSION}] Web Click Tests 创建,删除 ${group} [${date_ret}]" "${GROUP_RESULT}"
-              done < <(python3 .github/utils/click_engine_results.py --group "${CLICK_ENGINES}")
+                  send_card "[${CLOUD_VERSION}] Web Click Tests 创建,删除 ${group} [${date_ret}]" "${GROUP_RESULT}" "installer-full"
+              done < <(python3 .github/utils/click_engine_results.py --group "${CLICK_ROWS}")
+          fi
+          if [[ -n "${CLICK_SUMMARY}" ]]; then
+              echo "==================== click test summary ===================="
+              echo "${CLICK_SUMMARY}"
+              send_text_message "${CLICK_SUMMARY}"
           fi
 
   full-engine-test:
