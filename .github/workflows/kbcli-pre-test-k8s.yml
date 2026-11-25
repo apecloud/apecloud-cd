@@ -1457,6 +1457,23 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
+  proxysql-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'proxysql')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/kbcli-test-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "86"
+      test-type-name: "proxysql-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
   check-send-message:
     if: ${{ inputs.previous-version }}
     runs-on: ubuntu-latest
@@ -1480,7 +1497,7 @@ jobs:
                       camellia-redis-proxy|damengdb|dolphindb|doris|elasticsearch|foundationdb|gaussdb|\
                       goldendb|greatdb|hadoop|he3sql|hive|kingbase|mariadb|milvus|mongodb|mongodb-shard|\
                       mssql|asmysql|asmysql-proxy|asmysql-orc|asmysql-orc-proxy|nacos|oceanbase-ent|\
-                      oceanbase-ocp|oceanbase-pingan|oceanbase-proxy|oracle|pgpool|polardb-pg|rabbitmq|\
+                      oceanbase-ocp|oceanbase-pingan|oceanbase-proxy|oracle|pgpool|polardb-pg|proxysql|rabbitmq|\
                       rustfs|selectdb|starrocks-ent|tdengine|tdsql|vastbase|vault|victoria-logs|victoria-metrics)
                           SEND_MESSAGE_ENT=1
                       ;;
@@ -1837,7 +1854,7 @@ jobs:
              damengdb-pre, kingbase-pre, vastbase-pre, mssql-pre, oceanbase-proxy-pre, goldendb-pre,
              tdsql-pre, greatdb-pre, victoria-logs-pre, doris-pre, hadoop-pre, hive-pre, nacos-pre,
              vault-pre, foundationdb-pre, selectdb-pre, he3sql-pre, rustfs-pre, seaweedfs-pre, valkey-pre,
-             polardb-pg-pre, pgpool-pre, oceanbase-pingan-pre, oceanbase-ocp-pre, dolphindb-pre  ]
+             polardb-pg-pre, pgpool-pre, oceanbase-pingan-pre, oceanbase-ocp-pre, dolphindb-pre, proxysql-pre  ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -2061,6 +2078,11 @@ jobs:
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"dolphindb"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##dolphindb-pre|${{ needs.dolphindb-pre.outputs.test-result }}"
                   cmd="${cmd_head} \"${{ needs.dolphindb-pre.outputs.test-result-report }}\" "
+                  TEST_RESULT+=$(eval "$cmd")
+              fi
+              if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"proxysql"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##proxysql-pre|${{ needs.proxysql-pre.outputs.test-result }}"
+                  cmd="${cmd_head} \"${{ needs.proxysql-pre.outputs.test-result-report }}\" "
                   TEST_RESULT+=$(eval "$cmd")
               fi
           fi
