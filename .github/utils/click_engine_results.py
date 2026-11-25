@@ -28,14 +28,27 @@ LOGIN_FAIL_RE = re.compile(rf"登录失败 \(({ENGINE})/([^/\s]+)/([^)\s]+)\)")
 SAFE_RE = re.compile(r"^[\w./|;\[\]-]*$")
 _VERSION_RE = re.compile(r"v?\d+(?:\.\d+)+(?:[-+][A-Za-z0-9.]+)*")
 MODE_SUMMARY_RE = re.compile(
-    r".*\[([^/\]]+)/([^\]]+)\].*?总计\s*(\d+)\s+通过\s*(\d+)\s+"
-    r"失败\s*(\d+)\s+异常\s*(\d+)\s+跳过\s*(\d+)"
+    r".*?\[([^/\]]+)/([^\]]+)\].*?总计\s*(\d+)[ \t]+通过\s*(\d+)\s+"
+    r"失败\s*(\d+)[ \t]+异常\s*(\d+)[ \t]+跳过\s*(\d+)"
 )
+ENGINE_NAME_ALIASES = {
+    "nebula graph": "nebula",
+    "loki logging system": "loki",
+    "kingbasedb": "kingbase",
+    "victorialogs": "victoria_logs",
+    "victoria metrics": "victoria_metrics",
+    "camellia redis proxy": "camellia_redis_proxy",
+    "sql server": "sqlserver",
+}
 REPORT_HEADER_RE = re.compile(
-    r"^([A-Za-z0-9_.-]+)/([^/\s]+)/([^\s]+)\s+failed=(\d+)"
+    r"^([A-Za-z0-9_.-]+)/([^/\s]+)/([^\s]+)\s+failed=(\d+)\s+broken=(\d+)"
 )
 REPORT_CASE_RE = re.compile(
-    r"^\s+(TC-[^|]+?)\s*\|\s*[^|]+\|\s*(.+?)\s*\|\s*(FAIL|BROKEN)\s*$"
+    r"^\s+(TC-[^|]+?)\s*\|\s*[^|]+\|\s*(.+?)\s*\|\s*(FAIL|BROKEN|SKIP)\s*$"
+)
+SKIP_REASON_RE = re.compile(
+    r"^(?:DEFER|DEFERRED|SKIP(?:PED)?)\s+([A-Za-z0-9_.-]+)(?::|\s)\s*(.+)$",
+    re.IGNORECASE,
 )
 
 # Enhanced failure patterns to catch current test output (Playwright + Chinese UI tests)
@@ -46,7 +59,42 @@ FAILURE_STEP_RE = re.compile(r"\[(.*?)\]\s*✅.*?(?:❌(\d+)|失败|error|异常
 BENCHMARK_FAIL_RE = re.compile(r"\[14\.\s*基准测试\].*?❌(\d+)")
 GENERAL_FAIL_RE = re.compile(r"(?:失败|error|FAILED|❌|异常|WARNING.*失败|点击失败).*?([^\n]{10,80}?)", re.IGNORECASE)
 
-MODE_ALIASES = {"主备": "replication", "单机": "standalone", "默认": "default", "集群版": "cluster"}
+MODE_ORDER = {
+    "default": 0,
+    "standalone": 1,
+    "single-node": 2,
+    "singlenode": 3,
+    "single": 4,
+    "replication": 5,
+    "cluster": 6,
+    "clustermode": 7,
+    "triple": 8,
+    "realtime-replication": 9,
+    "replicaset": 10,
+    "master-slave": 11,
+    "dledger": 12,
+    "combined": 13,
+    "withzookeeper": 14,
+    "zookeeper模式": 15,
+    "distribution": 16,
+    "distributed": 17,
+    "distributed-2-6": 18,
+    "aggregated": 19,
+    "disaggregated": 20,
+    "integrated": 21,
+    "shared-data": 22,
+    "standard": 23,
+    "pulsar-enhanced-with-kb-zk": 24,
+    "vm-single": 25,
+}
+MODE_ALIASES = {
+    "主备": "replication", "单机": "standalone", "默认": "default", "集群版": "cluster",
+    "单机版": "single-node", "集群": "cluster", "高可用集群": "cluster",
+    "组合": "combined", "分布式2.6": "distributed-2-6", "分布式(2.6+)": "distributed-2-6",
+    "实时主备": "realtime-replication", "存算一体": "aggregated", "存算分离": "disaggregated",
+    "简单可扩展": "standard", "单节点": "single", "三节点": "triple",
+    "主从模式": "master-slave", "分布式": "distributed",
+}
 
 ENGINE_GROUPS = (
     ("Relational", (
@@ -56,7 +104,7 @@ ENGINE_GROUPS = (
     )),
     ("NoSQL", ("mongodb", "redis", "valkey", "elasticsearch")),
     ("Analytics", (
-        "clickhouse", "starrocks", "doris", "selectdb", "influxdb",
+        "clickhouse", "starrocks", "doris", "dolphindb", "selectdb", "influxdb",
         "victoria_metrics", "tdengine",
     )),
     ("Messaging", ("kafka", "rabbitmq", "pulsar", "rocketmq")),
@@ -77,6 +125,41 @@ def _clean_mode(mode):
     return re.sub(r"[^\w.-]+", "", mode)
 
 
+def _natural_key(value):
+    return tuple(
+        int(part) if part.isdigit() else part.casefold()
+        for part in re.split(r"(\d+)", str(value))
+        if part
+    )
+
+
+def _mode_key(mode):
+    normalized = _mode_alias(mode).casefold()
+    return (MODE_ORDER.get(normalized, len(MODE_ORDER)), _natural_key(mode))
+
+
+def _row_sort_key(row):
+    """Sort Click rows by engine, mode, then natural version order."""
+    fields = row.split("|")
+    if len(fields) >= 8 and all(field.isdigit() for field in fields[1:4]):
+        engine, version, mode = fields[0], fields[4], fields[5]
+    else:
+        label = fields[0]
+        parts = label.split("/")
+        engine = parts[0]
+        version_at = next(
+            (index for index, part in enumerate(parts[1:], 1) if _version_token(part)),
+            None,
+        )
+        version = "/".join(parts[version_at:]) if version_at is not None else ""
+        mode = "/".join(parts[1:version_at]) if version_at is not None else "/".join(parts[1:])
+    return (_natural_key(engine), _mode_key(mode), _natural_key(version), row)
+
+
+def _sorted_rows(rows):
+    return sorted((row for row in rows if row), key=_row_sort_key)
+
+
 def _split_spec(spec):
     parts = [part for part in re.sub(r"\s+", "", spec).split("/") if part]
     for index, part in enumerate(parts):
@@ -90,7 +173,7 @@ def _split_spec(spec):
 def _mode_status(result, exit_code):
     if result == "PASSED":
         return "PASSED"
-    if result == "NO-RUN" and exit_code in (None, 0):
+    if result == "NO-RUN":
         return "SKIPPED"
     return "FAILED"
 
@@ -110,11 +193,14 @@ def parse_click_engines(text):
     started = set()
     watchdog = set()
     deferred = set()
+    deferred_reason = {}
+    skip_reasons = {}
     done_exit = {}
     versions = {}
     specs = {}
     login_failed = {}
     hold = False
+    held_reason = "未执行测试"
 
     def add_planned(engine):
         engine = engine.lower()
@@ -155,6 +241,7 @@ def parse_click_engines(text):
             engine = defer_match.group(1)
             add_planned(engine)
             deferred.add(engine.lower())
+            deferred_reason[engine.lower()] = _clean_detail(line).split(":", 1)[-1].strip()[:80]
             continue
         spec = SPEC_RE.match(line)
         if spec and not line[:1].isdigit():
@@ -172,8 +259,16 @@ def parse_click_engines(text):
             continue
         if "环境不可用" in line and "跳过剩余" in line:
             hold = True
+            held_reason = "环境不可用，跳过剩余引擎"
         elif "不再启动新引擎" in line:
             hold = True
+            held_reason = "不再启动新引擎"
+        dependency_skip = re.search(r"([A-Za-z0-9_.-]+)\s+v?\S+/\S+\s+依赖准备失败.*?跳过目标创建:\s*(.+)$", line)
+        if dependency_skip:
+            skip_reasons.setdefault(dependency_skip.group(1).lower(), dependency_skip.group(2).strip()[:80])
+        environment_skip = re.search(r"([A-Za-z0-9_.-]+)\s+未启动.*?跳过", line)
+        if environment_skip:
+            skip_reasons.setdefault(environment_skip.group(1).lower(), "环境不可用，跳过剩余引擎")
 
     def unrun_rows(engine, covered):
         found = []
@@ -207,10 +302,12 @@ def parse_click_engines(text):
             status = "FAILED"
         elif engine.lower() in deferred:
             status = "SKIPPED"
+            skip_reasons.setdefault(engine.lower(), deferred_reason.get(engine.lower(), "资源不足，延后执行"))
         elif engine in done_exit:
             status = "FAILED" if done_exit[engine] != 0 else "SKIPPED"
         elif engine not in started and hold:
             status = "SKIPPED"
+            skip_reasons.setdefault(engine.lower(), held_reason)
         else:
             status = "FAILED"
         version = versions.get(engine, "")
@@ -223,30 +320,132 @@ def parse_click_engines(text):
     return out
 
 
+def parse_click_skip_reasons(text):
+    """Return engine<TAB>reason for skipped or deferred engine modes."""
+    reasons = {}
+    current_engine = ""
+    lines = text.splitlines()
+    planned_engines = []
+    active_engines = []
+    completed_engines = set()
+    for line_index, raw in enumerate(lines):
+        line = raw.strip("\r")
+        plan = PLAN_RE.match(line)
+        if plan:
+            current_engine = plan.group(1).lower()
+            if current_engine not in planned_engines:
+                planned_engines.append(current_engine)
+            continue
+        start = START_RE.match(line)
+        if start:
+            current_engine = start.group(1).lower()
+            active_engines.append(current_engine)
+            continue
+        done = DONE_RE.match(line)
+        if done:
+            active_engines = [engine for engine in active_engines if engine != done.group(1).lower()]
+            completed_engines.add(done.group(1).lower())
+            continue
+        if ("环境不可用" in line and "跳过剩余" in line) or "不再启动新引擎" in line:
+            for engine in active_engines:
+                reasons.setdefault(engine, "环境不可用，跳过剩余引擎")
+            for engine in planned_engines:
+                if engine not in completed_engines and engine not in active_engines:
+                    reasons.setdefault(engine, "未启动：环境不可用，跳过剩余引擎")
+            continue
+        skip = SKIP_REASON_RE.match(_clean_detail(line))
+        if skip:
+            engine, reason = skip.groups()
+            reasons.setdefault(engine.lower(), reason[:80])
+            continue
+        dependency_skip = re.search(r"([A-Za-z0-9_.-]+)\s+v?\S+/\S+\s+依赖准备失败.*?跳过目标创建:\s*(.+)$", line)
+        if dependency_skip:
+            reasons.setdefault(dependency_skip.group(1).lower(), dependency_skip.group(2).strip()[:80])
+            continue
+    return "".join(f"{engine}\t{reason}\n" for engine, reason in reasons.items())
+
+
+def _mode_alias(mode):
+    return MODE_ALIASES.get(mode, mode)
+
+
+def _engine_name(engine):
+    engine = engine.strip().lower()
+    return ENGINE_NAME_ALIASES.get(engine, engine)
+
+
+def _version_token(part):
+    part = part.strip()
+    return bool(
+        _VERSION_RE.fullmatch(part)
+        or (part.startswith("v") and _VERSION_RE.fullmatch(part[1:]))
+    )
+
+
+def _label_parts(label):
+    """Split an engine/mode/version label without changing the display mode."""
+    parts = label.split("/")
+    engine = parts[0].strip().lower()
+    raw_label = parts[0].strip()
+    version_at = next(
+        (index for index, part in enumerate(parts[1:], 1) if _version_token(part)),
+        None,
+    )
+    # Legacy specs sometimes include the version in the engine column.
+    if version_at is None:
+        match = re.match(r"^([A-Za-z0-9_.-]+?)\s+(v?\d.*)$", raw_label)
+        if match:
+            engine, embedded_version = match.groups()
+            parts = [engine, embedded_version]
+            version_at = 1
+    if version_at is None:
+        return engine, "/".join(parts[1:]), ""
+    return (
+        engine,
+        "/".join(parts[1:version_at]),
+        "/".join(parts[version_at:]),
+    )
+
+
 def group_click_rows(text):
+    """Group compact or detailed Click rows separated by semicolons or ##."""
     buckets = {name: [] for name, _members in ENGINE_GROUPS}
     buckets["Other"] = []
-    for row in text.split(";"):
+    for row in text.replace("##", ";").split(";"):
         row = row.strip()
         if not row or "|" not in row:
             continue
-        engine = row.split("|", 1)[0].split("/", 1)[0]
+        fields = row.split("|")
+        if len(fields) >= 8 and all(field.isdigit() for field in fields[1:4]):
+            # engine|pass|fail|skip|version|mode|case|status
+            engine = fields[0].strip().lower()
+        else:
+            engine = fields[0].split("/", 1)[0].strip().lower()
         buckets[_GROUP_OF.get(engine, "Other")].append(row)
     order = [name for name, _members in ENGINE_GROUPS] + ["Other"]
+    for name in buckets:
+        buckets[name] = _sorted_rows(buckets[name])
     return [(name, ";".join(buckets[name])) for name in order if buckets[name]]
 
 
-def extract_first_failed_case(line: str, engine: str = "", mode: str = "") -> str | None:
-    """Extract the most meaningful first failed case description from a line.
-    Prioritizes specificity and keeps description under ~80 chars for Feishu card.
-    """
+def _clean_detail(text):
+    text = re.sub(r"^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:,\d+)?\s+", "", text.strip())
+    text = re.sub(r"^(?:INFO|WARNING|WARN|ERROR|DEBUG)\s+", "", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def extract_first_failed_case(line: str, engine: str = "", mode: str = "", reason: str = "") -> str | None:
+    """Extract the first failed or skipped case, including the skip reason."""
     line = line.strip()
 
-    # 1. Legacy TC- FAIL format (highest priority, backward compatible)
+    # 1. Structured TC- reports take precedence over incidental log warnings.
     case = REPORT_CASE_RE.match(line)
     if case:
-        case_id, name, _status = case.groups()
-        return f"{case_id.strip()}: {name.strip()[:60]}"
+        case_id, name, status = case.groups()
+        detail = f"{case_id.strip()}: {name.strip()[:60]}"
+        if status == "SKIP" and reason:
+            detail += f" ({reason[:70]})"
+        return detail
 
     # 2. New TC- with ❌ or explicit failure
     tc_match = TC_SKIP_RE.search(line)
@@ -292,21 +491,38 @@ def parse_click_full_results(text):
     summaries = {}
     order = []
     first_failed = {}
+    first_skipped = {}
+    engine_skip_reasons = {}
+    for reason_line in parse_click_skip_reasons(text).splitlines():
+        if "\t" in reason_line:
+            reason_engine, reason = reason_line.split("\t", 1)
+            engine_skip_reasons.setdefault(reason_engine.lower(), reason)
     current_report = None
-    last_engine_mode = None  # track current context for better fallback
+    pending_skip = None
+    active_engines = []
+    report_skip_reasons = {}
 
     for raw in text.splitlines():
         line = raw.strip("\r")
         summary = MODE_SUMMARY_RE.match(line)
         if summary:
             engine, mode, total, passed, failed, broken, skipped = summary.groups()
-            key = (engine.lower(), mode)
+            summary_engine = _engine_name(engine)
+            version = ""
+            version_match = re.search(r"\bv?(\d+(?:\.\d+)+(?:[-+][A-Za-z0-9.]+)*)\b", engine)
+            if version_match:
+                version = version_match.group(1)
+            mode_version = re.search(rf"(?:^|/)(v?{_VERSION_RE.pattern})(?:/|$)", mode)
+            if mode_version:
+                version = mode_version.group(1)
+                mode = mode[:mode_version.start()].rstrip("/")
+            key = (summary_engine, _mode_alias(mode))
             summaries[key] = {
                 "total": int(total),
                 "passed": int(passed),
                 "failed": int(failed) + int(broken),
                 "skipped": int(skipped),
-                "version": "",
+                "version": version,
             }
             if key not in order:
                 order.append(key)
@@ -316,8 +532,12 @@ def parse_click_full_results(text):
 
         report = REPORT_HEADER_RE.match(line)
         if report:
-            engine, mode, version, _failed = report.groups()
-            key = (engine.lower(), mode)
+            engine, mode, version, failed, broken = report.groups()
+            key = (_engine_name(engine), _mode_alias(mode))
+            if int(failed) + int(broken) == 0:
+                current_report = key
+                report_skip_reasons.setdefault(key, "")
+                continue
             item = summaries.setdefault(key, {
                 "total": 0, "passed": 0, "failed": 0, "skipped": 0,
                 "version": version,
@@ -329,75 +549,162 @@ def parse_click_full_results(text):
             last_engine_mode = key
             continue
 
-        # Try to extract first failed case using comprehensive matcher
-        engine_ctx = last_engine_mode[0] if last_engine_mode else ""
-        mode_ctx = last_engine_mode[1] if last_engine_mode else ""
-        failed_case = extract_first_failed_case(line, engine_ctx, mode_ctx)
+        start = START_RE.match(line)
+        if start and start.group(1).lower() not in active_engines:
+            active_engines.append(start.group(1).lower())
+        done = DONE_RE.match(line)
+        if done:
+            active_engines = [engine for engine in active_engines if engine != done.group(1).lower()]
+        skip_match = SKIP_REASON_RE.match(_clean_detail(line))
+        if skip_match:
+            skip_engine, reason = skip_match.groups()
+            key = (_engine_name(skip_engine), "")
+            engine_skip_reasons.setdefault(key[0], reason[:80])
+            first_skipped.setdefault(key, reason[:80])
+            pending_skip = {"key": key, "reason": reason[:80]}
+            continue
+        if "环境不可用" in line and "跳过剩余" in line:
+            for engine in active_engines:
+                engine_skip_reasons.setdefault(engine, "环境不可用，跳过剩余引擎")
+            pending_skip = {"key": None, "reason": "环境不可用，跳过剩余引擎"}
+            continue
 
-        if failed_case:
-            key = last_engine_mode or current_report
-            if key and key not in first_failed:
-                first_failed[key] = failed_case[:80]  # safety limit for Feishu
-                # Once we have one per engine/mode, we can stop collecting more for it
+        # Structured TC- reports are more useful than incidental log warnings.
+        case = REPORT_CASE_RE.match(line)
+        if case:
+            case_id, name, status = case.groups()
+            detail = f"{case_id.strip()}: {name.strip()[:60]}"
+            target = first_failed if status != "SKIP" else first_skipped
+            key = current_report
+            if key and key not in target:
+                reason = pending_skip["reason"] if status == "SKIP" and pending_skip and pending_skip["key"] in (None, key) else ""
+                if status == "SKIP":
+                    reason = reason or report_skip_reasons.get(key, "")
+                    detail += f" ({reason[:70]})" if reason else ""
+                target[key] = detail[:150]
+            pending_skip = None
+            continue
+
+        if current_report in report_skip_reasons and not report_skip_reasons[current_report]:
+            detail = _clean_detail(line)
+            if detail and not detail.startswith(("DONE ", "=====")):
+                report_skip_reasons[current_report] = detail[:80]
+                if current_report in first_skipped and report_skip_reasons[current_report] not in first_skipped[current_report]:
+                    first_skipped[current_report] += f" ({report_skip_reasons[current_report][:70]})"
+                pending_skip = None
                 continue
 
-        case = REPORT_CASE_RE.match(line)
-        if case and current_report and current_report not in first_failed:
-            case_id, name, _status = case.groups()
-            first_failed[current_report] = f"{case_id.strip()}: {name.strip()[:60]}"
+        if current_report:
+            engine_ctx, mode_ctx = current_report
+            failed_case = extract_first_failed_case(line, engine_ctx, mode_ctx)
+            if failed_case and current_report not in first_failed:
+                first_failed[current_report] = failed_case[:80]
 
     for label in parse_click_engines(text).split(";"):
         if not label or "|" not in label:
             continue
         engine_mode, status = label.split("|", 1)
-        parts = engine_mode.split("/")
-        # Clean split: Type = pure engine (mysql/postgresql), Version = version number
-        raw_label = parts[0].strip()
-        engine = raw_label.lower()
-        version = ""
-
-        # Extract version from "mysql v5.7.44", "postgresql v12.22.0", etc.
-        ver_match = re.search(r"(?:^|[\s/])([0-9]+\.[0-9]+(?:\.[0-9]+)?(?:[-.][A-Za-z0-9]+)?)", raw_label)
-        if ver_match:
-            version = ver_match.group(1)
-            # Remove version from engine name
-            engine = re.sub(r"\s*v?[0-9].*?$", "", raw_label).strip().lower()
-
-        # Mode from remaining parts
-        mode = ""
-        if len(parts) > 1:
-            for p in parts[1:]:
-                p_clean = p.strip()
-                if not p_clean:
-                    continue
-                if not version and (_VERSION_RE.fullmatch(p_clean) or (p_clean.startswith("v") and _VERSION_RE.fullmatch(p_clean[1:]))):
-                    version = p_clean
-                    continue
-                if not mode:
-                    mode = MODE_ALIASES.get(p_clean, p_clean)
-                else:
-                    mode += f"/{MODE_ALIASES.get(p_clean, p_clean)}"
-
-        key = (engine, mode)
+        # Reuse one split for both log formats so Chinese display modes match
+        # their English aliases in summaries and failure-report headers.
+        engine, mode, version = _label_parts(engine_mode)
+        item = summaries.get((engine, _mode_alias(mode)))
+        if item and item.get("total"):
+            item["status"] = status
+            if version:
+                item["version"] = version
+            # An exact spec has authoritative counts; a later summary for the
+            # same engine/mode must not overwrite a different version's result.
+            item["total"] = -1
+        key = (engine, _mode_alias(mode))
         item = summaries.setdefault(key, {
             "total": 0, "passed": 0, "failed": 0, "skipped": 0,
             "version": version,
         })
-        item["version"] = item.get("version") or version
-        if not item.get("total"):
+        item["version"] = version or item.get("version", "")
+        if not item.get("total") or item.get("total") == -1:
             item["status"] = status
         if key not in order:
             order.append(key)
 
-    # Final pass: ensure every failed test has a meaningful first_failed description
+    # Failed-only report headers do not necessarily carry an engine status row.
+    # Only synthesize a failure when a corresponding mode was actually reported.
     for key in list(first_failed.keys()):
         if key not in summaries:
             summaries[key] = {"failed": 1}
+        elif not summaries[key].get("total") and summaries[key].get("failed", 0) == 0:
+            summaries[key]["failed"] = 1
+
+    # Preserve the display mode from the first matching spec. Report headers
+    # normally use aliases such as replication/standalone.
+    display_modes = {}
+    _spec_details = {}
+    for label in parse_click_engines(text).split(";"):
+        if not label or "|" not in label:
+            continue
+        engine_mode, status = label.split("|", 1)
+        engine, mode, version = _label_parts(engine_mode)
+        if mode and not re.search(r"\d+(?:\.\d+)+", mode):
+            display_modes.setdefault((engine, _mode_alias(mode)), mode)
+        _spec_details[(engine, _mode_alias(mode), version)] = {
+            "mode": mode,
+            "status": status,
+        }
+        if status == "[SKIPPED]":
+            reason = first_skipped.get((engine, "")) or engine_skip_reasons.get(engine)
+            if reason:
+                first_skipped[(engine, _mode_alias(mode))] = reason[:80]
+
+    # Alias variants and repeated versions can create duplicate mode keys. Keep
+    # the row with actual case counts, otherwise the most recent mode result.
+    merged_order = []
+    merged_indices = {}
+    for key in order:
+        identity = (key[0], _mode_alias(key[1]))
+        if identity not in merged_indices:
+            merged_indices[identity] = len(merged_order)
+            merged_order.append(key)
+            continue
+        index = merged_indices[identity]
+        duplicate = merged_order[index]
+        duplicate_item = summaries[duplicate]
+        current_item = summaries[key]
+        current_total = current_item.get("total", 0)
+        duplicate_total = duplicate_item.get("total", 0)
+        spec = _spec_details.get((key[0], _mode_alias(key[1]), current_item.get("version", "")))
+        if spec and current_total == 0:
+            current_item["status"] = spec["status"]
+            current_item["version"] = current_item.get("version", "")
+            current_item["total"] = -1
+            current_total = -1
+        if current_total == -1:
+            merged_order[index] = key
+        elif current_total > 0 and duplicate_total <= 0:
+            merged_order[index] = key
+        elif duplicate_total <= 0 and current_total == 0:
+            current_spec = _spec_details.get((key[0], _mode_alias(key[1]), current_item.get("version", "")))
+            duplicate_spec = _spec_details.get((duplicate[0], _mode_alias(duplicate[1]), duplicate_item.get("version", "")))
+            if current_spec and not duplicate_spec:
+                merged_order[index] = key
+        elif duplicate_item.get("failed", 0) == 0 and current_item.get("failed", 0) > 0:
+            merged_order[index] = key
 
     rows = []
-    for key in order:
+    # Detailed summaries may still contain a zero-count alias duplicate of a
+    # spec row. Keep the record with real case counts for each engine/mode.
+    detailed_best = {}
+    for key in merged_order:
+        item = summaries[key]
+        identity = (key[0], _mode_alias(key[1]))
+        candidate = (item.get("total", 0), item.get("failed", 0), key)
+        if identity not in detailed_best or candidate[:2] > detailed_best[identity][:2]:
+            detailed_best[identity] = candidate
+    merged_order = [candidate[2] for candidate in detailed_best.values()]
+    merged_order.sort(key=lambda key: (_natural_key(key[0]), _mode_key(key[1])))
+    for key in merged_order:
         engine, mode = key
         item = summaries[key]
+        spec = _spec_details.get((engine, _mode_alias(mode), item.get("version", "")))
+        mode = spec["mode"] if spec else display_modes.get(key, mode)
         status = item.get("status")
         if not status:
             status = "[FAILED]" if item.get("failed", 0) > 0 else "[PASSED]" if item.get("passed", 0) > 0 else "[SKIPPED]"
@@ -405,7 +712,10 @@ def parse_click_full_results(text):
         failed_desc = first_failed.get(key, "-")
         # Ultimate fallback: if we have failures but no description, synthesize one from context
         if failed_desc == "-" and item.get("failed", 0) > 0:
-            failed_desc = f"UI点击/基准测试/一致性失败 (详见报告)"
+            failed_desc = "UI点击/基准测试/一致性失败 (详见报告)"
+        if failed_desc == "-" and status == "[SKIPPED]":
+            failed_desc = first_skipped.get(key) or first_skipped.get((engine, "")) \
+                or engine_skip_reasons.get(engine) or report_skip_reasons.get(key) or "未执行测试"
 
         version = item.get("version", "")
         # Final cleanup: ensure Type is pure engine name, Version is separate
@@ -431,6 +741,26 @@ def parse_click_full_results(text):
 
 
 def main(argv):
+    if len(argv) == 4 and argv[1] == "--summary":
+        compact_rows, full_rows = argv[2], argv[3]
+        modes = [mode for mode in compact_rows.split(";") if mode]
+        counts = {"[PASSED]": 0, "[FAILED]": 0, "[SKIPPED]": 0}
+        details = full_rows.splitlines()
+        for mode in modes:
+            status = mode.rsplit("|", 1)[-1]
+            if status in counts:
+                counts[status] += 1
+        totals = [0, 0, 0]
+        for row in details:
+            fields = row.split("|")
+            if len(fields) >= 8 and all(field.isdigit() for field in fields[1:4]):
+                totals = [total + int(field) for total, field in zip(totals, fields[1:4])]
+        print(f"共 {len(modes)} 个模式：通过 {counts['[PASSED]']}，失败 {counts['[FAILED]']}，"
+              f"跳过 {counts['[SKIPPED]']}；用例 Pass|Fail|Skip = {totals[0]}|{totals[1]}|{totals[2]}")
+        return 0
+    if len(argv) == 2 and argv[1] == "--skip-reasons":
+        print(parse_click_skip_reasons(sys.stdin.read()), end="")
+        return 0
     if len(argv) == 3 and argv[1] == "--group":
         for name, rows in group_click_rows(argv[2]):
             print(f"{name}\t{rows}")

@@ -1698,74 +1698,168 @@ def send_kbcli_message(url_v, result_v, title_v):
     print(res.text)
 
 
+_CLICK_MODE_ORDER = {
+    "default": 0,
+    "standalone": 1,
+    "single-node": 2,
+    "singlenode": 3,
+    "single": 4,
+    "replication": 5,
+    "cluster": 6,
+    "clustermode": 7,
+    "triple": 8,
+    "realtime-replication": 9,
+    "replicaset": 10,
+    "master-slave": 11,
+    "dledger": 12,
+    "combined": 13,
+    "withzookeeper": 14,
+    "zookeeper模式": 15,
+    "distribution": 16,
+    "distributed": 17,
+    "distributed-2-6": 18,
+    "aggregated": 19,
+    "disaggregated": 20,
+    "integrated": 21,
+    "shared-data": 22,
+    "standard": 23,
+    "pulsar-enhanced-with-kb-zk": 24,
+    "vm-single": 25,
+}
+_CLICK_MODE_ALIASES = {
+    "主备": "replication", "单机": "standalone", "默认": "default", "集群版": "cluster",
+    "单机版": "single-node", "集群": "cluster", "高可用集群": "cluster",
+    "组合": "combined", "分布式2.6": "distributed-2-6", "分布式(2.6+)": "distributed-2-6",
+    "实时主备": "realtime-replication", "存算一体": "aggregated", "存算分离": "disaggregated",
+    "简单可扩展": "standard", "单节点": "single", "三节点": "triple",
+    "主从模式": "master-slave", "分布式": "distributed",
+}
+
+
+def _click_natural_key(value):
+    return tuple(
+        int(part) if part.isdigit() else part.casefold()
+        for part in re.split(r"(\d+)", str(value))
+        if part
+    )
+
+
+def _click_mode_key(mode):
+    normalized = _CLICK_MODE_ALIASES.get(mode, mode).casefold()
+    return (_CLICK_MODE_ORDER.get(normalized, len(_CLICK_MODE_ORDER)), _click_natural_key(mode))
+
+
+def _click_row_sort_key(fields):
+    return (
+        _click_natural_key(fields[0]),
+        _click_mode_key(fields[5]),
+        _click_natural_key(fields[4]),
+        "|".join(fields),
+    )
+
+
 def send_installer_full_message(url_v, result_v, title_v):
-    """Send full Click rows with counts and the first failed case."""
+    """Send every Click result row, paginating only when Feishu requires it."""
     print("send full installer message")
+    parsed_rows = []
+    for raw in result_v.split("##"):
+        fields = raw.split("|")
+        if len(fields) < 2:
+            continue
+        # Compact rows still work if detailed pod logs are unavailable.
+        if len(fields) < 8:
+            label, status = fields[0], fields[1]
+            engine, mode, version = _split_test_version(label)
+            fail_count = 1 if "[FAILED]" in status else 0
+            passed = 1 if status == "[PASSED]" else 0
+            skipped = 1 if status == "[SKIPPED]" else 0
+            case_cell = "UI点击/删除操作失败 (详见报告)" if fail_count else "-"
+            fields = [engine, passed, fail_count, skipped, version, mode, case_cell, status, ""]
+        fields.extend([""] * (9 - len(fields)))
+        parsed_rows.append(fields)
+    parsed_rows.sort(key=_click_row_sort_key)
+    _send_grouped_full_rows(url_v, parsed_rows, title_v)
+
+
+def _send_grouped_full_rows(url_v, rows, title_v):
+    """Paginate complete Click groups without dropping passed/skipped modes."""
+    pages = []
+    page = []
+    for fields in rows:
+        candidate = [*page, fields]
+        body = _serialize_feishu_card(
+            title_v,
+            [_full_click_header(), *[_full_click_row(item) for item in candidate]],
+        )
+        if page and _body_size(body) > FEISHU_TARGET_BYTES:
+            pages.append(page)
+            page = [fields]
+        else:
+            page = candidate
+    if page:
+        pages.append(page)
+
+    for index, page_rows in enumerate(pages, 1):
+        page_title = title_v if len(pages) == 1 else f"{title_v} [{index}/{len(pages)}]"
+        body = _serialize_feishu_card(
+            page_title,
+            [_full_click_header(), *[_full_click_row(item) for item in page_rows]],
+        )
+        size = _body_size(body)
+        if size > FEISHU_HARD_LIMIT_BYTES:
+            raise FeishuSizeError(
+                f"Feishu page {index}/{len(pages)} is {size} bytes after pagination"
+            )
+        _post_feishu_body(url_v, body)
+        if index < len(pages):
+            time.sleep(0.4)
+
+
+def _full_click_header():
     header = [
         ("**Type**", 2),
-        ("**Pass|Fail|Skip**", 2),
-        ("**Version**", 1),
+        ("**Pass|Fail|Skip**", 3),
+        ("**Version**", 2),
         ("**Mode**", 2),
-        ("**First Failed Case**", 4),
-        ("**Result**", 1),
+        ("**First Failed Case**", 2),
+        ("**Result**", 2),
     ]
-    elements = [{
+    return {
         "tag": "column_set",
         "flex_mode": "none",
         "background_style": "grey",
         "columns": [_md_col(content, weight) for content, weight in header],
-    }]
-    # Smart filtering for size limit: only send entries that actually failed (failed > 0)
-    # This prevents the 30KB Feishu limit while still showing all real problems
-    filtered_rows = []
-    for raw in result_v.split("##"):
-        fields = raw.split("|")
-        if len(fields) < 9:
-            continue
-        try:
-            fail_count = int(fields[2] or 0)
-            if fail_count == 0 and "0|0|0" not in raw:
-                continue  # skip pure summary/skipped rows
-        except ValueError:
-            pass
-        filtered_rows.append(raw)
+    }
 
-    result_v = "##".join(filtered_rows[:15])  # hard cap at 15 rows for safety
 
-    for raw in result_v.split("##"):
-        fields = raw.split("|")
-        if len(fields) < 9:
-            continue
-        status = fields[7]
-        color = "green" if "[PASSED]" in status else "red" if "[FAILED]" in status else "grey"
-        url = fields[8]
-        type_cell = f"<a href='{url}'>{fields[0]}</a>" if url else fields[0]
-        count_cell = f"<font color='green'>{fields[1]}</font> | " \
-            f"<font color='red'>{fields[2]}</font> | " \
-            f"<font color='grey'>{fields[3]}</font>"
-        case_cell = fields[6] if fields[6] != "-" and fields[6] != "UI点击/基准测试/一致性失败 (详见报告)" else ""
-        # Truncate very long descriptions to keep Feishu card clean (weight=4 column)
-        if len(case_cell) > 45:
-            case_cell = case_cell[:42] + "..."
-        # If we have a real failure but no specific case, show a helpful generic message
-        if not case_cell and int(fields[2] or 0) > 0:
-            case_cell = "UI点击失败/基准测试异常 (详见报告)"
+def _full_click_row(fields):
+    status = fields[7]
+    color = "green" if "[PASSED]" in status else "red" if "[FAILED]" in status else "grey"
+    url = fields[8]
+    safe_url = url.replace("'", "%27").replace('"', "%22").replace("<", "%3C").replace(">", "%3E")
+    type_cell = f"<a href='{safe_url}'>{fields[0]}</a>" if safe_url else fields[0]
+    count_cell = f"<font color='green'>{fields[1]}</font> | " \
+        f"<font color='red'>{fields[2]}</font> | " \
+        f"<font color='grey'>{fields[3]}</font>"
+    case_cell = fields[6] if fields[6] != "-" and fields[6] != "UI点击/基准测试/一致性失败 (详见报告)" else ""
+    if len(case_cell) > 45:
+        case_cell = case_cell[:42] + "..."
+    if not case_cell and int(fields[2] or 0) > 0:
+        case_cell = "UI点击失败/基准测试异常 (详见报告)"
+    return {
+        "tag": "column_set",
+        "flex_mode": "none",
+        "background_style": "default",
+        "columns": [
+            _md_col(type_cell, 2),
+            _md_col(count_cell, 3),
+            _md_col(f"<font color='{color}'>{fields[4]}</font>", 2),
+            _md_col(f"<font color='{color}'>{fields[5]}</font>", 2),
+            _md_col(f"<font color='red'>{case_cell}</font>", 2),
+            _md_col(f"<font color='{color}'>{status}</font>", 2),
+        ],
+    }
 
-        elements.append({
-            "tag": "column_set",
-            "flex_mode": "none",
-            "background_style": "default",
-            "columns": [
-                _md_col(type_cell, 2),
-                _md_col(count_cell, 2),
-                _md_col(f"<font color='{color}'>{fields[4]}</font>", 1),
-                _md_col(f"<font color='{color}'>{fields[5]}</font>", 2),
-                _md_col(f"<font color='red'>{case_cell}</font>", 4),
-                _md_col(f"<font color='{color}'>{status}</font>", 1),
-            ],
-        })
-    body = _serialize_feishu_card(title_v, elements)
-    _post_feishu_body(url_v, body)
 
 FEISHU_HARD_LIMIT_BYTES = 30_000
 FEISHU_TARGET_BYTES = int(os.getenv("FEISHU_TARGET_BYTES", "27000"))
