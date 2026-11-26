@@ -133,7 +133,7 @@ jobs:
                   fi
                   case "${test_type}" in
                       camellia-redis-proxy|damengdb|dolphindb|doris|elasticsearch|foundationdb|gaussdb|\
-                      goldendb|greatdb|hadoop|he3sql|hive|kingbase|mariadb|milvus|mongodb|mongodb-shard|\
+                      goldendb|greatdb|hadoop|he3sql|hive|inforsuite-redis|inforsuite-redis-cluster|kingbase|mariadb|milvus|mongodb|mongodb-shard|\
                       mssql|asmysql|asmysql-proxy|asmysql-orc|asmysql-orc-proxy|nacos|oceanbase-ent|\
                       oceanbase-ocp|oceanbase-pingan|oceanbase-proxy|oracle|pgpool|polardb-pg|proxysql|rabbitmq|\
                       rustfs|selectdb|starrocks-ent|tdengine|tdsql|vastbase|vault|victoria-logs|victoria-metrics)
@@ -234,7 +234,7 @@ jobs:
     secrets: inherit
 
   test-redis:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(format('|{0}|', inputs.TEST_TYPE), '|redis|')) }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
@@ -990,7 +990,7 @@ jobs:
     secrets: inherit
 
   test-redis-cluster:
-    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(inputs.TEST_TYPE, 'redis-cluster')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(format('|{0}|', inputs.TEST_TYPE), '|redis-cluster|')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') }}
     needs: [ terraform-init-k8s, test-kubeblocks ]
     uses: ./.github/workflows/kbcli-test.yml
     with:
@@ -1655,6 +1655,42 @@ jobs:
       random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
     secrets: inherit
 
+  test-inforsuite-redis:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(format('|{0}|', inputs.TEST_TYPE), '|inforsuite-redis|')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "87"
+      test-type-name: "inforsuite-redis"
+      test-args: "${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
+  test-inforsuite-redis-cluster:
+    if: ${{ needs.terraform-init-k8s.result == 'success' && always() && (inputs.TEST_TYPE == '' || contains(format('|{0}|', inputs.TEST_TYPE), '|inforsuite-redis-cluster|')) && ! contains(inputs.KB_VERSION, 'v0.5.') && ! contains(inputs.KB_VERSION, 'v0.6.') && ! contains(inputs.KB_VERSION, 'v0.7.') && ! contains(inputs.KB_VERSION, 'v0.8.') && ! contains(inputs.KB_VERSION, 'v0.9.') }}
+    needs: [ terraform-init-k8s, test-kubeblocks ]
+    uses: ./.github/workflows/kbcli-test.yml
+    with:
+      cloud-provider: ${{ inputs.CLOUD_PROVIDER }}
+      region: ${{ inputs.REGION }}
+      release-version: "${{ inputs.KB_VERSION }}"
+      previous-version: "${{ inputs.KB_PRE_VERSION }}"
+      test-type: "88"
+      test-type-name: "inforsuite-redis-cluster"
+      test-args: "${{ inputs.ARGS }}"
+      k8s-cluster-name: ${{ needs.terraform-init-k8s.outputs.k8s-cluster-name }}
+      artifact-name: cicd-${{ inputs.CLOUD_PROVIDER }}-${{ github.sha }}
+      branch-name: ${{ inputs.BRANCH_NAME }}
+      random-suffix: ${{ needs.test-kubeblocks.outputs.random-suffix }}
+    secrets: inherit
+
   get-result:
     if: ${{ always() }}
     runs-on: ubuntu-latest
@@ -1704,7 +1740,7 @@ jobs:
             cmd="${cmd_head} \"${{ needs.test-postgresql.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
           fi
-          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"redis|"* || "$TEST_TYPE" == *"redis" ]]; then
+          if [[ "$TEST_TYPE" == '' || "|$TEST_TYPE|" == *"|redis|"* ]]; then
             TEST_RESULT+="##redis|${{ needs.test-redis.outputs.test-result }}"
             cmd="${cmd_head} \"${{ needs.test-redis.outputs.test-result-report }}\" "
             TEST_RESULT+=$(eval "$cmd")
@@ -1849,7 +1885,7 @@ jobs:
               cmd="${cmd_head} \"${{ needs.test-mogdb.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
-            if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"redis-cluster"* ]]; then
+            if [[ "$TEST_TYPE" == '' || "|$TEST_TYPE|" == *"|redis-cluster|"* ]]; then
               TEST_RESULT+="##redis-cluster|${{ needs.test-redis-cluster.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-redis-cluster.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
@@ -2031,7 +2067,7 @@ jobs:
              test-mssql, test-goldendb, test-tdsql, test-greatdb, test-hadoop, test-hive, test-oceanbase-proxy,
              test-nacos, test-vault, test-foundationdb, test-selectdb, test-he3sql, test-rustfs,
              test-elasticsearch, test-milvus, test-mongodb, test-rabbitmq, test-victoria-metrics,
-             test-victoria-logs, test-polardb-pg, test-pgpool, test-oceanbase-pingan, test-dolphindb, test-oceanbase-ocp, test-proxysql ]
+             test-victoria-logs, test-polardb-pg, test-pgpool, test-oceanbase-pingan, test-dolphindb, test-oceanbase-ocp, test-proxysql, test-inforsuite-redis, test-inforsuite-redis-cluster ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -2221,6 +2257,16 @@ jobs:
             if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"proxysql"* ]]; then
               TEST_RESULT+="##proxysql|${{ needs.test-proxysql.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.test-proxysql.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
+            if [[ "$TEST_TYPE" == '' || "|$TEST_TYPE|" == *"|inforsuite-redis|"* ]]; then
+              TEST_RESULT+="##inforsuite-redis|${{ needs.test-inforsuite-redis.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-inforsuite-redis.outputs.test-result-report }}\" "
+              TEST_RESULT+=$(eval "$cmd")
+            fi
+            if [[ "$TEST_TYPE" == '' || "|$TEST_TYPE|" == *"|inforsuite-redis-cluster|"* ]]; then
+              TEST_RESULT+="##inforsuite-redis-cluster|${{ needs.test-inforsuite-redis-cluster.outputs.test-result }}"
+              cmd="${cmd_head} \"${{ needs.test-inforsuite-redis-cluster.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
             fi
           fi

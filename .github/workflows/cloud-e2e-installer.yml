@@ -23,6 +23,11 @@ on:
         type: string
         required: false
         default: 'main'
+      WEBHOOK_TYPE:
+        description: "Override the webhook type (e.g. CICD_WEBHOOK) "
+        type: string
+        required: false
+        default: ''
   workflow_call:
     inputs:
       CLOUD_BRANCH:
@@ -45,6 +50,11 @@ on:
         type: string
         required: false
         default: 'main'
+      WEBHOOK_TYPE:
+        description: "Override the webhook type (e.g. CICD_WEBHOOK) "
+        type: string
+        required: false
+        default: ''
 
 run-name: Cloud Installer And Upgrade Test Ref:${{ inputs.CLOUD_BRANCH }}
 
@@ -132,6 +142,15 @@ jobs:
         with:
           version: "v3.16.3"
 
+      - name: Configure host inotify limits for k3d
+        run: |
+          # All four k3d nodes share the runner's per-user inotify instance limit.
+          current=$(sysctl -n fs.inotify.max_user_instances)
+          echo "Runner inotify instance limit: $current"
+          if (( current < 8192 )); then
+              sudo sysctl -w fs.inotify.max_user_instances=8192
+          fi
+
       - name: setup k3d k3s
         uses: apecloud-inc/setup-k3d-k3s@v2
         with:
@@ -216,7 +235,8 @@ jobs:
               fi
               echo "Waiting for KB Cloud to be ready..."
               kubectl get pods -n kb-cloud
-              echo ""
+              echo "
+              "
               sleep 5
           done
           
@@ -251,7 +271,8 @@ jobs:
               for installer_error_pod in $(echo "${installer_error_pods}"); do
                   echo "==================== pod ${installer_error_pod} describe ===================="
                   kubectl describe pod -n kb-cloud ${installer_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               # logs kb-cloud error pod 
@@ -260,7 +281,8 @@ jobs:
               for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
                   echo "==================== pod ${kb_cloud_error_pod} logs ===================="
                   kubectl logs --tail 100 -n kb-cloud ${kb_cloud_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               set -e
@@ -345,7 +367,8 @@ jobs:
                       done
                   done
               fi
-              echo ""
+              echo "
+              "
               sleep 5
           done
           
@@ -390,7 +413,8 @@ jobs:
               for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
                   echo "==================== pod ${kb_system_error_pod} logs ===================="
                   kubectl logs --tail 100 -n kb-system ${kb_system_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               # describe image pull error kb-system pod
@@ -399,7 +423,8 @@ jobs:
               for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
                   echo "==================== pod ${kb_system_error_pod} describe ===================="
                   kubectl describe pod -n kb-system ${kb_system_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               # logs kb-cloud error pod 
@@ -408,7 +433,8 @@ jobs:
               for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
                   echo "==================== pod ${kb_system_error_pod} logs ===================="
                   kubectl logs --tail 100 -n kb-cloud ${kb_system_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               # describe image pull error kb-cloud pod
@@ -417,12 +443,50 @@ jobs:
               for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
                   echo "==================== pod ${kb_system_error_pod} describe ===================="
                   kubectl describe pod -n kb-cloud ${kb_system_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               set -e
               exit 1
           else
+              set +e
+              abnormal_kb_system_pods=$(kubectl get pods -n kb-system --no-headers 2>/dev/null | awk '$3 != "Completed" && ($3 != "Running" || (split($2, r, "/") == 2 && r[1] != r[2])) {print $1}' || true)
+              if [[ -n "${abnormal_kb_system_pods}" ]]; then
+                  echo "==================== abnormal kb-system pods (non-fatal) ===================="
+                  kubectl get pods -n kb-system || true
+                  seen_owners=" "
+                  for pod in ${abnormal_kb_system_pods}; do
+                      owner=$(kubectl get pod -n kb-system "${pod}" -o jsonpath='{.metadata.ownerReferences[0].kind}/{.metadata.ownerReferences[0].name}' 2>/dev/null || true)
+                      owner_key="${owner:-pod/${pod}}"
+                      if [[ "${seen_owners}" == *" ${owner_key} "* ]]; then
+                          continue
+                      fi
+                      seen_owners="${seen_owners}${owner_key} "
+                      echo "==================== pod kb-system/${pod} (${owner_key}) describe ===================="
+                      kubectl describe pod -n kb-system "${pod}" || true
+                      echo "==================== pod kb-system/${pod} logs ===================="
+                      cur_logs=$(kubectl logs --tail 100 --all-containers=true -n kb-system "${pod}" 2>&1 || true)
+                      prev_logs=$(kubectl logs --tail 100 --previous --all-containers=true -n kb-system "${pod}" 2>/dev/null || true)
+                      if [[ -n "${cur_logs}" ]]; then
+                          echo "${cur_logs}"
+                      fi
+                      if [[ -n "${prev_logs}" && "${prev_logs}" != "${cur_logs}" ]]; then
+                          echo "--- previous logs ---"
+                          echo "${prev_logs}"
+                      fi
+                      if [[ "${pod}" == kb-monitor-* ]]; then
+                          node_name=$(kubectl get pod -n kb-system "${pod}" -o jsonpath='{.spec.nodeName}' 2>/dev/null || true)
+                          if [[ -n "${node_name}" ]]; then
+                              echo "==================== node ${node_name} /var/log/oteld ===================="
+                              docker exec "${node_name}" sh -c 'ls -la /var/log/oteld 2>&1; for f in /var/log/oteld/*; do [ -f "$f" ] && echo "--- $f ---" && tail -n 100 "$f"; done' 2>&1 || true
+                          fi
+                          echo "==================== configmap kb-monitor-daemonset-opentelemetry ===================="
+                          kubectl get configmap kb-monitor-daemonset-opentelemetry -n kb-system -o yaml 2>/dev/null || true
+                      fi
+                  done
+              fi
+              set -e
               case $K3S_VERSION in
                   v1.22)
                       echo bootstrapper-result-1-22="${bootstrapper_result}" >> $GITHUB_OUTPUT
@@ -432,6 +496,549 @@ jobs:
                   ;;
               esac
           fi
+
+  installer-env-test:
+    if: ${{ ! startsWith(inputs.CURRENT_VERSION, 'v2.2') && ! startsWith(inputs.CURRENT_VERSION, 'v2.1') }}
+    needs: [ get-cloud-branch ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      installer-env-supported: ${{ steps.check_env_support.outputs.supported }}
+      installer-env-result: ${{ steps.check_kb_cloud_env.outputs.installer-env-result }}
+    steps:
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "v3.16.3"
+
+      - name: Check installer environment support
+        id: check_env_support
+        run: |
+          CLOUD_BRANCH="${{ needs.get-cloud-branch.outputs.cloud-branch }}"
+          CURRENT_VERSION="${{ inputs.CURRENT_VERSION }}"
+          if [[ "${CURRENT_VERSION}" == "v0.28" || "${CURRENT_VERSION}" == "0.28" ]]; then
+              echo "Version ${CURRENT_VERSION} does not support adding environment during control-plane install, skip."
+              echo "supported=false" >> $GITHUB_OUTPUT
+              exit 0
+          fi
+
+          helm repo add kb-chart https://apecloud.github.io/helm-charts --force-update
+          rm -rf chart-inspect
+          mkdir -p chart-inspect
+          pulled=0
+          for i in {1..30}; do
+              if helm pull kb-chart/kb-cloud-installer --version "${CLOUD_BRANCH}" --untar --untardir chart-inspect; then
+                  pulled=1
+                  break
+              fi
+              echo "Waiting for kb-cloud-installer chart ${CLOUD_BRANCH} in kb-chart repo (attempt ${i}/30)..."
+              sleep 5
+              helm repo update kb-chart
+          done
+          if [[ $pulled -eq 0 ]]; then
+              echo "Failed to pull kb-cloud-installer chart version ${CLOUD_BRANCH}"
+              exit 1
+          fi
+
+          has_env_enabled=$(yq 'has("environment") and (.environment | has("enabled"))' chart-inspect/kb-cloud-installer/values.yaml)
+          if [[ "${has_env_enabled}" == "true" && -f "chart-inspect/kb-cloud-installer/scripts/environment.py" ]]; then
+              echo "Chart version ${CLOUD_BRANCH} supports environment.enabled=true"
+              echo "supported=true" >> $GITHUB_OUTPUT
+          else
+              echo "Chart version ${CLOUD_BRANCH} does not support environment.enabled=true (has_env_enabled=${has_env_enabled}), skip."
+              echo "supported=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Free disk space
+        if: ${{ steps.check_env_support.outputs.supported == 'true' }}
+        continue-on-error: true
+        run: |
+          echo "Free space first:"
+          df -h
+
+          mnt_storage=$(df -h | (grep "/mnt" | grep "100%" || true))
+          if [[ -n "${mnt_storage}" ]]; then
+            echo "Disk is full, please rerun the workflow."
+            exit 1
+          fi
+
+          sudo mkdir -p /mnt/new-storage
+          sudo touch /etc/docker/daemon.json
+          sudo tee /etc/docker/daemon.json <<EOF
+          {
+            "data-root": "/mnt/new-storage"
+          }
+          EOF
+          sudo systemctl restart docker
+          echo "Free space second:"
+          df -h
+
+      - name: Checkout apecloud-cd Code
+        if: ${{ steps.check_env_support.outputs.supported == 'true' }}
+        uses: actions/checkout@v4
+        with:
+          repository: apecloud/apecloud-cd
+          path: apecloud-cd
+          ref: ${{ inputs.APECD_REF }}
+
+      - name: Setup kubectl
+        if: ${{ steps.check_env_support.outputs.supported == 'true' }}
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.30.4"
+
+      - name: Configure host inotify limits for k3d
+        if: ${{ steps.check_env_support.outputs.supported == 'true' }}
+        run: |
+          # All four k3d nodes share the runner's per-user inotify instance limit.
+          current=$(sysctl -n fs.inotify.max_user_instances)
+          echo "Runner inotify instance limit: $current"
+          if (( current < 8192 )); then
+              sudo sysctl -w fs.inotify.max_user_instances=8192
+          fi
+
+      - name: setup k3d k3s
+        if: ${{ steps.check_env_support.outputs.supported == 'true' }}
+        uses: apecloud-inc/setup-k3d-k3s@v2
+        with:
+          k3d-name: "${{ env.K3D_NAME }}"
+          version: "v${{ inputs.K3S_VERSION }}"
+          github-token: ${{ env.GH_TOKEN }}
+          k3d-args: -p 443:443@loadbalancer -p 80:80@loadbalancer --agents 3
+
+      - name: update k3d coredns cm
+        if: ${{ steps.check_env_support.outputs.supported == 'true' }}
+        run: |
+          for i in {1..3}; do
+              bash ${{ github.workspace }}/apecloud-cd/.github/utils/utils.sh --type 37
+              sleep 1
+          done
+
+      - name: install cert-manager
+        if: ${{ steps.check_env_support.outputs.supported == 'true' }}
+        run: |
+          helm repo add jetstack https://charts.jetstack.io --force-update
+          helm install \
+              cert-manager jetstack/cert-manager \
+              --namespace cert-manager \
+              --create-namespace \
+              --version v1.16.0 \
+              --set crds.enabled=true
+
+      - name: create secret ${{ env.KB_ADDON_SECRET_NAME }}
+        if: ${{ steps.check_env_support.outputs.supported == 'true' }}
+        run: |
+          KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
+          DOCKER_REGISTRY_URL_INDEX="${{ env.DOCKER_REGISTRY_URL_INDEX }}"
+          DOCKER_REGISTRY_USER="${{ env.DOCKER_REGISTRY_USER }}"
+          DOCKER_REGISTRY_PASSWORD="${{ env.DOCKER_REGISTRY_PASSWORD }}"
+
+          for ns in kb-cloud kb-system; do
+              if ! kubectl get namespace "$ns" >/dev/null 2>&1; then
+                  kubectl create namespace "$ns"
+              fi
+              kubectl create secret docker-registry "${KB_ADDON_SECRET_NAME}" \
+                  --docker-server="${DOCKER_REGISTRY_URL_INDEX}" \
+                  --docker-username="${DOCKER_REGISTRY_USER}" \
+                  --docker-password="${DOCKER_REGISTRY_PASSWORD}" \
+                  --docker-email="" \
+                  -n "$ns" --dry-run=client -o yaml | kubectl apply -f -
+          done
+
+      - if: ${{ steps.check_env_support.outputs.supported == 'true' && env.DOCKER_REGISTRY_USER != '' && env.DOCKER_REGISTRY_PASSWORD != '' }}
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY_URL }}
+          username: ${{ env.DOCKER_REGISTRY_USER }}
+          password: ${{ env.DOCKER_REGISTRY_PASSWORD }}
+
+      - name: install kb cloud with control-plane environment
+        if: ${{ steps.check_env_support.outputs.supported == 'true' }}
+        id: install_kb_cloud_with_env
+        run: |
+          CLOUD_BRANCH="${{ needs.get-cloud-branch.outputs.cloud-branch }}"
+          KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
+          CLOUD_LICENSE="${{ env.CLOUD_LICENSE }}"
+          ENV_NAME="local"
+
+          echo "Prepare self-contained kubeconfig for control-plane environment"
+          kubeconfig_file_name="${RUNNER_TEMP}/k8s_kubeconfig_file.yaml"
+          kubectl config view --minify --raw -o yaml > "${kubeconfig_file_name}"
+          yq e -i '.clusters[0].cluster.server = "https://kubernetes.default.svc:443"' "${kubeconfig_file_name}"
+          yq e -i 'del(.clusters[0].cluster."certificate-authority-data") | .clusters[0].cluster."insecure-skip-tls-verify" = true' "${kubeconfig_file_name}"
+
+          helm_args=(
+              install installer "${{ github.workspace }}/chart-inspect/kb-cloud-installer"
+              --namespace kb-cloud
+              --create-namespace
+              --set action=install
+              --set image.registry="docker.io"
+              --set version="${CLOUD_BRANCH}"
+              --set kubernetesProvider=k3d
+              --set fqdn.domain=mytest.kubeblocks.com
+              --set tls.enabled=true
+              --set ingress.routeType="host"
+              --set image.pullSecrets[0].name="${KB_ADDON_SECRET_NAME}"
+              --set metaDB.zalandoOperator.clusterConfig.resources.requests.cpu="100m"
+              --set metaDB.zalandoOperator.clusterConfig.resources.requests.memory="128Mi"
+              --set environment.enabled=true
+              --set environment.name="${ENV_NAME}"
+              --set-file environment.kubeconfig="${kubeconfig_file_name}"
+              --wait
+              --wait-for-jobs
+              --timeout=35m
+          )
+
+          if [[ -n "${CLOUD_LICENSE}" ]]; then
+              license_file_name="${RUNNER_TEMP}/cloud_license.key"
+              if printf '%s' "${CLOUD_LICENSE}" | tr -d '\r\n' | base64 -d > "${license_file_name}" 2>/dev/null && [[ -s "${license_file_name}" ]]; then
+                  echo "Decoded CLOUD_LICENSE for installer"
+              else
+                  printf '%s' "${CLOUD_LICENSE}" > "${license_file_name}"
+              fi
+              helm_args+=(--set-file license="${license_file_name}")
+          fi
+
+          helm repo update kb-chart
+
+          helm_log="${RUNNER_TEMP}/helm_install_env.log"
+          helm_exit_file="${RUNNER_TEMP}/helm_install_env.exit"
+          helm_pid_file="${RUNNER_TEMP}/helm_install_env.pid"
+          helm_wrapper="${RUNNER_TEMP}/run_helm_install_env.sh"
+          rm -f "${helm_log}" "${helm_exit_file}" "${helm_exit_file}.tmp" "${helm_pid_file}"
+
+          cat <<'EOF' > "${helm_wrapper}"
+          #!/usr/bin/env bash
+          helm "$@" > "${HELM_LOG}" 2>&1
+          rc=$?
+          printf '%s\n' "${rc}" > "${HELM_EXIT_FILE}.tmp"
+          mv "${HELM_EXIT_FILE}.tmp" "${HELM_EXIT_FILE}"
+          exit "${rc}"
+          EOF
+          chmod +x "${helm_wrapper}"
+
+          HELM_LOG="${helm_log}" HELM_EXIT_FILE="${helm_exit_file}" \
+              nohup "${helm_wrapper}" "${helm_args[@]}" </dev/null >/dev/null 2>&1 &
+          helm_pid=$!
+          printf '%s\n' "${helm_pid}" > "${helm_pid_file}"
+          echo "Started helm install in background (pid: ${helm_pid})"
+
+          started=0
+          for i in {1..30}; do
+              if kubectl get job kb-cloud-installer-install -n kb-cloud >/dev/null 2>&1; then
+                  echo "Job kb-cloud-installer-install created"
+                  started=1
+                  break
+              fi
+              if [[ -f "${helm_exit_file}" ]]; then
+                  helm_ret=$(tr -d '\r\n' < "${helm_exit_file}")
+                  if [[ "${helm_ret}" == "0" ]]; then
+                      started=1
+                      break
+                  fi
+                  echo "helm install exited early (exit code: ${helm_ret})"
+                  cat "${helm_log}" || true
+                  exit 1
+              fi
+              sleep 2
+          done
+
+          if [[ $started -eq 0 ]]; then
+              echo "Timed out waiting for Job kb-cloud-installer-install to be created"
+              cat "${helm_log}" || true
+              exit 1
+          fi
+
+      - name: check kb-cloud-installer pod Completed
+        if: ${{ steps.check_env_support.outputs.supported == 'true' }}
+        id: check_kb_cloud_control_plane
+        run: |
+          KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
+          helm_log="${RUNNER_TEMP}/helm_install_env.log"
+          helm_exit_file="${RUNNER_TEMP}/helm_install_env.exit"
+          helm_pid_file="${RUNNER_TEMP}/helm_install_env.pid"
+
+          sleep 10
+          check_status=0
+          patched_sas=" "
+          for i in {1..200}; do
+              job_complete=$(kubectl get job kb-cloud-installer-install -n kb-cloud -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' 2>/dev/null || true)
+              cm_complete=$(kubectl get configmap kb-cloud-installer-environment -n kb-cloud -o jsonpath='{.data.control-plane-complete}' 2>/dev/null || true)
+              if [[ "${job_complete}" == "True" || "${cm_complete}" == "true" ]] || kubectl get pods -n kb-cloud --no-headers 2>/dev/null | grep "^kb-cloud-installer-install-" | grep -q "Completed"; then
+                  echo "KB Cloud control plane is ready"
+                  check_status=1
+                  break
+              fi
+
+              job_failed=$(kubectl get job kb-cloud-installer-install -n kb-cloud -o jsonpath='{.status.conditions[?(@.type=="Failed")].status}' 2>/dev/null || true)
+              if [[ "${job_failed}" == "True" ]]; then
+                  echo "Job kb-cloud-installer-install failed"
+                  break
+              fi
+
+              if [[ -f "${helm_exit_file}" ]]; then
+                  helm_ret=$(tr -d '\r\n' < "${helm_exit_file}")
+                  if [[ "${helm_ret}" != "0" ]]; then
+                      echo "helm install failed during control-plane installation (exit code: ${helm_ret})"
+                      break
+                  fi
+              fi
+
+              KUBEBLOCKS_SAS=$(kubectl get serviceaccounts -n kb-system --no-headers 2>/dev/null | awk '$1 ~ /kubeblocks/ {print $1}' || true)
+              for kb_sa in ${KUBEBLOCKS_SAS}; do
+                  if [[ "${patched_sas}" != *" ${kb_sa} "* ]]; then
+                      if kubectl patch -p "{\"imagePullSecrets\":[{\"name\":\"${KB_ADDON_SECRET_NAME}\"}]}" \
+                          --type=merge serviceaccount -n kb-system "${kb_sa}" >/dev/null 2>&1; then
+                          patched_sas="${patched_sas}${kb_sa} "
+                      fi
+                  fi
+              done
+
+              echo "Waiting for KB Cloud control plane to be ready..."
+              kubectl get pods -n kb-cloud || true
+              echo "
+              "
+              sleep 5
+          done
+
+          if [[ $check_status -eq 0 ]]; then
+              echo "KB Cloud control plane is not ready"
+              set +e
+              set -o nounset
+
+              if [[ -f "${helm_pid_file}" ]]; then
+                  helm_pid=$(tr -d '\r\n' < "${helm_pid_file}")
+                  if [[ -n "${helm_pid}" ]]; then
+                      pkill -P "${helm_pid}" 2>/dev/null || true
+                      kill "${helm_pid}" 2>/dev/null || true
+                  fi
+              fi
+
+              echo "==================== helm install output ===================="
+              cat "${helm_log}" || true
+              echo "==================== describe node ===================="
+              kubectl describe node
+              df -h
+              echo "==================== kb-cloud jobs & pods ===================="
+              kubectl get jobs,pods -n kb-cloud
+
+              installer_pods=$(kubectl get pods -n kb-cloud | (grep "kb-cloud-installer-install" || true))
+              echo "installer pod: ${installer_pods}"
+              installer_pod_names="$(echo "${installer_pods}" | awk '{print $1}')"
+              for installer_pod_name in $(echo "${installer_pod_names}"); do
+                  echo "==================== pod ${installer_pod_name} logs ===================="
+                  kubectl logs --tail 200 -n kb-cloud "${installer_pod_name}"
+              done
+
+              installer_error_pods=$(kubectl get pods -n kb-cloud | (grep "kb-cloud-installer-install" | grep -v "Completed" | grep -v "Running" | egrep "ImagePull|Pending|Evicted|Error" || true) | awk '{print $1}')
+              for installer_error_pod in $(echo "${installer_error_pods}"); do
+                  echo "==================== pod ${installer_error_pod} describe ===================="
+                  kubectl describe pod -n kb-cloud "${installer_error_pod}"
+                  echo "
+                  "
+              done
+
+              kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Evicted" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" || true) | awk '{print $1}')
+              for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
+                  echo "==================== pod ${kb_cloud_error_pod} logs ===================="
+                  kubectl logs --tail 100 --all-containers=true -n kb-cloud "${kb_cloud_error_pod}"
+                  echo "
+                  "
+              done
+
+              kb_cloud_image_pull_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')
+              for kb_cloud_image_pull_pod in $(echo "${kb_cloud_image_pull_pods}"); do
+                  echo "==================== pod ${kb_cloud_image_pull_pod} describe ===================="
+                  kubectl describe pod -n kb-cloud "${kb_cloud_image_pull_pod}"
+                  echo "
+                  "
+              done
+
+              set -e
+              exit 1
+          fi
+
+          kubectl get pods -n kb-cloud || true
+
+      - name: check kb-cloud environment ready
+        if: ${{ steps.check_env_support.outputs.supported == 'true' }}
+        id: check_kb_cloud_env
+        run: |
+          ENV_NAME="local"
+          KB_ADDON_SECRET_NAME="${{ env.KB_ADDON_SECRET_NAME }}"
+          helm_log="${RUNNER_TEMP}/helm_install_env.log"
+          helm_exit_file="${RUNNER_TEMP}/helm_install_env.exit"
+          helm_pid_file="${RUNNER_TEMP}/helm_install_env.pid"
+          helm_pid=""
+          if [[ -f "${helm_pid_file}" ]]; then
+              helm_pid=$(tr -d '\r\n' < "${helm_pid_file}")
+          fi
+
+          monitor_patch_pid=""
+          cleanup_bg() {
+              if [[ -n "${monitor_patch_pid}" ]]; then
+                  kill "${monitor_patch_pid}" 2>/dev/null || true
+              fi
+          }
+          trap cleanup_bg EXIT
+
+          cloud_e2e_installer_script="${{ github.workspace }}/apecloud-cd/.github/utils/cloud_e2e_installer.sh"
+          if [[ -f "${cloud_e2e_installer_script}" ]]; then
+              echo "Start background kb-monitor resources patcher"
+              bash "${cloud_e2e_installer_script}" &
+              monitor_patch_pid=$!
+          fi
+
+          dump_abnormal_kb_system_pods() {
+              local pods pod owner owner_key seen_owners cur_logs prev_logs node_name
+              pods=$(kubectl get pods -n kb-system --no-headers 2>/dev/null | awk '$3 != "Completed" && ($3 != "Running" || (split($2, r, "/") == 2 && r[1] != r[2])) {print $1}' || true)
+              if [[ -z "${pods}" ]]; then
+                  return 0
+              fi
+              echo "==================== abnormal kb-system pods ===================="
+              kubectl get pods -n kb-system || true
+              seen_owners=" "
+              for pod in ${pods}; do
+                  owner=$(kubectl get pod -n kb-system "${pod}" -o jsonpath='{.metadata.ownerReferences[0].kind}/{.metadata.ownerReferences[0].name}' 2>/dev/null || true)
+                  owner_key="${owner:-pod/${pod}}"
+                  if [[ "${seen_owners}" == *" ${owner_key} "* ]]; then
+                      continue
+                  fi
+                  seen_owners="${seen_owners}${owner_key} "
+                  echo "==================== pod kb-system/${pod} (${owner_key}) describe ===================="
+                  kubectl describe pod -n kb-system "${pod}" || true
+                  echo "==================== pod kb-system/${pod} logs ===================="
+                  cur_logs=$(kubectl logs --tail 100 --all-containers=true -n kb-system "${pod}" 2>&1 || true)
+                  prev_logs=$(kubectl logs --tail 100 --previous --all-containers=true -n kb-system "${pod}" 2>/dev/null || true)
+                  if [[ -n "${cur_logs}" ]]; then
+                      echo "${cur_logs}"
+                  fi
+                  if [[ -n "${prev_logs}" && "${prev_logs}" != "${cur_logs}" ]]; then
+                      echo "--- previous logs ---"
+                      echo "${prev_logs}"
+                  fi
+                  if [[ "${pod}" == kb-monitor-* ]]; then
+                      node_name=$(kubectl get pod -n kb-system "${pod}" -o jsonpath='{.spec.nodeName}' 2>/dev/null || true)
+                      if [[ -n "${node_name}" ]]; then
+                          echo "==================== node ${node_name} /var/log/oteld ===================="
+                          docker exec "${node_name}" sh -c 'ls -la /var/log/oteld 2>&1; for f in /var/log/oteld/*; do [ -f "$f" ] && echo "--- $f ---" && tail -n 100 "$f"; done' 2>&1 || true
+                      fi
+                      echo "==================== configmap kb-monitor-daemonset-opentelemetry ===================="
+                      kubectl get configmap kb-monitor-daemonset-opentelemetry -n kb-system -o yaml 2>/dev/null || true
+                  fi
+                  echo ""
+              done
+          }
+
+          patched_sas=" "
+          helm_finished=0
+          for i in {1..300}; do
+              if [[ -f "${helm_exit_file}" ]]; then
+                  helm_finished=1
+                  break
+              fi
+              if [[ -n "${helm_pid}" ]] && ! kill -0 "${helm_pid}" 2>/dev/null; then
+                  sleep 1
+                  if [[ -f "${helm_exit_file}" ]]; then
+                      helm_finished=1
+                  fi
+                  break
+              fi
+
+              echo "Waiting for KB Cloud Env (${ENV_NAME}) to be ready..."
+              kubectl get pods -n kb-cloud --no-headers 2>/dev/null | grep -E '^(kb-cloud-installer-environment|envinstall)-' || true
+              kubectl get pods -n kb-system || true
+
+              KUBEBLOCKS_SAS=$(kubectl get serviceaccounts -n kb-system --no-headers 2>/dev/null | awk '$1 ~ /kubeblocks/ {print $1}' || true)
+              for kb_sa in ${KUBEBLOCKS_SAS}; do
+                  if [[ "${patched_sas}" != *" ${kb_sa} "* ]]; then
+                      echo "patch serviceaccount ${kb_sa}..."
+                      for attempt in {1..5}; do
+                          if kubectl patch -p "{\"imagePullSecrets\":[{\"name\":\"${KB_ADDON_SECRET_NAME}\"}]}" \
+                              --type=merge serviceaccount -n kb-system "${kb_sa}"; then
+                              echo "patch serviceaccount ${kb_sa} success"
+                              patched_sas="${patched_sas}${kb_sa} "
+                              break
+                          fi
+                          echo "Waiting for patch serviceaccount ${kb_sa}..."
+                          sleep 1
+                      done
+                  fi
+              done
+              echo "
+              "
+              sleep 5
+          done
+
+          cleanup_bg
+          monitor_patch_pid=""
+
+          helm_ret=1
+          if [[ $helm_finished -eq 1 && -f "${helm_exit_file}" ]]; then
+              helm_ret=$(tr -d '\r\n' < "${helm_exit_file}")
+          else
+              echo "Timed out or background helm process stopped unexpectedly while waiting for environment (${ENV_NAME})"
+              if [[ -n "${helm_pid}" ]]; then
+                  pkill -P "${helm_pid}" 2>/dev/null || true
+                  kill "${helm_pid}" 2>/dev/null || true
+              fi
+          fi
+
+          echo "==================== helm install output ===================="
+          cat "${helm_log}" || true
+
+          if [[ "${helm_ret}" != "0" ]]; then
+              echo "KB Cloud Env (${ENV_NAME}) is not ready (helm exit code: ${helm_ret})"
+              echo "installer-env-result=[FAILED]" >> $GITHUB_OUTPUT
+
+              set +e
+              set -o nounset
+              echo "==================== describe node ===================="
+              kubectl describe node
+              df -h
+
+              echo "==================== kb-cloud-installer-environment & envinstall jobs/pods ===================="
+              kubectl get jobs,pods -n kb-cloud | grep -E '^(NAME|job\.batch/(kb-cloud-installer-environment|envinstall-)|pod/(kb-cloud-installer-environment|envinstall-))' || true
+              env_pods=$(kubectl get pods -n kb-cloud --no-headers -l app.kubernetes.io/component=environment 2>/dev/null | awk '{print $1}')
+              for env_pod in ${env_pods}; do
+                  echo "==================== pod ${env_pod} logs ===================="
+                  kubectl logs --tail 200 -n kb-cloud "${env_pod}"
+                  echo "==================== pod ${env_pod} describe ===================="
+                  kubectl describe pod -n kb-cloud "${env_pod}"
+              done
+
+              envinstall_error_pods=$(kubectl get pods -n kb-cloud --no-headers 2>/dev/null | awk '$1 ~ /^envinstall-/ && $3 != "Completed" {print $1}' || true)
+              for envinstall_pod in ${envinstall_error_pods}; do
+                  echo "==================== pod ${envinstall_pod} logs ===================="
+                  kubectl logs --tail 200 --all-containers=true -n kb-cloud "${envinstall_pod}" || true
+                  echo "==================== pod ${envinstall_pod} describe ===================="
+                  kubectl describe pod -n kb-cloud "${envinstall_pod}" || true
+              done
+
+              apiserver_pods=$(kubectl get pods -n kb-cloud --no-headers | awk '$1 ~ /^apiserver-/ {print $1}')
+              for apiserver_pod in ${apiserver_pods}; do
+                  echo "==================== pod ${apiserver_pod} logs (tail 100) ===================="
+                  kubectl logs --tail 100 -n kb-cloud "${apiserver_pod}"
+                  echo "
+                  "
+              done
+
+              echo "==================== kb-system pods ===================="
+              kubectl get pods -n kb-system
+              dump_abnormal_kb_system_pods
+
+              set -e
+              exit 1
+          fi
+
+          echo "KB Cloud Env (${ENV_NAME}) is ready"
+          helm status installer -n kb-cloud || true
+          kubectl get pods -n kb-system || true
+          set +e
+          dump_abnormal_kb_system_pods
+          set -e
+          echo "installer-env-result=[PASSED]" >> $GITHUB_OUTPUT
 
   upgrade-test:
     needs: [ get-cloud-branch ]
@@ -586,7 +1193,8 @@ jobs:
               fi
               echo "Waiting for KB Cloud to be ready..."
               kubectl get pods -n kb-cloud
-              echo ""
+              echo "
+              "
               sleep 5
           done
           
@@ -612,7 +1220,8 @@ jobs:
               for installer_error_pod in $(echo "${installer_error_pods}"); do
                   echo "==================== pod ${installer_error_pod} describe ===================="
                   kubectl describe pod -n kb-cloud ${installer_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               # logs kb-cloud error pod 
@@ -621,7 +1230,8 @@ jobs:
               for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
                   echo "==================== pod ${kb_cloud_error_pod} logs ===================="
                   kubectl logs --tail 100 -n kb-cloud ${kb_cloud_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               set -e
@@ -693,7 +1303,8 @@ jobs:
               fi
               echo "Waiting for KB Cloud to be ready..."
               kubectl get pods -n kb-cloud
-              echo ""
+              echo "
+              "
               sleep 5
           done
           
@@ -711,7 +1322,8 @@ jobs:
               for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
                   echo "==================== pod ${kb_cloud_error_pod} logs ===================="
                   kubectl logs --tail 100 -n kb-cloud ${kb_cloud_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               # describe image pull error kb-cloud pod
@@ -720,7 +1332,8 @@ jobs:
               for kb_cloud_image_pull_error_pod in $(echo "${kb_cloud_image_pull_error_pods}"); do
                   echo "==================== pod ${kb_cloud_image_pull_error_pod} describe ===================="
                   kubectl describe pod -n kb-cloud ${kb_cloud_image_pull_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
               exit 1
           else
@@ -735,7 +1348,7 @@ jobs:
           fi
 
   send-message:
-    needs: [ get-cloud-branch, installer-test, upgrade-test ]
+    needs: [ get-cloud-branch, installer-test, installer-env-test, upgrade-test ]
     runs-on: ubuntu-latest
     if: ${{ always() }}
     steps:
@@ -767,6 +1380,15 @@ jobs:
           if [[ -z "${BOOTSTRAPPER_RESULT_1_32}" ]]; then
               BOOTSTRAPPER_RESULT_1_32="[FAILED]"
           fi
+
+          echo "get installer env test result"
+          INSTALLER_ENV_SUPPORTED="${{ needs.installer-env-test.outputs.installer-env-supported }}"
+          INSTALLER_ENV_RESULT="${{ needs.installer-env-test.outputs.installer-env-result }}"
+          if [[ "${{ needs.installer-env-test.result }}" == "skipped" || "${INSTALLER_ENV_SUPPORTED}" == "false" ]]; then
+              INSTALLER_ENV_RESULT="[SKIPPED]"
+          elif [[ -z "${INSTALLER_ENV_RESULT}" ]]; then
+              INSTALLER_ENV_RESULT="[FAILED]"
+          fi
           
           echo "get upgrade test result"
           CLOUD_PRE_VERSION="${{ needs.upgrade-test.outputs.cloud-pre-version }}"
@@ -789,7 +1411,7 @@ jobs:
               TEST_RESULT="${TEST_RESULT}##installer-test-v1.33|v1.33|installer-${CLOUD_BRANCH}|${INSTALLER_RESULT_1_32}"
           fi
           
-          
+          TEST_RESULT="${TEST_RESULT}##installer-env-test|v${{ inputs.K3S_VERSION }}|installer-env-${CLOUD_BRANCH}|${INSTALLER_ENV_RESULT}"
           TEST_RESULT="${TEST_RESULT}##upgrade-test|v${{ inputs.K3S_VERSION }}|installer-${CLOUD_PRE_VERSION}|${INSTALLER_PRE_RESULT}"
           TEST_RESULT="${TEST_RESULT}##upgrade-test|v${{ inputs.K3S_VERSION }}|upgrade-${CLOUD_BRANCH}|${UPGRADE_RESULT}"
           echo "TEST_RESULT:${TEST_RESULT}" 
@@ -804,9 +1426,19 @@ jobs:
           export TZ='Asia/Shanghai'
           date_ret=$(date +%Y-%m-%d-%T)
           TEST_TITLE="[${CLOUD_BRANCH}] Cloud Installer & Upgrade [${date_ret}]"
+
+          WEBHOOK_TYPE="${{ inputs.WEBHOOK_TYPE }}"
+          case "${WEBHOOK_TYPE}" in
+            CICD_WEBHOOK)
+              WEBHOOK_URL="${{ vars.CICD_WEBHOOK }}"
+              ;;
+            *)
+              WEBHOOK_URL="${{ vars.CLOUD_E2E_BOT_WEBHOOK }}"
+              ;;
+          esac
           
           python3 .github/utils/send_mesage.py \
               --send-type installer \
-              --url "${{ vars.CLOUD_E2E_BOT_WEBHOOK }}" \
+              --url "${WEBHOOK_URL}" \
               --title "$TEST_TITLE" \
               --result "$TEST_RESULT"
