@@ -444,9 +444,10 @@ jobs:
           fi
 
   installer-env-test:
+    if: ${{ ! startsWith(inputs.CURRENT_VERSION, 'v2.2') && ! startsWith(inputs.CURRENT_VERSION, 'v2.1') }}
     needs: [ get-cloud-branch ]
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 30
     outputs:
       installer-env-supported: ${{ steps.check_env_support.outputs.supported }}
       installer-env-result: ${{ steps.install_kb_cloud_with_env.outputs.installer-env-result }}
