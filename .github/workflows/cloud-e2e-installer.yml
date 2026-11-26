@@ -142,6 +142,15 @@ jobs:
         with:
           version: "v3.16.3"
 
+      - name: Configure host inotify limits for k3d
+        run: |
+          # All four k3d nodes share the runner's per-user inotify instance limit.
+          current=$(sysctl -n fs.inotify.max_user_instances)
+          echo "Runner inotify instance limit: $current"
+          if (( current < 8192 )); then
+              sudo sysctl -w fs.inotify.max_user_instances=8192
+          fi
+
       - name: setup k3d k3s
         uses: apecloud-inc/setup-k3d-k3s@v2
         with:
@@ -577,6 +586,16 @@ jobs:
         uses: azure/setup-kubectl@v3
         with:
           version: "v1.30.4"
+
+      - name: Configure host inotify limits for k3d
+        if: ${{ steps.check_env_support.outputs.supported == 'true' }}
+        run: |
+          # All four k3d nodes share the runner's per-user inotify instance limit.
+          current=$(sysctl -n fs.inotify.max_user_instances)
+          echo "Runner inotify instance limit: $current"
+          if (( current < 8192 )); then
+              sudo sysctl -w fs.inotify.max_user_instances=8192
+          fi
 
       - name: setup k3d k3s
         if: ${{ steps.check_env_support.outputs.supported == 'true' }}
