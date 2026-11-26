@@ -446,12 +446,35 @@ jobs:
               if [[ -n "${abnormal_kb_system_pods}" ]]; then
                   echo "==================== abnormal kb-system pods (non-fatal) ===================="
                   kubectl get pods -n kb-system || true
+                  seen_owners=" "
                   for pod in ${abnormal_kb_system_pods}; do
-                      echo "==================== pod kb-system/${pod} describe ===================="
+                      owner=$(kubectl get pod -n kb-system "${pod}" -o jsonpath='{.metadata.ownerReferences[0].kind}/{.metadata.ownerReferences[0].name}' 2>/dev/null || true)
+                      owner_key="${owner:-pod/${pod}}"
+                      if [[ "${seen_owners}" == *" ${owner_key} "* ]]; then
+                          continue
+                      fi
+                      seen_owners="${seen_owners}${owner_key} "
+                      echo "==================== pod kb-system/${pod} (${owner_key}) describe ===================="
                       kubectl describe pod -n kb-system "${pod}" || true
                       echo "==================== pod kb-system/${pod} logs ===================="
-                      kubectl logs --tail 100 --all-containers=true -n kb-system "${pod}" || true
-                      kubectl logs --tail 100 --previous --all-containers=true -n kb-system "${pod}" 2>/dev/null || true
+                      cur_logs=$(kubectl logs --tail 100 --all-containers=true -n kb-system "${pod}" 2>&1 || true)
+                      prev_logs=$(kubectl logs --tail 100 --previous --all-containers=true -n kb-system "${pod}" 2>/dev/null || true)
+                      if [[ -n "${cur_logs}" ]]; then
+                          echo "${cur_logs}"
+                      fi
+                      if [[ -n "${prev_logs}" && "${prev_logs}" != "${cur_logs}" ]]; then
+                          echo "--- previous logs ---"
+                          echo "${prev_logs}"
+                      fi
+                      if [[ "${pod}" == kb-monitor-* ]]; then
+                          node_name=$(kubectl get pod -n kb-system "${pod}" -o jsonpath='{.spec.nodeName}' 2>/dev/null || true)
+                          if [[ -n "${node_name}" ]]; then
+                              echo "==================== node ${node_name} /var/log/oteld ===================="
+                              docker exec "${node_name}" sh -c 'ls -la /var/log/oteld 2>&1; for f in /var/log/oteld/*; do [ -f "$f" ] && echo "--- $f ---" && tail -n 100 "$f"; done' 2>&1 || true
+                          fi
+                          echo "==================== configmap kb-monitor-daemonset-opentelemetry ===================="
+                          kubectl get configmap kb-monitor-daemonset-opentelemetry -n kb-system -o yaml 2>/dev/null || true
+                      fi
                   done
               fi
               set -e
@@ -849,21 +872,43 @@ jobs:
           fi
 
           dump_abnormal_kb_system_pods() {
-              local pods pod
+              local pods pod owner owner_key seen_owners cur_logs prev_logs node_name
               pods=$(kubectl get pods -n kb-system --no-headers 2>/dev/null | awk '$3 != "Completed" && ($3 != "Running" || (split($2, r, "/") == 2 && r[1] != r[2])) {print $1}' || true)
               if [[ -z "${pods}" ]]; then
                   return 0
               fi
               echo "==================== abnormal kb-system pods ===================="
               kubectl get pods -n kb-system || true
+              seen_owners=" "
               for pod in ${pods}; do
-                  echo "==================== pod kb-system/${pod} describe ===================="
+                  owner=$(kubectl get pod -n kb-system "${pod}" -o jsonpath='{.metadata.ownerReferences[0].kind}/{.metadata.ownerReferences[0].name}' 2>/dev/null || true)
+                  owner_key="${owner:-pod/${pod}}"
+                  if [[ "${seen_owners}" == *" ${owner_key} "* ]]; then
+                      continue
+                  fi
+                  seen_owners="${seen_owners}${owner_key} "
+                  echo "==================== pod kb-system/${pod} (${owner_key}) describe ===================="
                   kubectl describe pod -n kb-system "${pod}" || true
                   echo "==================== pod kb-system/${pod} logs ===================="
-                  kubectl logs --tail 100 --all-containers=true -n kb-system "${pod}" || true
-                  kubectl logs --tail 100 --previous --all-containers=true -n kb-system "${pod}" 2>/dev/null || true
-                  echo "
-                  "
+                  cur_logs=$(kubectl logs --tail 100 --all-containers=true -n kb-system "${pod}" 2>&1 || true)
+                  prev_logs=$(kubectl logs --tail 100 --previous --all-containers=true -n kb-system "${pod}" 2>/dev/null || true)
+                  if [[ -n "${cur_logs}" ]]; then
+                      echo "${cur_logs}"
+                  fi
+                  if [[ -n "${prev_logs}" && "${prev_logs}" != "${cur_logs}" ]]; then
+                      echo "--- previous logs ---"
+                      echo "${prev_logs}"
+                  fi
+                  if [[ "${pod}" == kb-monitor-* ]]; then
+                      node_name=$(kubectl get pod -n kb-system "${pod}" -o jsonpath='{.spec.nodeName}' 2>/dev/null || true)
+                      if [[ -n "${node_name}" ]]; then
+                          echo "==================== node ${node_name} /var/log/oteld ===================="
+                          docker exec "${node_name}" sh -c 'ls -la /var/log/oteld 2>&1; for f in /var/log/oteld/*; do [ -f "$f" ] && echo "--- $f ---" && tail -n 100 "$f"; done' 2>&1 || true
+                      fi
+                      echo "==================== configmap kb-monitor-daemonset-opentelemetry ===================="
+                      kubectl get configmap kb-monitor-daemonset-opentelemetry -n kb-system -o yaml 2>/dev/null || true
+                  fi
+                  echo ""
               done
           }
 
