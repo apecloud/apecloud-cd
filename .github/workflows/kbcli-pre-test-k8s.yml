@@ -132,7 +132,7 @@ jobs:
     secrets: inherit
 
   redis-pre:
-    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(inputs.test-type, 'redis|') || endsWith(inputs.TEST_TYPE, 'redis')) }}
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(format('|{0}|', inputs.test-type), '|redis|')) }}
     needs: [ install-kubeblocks-pre ]
     uses: ./.github/workflows/kbcli-test-pre.yml
     with:
@@ -1474,6 +1474,23 @@ jobs:
       random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
     secrets: inherit
 
+  inforsuite-redis-pre:
+    if: ${{ inputs.previous-version && (inputs.test-type == '' || contains(format('|{0}|', inputs.test-type), '|inforsuite-redis|')) && ! contains(inputs.release-version, 'v0.5.') && ! contains(inputs.release-version, 'v0.6.') && ! contains(inputs.release-version, 'v0.7.') && ! contains(inputs.release-version, 'v0.8.') && ! contains(inputs.release-version, 'v0.9.') }}
+    needs: [ install-kubeblocks-pre ]
+    uses: ./.github/workflows/kbcli-test-pre.yml
+    with:
+      cloud-provider: ${{ inputs.cloud-provider }}
+      region: ${{ inputs.region }}
+      release-version: "${{ inputs.previous-version }}"
+      test-type: "87"
+      test-type-name: "inforsuite-redis-pre"
+      test-args: "${{ inputs.test-args }}"
+      k8s-cluster-name: ${{ inputs.k8s-cluster-name }}
+      artifact-name: ${{ inputs.artifact-name }}
+      branch-name: ${{ inputs.branch-name }}
+      random-suffix: ${{ needs.install-kubeblocks-pre.outputs.random-suffix }}
+    secrets: inherit
+
   check-send-message:
     if: ${{ inputs.previous-version }}
     runs-on: ubuntu-latest
@@ -1495,7 +1512,7 @@ jobs:
                   fi
                   case "${test_type}" in
                       camellia-redis-proxy|damengdb|dolphindb|doris|elasticsearch|foundationdb|gaussdb|\
-                      goldendb|greatdb|hadoop|he3sql|hive|kingbase|mariadb|milvus|mongodb|mongodb-shard|\
+                      goldendb|greatdb|hadoop|he3sql|hive|inforsuite-redis|kingbase|mariadb|milvus|mongodb|mongodb-shard|\
                       mssql|asmysql|asmysql-proxy|asmysql-orc|asmysql-orc-proxy|nacos|oceanbase-ent|\
                       oceanbase-ocp|oceanbase-pingan|oceanbase-proxy|oracle|pgpool|polardb-pg|proxysql|rabbitmq|\
                       rustfs|selectdb|starrocks-ent|tdengine|tdsql|vastbase|vault|victoria-logs|victoria-metrics)
@@ -1549,7 +1566,7 @@ jobs:
               TEST_RESULT+=$(eval "$cmd")
           fi
 
-          if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"redis|"* || "$TEST_TYPE" == *"redis" ]]; then
+          if [[ "$TEST_TYPE" == '' || "|$TEST_TYPE|" == *"|redis|"* ]]; then
               TEST_RESULT="${TEST_RESULT}##redis-pre|${{ needs.redis-pre.outputs.test-result }}"
               cmd="${cmd_head} \"${{ needs.redis-pre.outputs.test-result-report }}\" "
               TEST_RESULT+=$(eval "$cmd")
@@ -1854,7 +1871,7 @@ jobs:
              damengdb-pre, kingbase-pre, vastbase-pre, mssql-pre, oceanbase-proxy-pre, goldendb-pre,
              tdsql-pre, greatdb-pre, victoria-logs-pre, doris-pre, hadoop-pre, hive-pre, nacos-pre,
              vault-pre, foundationdb-pre, selectdb-pre, he3sql-pre, rustfs-pre, seaweedfs-pre, valkey-pre,
-             polardb-pg-pre, pgpool-pre, oceanbase-pingan-pre, oceanbase-ocp-pre, dolphindb-pre, proxysql-pre  ]
+             polardb-pg-pre, pgpool-pre, oceanbase-pingan-pre, oceanbase-ocp-pre, dolphindb-pre, proxysql-pre, inforsuite-redis-pre  ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -2083,6 +2100,11 @@ jobs:
               if [[ "$TEST_TYPE" == '' || "$TEST_TYPE" == *"proxysql"* ]]; then
                   TEST_RESULT="${TEST_RESULT}##proxysql-pre|${{ needs.proxysql-pre.outputs.test-result }}"
                   cmd="${cmd_head} \"${{ needs.proxysql-pre.outputs.test-result-report }}\" "
+                  TEST_RESULT+=$(eval "$cmd")
+              fi
+              if [[ "$TEST_TYPE" == '' || "|$TEST_TYPE|" == *"|inforsuite-redis|"* ]]; then
+                  TEST_RESULT="${TEST_RESULT}##inforsuite-redis-pre|${{ needs.inforsuite-redis-pre.outputs.test-result }}"
+                  cmd="${cmd_head} \"${{ needs.inforsuite-redis-pre.outputs.test-result-report }}\" "
                   TEST_RESULT+=$(eval "$cmd")
               fi
           fi

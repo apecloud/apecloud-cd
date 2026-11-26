@@ -226,7 +226,8 @@ jobs:
               fi
               echo "Waiting for KB Cloud to be ready..."
               kubectl get pods -n kb-cloud
-              echo ""
+              echo "
+              "
               sleep 5
           done
           
@@ -261,7 +262,8 @@ jobs:
               for installer_error_pod in $(echo "${installer_error_pods}"); do
                   echo "==================== pod ${installer_error_pod} describe ===================="
                   kubectl describe pod -n kb-cloud ${installer_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               # logs kb-cloud error pod 
@@ -270,7 +272,8 @@ jobs:
               for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
                   echo "==================== pod ${kb_cloud_error_pod} logs ===================="
                   kubectl logs --tail 100 -n kb-cloud ${kb_cloud_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               set -e
@@ -355,7 +358,8 @@ jobs:
                       done
                   done
               fi
-              echo ""
+              echo "
+              "
               sleep 5
           done
           
@@ -400,7 +404,8 @@ jobs:
               for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
                   echo "==================== pod ${kb_system_error_pod} logs ===================="
                   kubectl logs --tail 100 -n kb-system ${kb_system_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               # describe image pull error kb-system pod
@@ -409,7 +414,8 @@ jobs:
               for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
                   echo "==================== pod ${kb_system_error_pod} describe ===================="
                   kubectl describe pod -n kb-system ${kb_system_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               # logs kb-cloud error pod 
@@ -418,7 +424,8 @@ jobs:
               for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
                   echo "==================== pod ${kb_system_error_pod} logs ===================="
                   kubectl logs --tail 100 -n kb-cloud ${kb_system_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               # describe image pull error kb-cloud pod
@@ -427,7 +434,8 @@ jobs:
               for kb_system_error_pod in $(echo "${kb_system_error_pods}"); do
                   echo "==================== pod ${kb_system_error_pod} describe ===================="
                   kubectl describe pod -n kb-cloud ${kb_system_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               set -e
@@ -747,7 +755,8 @@ jobs:
 
               echo "Waiting for KB Cloud control plane to be ready..."
               kubectl get pods -n kb-cloud || true
-              echo ""
+              echo "
+              "
               sleep 5
           done
 
@@ -784,21 +793,24 @@ jobs:
               for installer_error_pod in $(echo "${installer_error_pods}"); do
                   echo "==================== pod ${installer_error_pod} describe ===================="
                   kubectl describe pod -n kb-cloud "${installer_error_pod}"
-                  echo ""
+                  echo "
+                  "
               done
 
               kb_cloud_error_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Evicted" | grep -v "Running" | grep -v "NAME" | grep -v "ImagePull" || true) | awk '{print $1}')
               for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
                   echo "==================== pod ${kb_cloud_error_pod} logs ===================="
                   kubectl logs --tail 100 --all-containers=true -n kb-cloud "${kb_cloud_error_pod}"
-                  echo ""
+                  echo "
+                  "
               done
 
               kb_cloud_image_pull_pods=$(kubectl get pods -n kb-cloud | (grep -v "kb-cloud-installer" | grep -v "Completed" | grep -v "Running" | grep -v "NAME" | egrep "ImagePull|Pending|Evicted" || true) | awk '{print $1}')
               for kb_cloud_image_pull_pod in $(echo "${kb_cloud_image_pull_pods}"); do
                   echo "==================== pod ${kb_cloud_image_pull_pod} describe ===================="
                   kubectl describe pod -n kb-cloud "${kb_cloud_image_pull_pod}"
-                  echo ""
+                  echo "
+                  "
               done
 
               set -e
@@ -850,7 +862,8 @@ jobs:
                   echo "==================== pod kb-system/${pod} logs ===================="
                   kubectl logs --tail 100 --all-containers=true -n kb-system "${pod}" || true
                   kubectl logs --tail 100 --previous --all-containers=true -n kb-system "${pod}" 2>/dev/null || true
-                  echo ""
+                  echo "
+                  "
               done
           }
 
@@ -889,7 +902,8 @@ jobs:
                       done
                   fi
               done
-              echo ""
+              echo "
+              "
               sleep 5
           done
 
@@ -942,7 +956,8 @@ jobs:
               for apiserver_pod in ${apiserver_pods}; do
                   echo "==================== pod ${apiserver_pod} logs (tail 100) ===================="
                   kubectl logs --tail 100 -n kb-cloud "${apiserver_pod}"
-                  echo ""
+                  echo "
+                  "
               done
 
               echo "==================== kb-system pods ===================="
@@ -1114,7 +1129,8 @@ jobs:
               fi
               echo "Waiting for KB Cloud to be ready..."
               kubectl get pods -n kb-cloud
-              echo ""
+              echo "
+              "
               sleep 5
           done
           
@@ -1140,7 +1156,8 @@ jobs:
               for installer_error_pod in $(echo "${installer_error_pods}"); do
                   echo "==================== pod ${installer_error_pod} describe ===================="
                   kubectl describe pod -n kb-cloud ${installer_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               # logs kb-cloud error pod 
@@ -1149,7 +1166,8 @@ jobs:
               for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
                   echo "==================== pod ${kb_cloud_error_pod} logs ===================="
                   kubectl logs --tail 100 -n kb-cloud ${kb_cloud_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               set -e
@@ -1221,7 +1239,8 @@ jobs:
               fi
               echo "Waiting for KB Cloud to be ready..."
               kubectl get pods -n kb-cloud
-              echo ""
+              echo "
+              "
               sleep 5
           done
           
@@ -1239,7 +1258,8 @@ jobs:
               for kb_cloud_error_pod in $(echo "${kb_cloud_error_pods}"); do
                   echo "==================== pod ${kb_cloud_error_pod} logs ===================="
                   kubectl logs --tail 100 -n kb-cloud ${kb_cloud_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
           
               # describe image pull error kb-cloud pod
@@ -1248,7 +1268,8 @@ jobs:
               for kb_cloud_image_pull_error_pod in $(echo "${kb_cloud_image_pull_error_pods}"); do
                   echo "==================== pod ${kb_cloud_image_pull_error_pod} describe ===================="
                   kubectl describe pod -n kb-cloud ${kb_cloud_image_pull_error_pod}
-                  echo ""
+                  echo "
+                  "
               done
               exit 1
           else
