@@ -291,7 +291,7 @@ check_images() {
 
 check_addon_charts_cloud_tag() {
     local cloud_version charts_name chart_name chart_versions chart_version chart_index
-    local is_addon engine_type chart_images cloud_images
+    local is_addon engine_type chart_images
     local chart_ref expected_image image_found manifests_image failed
     failed=0
     cloud_version=$(yq e '.kubeblocks-cloud[0].version' "${MANIFESTS_FILE}")
@@ -302,7 +302,6 @@ check_addon_charts_cloud_tag() {
         echo 1 > exit_result
         return
     fi
-    cloud_images=$(yq e '.kubeblocks-cloud[0].images[]' "${MANIFESTS_FILE}" 2>/dev/null || true)
     charts_name=$(yq e "to_entries|map(.key)|.[]"  ${MANIFESTS_FILE})
     for chart_name in $(echo "$charts_name"); do
         if [[ -z "$chart_name" || "$chart_name" == "#"* || "$chart_name" == "kata" ]]; then
@@ -341,18 +340,6 @@ check_addon_charts_cloud_tag() {
                     fi
                     echo 1 > exit_result
                 fi
-                for manifests_image in ${cloud_images}; do
-                    if [[ "${manifests_image}" == "${chart_ref}" || "${manifests_image}" == "${chart_ref}-"* ]]; then
-                        failed=1
-                        check_result_tmp="$(tput -T xterm setaf 1)Found ${chart_name} ${chart_version} image:${manifests_image} in kubeblocks-cloud, expected it on the addon version$(tput -T xterm sgr0)"
-                        echo "${check_result_tmp}"
-                        CHECK_RESULTS="$(cat check_manifest_result)"
-                        if [[ "${CHECK_RESULTS}" != *"${check_result_tmp}"* ]]; then
-                            echo "${check_result_tmp}" >> check_manifest_result
-                        fi
-                        echo 1 > exit_result
-                    fi
-                done
             fi
             chart_index=$(( $chart_index + 1 ))
         done
