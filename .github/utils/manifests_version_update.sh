@@ -121,6 +121,36 @@ update_addon_chart_cloud_suffix() {
     done
 }
 
+# sync_metadata_postgresql_image
+# kubeblocks-cloud contains the metadata database addon chart image, e.g.
+#   apecloud/apecloud-addon-charts:postgresql-1.0.8-v2.3.0-alpha.231
+# Parse the "<chart>-<major>.<minor>." prefix from that image, then copy the
+# matching image (same prefix) from the postgresql engine entries so the two
+# stay identical after the engine images are updated.
+sync_metadata_postgresql_image() {
+    local cloud_image tag prefix pattern engine_image
+
+    cloud_image=$(yq e '.kubeblocks-cloud[].images[] | select(. == "apecloud/apecloud-addon-charts:postgresql*")' "${MANIFESTS_FILE}" 2>/dev/null | head -n 1)
+    if [[ -z "${cloud_image}" ]]; then
+        return 0
+    fi
+
+    tag="${cloud_image##*:}"
+    # tag format: postgresql-<major>.<minor>.<patch>-v<release...>, extract "postgresql-<major>.<minor>."
+    prefix=$(echo "${tag}" | sed -nE 's/^(postgresql-[0-9]+\.[0-9]+\.).*/\1/p')
+    if [[ -z "${prefix}" ]]; then
+        echo "$(tput -T xterm setaf 3)::warning title=Can not parse postgresql chart prefix from image:${cloud_image} $(tput -T xterm sgr0)"
+        return 0
+    fi
+    pattern="apecloud/apecloud-addon-charts:${prefix}*"
+
+    engine_image=$(PATTERN="${pattern}" yq e '[.postgresql[].images[] | select(. == strenv(PATTERN))][0] // ""' "${MANIFESTS_FILE}") || return 1
+    if [[ -n "${engine_image}" ]]; then
+        PATTERN="${pattern}" ENGINE_IMAGE="${engine_image}" yq e -i \
+            '(.kubeblocks-cloud[].images[] | select(. == strenv(PATTERN))) = strenv(ENGINE_IMAGE)' "${MANIFESTS_FILE}"
+    fi
+}
+
 update_manifests_file_version() {
     echo "MANIFESTS_FILE:${MANIFESTS_FILE}"
     if [[ ! -f "${MANIFESTS_FILE}" ]]; then
@@ -210,6 +240,7 @@ update_manifests_file_version() {
     if [[ "${CLOUD_SUFFIX}" == "true" ]]; then
         update_addon_chart_cloud_suffix
     fi
+    sync_metadata_postgresql_image || return 1
 
     # update_addon_chart_version
 
