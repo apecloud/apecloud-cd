@@ -121,6 +121,42 @@ update_addon_chart_cloud_suffix() {
     done
 }
 
+# sync_kubeblocks_cloud_addon_charts
+# kubeblocks-cloud may contain addon chart images such as the metadata database
+#   apecloud/apecloud-addon-charts:postgresql-1.0.8-v2.3.0-alpha.231
+# For each of them, parse the "<chart>-<major>.<minor>." prefix from its tag,
+# then copy the matching image (same prefix) from the corresponding engine
+# section (e.g. .postgresql) so cloud images stay identical to engine images
+# after the engine images are updated.
+sync_kubeblocks_cloud_addon_charts() {
+    local cloud_images cloud_image tag chart_name prefix pattern engine_image
+
+    cloud_images=$(yq e '.kubeblocks-cloud[].images[] | select(. == "apecloud/apecloud-addon-charts:*")' "${MANIFESTS_FILE}" 2>/dev/null)
+    if [[ -z "${cloud_images}" ]]; then
+        return 0
+    fi
+
+    for cloud_image in ${cloud_images}; do
+        tag="${cloud_image##*:}"
+        # tag format: <chart>-<major>.<minor>.<patch>-v<release...>
+        chart_name=$(echo "${tag}" | sed -nE 's/^([a-zA-Z0-9_-]+)-[0-9]+\.[0-9]+\..*/\1/p')
+        prefix=$(echo "${tag}" | sed -nE 's/^([a-zA-Z0-9_-]+-[0-9]+\.[0-9]+\.).*/\1/p')
+        if [[ -z "${chart_name}" || -z "${prefix}" ]]; then
+            echo "$(tput -T xterm setaf 3)::warning title=Can not parse addon chart prefix from image:${cloud_image} $(tput -T xterm sgr0)"
+            continue
+        fi
+        pattern="apecloud/apecloud-addon-charts:${prefix}*"
+
+        engine_image=$(CHART="${chart_name}" PATTERN="${pattern}" yq e '[.[strenv(CHART)][].images[] | select(. == strenv(PATTERN))][0] // ""' "${MANIFESTS_FILE}") || return 1
+        if [[ -z "${engine_image}" ]]; then
+            echo "$(tput -T xterm setaf 3)::warning title=No engine image matching ${pattern} found in ${chart_name} entries $(tput -T xterm sgr0)"
+            continue
+        fi
+        PATTERN="${pattern}" ENGINE_IMAGE="${engine_image}" yq e -i \
+            '(.kubeblocks-cloud[].images[] | select(. == strenv(PATTERN))) = strenv(ENGINE_IMAGE)' "${MANIFESTS_FILE}"
+    done
+}
+
 update_manifests_file_version() {
     echo "MANIFESTS_FILE:${MANIFESTS_FILE}"
     if [[ ! -f "${MANIFESTS_FILE}" ]]; then
@@ -210,6 +246,7 @@ update_manifests_file_version() {
     if [[ "${CLOUD_SUFFIX}" == "true" ]]; then
         update_addon_chart_cloud_suffix
     fi
+    sync_kubeblocks_cloud_addon_charts || return 1
 
     # update_addon_chart_version
 
